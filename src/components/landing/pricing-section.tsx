@@ -49,8 +49,8 @@ const PLANS: PricingPlan[] = [
   },
   {
     name: "Pro",
-    monthly: { price: "$12", period: "/month" },
-    yearly: { price: "$100", period: "/year", savings: "Save 30%" },
+    monthly: { price: "$19", period: "/month" },
+    yearly: { price: "$149", period: "/year", savings: "Save 35%" },
     description: "Full-featured journal for serious traders",
     features: [
       "Unlimited trade logging",
@@ -70,8 +70,8 @@ const PLANS: PricingPlan[] = [
   },
   {
     name: "Max",
-    monthly: { price: "$25", period: "/month" },
-    yearly: { price: "$180", period: "/year", savings: "Save 40%" },
+    monthly: { price: "$39", period: "/month" },
+    yearly: { price: "$279", period: "/year", savings: "Save 40%" },
     description: "Professional edge — AI, advanced analytics & psychology tools",
     features: [
       "Everything in Pro",

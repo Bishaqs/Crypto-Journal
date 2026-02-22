@@ -43,11 +43,11 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: "$12",
+    price: "$19",
     period: "/month",
-    yearlyPrice: "$100",
+    yearlyPrice: "$149",
     yearlyPeriod: "/year",
-    savings: "Save 30%",
+    savings: "Save 35%",
     description: "Full-featured journal for serious traders",
     features: [
       "Unlimited trade logging",
@@ -64,9 +64,9 @@ const PLANS = [
   {
     id: "max",
     name: "Max",
-    price: "$25",
+    price: "$39",
     period: "/month",
-    yearlyPrice: "$180",
+    yearlyPrice: "$279",
     yearlyPeriod: "/year",
     savings: "Save 40%",
     description: "Professional edge — AI, advanced analytics & psychology tools",
