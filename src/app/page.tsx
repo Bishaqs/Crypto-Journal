@@ -168,7 +168,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-foreground/80 mt-6 max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-            The crypto trading journal that tracks your psychology, enforces your rules, and uses AI to reveal the patterns costing you money.
+            The trading journal for crypto &amp; stocks that tracks your psychology, enforces your rules, and uses AI to reveal the patterns costing you money.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
@@ -375,7 +375,7 @@ export default function LandingPage() {
             <span className="text-sm font-semibold text-muted">Stargate</span>
           </div>
           <p className="text-xs text-muted/50">
-            Built for crypto traders who want to improve.
+            Built for crypto &amp; stock traders who want to improve.
           </p>
         </div>
       </footer>
