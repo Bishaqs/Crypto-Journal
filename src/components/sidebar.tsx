@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
-import type { UserAddons } from "@/lib/types";
+import { hasStockAccess } from "@/lib/addons";
 
 interface NavItem {
   href: string;
@@ -86,26 +86,8 @@ export function Sidebar() {
   const [showStockUpgrade, setShowStockUpgrade] = useState(false);
   const { viewMode, toggleViewMode } = useTheme();
 
-  // Check if user has stocks addon or Max tier
-  function hasStocksAccess(): boolean {
-    // Demo mode: always grant access
-    if (typeof document !== "undefined" && document.cookie.includes("stargate-demo=true")) return true;
-    try {
-      const addonsRaw = localStorage.getItem("stargate-addons");
-      if (addonsRaw) {
-        const addons: UserAddons = JSON.parse(addonsRaw);
-        if (addons.stocks) return true;
-      }
-      // Also check if user has Max tier (which includes stocks)
-      const tier = localStorage.getItem("stargate-tier");
-      return tier === "max";
-    } catch {
-      return false;
-    }
-  }
-
   function handleAssetToggle(context: "crypto" | "stocks") {
-    if (context === "stocks" && !hasStocksAccess()) {
+    if (context === "stocks" && !hasStockAccess()) {
       setShowStockUpgrade(true);
       return;
     }
@@ -119,21 +101,10 @@ export function Sidebar() {
     if (saved === "collapsed") setCollapsed(true);
     const savedContext = localStorage.getItem("stargate-asset-context");
     if (savedContext === "crypto" || savedContext === "stocks") {
-      // Only restore stocks if user still has access
-      if (savedContext === "stocks") {
-        const isDemo = typeof document !== "undefined" && document.cookie.includes("stargate-demo=true");
-        if (isDemo) {
-          setAssetContext("stocks");
-        } else {
-          try {
-            const addonsRaw = localStorage.getItem("stargate-addons");
-            const addons: UserAddons = addonsRaw ? JSON.parse(addonsRaw) : { stocks: false };
-            const tier = localStorage.getItem("stargate-tier");
-            if (addons.stocks || tier === "max") setAssetContext("stocks");
-          } catch { /* fallback to crypto */ }
-        }
-      } else {
-        setAssetContext(savedContext);
+      if (savedContext === "stocks" && hasStockAccess()) {
+        setAssetContext("stocks");
+      } else if (savedContext === "crypto") {
+        setAssetContext("crypto");
       }
     }
   }, []);
@@ -235,7 +206,7 @@ export function Sidebar() {
                   : "text-muted hover:text-foreground border border-transparent"
               }`}
             >
-              {hasStocksAccess() ? <BarChart3 size={12} /> : <Lock size={10} />}
+              {hasStockAccess() ? <BarChart3 size={12} /> : <Lock size={10} />}
               Stocks
             </button>
           </div>

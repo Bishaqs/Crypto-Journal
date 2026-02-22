@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Crown, Star } from "lucide-react";
+import { CheckCircle2, Crown, Star, TrendingUp, BarChart3 } from "lucide-react";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
 type PricingTier = {
@@ -23,7 +23,7 @@ type PricingPlan = {
   badge: string | null;
 };
 
-const PLANS: PricingPlan[] = [
+const CRYPTO_PLANS: PricingPlan[] = [
   {
     name: "Free",
     monthly: { price: "$0", period: "forever" },
@@ -96,11 +96,117 @@ const PLANS: PricingPlan[] = [
   },
 ];
 
+const STOCK_PLANS: PricingPlan[] = [
+  {
+    name: "Free",
+    monthly: { price: "$0", period: "forever" },
+    yearly: { price: "$0", period: "forever" },
+    description: "Get started — see if journaling changes your stock trading",
+    features: [
+      "2 trade logs per week",
+      "Basic analytics (win rate, P&L)",
+      "Calendar heatmap",
+      "Journal (text only)",
+      "Light + Dark themes",
+      "Single broker CSV import",
+      "Options trade logging",
+    ],
+    excluded: [
+      "Advanced analytics & statistics",
+      "AI Coach + simulations",
+      "Weekly reports",
+      "Playbook & risk calculator",
+    ],
+    cta: "Get Started",
+    highlight: false,
+    badge: null,
+  },
+  {
+    name: "Pro",
+    monthly: { price: "$19", period: "/month" },
+    yearly: { price: "$149", period: "/year", savings: "Save 35%" },
+    description: "Full-featured journal for serious stock traders",
+    features: [
+      "Unlimited trade logging",
+      "Full analytics & statistics (50+ metrics)",
+      "Psychology engine & tilt detection",
+      "Weekly performance reports",
+      "Calendar + behavioral insights",
+      "5 premium themes",
+      "Playbook & risk calculator",
+      "CSV import/export",
+      "Unlimited broker connections",
+      "Sector analytics & session tracking",
+    ],
+    excluded: [],
+    cta: "Start Pro",
+    highlight: true,
+    badge: "Most Popular",
+  },
+  {
+    name: "Max",
+    monthly: { price: "$39", period: "/month" },
+    yearly: { price: "$279", period: "/year", savings: "Save 40%" },
+    description: "Professional edge — AI, advanced analytics & psychology tools",
+    features: [
+      "Everything in Pro",
+      "AI Trading Coach — ask AI about your trades",
+      "Monte Carlo simulations & what-if scenarios",
+      "Prop Firm Tracker — FTMO, TopStep & more",
+      "Heat Maps & overtrading detection",
+      "R-Multiple & MAE/MFE risk analysis",
+      "Execution quality scoring",
+      "Rule violation cost tracker",
+      "Psychology tools — breathing, CBT, Fear-Greed Index",
+      "Stock tax reports — Form 8949",
+      "Priority support",
+      "Crypto trading included",
+    ],
+    excluded: [],
+    cta: "Go Max",
+    highlight: false,
+    badge: "Power User",
+  },
+];
+
+type AssetType = "crypto" | "stocks";
+
 export function PricingSection() {
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
+  const [asset, setAsset] = useState<AssetType>("crypto");
+
+  const plans = asset === "crypto" ? CRYPTO_PLANS : STOCK_PLANS;
 
   return (
     <>
+      {/* Asset toggle */}
+      <div className="flex items-center justify-center gap-1 mb-4">
+        <div className="inline-flex items-center rounded-xl glass border border-border/50 p-1">
+          <button
+            onClick={() => setAsset("crypto")}
+            className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 ${
+              asset === "crypto"
+                ? "bg-accent/15 text-accent border border-accent/30"
+                : "text-muted hover:text-foreground border border-transparent"
+            }`}
+          >
+            <TrendingUp size={12} />
+            Crypto
+          </button>
+          <button
+            onClick={() => setAsset("stocks")}
+            className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 ${
+              asset === "stocks"
+                ? "bg-accent/15 text-accent border border-accent/30"
+                : "text-muted hover:text-foreground border border-transparent"
+            }`}
+          >
+            <BarChart3 size={12} />
+            Stocks
+          </button>
+        </div>
+      </div>
+
       {/* Billing toggle */}
       <div className="flex items-center justify-center gap-1 mb-10">
         <div className="inline-flex items-center rounded-xl glass border border-border/50 p-1">
@@ -132,11 +238,11 @@ export function PricingSection() {
 
       {/* Pricing cards */}
       <div className="grid md:grid-cols-3 gap-5 max-w-4xl mx-auto">
-        {PLANS.map((plan, i) => {
+        {plans.map((plan, i) => {
           const tier = billing === "monthly" ? plan.monthly : plan.yearly;
 
           return (
-            <ScrollReveal key={plan.name} delay={i * 100}>
+            <ScrollReveal key={`${asset}-${plan.name}`} delay={i * 100}>
               <div
                 className={`rounded-2xl border p-6 md:p-7 h-full flex flex-col feature-card ${
                   plan.highlight
@@ -208,16 +314,22 @@ export function PricingSection() {
         })}
       </div>
 
-      {/* Stock Trading Add-On */}
+      {/* Add-On card — switches based on asset context */}
       <div className="mt-8 max-w-md mx-auto">
         <div className="glass border border-border/50 rounded-2xl p-5 text-center">
           <p className="text-xs uppercase tracking-wider text-accent font-semibold mb-1">Add-On</p>
-          <h3 className="text-lg font-bold text-foreground">Stock Trading</h3>
+          <h3 className="text-lg font-bold text-foreground">
+            {asset === "crypto" ? "Stock Trading" : "Crypto Trading"}
+          </h3>
           <div className="flex items-baseline justify-center gap-1 mt-1">
             <span className="text-2xl font-bold text-foreground">$29</span>
             <span className="text-sm text-muted">/year</span>
           </div>
-          <p className="text-xs text-muted mt-2">Track stocks & options alongside crypto. Sector analytics, PDT tracking, market session insights.</p>
+          <p className="text-xs text-muted mt-2">
+            {asset === "crypto"
+              ? "Track stocks & options alongside crypto. Sector analytics, PDT tracking, market session insights."
+              : "Track crypto alongside stocks. DEX analytics, multi-chain support, on-chain trade logging."}
+          </p>
           <p className="text-[10px] text-win mt-1">Included free with Max</p>
         </div>
       </div>

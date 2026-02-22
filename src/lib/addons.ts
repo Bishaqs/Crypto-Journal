@@ -17,14 +17,13 @@ export function setUserAddons(addons: UserAddons): void {
 }
 
 export function hasStockAccess(): boolean {
-  // Demo mode: always grant access
-  if (typeof document !== "undefined" && document.cookie.includes("stargate-demo=true")) return true;
+  // DEV BYPASS — remove before launch and uncomment the checks below
+  return true;
 
-  // Max tier users always have stock access
+  /* Production gating:
+  if (typeof document !== "undefined" && document.cookie.includes("stargate-demo=true")) return true;
   const addons = getUserAddons();
   if (addons.stocks) return true;
-
-  // Check if user is on Max tier (stored by subscription settings)
   try {
     const sub = localStorage.getItem("stargate-subscription");
     if (sub) {
@@ -32,8 +31,8 @@ export function hasStockAccess(): boolean {
       if (parsed.tier === "max") return true;
     }
   } catch {}
-
   return false;
+  */
 }
 
 export type AssetContext = "crypto" | "stocks";
