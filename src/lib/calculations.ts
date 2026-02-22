@@ -1,4 +1,4 @@
-import { Trade, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsight, WeeklyReport } from "./types";
+import { Trade, Chain, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsight, WeeklyReport } from "./types";
 
 // Pure functions — given trades in, stats out. No side effects, easy to test.
 // This is where all the trading math lives.
@@ -631,4 +631,68 @@ export function getAvailableWeeks(trades: Trade[]): string[] {
     mondaySet.add(monday.toISOString().split("T")[0]);
   }
   return Array.from(mondaySet).sort((a, b) => b.localeCompare(a));
+}
+
+/**
+ * P&L breakdown by chain for DEX trades.
+ */
+export type ChainStats = {
+  chain: Chain;
+  pnl: number;
+  trades: number;
+  wins: number;
+  winRate: number;
+  totalGas: number;
+};
+
+export function calculateChainStats(trades: Trade[]): ChainStats[] {
+  const dexTrades = trades.filter((t) => t.trade_source === "dex" && t.chain && t.close_timestamp);
+  const map = new Map<Chain, { pnl: number; trades: number; wins: number; gas: number }>();
+
+  for (const t of dexTrades) {
+    const chain = t.chain!;
+    const existing = map.get(chain) ?? { pnl: 0, trades: 0, wins: 0, gas: 0 };
+    const p = t.pnl ?? calculateTradePnl(t) ?? 0;
+    map.set(chain, {
+      pnl: existing.pnl + p,
+      trades: existing.trades + 1,
+      wins: existing.wins + (p > 0 ? 1 : 0),
+      gas: existing.gas + (t.gas_fee ?? 0),
+    });
+  }
+
+  return Array.from(map.entries())
+    .map(([chain, d]) => ({
+      chain,
+      pnl: d.pnl,
+      trades: d.trades,
+      wins: d.wins,
+      winRate: d.trades > 0 ? (d.wins / d.trades) * 100 : 0,
+      totalGas: d.gas,
+    }))
+    .sort((a, b) => b.pnl - a.pnl);
+}
+
+/**
+ * Gas impact: total gas fees as % of gross P&L.
+ */
+export type GasImpact = {
+  totalGasFees: number;
+  grossPnl: number;
+  gasAsPercent: number;
+  netPnlAfterGas: number;
+};
+
+export function calculateGasImpact(trades: Trade[]): GasImpact {
+  const dexClosed = trades.filter((t) => t.trade_source === "dex" && t.close_timestamp);
+  const totalGasFees = dexClosed.reduce((s, t) => s + (t.gas_fee ?? 0), 0);
+  const grossPnl = dexClosed.reduce((s, t) => s + (t.pnl ?? calculateTradePnl(t) ?? 0), 0);
+  const gasAsPercent = grossPnl !== 0 ? (totalGasFees / Math.abs(grossPnl)) * 100 : 0;
+
+  return {
+    totalGasFees,
+    grossPnl,
+    gasAsPercent,
+    netPnlAfterGas: grossPnl - totalGasFees,
+  };
 }

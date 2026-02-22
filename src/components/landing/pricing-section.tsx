@@ -36,6 +36,7 @@ const PLANS: PricingPlan[] = [
       "Journal (text only)",
       "Light + Dark themes",
       "Single exchange CSV import",
+      "DEX trade logging",
     ],
     excluded: [
       "Advanced analytics & statistics",
@@ -62,6 +63,7 @@ const PLANS: PricingPlan[] = [
       "Playbook & risk calculator",
       "CSV import/export",
       "Unlimited exchange API connections",
+      "Multi-chain analytics & DEX support",
     ],
     excluded: [],
     cta: "Start Pro",
@@ -85,6 +87,7 @@ const PLANS: PricingPlan[] = [
       "Psychology tools — breathing, CBT, Fear-Greed Index",
       "Crypto tax reports — Form 8949",
       "Priority support",
+      "Stock trading included",
     ],
     excluded: [],
     cta: "Go Max",
@@ -203,6 +206,20 @@ export function PricingSection() {
             </ScrollReveal>
           );
         })}
+      </div>
+
+      {/* Stock Trading Add-On */}
+      <div className="mt-8 max-w-md mx-auto">
+        <div className="glass border border-border/50 rounded-2xl p-5 text-center">
+          <p className="text-xs uppercase tracking-wider text-accent font-semibold mb-1">Add-On</p>
+          <h3 className="text-lg font-bold text-foreground">Stock Trading</h3>
+          <div className="flex items-baseline justify-center gap-1 mt-1">
+            <span className="text-2xl font-bold text-foreground">$29</span>
+            <span className="text-sm text-muted">/year</span>
+          </div>
+          <p className="text-xs text-muted mt-2">Track stocks & options alongside crypto. Sector analytics, PDT tracking, market session insights.</p>
+          <p className="text-[10px] text-win mt-1">Included free with Max</p>
+        </div>
       </div>
     </>
   );

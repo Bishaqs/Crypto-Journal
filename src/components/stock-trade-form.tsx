@@ -2,33 +2,42 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { tradeSchema, type TradeFormData } from "@/lib/validators";
-import { calculateTradePnl } from "@/lib/calculations";
-import { Trade, Chain, DEX_PROTOCOLS, CHAINS } from "@/lib/types";
-import { X, Wallet, Building2 } from "lucide-react";
+import { stockTradeSchema, type StockTradeFormData } from "@/lib/validators";
+import { StockTrade, STOCK_SECTORS } from "@/lib/types";
+import { X } from "lucide-react";
 import { EmotionPicker, ConfidenceSlider, SetupTypePicker, ProcessScoreInput } from "./psychology-inputs";
 import { PreTradeChecklist } from "./pre-trade-checklist";
 import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
 import { getCustomTagPresets } from "@/lib/tag-manager";
 
-const NARRATIVE_OPTIONS = [
-  "AI", "Memecoin", "RWA", "DeFi", "L2/Infra", "BTC ETF",
-  "Fed/Macro", "Earnings", "Airdrop", "Other",
-];
+const MARKET_SESSIONS = [
+  { value: "pre_market", label: "Pre-Market" },
+  { value: "regular", label: "Regular" },
+  { value: "after_hours", label: "After-Hours" },
+] as const;
 
-export function TradeForm({
+export function StockTradeForm({
   onClose,
   onSaved,
   editTrade,
 }: {
   onClose: () => void;
   onSaved: () => void;
-  editTrade?: Trade | null;
+  editTrade?: StockTrade | null;
 }) {
   const supabase = createClient();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  // Asset type toggle
+  const [assetType, setAssetType] = useState<"stock" | "option">(editTrade?.asset_type ?? "stock");
+
+  // Market session
+  const [marketSession, setMarketSession] = useState<string>(editTrade?.market_session ?? "regular");
+
+  // Option type pills
+  const [optionType, setOptionType] = useState<"call" | "put">(editTrade?.option_type ?? "call");
 
   // Psychology state
   const [emotion, setEmotion] = useState<string | null>(editTrade?.emotion ?? null);
@@ -38,46 +47,47 @@ export function TradeForm({
   const [checklist, setChecklist] = useState<Record<string, boolean>>(editTrade?.checklist ?? {});
   const [review, setReview] = useState<Record<string, string>>(editTrade?.review ?? {});
 
-  // Tags state (chip-based)
-  const initTags = (editTrade?.tags ?? []).filter((t) => !t.startsWith("narrative:"));
-  const initNarrative = editTrade?.tags?.find((t) => t.startsWith("narrative:"))?.replace("narrative:", "") ?? "";
-  const [tags, setTags] = useState<string[]>(initTags);
-  const [narrative, setNarrative] = useState(initNarrative);
-  const [customNarrative, setCustomNarrative] = useState(
-    initNarrative && !NARRATIVE_OPTIONS.map((n) => n.toLowerCase()).includes(initNarrative.toLowerCase()) ? initNarrative : ""
-  );
+  // Tags state
+  const [tags, setTags] = useState<string[]>(editTrade?.tags ?? []);
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
-
-  // DEX state
-  const [tradeSource, setTradeSource] = useState<"cex" | "dex">(editTrade?.trade_source ?? "cex");
-  const [chain, setChain] = useState<Chain | "">(editTrade?.chain ?? "");
-  const [dexProtocol, setDexProtocol] = useState(editTrade?.dex_protocol ?? "");
-  const [txHash, setTxHash] = useState(editTrade?.tx_hash ?? "");
-  const [walletAddress, setWalletAddress] = useState(editTrade?.wallet_address ?? "");
-  const [gasFee, setGasFee] = useState(editTrade?.gas_fee ?? 0);
 
   // Track if we have an exit price to show post-trade fields
   const [hasExit, setHasExit] = useState(!!editTrade?.exit_price);
 
-  // Fetch tag suggestions from existing trades + custom presets
+  // Fetch tag suggestions from existing stock trades + custom presets
   useEffect(() => {
     async function fetchTags() {
-      const { data } = await supabase.from("trades").select("tags");
+      const { data } = await supabase.from("stock_trades").select("tags");
       const allTags = new Set<string>();
       if (data) {
         data.forEach((row: { tags: string[] | null }) => {
-          row.tags?.forEach((t) => {
-            if (!t.startsWith("narrative:")) allTags.add(t);
-          });
+          row.tags?.forEach((t) => allTags.add(t));
         });
       }
-      // Merge custom presets
       const presets = getCustomTagPresets();
       presets.forEach((p) => allTags.add(p));
       setTagSuggestions(Array.from(allTags).sort());
     }
     fetchTags();
   }, [supabase]);
+
+  function calculatePnl(
+    position: string,
+    entryPrice: number,
+    exitPrice: number,
+    quantity: number,
+    fees: number,
+    isOption: boolean,
+    contracts?: number,
+  ): number {
+    if (isOption && contracts) {
+      return (exitPrice - entryPrice) * contracts * 100 - fees;
+    }
+    if (position === "long") {
+      return (exitPrice - entryPrice) * quantity - fees;
+    }
+    return (entryPrice - exitPrice) * quantity - fees;
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -87,39 +97,35 @@ export function TradeForm({
     const formData = new FormData(e.currentTarget);
     const raw = {
       symbol: formData.get("symbol") as string,
+      asset_type: assetType,
       position: formData.get("position") as string,
       entry_price: formData.get("entry_price") as string,
-      exit_price: formData.get("exit_price") as string || undefined,
+      exit_price: (formData.get("exit_price") as string) || undefined,
       quantity: formData.get("quantity") as string,
-      fees: formData.get("fees") as string || "0",
+      fees: (formData.get("fees") as string) || "0",
       open_timestamp: formData.get("open_timestamp") as string,
-      close_timestamp: formData.get("close_timestamp") as string || undefined,
-      notes: formData.get("notes") as string || undefined,
-      tags: [
-        ...tags,
-        ...(narrative === "other" && customNarrative.trim()
-          ? [`narrative:${customNarrative.trim().toLowerCase()}`]
-          : narrative && narrative !== "other"
-            ? [`narrative:${narrative.toLowerCase()}`]
-            : []),
-      ],
+      close_timestamp: (formData.get("close_timestamp") as string) || undefined,
+      sector: (formData.get("sector") as string) || undefined,
+      market_session: marketSession || undefined,
+      // Options fields
+      option_type: assetType === "option" ? optionType : undefined,
+      strike_price: assetType === "option" ? (formData.get("strike_price") as string) || undefined : undefined,
+      expiration_date: assetType === "option" ? (formData.get("expiration_date") as string) || undefined : undefined,
+      premium_per_contract: assetType === "option" ? (formData.get("premium_per_contract") as string) || undefined : undefined,
+      contracts: assetType === "option" ? (formData.get("contracts") as string) || undefined : undefined,
+      underlying_symbol: assetType === "option" ? (formData.get("underlying_symbol") as string) || undefined : undefined,
+      // Psychology
       emotion: emotion || undefined,
       confidence: confidence || undefined,
       setup_type: setupType || undefined,
       process_score: processScore || undefined,
       checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
       review: Object.values(review).some((v) => v.length > 0) ? review : undefined,
-      // DEX fields
-      trade_source: tradeSource,
-      chain: tradeSource === "dex" && chain ? chain : undefined,
-      dex_protocol: tradeSource === "dex" && dexProtocol ? dexProtocol : undefined,
-      tx_hash: tradeSource === "dex" && txHash ? txHash : undefined,
-      wallet_address: tradeSource === "dex" && walletAddress ? walletAddress : undefined,
-      gas_fee: tradeSource === "dex" ? gasFee : 0,
-      gas_fee_native: 0,
+      notes: (formData.get("notes") as string) || undefined,
+      tags,
     };
 
-    const result = tradeSchema.safeParse(raw);
+    const result = stockTradeSchema.safeParse(raw);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       for (const issue of result.error.issues) {
@@ -130,20 +136,25 @@ export function TradeForm({
       return;
     }
 
-    const data: TradeFormData = result.data;
+    const data: StockTradeFormData = result.data;
 
     let pnl: number | null = null;
     if (data.exit_price && data.close_timestamp) {
-      const tempTrade = {
-        ...data,
-        exit_price: data.exit_price,
-        position: data.position as "long" | "short",
-      } as Trade;
-      pnl = calculateTradePnl(tempTrade);
+      pnl = calculatePnl(
+        data.position,
+        data.entry_price,
+        data.exit_price,
+        data.quantity,
+        data.fees,
+        data.asset_type === "option",
+        data.contracts,
+      );
     }
 
     const payload = {
       symbol: data.symbol,
+      company_name: null,
+      asset_type: data.asset_type,
       position: data.position,
       entry_price: data.entry_price,
       exit_price: data.exit_price ?? null,
@@ -151,32 +162,34 @@ export function TradeForm({
       fees: data.fees,
       open_timestamp: data.open_timestamp,
       close_timestamp: data.close_timestamp ?? null,
-      notes: data.notes ?? null,
-      tags: data.tags,
-      pnl,
+      sector: data.sector ?? null,
+      industry: null,
+      market_session: data.market_session ?? null,
+      option_type: data.option_type ?? null,
+      strike_price: data.strike_price ?? null,
+      expiration_date: data.expiration_date ?? null,
+      premium_per_contract: data.premium_per_contract ?? null,
+      contracts: data.contracts ?? null,
+      underlying_symbol: data.underlying_symbol ?? null,
       emotion: data.emotion ?? null,
       confidence: data.confidence ?? null,
       setup_type: data.setup_type ?? null,
       process_score: data.process_score ?? null,
       checklist: data.checklist ?? null,
       review: data.review ?? null,
-      trade_source: data.trade_source,
-      chain: data.chain ?? null,
-      dex_protocol: data.dex_protocol ?? null,
-      tx_hash: data.tx_hash ?? null,
-      wallet_address: data.wallet_address ?? null,
-      gas_fee: data.gas_fee,
-      gas_fee_native: data.gas_fee_native,
+      notes: data.notes ?? null,
+      tags: data.tags,
+      pnl,
     };
 
     let error;
     if (editTrade) {
       ({ error } = await supabase
-        .from("trades")
+        .from("stock_trades")
         .update(payload)
         .eq("id", editTrade.id));
     } else {
-      ({ error } = await supabase.from("trades").insert(payload));
+      ({ error } = await supabase.from("stock_trades").insert(payload));
     }
 
     if (error) {
@@ -194,7 +207,7 @@ export function TradeForm({
       <div className="glass border border-border/50 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">
-            {editTrade ? "Edit Trade" : "Log Trade"}
+            {editTrade ? "Edit Stock Trade" : "Log Stock Trade"}
           </h2>
           <button
             onClick={onClose}
@@ -205,108 +218,34 @@ export function TradeForm({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* Trade Source Toggle: CEX / DEX */}
+          {/* Asset Type Toggle: Stock / Option */}
           <div>
-            <label className="block text-xs text-muted mb-1.5">Trade Source</label>
+            <label className="block text-xs text-muted mb-1.5">Asset Type</label>
             <div className="inline-flex rounded-lg border border-border overflow-hidden">
               <button
                 type="button"
-                onClick={() => setTradeSource("cex")}
-                className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium transition-all ${
-                  tradeSource === "cex"
+                onClick={() => setAssetType("stock")}
+                className={`px-4 py-1.5 text-xs font-medium transition-all ${
+                  assetType === "stock"
                     ? "bg-accent/15 text-accent"
                     : "text-muted hover:text-foreground"
                 }`}
               >
-                <Building2 size={12} />
-                CEX
+                Stock
               </button>
               <button
                 type="button"
-                onClick={() => setTradeSource("dex")}
-                className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium transition-all border-l border-border ${
-                  tradeSource === "dex"
+                onClick={() => setAssetType("option")}
+                className={`px-4 py-1.5 text-xs font-medium transition-all border-l border-border ${
+                  assetType === "option"
                     ? "bg-accent/15 text-accent"
                     : "text-muted hover:text-foreground"
                 }`}
               >
-                <Wallet size={12} />
-                DEX
+                Option
               </button>
             </div>
           </div>
-
-          {/* DEX-specific fields */}
-          {tradeSource === "dex" && (
-            <div className="space-y-3 p-3 rounded-lg border border-accent/20 bg-accent/5">
-              <p className="text-[10px] uppercase tracking-wider text-accent/60 font-semibold">
-                On-Chain Details
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-muted mb-1">Chain</label>
-                  <select
-                    value={chain}
-                    onChange={(e) => {
-                      setChain(e.target.value as Chain);
-                      setDexProtocol("");
-                    }}
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
-                  >
-                    <option value="">Select chain</option>
-                    {CHAINS.map((c) => (
-                      <option key={c.id} value={c.id}>{c.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-muted mb-1">DEX Protocol</label>
-                  <select
-                    value={dexProtocol}
-                    onChange={(e) => setDexProtocol(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
-                    disabled={!chain}
-                  >
-                    <option value="">{chain ? "Select protocol" : "Select chain first"}</option>
-                    {chain && DEX_PROTOCOLS[chain]?.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-muted mb-1">Wallet Address</label>
-                <input
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  placeholder={chain === "solana" ? "So1..." : "0x..."}
-                  className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent font-mono text-xs"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-muted mb-1">Tx Hash</label>
-                  <input
-                    value={txHash}
-                    onChange={(e) => setTxHash(e.target.value)}
-                    placeholder="0x..."
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent font-mono text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-muted mb-1">Gas Fee (USD)</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={gasFee || ""}
-                    onChange={(e) => setGasFee(parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Symbol & Position */}
           <div className="grid grid-cols-2 gap-4">
@@ -315,7 +254,8 @@ export function TradeForm({
               <input
                 name="symbol"
                 defaultValue={editTrade?.symbol ?? ""}
-                placeholder="BTCUSDT"
+                placeholder="AAPL"
+                style={{ textTransform: "uppercase" }}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
               {errors.symbol && (
@@ -376,7 +316,7 @@ export function TradeForm({
                 type="number"
                 step="any"
                 defaultValue={editTrade?.quantity ?? ""}
-                placeholder="0.00"
+                placeholder="0"
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
               {errors.quantity && (
@@ -431,6 +371,147 @@ export function TradeForm({
             </div>
           </div>
 
+          {/* Sector */}
+          <div>
+            <label className="block text-xs text-muted mb-1">Sector</label>
+            <select
+              name="sector"
+              defaultValue={editTrade?.sector ?? ""}
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+            >
+              <option value="">Select sector</option>
+              {STOCK_SECTORS.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Market Session Pills */}
+          <div>
+            <label className="block text-xs text-muted mb-1.5">Market Session</label>
+            <div className="inline-flex rounded-lg border border-border overflow-hidden">
+              {MARKET_SESSIONS.map((session, idx) => (
+                <button
+                  key={session.value}
+                  type="button"
+                  onClick={() => setMarketSession(session.value)}
+                  className={`px-4 py-1.5 text-xs font-medium transition-all ${
+                    idx > 0 ? "border-l border-border" : ""
+                  } ${
+                    marketSession === session.value
+                      ? "bg-accent/15 text-accent"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  {session.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Options Fields (conditional) */}
+          {assetType === "option" && (
+            <div className="space-y-3 p-3 rounded-lg border border-accent/20 bg-accent/5">
+              <p className="text-[10px] uppercase tracking-wider text-accent/60 font-semibold">
+                Options Details
+              </p>
+
+              {/* Option Type Pills: Call / Put */}
+              <div>
+                <label className="block text-xs text-muted mb-1.5">Option Type</label>
+                <div className="inline-flex rounded-lg border border-border overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setOptionType("call")}
+                    className={`px-4 py-1.5 text-xs font-medium transition-all ${
+                      optionType === "call"
+                        ? "bg-win/15 text-win"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                  >
+                    Call
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOptionType("put")}
+                    className={`px-4 py-1.5 text-xs font-medium transition-all border-l border-border ${
+                      optionType === "put"
+                        ? "bg-loss/15 text-loss"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                  >
+                    Put
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-muted mb-1">Strike Price</label>
+                  <input
+                    name="strike_price"
+                    type="number"
+                    step="any"
+                    defaultValue={editTrade?.strike_price ?? ""}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                  />
+                  {errors.strike_price && (
+                    <p className="text-xs text-loss mt-1">{errors.strike_price}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs text-muted mb-1">Expiration Date</label>
+                  <input
+                    name="expiration_date"
+                    type="date"
+                    defaultValue={editTrade?.expiration_date ?? ""}
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-muted mb-1">Premium / Contract</label>
+                  <input
+                    name="premium_per_contract"
+                    type="number"
+                    step="any"
+                    defaultValue={editTrade?.premium_per_contract ?? ""}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted mb-1">Contracts</label>
+                  <input
+                    name="contracts"
+                    type="number"
+                    step="1"
+                    defaultValue={editTrade?.contracts ?? ""}
+                    placeholder="1"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                  />
+                  {errors.contracts && (
+                    <p className="text-xs text-loss mt-1">{errors.contracts}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-muted mb-1">Underlying Symbol</label>
+                <input
+                  name="underlying_symbol"
+                  defaultValue={editTrade?.underlying_symbol ?? ""}
+                  placeholder="AAPL"
+                  style={{ textTransform: "uppercase" }}
+                  className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Tags */}
           <div>
             <label className="block text-xs text-muted mb-1">Tags</label>
@@ -440,38 +521,6 @@ export function TradeForm({
               suggestions={tagSuggestions}
               placeholder="Type tag and press Enter..."
             />
-          </div>
-
-          {/* Narrative / Catalyst */}
-          <div>
-            <label className="block text-xs text-muted mb-1">
-              Narrative <span className="text-muted/60">(catalyst/theme)</span>
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {NARRATIVE_OPTIONS.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setNarrative(narrative === n.toLowerCase() ? "" : n.toLowerCase())}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                    narrative === n.toLowerCase()
-                      ? "bg-accent/15 text-accent border border-accent/30"
-                      : "bg-background border border-border text-muted hover:text-foreground hover:border-accent/20"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-            {narrative === "other" && (
-              <input
-                type="text"
-                value={customNarrative}
-                onChange={(e) => setCustomNarrative(e.target.value)}
-                placeholder="Custom narrative..."
-                className="w-full mt-2 px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50"
-              />
-            )}
           </div>
 
           {/* Notes */}
@@ -486,7 +535,7 @@ export function TradeForm({
             />
           </div>
 
-          {/* ═══════════ Psychology Section ═══════════ */}
+          {/* Psychology Section */}
           <div className="border-t border-border pt-4 space-y-4">
             <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">
               Psychology

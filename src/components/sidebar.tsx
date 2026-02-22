@@ -30,9 +30,12 @@ import {
   TrendingDown,
   Crosshair,
   ShieldAlert,
+  TrendingUp,
+  Lock,
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
+import type { UserAddons } from "@/lib/types";
 
 interface NavItem {
   href: string;
@@ -79,11 +82,53 @@ export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [assetContext, setAssetContext] = useState<"crypto" | "stocks">("crypto");
+  const [showStockUpgrade, setShowStockUpgrade] = useState(false);
   const { viewMode, toggleViewMode } = useTheme();
+
+  // Check if user has stocks addon or Max tier
+  function hasStocksAccess(): boolean {
+    try {
+      const addonsRaw = localStorage.getItem("stargate-addons");
+      if (addonsRaw) {
+        const addons: UserAddons = JSON.parse(addonsRaw);
+        if (addons.stocks) return true;
+      }
+      // Also check if user has Max tier (which includes stocks)
+      const tier = localStorage.getItem("stargate-tier");
+      return tier === "max";
+    } catch {
+      return false;
+    }
+  }
+
+  function handleAssetToggle(context: "crypto" | "stocks") {
+    if (context === "stocks" && !hasStocksAccess()) {
+      setShowStockUpgrade(true);
+      return;
+    }
+    setShowStockUpgrade(false);
+    setAssetContext(context);
+    localStorage.setItem("stargate-asset-context", context);
+  }
 
   useEffect(() => {
     const saved = localStorage.getItem("stargate-sidebar");
     if (saved === "collapsed") setCollapsed(true);
+    const savedContext = localStorage.getItem("stargate-asset-context");
+    if (savedContext === "crypto" || savedContext === "stocks") {
+      // Only restore stocks if user still has access
+      if (savedContext === "stocks") {
+        try {
+          const addonsRaw = localStorage.getItem("stargate-addons");
+          const addons: UserAddons = addonsRaw ? JSON.parse(addonsRaw) : { stocks: false };
+          const tier = localStorage.getItem("stargate-tier");
+          if (addons.stocks || tier === "max") setAssetContext("stocks");
+        } catch { /* fallback to crypto */ }
+      } else {
+        setAssetContext(savedContext);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -120,6 +165,16 @@ export function Sidebar() {
     );
   }
 
+  // Compute nav items based on asset context
+  const resolvedMainItems: NavItem[] = assetContext === "stocks"
+    ? mainItems.map((item, i) => {
+        if (i === 0) return { ...item, href: "/dashboard/stocks", label: "Dashboard" };
+        if (i === 1) return { ...item, href: "/dashboard/stocks/trades", label: "Trade Log" };
+        if (i === 4) return { ...item, href: "/dashboard/stocks/analytics", label: "Analytics" };
+        return item;
+      })
+    : mainItems;
+
   const sidebarContent = (isMobile: boolean) => (
     <>
       {/* Logo */}
@@ -142,6 +197,47 @@ export function Sidebar() {
         )}
       </div>
 
+      {/* Asset context switcher */}
+      {(isMobile || !collapsed) && (
+        <div className="px-3 pt-3">
+          <div className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
+            <button
+              onClick={() => handleAssetToggle("crypto")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                assetContext === "crypto"
+                  ? "bg-accent/15 text-accent border border-accent/30"
+                  : "text-muted hover:text-foreground border border-transparent"
+              }`}
+            >
+              <TrendingUp size={12} />
+              Crypto
+            </button>
+            <button
+              onClick={() => handleAssetToggle("stocks")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                assetContext === "stocks"
+                  ? "bg-accent/15 text-accent border border-accent/30"
+                  : "text-muted hover:text-foreground border border-transparent"
+              }`}
+            >
+              {hasStocksAccess() ? <BarChart3 size={12} /> : <Lock size={10} />}
+              Stocks
+            </button>
+          </div>
+          {showStockUpgrade && (
+            <div className="mt-2 p-2.5 rounded-lg bg-accent/5 border border-accent/20 text-center">
+              <p className="text-[10px] text-muted mb-1.5">Stock tracking requires the Stocks add-on or Max plan.</p>
+              <a
+                href="/dashboard/settings"
+                className="text-[10px] font-semibold text-accent hover:text-accent-hover transition-colors"
+              >
+                Upgrade now &rarr;
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Collapse toggle (desktop only) */}
       {!isMobile && (
         <button
@@ -155,7 +251,7 @@ export function Sidebar() {
       {/* Main nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2">
         <div className="space-y-0.5">
-          {mainItems.map((item) => (
+          {resolvedMainItems.map((item) => (
             <NavLink key={item.href} item={item} isMobile={isMobile} />
           ))}
         </div>

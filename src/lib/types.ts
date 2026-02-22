@@ -1,6 +1,8 @@
 // These are the TypeScript types that define the shape of your data.
 // Think of them as contracts — every trade, note, and snapshot MUST match these shapes.
 
+export type Chain = "ethereum" | "solana" | "base" | "arbitrum" | "bsc" | "polygon" | "avalanche";
+
 export type Trade = {
   id: string;
   user_id: string;
@@ -22,6 +24,14 @@ export type Trade = {
   process_score: number | null;
   checklist: Record<string, boolean> | null;
   review: Record<string, string> | null;
+  // DEX fields
+  trade_source: "cex" | "dex";
+  chain: Chain | null;
+  dex_protocol: string | null;
+  tx_hash: string | null;
+  wallet_address: string | null;
+  gas_fee: number;
+  gas_fee_native: number;
   created_at: string;
 };
 
@@ -174,4 +184,91 @@ export type DailyPlan = {
   notes: string | null;
   eod_review: string | null;
   created_at: string;
+};
+
+// Stock trading types
+export type MarketSession = "pre_market" | "regular" | "after_hours";
+
+export type StockTrade = {
+  id: string;
+  user_id: string;
+  symbol: string;
+  company_name: string | null;
+  asset_type: "stock" | "option";
+  position: "long" | "short";
+  entry_price: number;
+  exit_price: number | null;
+  quantity: number;
+  fees: number;
+  open_timestamp: string;
+  close_timestamp: string | null;
+  sector: string | null;
+  industry: string | null;
+  market_session: MarketSession | null;
+  // Options fields (null for stocks)
+  option_type: "call" | "put" | null;
+  strike_price: number | null;
+  expiration_date: string | null;
+  premium_per_contract: number | null;
+  contracts: number | null;
+  underlying_symbol: string | null;
+  // Psychology (shared with crypto)
+  emotion: string | null;
+  confidence: number | null;
+  setup_type: string | null;
+  process_score: number | null;
+  checklist: Record<string, boolean> | null;
+  review: Record<string, string> | null;
+  notes: string | null;
+  tags: string[];
+  pnl: number | null;
+  created_at: string;
+};
+
+// Wallet for DEX tracking
+export type Wallet = {
+  id: string;
+  address: string;
+  chain: Chain;
+  label: string;
+};
+
+// User add-on state
+export type UserAddons = {
+  stocks: boolean;
+};
+
+// Stock sectors (GICS-based)
+export const STOCK_SECTORS = [
+  "Technology",
+  "Healthcare",
+  "Financials",
+  "Energy",
+  "Consumer Discretionary",
+  "Consumer Staples",
+  "Industrials",
+  "Materials",
+  "Utilities",
+  "Real Estate",
+  "Communication Services",
+] as const;
+
+export const CHAINS: { id: Chain; label: string; explorer: string }[] = [
+  { id: "ethereum", label: "Ethereum", explorer: "https://etherscan.io/tx/" },
+  { id: "solana", label: "Solana", explorer: "https://solscan.io/tx/" },
+  { id: "base", label: "Base", explorer: "https://basescan.org/tx/" },
+  { id: "arbitrum", label: "Arbitrum", explorer: "https://arbiscan.io/tx/" },
+  { id: "bsc", label: "BNB Chain", explorer: "https://bscscan.com/tx/" },
+  { id: "polygon", label: "Polygon", explorer: "https://polygonscan.com/tx/" },
+  { id: "avalanche", label: "Avalanche", explorer: "https://snowscan.xyz/tx/" },
+];
+
+export const DEX_PROTOCOLS: Record<Chain, string[]> = {
+  ethereum: ["Uniswap V2", "Uniswap V3", "SushiSwap", "Curve", "1inch"],
+  solana: ["Jupiter", "Raydium", "Orca"],
+  base: ["Aerodrome", "Uniswap V3"],
+  arbitrum: ["GMX", "Uniswap V3", "Camelot"],
+  bsc: ["PancakeSwap", "1inch"],
+  polygon: ["Uniswap V3", "QuickSwap"],
+  avalanche: ["Trader Joe", "GMX"],
 };

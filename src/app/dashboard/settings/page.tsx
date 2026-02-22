@@ -25,7 +25,10 @@ import {
   Database,
   Mail,
   X,
+  Info,
 } from "lucide-react";
+import type { Chain, Wallet as WalletType } from "@/lib/types";
+import { CHAINS } from "@/lib/types";
 
 /* ================================================================
    TYPES
@@ -247,6 +250,10 @@ export default function SettingsPage() {
   // Subscription state
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
 
+  // Wallet state
+  const [wallets, setWallets] = useState<WalletType[]>([]);
+  const [newWallet, setNewWallet] = useState({ address: "", chain: "ethereum" as Chain, label: "" });
+
   useEffect(() => {
     const stored = localStorage.getItem("stargate-exchange-config");
     if (stored) setConfig(JSON.parse(stored));
@@ -256,6 +263,8 @@ export default function SettingsPage() {
     if (accts) setAccounts(JSON.parse(accts));
     const global = localStorage.getItem("stargate-global-settings");
     if (global) setGlobalSettings(JSON.parse(global));
+    const storedWallets = localStorage.getItem("stargate-wallets");
+    if (storedWallets) setWallets(JSON.parse(storedWallets));
   }, []);
 
   function saveConfig() {
@@ -294,6 +303,27 @@ export default function SettingsPage() {
     navigator.clipboard.writeText(`https://stargate.app/ref/${displayName.toLowerCase().replace(/\s+/g, "-")}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function saveWallets(updated: WalletType[]) {
+    setWallets(updated);
+    localStorage.setItem("stargate-wallets", JSON.stringify(updated));
+  }
+
+  function addWallet() {
+    if (!newWallet.address.trim()) return;
+    const w: WalletType = {
+      id: Date.now().toString(),
+      address: newWallet.address.trim(),
+      chain: newWallet.chain,
+      label: newWallet.label.trim() || "Untitled Wallet",
+    };
+    saveWallets([...wallets, w]);
+    setNewWallet({ address: "", chain: "ethereum", label: "" });
+  }
+
+  function removeWallet(id: string) {
+    saveWallets(wallets.filter((w) => w.id !== id));
   }
 
   function downloadFile(filename: string, content: string, type: string) {
@@ -450,6 +480,68 @@ export default function SettingsPage() {
               Import Now
             </button>
           </SectionCard>
+          {/* Wallets Section */}
+          <SectionCard icon={Wallet} title="Wallets" description="Track your on-chain wallets for DEX trade logging.">
+            {/* Add wallet form */}
+            <div className="space-y-3">
+              <InputField
+                label="Wallet Address"
+                value={newWallet.address}
+                onChange={(v) => setNewWallet({ ...newWallet, address: v })}
+                placeholder="0x... or So1..."
+                mono
+              />
+              <SelectField
+                label="Chain"
+                value={newWallet.chain}
+                onChange={(v) => setNewWallet({ ...newWallet, chain: v as Chain })}
+                options={CHAINS.map((c) => ({ value: c.id, label: c.label }))}
+              />
+              <InputField
+                label="Label"
+                value={newWallet.label}
+                onChange={(v) => setNewWallet({ ...newWallet, label: v })}
+                placeholder="Main Trading Wallet"
+              />
+              <button
+                onClick={addWallet}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-accent text-background text-sm font-semibold hover:bg-accent-hover transition-all"
+              >
+                <Plus size={14} />
+                Add Wallet
+              </button>
+            </div>
+
+            {/* Saved wallets list */}
+            {wallets.length > 0 && (
+              <div className="space-y-2 mt-4">
+                {wallets.map((w) => (
+                  <div key={w.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-background border border-border">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{w.label}</p>
+                      <p className="text-[10px] text-muted font-mono truncate">{w.address}</p>
+                      <p className="text-[10px] text-accent">{CHAINS.find((c) => c.id === w.chain)?.label ?? w.chain}</p>
+                    </div>
+                    <button
+                      onClick={() => removeWallet(w.id)}
+                      className="ml-3 p-1.5 rounded-lg text-muted hover:text-loss hover:bg-loss/10 transition-all shrink-0"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Info message */}
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-accent/5 border border-accent/10 mt-3">
+              <Info size={14} className="text-accent mt-0.5 shrink-0" />
+              <p className="text-xs text-muted leading-relaxed">
+                Wallet scanning coming soon — for now, log DEX trades manually with the CEX/DEX toggle.
+              </p>
+            </div>
+          </SectionCard>
+
           <SaveButton saved={saved} onClick={saveConfig} label="Save Settings" />
         </div>
       )}

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { calculateTradePnl } from "@/lib/calculations";
+import { CHAINS } from "@/lib/types";
 import {
   Table2,
   Search,
@@ -13,6 +14,8 @@ import {
   ArrowUpDown,
   Sparkles,
   X,
+  ExternalLink,
+  Fuel,
 } from "lucide-react";
 import { Header } from "@/components/header";
 
@@ -27,6 +30,7 @@ export default function TradesPage() {
   const [usingDemo, setUsingDemo] = useState(false);
   const [search, setSearch] = useState("");
   const [emotionFilter, setEmotionFilter] = useState("All");
+  const [sourceFilter, setSourceFilter] = useState<"All" | "cex" | "dex">("All");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -71,6 +75,11 @@ export default function TradesPage() {
       result = result.filter((t) => t.emotion === emotionFilter);
     }
 
+    // Source filter (CEX/DEX)
+    if (sourceFilter !== "All") {
+      result = result.filter((t) => t.trade_source === sourceFilter);
+    }
+
     // Sort
     result = [...result].sort((a, b) => {
       const dir = sortDir === "asc" ? 1 : -1;
@@ -91,7 +100,7 @@ export default function TradesPage() {
     });
 
     return result;
-  }, [trades, search, emotionFilter, sortKey, sortDir]);
+  }, [trades, search, emotionFilter, sourceFilter, sortKey, sortDir]);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -161,6 +170,15 @@ export default function TradesPage() {
             <option key={e} value={e}>{e === "All" ? "All Emotions" : e}</option>
           ))}
         </select>
+        <select
+          value={sourceFilter}
+          onChange={(e) => setSourceFilter(e.target.value as "All" | "cex" | "dex")}
+          className="bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
+        >
+          <option value="All">All Sources</option>
+          <option value="cex">CEX</option>
+          <option value="dex">DEX</option>
+        </select>
       </div>
 
       {/* Mobile card layout */}
@@ -181,6 +199,11 @@ export default function TradesPage() {
                   }`}>
                     {trade.position.toUpperCase()}
                   </span>
+                  {trade.trade_source === "dex" && trade.chain && (
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-accent/10 text-accent">
+                      {CHAINS.find((c) => c.id === trade.chain)?.label ?? trade.chain}
+                    </span>
+                  )}
                 </div>
                 <span className={`text-sm font-bold ${pnl >= 0 ? "text-win" : "text-loss"}`}>
                   {trade.exit_price !== null ? `$${pnl.toFixed(2)}` : "Open"}
@@ -256,7 +279,14 @@ export default function TradesPage() {
                           {new Date(trade.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </div>
                         <div className="px-4 py-3 font-semibold text-foreground border-b border-border/50">
-                          {trade.symbol}
+                          <div className="flex items-center gap-1.5">
+                            {trade.symbol}
+                            {trade.trade_source === "dex" && trade.chain && (
+                              <span className="text-[9px] font-medium px-1 py-0.5 rounded bg-accent/10 text-accent">
+                                {CHAINS.find((c) => c.id === trade.chain)?.label ?? trade.chain}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="px-4 py-3 border-b border-border/50">
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${
@@ -327,6 +357,49 @@ export default function TradesPage() {
                               <p className="text-foreground font-medium mt-0.5">{trade.setup_type ?? "—"}</p>
                             </div>
                           </div>
+
+                          {/* DEX details */}
+                          {trade.trade_source === "dex" && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                              <div>
+                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Chain</span>
+                                <p className="text-foreground font-medium mt-0.5">
+                                  {CHAINS.find((c) => c.id === trade.chain)?.label ?? trade.chain ?? "—"}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Protocol</span>
+                                <p className="text-foreground font-medium mt-0.5">{trade.dex_protocol ?? "—"}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Gas Fee</span>
+                                <p className="text-foreground font-medium mt-0.5 flex items-center gap-1">
+                                  <Fuel size={10} className="text-muted/60" />
+                                  ${(trade.gas_fee ?? 0).toFixed(2)}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Tx Hash</span>
+                                {trade.tx_hash ? (() => {
+                                  const explorer = CHAINS.find((c) => c.id === trade.chain)?.explorer ?? "";
+                                  return (
+                                    <a
+                                      href={`${explorer}${trade.tx_hash}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-accent hover:text-accent-hover font-medium mt-0.5 flex items-center gap-1 transition-colors"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {trade.tx_hash.slice(0, 8)}...{trade.tx_hash.slice(-6)}
+                                      <ExternalLink size={10} />
+                                    </a>
+                                  );
+                                })() : (
+                                  <p className="text-foreground font-medium mt-0.5">—</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
 
                           {trade.notes && (
                             <div>

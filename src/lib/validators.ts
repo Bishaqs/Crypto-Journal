@@ -65,6 +65,10 @@ export const BEHAVIORAL_BIASES = [
   "Confirmation bias",
 ] as const;
 
+export const CHAIN_VALUES = [
+  "ethereum", "solana", "base", "arbitrum", "bsc", "polygon", "avalanche",
+] as const;
+
 export const tradeSchema = z.object({
   symbol: z
     .string()
@@ -86,9 +90,51 @@ export const tradeSchema = z.object({
   process_score: z.coerce.number().min(1).max(10).optional(),
   checklist: z.record(z.string(), z.boolean()).optional(),
   review: z.record(z.string(), z.string()).optional(),
+  // DEX fields
+  trade_source: z.enum(["cex", "dex"]).default("cex"),
+  chain: z.enum(CHAIN_VALUES).optional(),
+  dex_protocol: z.string().optional(),
+  tx_hash: z.string().optional(),
+  wallet_address: z.string().optional(),
+  gas_fee: z.coerce.number().min(0).default(0),
+  gas_fee_native: z.coerce.number().min(0).default(0),
 });
 
 export type TradeFormData = z.infer<typeof tradeSchema>;
+
+export const stockTradeSchema = z.object({
+  symbol: z.string().min(1, "Symbol is required").transform((s) => s.toUpperCase()),
+  company_name: z.string().optional(),
+  asset_type: z.enum(["stock", "option"]).default("stock"),
+  position: z.enum(["long", "short"]),
+  entry_price: z.coerce.number().positive("Entry price must be positive"),
+  exit_price: z.coerce.number().positive("Exit price must be positive").optional(),
+  quantity: z.coerce.number().positive("Quantity must be positive"),
+  fees: z.coerce.number().min(0).default(0),
+  open_timestamp: z.string().min(1, "Open time is required"),
+  close_timestamp: z.string().optional(),
+  sector: z.string().optional(),
+  industry: z.string().optional(),
+  market_session: z.enum(["pre_market", "regular", "after_hours"]).optional(),
+  // Options fields
+  option_type: z.enum(["call", "put"]).optional(),
+  strike_price: z.coerce.number().positive().optional(),
+  expiration_date: z.string().optional(),
+  premium_per_contract: z.coerce.number().min(0).optional(),
+  contracts: z.coerce.number().int().positive().optional(),
+  underlying_symbol: z.string().optional(),
+  // Psychology (shared)
+  emotion: z.string().optional(),
+  confidence: z.coerce.number().min(1).max(10).optional(),
+  setup_type: z.string().optional(),
+  process_score: z.coerce.number().min(1).max(10).optional(),
+  checklist: z.record(z.string(), z.boolean()).optional(),
+  review: z.record(z.string(), z.string()).optional(),
+  notes: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+});
+
+export type StockTradeFormData = z.infer<typeof stockTradeSchema>;
 
 export const journalNoteSchema = z.object({
   title: z.string().optional(),
