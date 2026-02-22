@@ -152,8 +152,10 @@ export function Sidebar() {
       : pathname.startsWith(href);
 
   function NavLink({ item, isMobile }: { item: NavItem; isMobile: boolean }) {
+    const tourId = `tour-${item.href.replace("/dashboard/", "").replace("/dashboard", "home") || "home"}`;
     return (
       <Link
+        id={tourId}
         href={item.href}
         title={!isMobile && collapsed ? item.label : undefined}
         className={`flex items-center gap-3 ${
@@ -176,8 +178,9 @@ export function Sidebar() {
   const resolvedMainItems: NavItem[] = assetContext === "stocks"
     ? mainItems.map((item, i) => {
         if (i === 0) return { ...item, href: "/dashboard/stocks", label: "Dashboard" };
-        if (i === 1) return { ...item, href: "/dashboard/stocks/trades", label: "Trade Log" };
+        if (i === 1) return { ...item, href: "/dashboard/stocks/trades", label: "Positions" };
         if (i === 4) return { ...item, href: "/dashboard/stocks/analytics", label: "Analytics" };
+        if (i === 5) return { ...item, href: "/dashboard/stocks/plans", label: "Watchlist" };
         return item;
       })
     : mainItems;

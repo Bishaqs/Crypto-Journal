@@ -18,6 +18,7 @@ import {
   Fuel,
 } from "lucide-react";
 import { Header } from "@/components/header";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 type SortKey = "date" | "symbol" | "pnl" | "emotion" | "process_score";
 type SortDir = "asc" | "desc";
@@ -130,7 +131,7 @@ export default function TradesPage() {
       <div>
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Table2 size={24} className="text-accent" />
-          Trade Log
+          Trade Log <InfoTooltip text="All your trades in one place — filter, sort, and review" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           {usingDemo ? (

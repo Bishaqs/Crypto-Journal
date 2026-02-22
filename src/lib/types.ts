@@ -240,6 +240,7 @@ export type UserAddons = {
 
 // Stock sectors (GICS-based)
 export const STOCK_SECTORS = [
+  // GICS Sectors
   "Technology",
   "Healthcare",
   "Financials",
@@ -251,6 +252,21 @@ export const STOCK_SECTORS = [
   "Utilities",
   "Real Estate",
   "Communication Services",
+  // Popular Sub-Sectors
+  "Semiconductors",
+  "Biotechnology",
+  "Banking",
+  "Insurance",
+  "Aerospace & Defense",
+  "Transportation",
+  "Retail",
+  "Food & Beverage",
+  "Mining",
+  // Trending Sectors
+  "Cannabis",
+  "EV / Clean Energy",
+  "AI / Machine Learning",
+  "Crypto-Related",
 ] as const;
 
 export const CHAINS: { id: Chain; label: string; explorer: string }[] = [

@@ -21,6 +21,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { Header } from "@/components/header";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -417,8 +418,8 @@ export default function StocksDashboardPage() {
         >
           <div className="flex items-center gap-2 mb-4">
             <Target size={16} className="text-accent" />
-            <h3 className="text-sm font-semibold text-foreground">
-              Sector Breakdown
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              Sector Breakdown <InfoTooltip text="How your trades are distributed across market sectors" size={13} />
             </h3>
           </div>
           <ResponsiveContainer width="100%" height={260}>
@@ -464,8 +465,8 @@ export default function StocksDashboardPage() {
         >
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 size={16} className="text-accent" />
-            <h3 className="text-sm font-semibold text-foreground">
-              Market Session Performance
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              Market Session Performance <InfoTooltip text="Pre-market (4-9:30am), Regular (9:30am-4pm), After-hours (4-8pm ET)" size={13} />
             </h3>
           </div>
           <ResponsiveContainer width="100%" height={260}>

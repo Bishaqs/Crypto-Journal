@@ -121,8 +121,8 @@ export default function StockAnalyticsPage() {
           <h3 className="text-sm font-semibold text-foreground">
             Sector Rotation
           </h3>
-          <span className="text-[10px] text-muted/50 ml-auto">
-            Monthly P&L by sector (last 6 months)
+          <span className="text-[10px] text-muted ml-auto">
+            How your P&L shifts between sectors over time
           </span>
         </div>
         <ResponsiveContainer width="100%" height={320}>
@@ -188,6 +188,9 @@ export default function StockAnalyticsPage() {
             <h3 className="text-sm font-semibold text-foreground">
               Session Performance
             </h3>
+            <span className="text-[10px] text-muted ml-auto">
+              Compare your edge across pre-market, regular, and after-hours
+            </span>
           </div>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={SESSION_PERFORMANCE} barGap={8}>
@@ -260,6 +263,9 @@ export default function StockAnalyticsPage() {
             <h3 className="text-sm font-semibold text-foreground">
               Win Rate by Sector
             </h3>
+            <span className="text-[10px] text-muted ml-auto">
+              Identify which sectors you trade best
+            </span>
           </div>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart

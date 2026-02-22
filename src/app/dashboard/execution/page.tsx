@@ -17,6 +17,7 @@ import {
   Lightbulb,
   Activity,
 } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -266,7 +267,7 @@ export default function ExecutionScoringPage() {
       <div>
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Target size={24} className="text-accent" />
-          Execution Scoring
+          Execution Scoring <InfoTooltip text="Rate 5 dimensions per trade: entry timing, stop placement, position sizing, exit execution, plan adherence." />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Separate strategy from execution — measure how well you follow your own rules

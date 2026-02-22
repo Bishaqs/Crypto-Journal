@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export function EquityCurve({
   data,
@@ -23,8 +24,8 @@ export function EquityCurve({
   if (data.length === 0) {
     return (
       <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-        <h3 className="text-sm font-semibold text-foreground mb-4">
-          Equity Curve
+        <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1.5">
+          Equity Curve <InfoTooltip text="Your cumulative P&L over time — shows growth trajectory" size={13} />
         </h3>
         <div className="h-52 flex items-center justify-center text-muted text-sm">
           Close positions to build equity curve
@@ -39,7 +40,7 @@ export function EquityCurve({
   return (
     <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-foreground">Equity Curve</h3>
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">Equity Curve <InfoTooltip text="Your cumulative P&L over time — shows growth trajectory" size={13} /></h3>
         <span
           className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
             isPositive ? "bg-win/10 text-win" : "bg-loss/10 text-loss"

@@ -29,6 +29,7 @@ import {
   Zap,
   Calendar,
 } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 function StatBlock({
   label,
@@ -36,12 +37,14 @@ function StatBlock({
   sub,
   icon: Icon,
   color = "text-foreground",
+  tooltip,
 }: {
   label: string;
   value: string;
   sub?: string;
   icon: React.ElementType;
   color?: string;
+  tooltip?: string;
 }) {
   return (
     <div
@@ -49,8 +52,8 @@ function StatBlock({
       style={{ boxShadow: "var(--shadow-card)" }}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] text-muted font-semibold uppercase tracking-widest">
-          {label}
+        <span className="text-[10px] text-muted font-semibold uppercase tracking-widest flex items-center gap-1">
+          {label}{tooltip && <InfoTooltip text={tooltip} size={12} />}
         </span>
         <div className="p-1.5 rounded-lg bg-accent/8">
           <Icon size={14} className="text-accent" />
@@ -156,6 +159,7 @@ export default function StatisticsPage() {
           sub={stats.sharpeRatio >= 1 ? "risk-adjusted edge" : "below benchmark"}
           icon={Activity}
           color={stats.sharpeRatio >= 1 ? "text-win" : stats.sharpeRatio >= 0 ? "text-foreground" : "text-loss"}
+          tooltip="Risk-adjusted return metric. Measures excess return per unit of volatility. Above 1.0 = good, above 2.0 = excellent."
         />
         <StatBlock
           label="Expectancy"
@@ -163,6 +167,7 @@ export default function StatisticsPage() {
           sub="avg return per unit of risk"
           icon={Zap}
           color={stats.expectancy >= 0 ? "text-win" : "text-loss"}
+          tooltip="Average profit per unit of risk. Positive = your system has an edge over time."
         />
       </div>
 

@@ -11,6 +11,7 @@ import {
   CalendarDays,
   X,
 } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function CalendarPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -138,8 +139,8 @@ export default function CalendarPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">
-            Calendar
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            Calendar <InfoTooltip text="Green days = profit, red days = loss — spot patterns at a glance" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Click a day to see trade details

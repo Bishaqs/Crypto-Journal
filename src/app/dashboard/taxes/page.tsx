@@ -6,10 +6,14 @@ import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import {
   calculateTaxReport,
+  calculateTaxReportForJurisdiction,
   getAvailableTaxYears,
   TaxSummary,
   TaxableTrade,
   CostBasisMethod,
+  TaxJurisdiction,
+  TAX_JURISDICTIONS,
+  JurisdictionTaxSummary,
 } from "@/lib/tax-calculator";
 import {
   Receipt,
@@ -24,6 +28,10 @@ import {
   FileSpreadsheet,
   ChevronDown,
   AlertTriangle,
+  Globe,
+  Shield,
+  Scale,
+  BookOpen,
 } from "lucide-react";
 import { Header } from "@/components/header";
 
@@ -112,6 +120,7 @@ export default function TaxesPage() {
   const [sortKey, setSortKey] = useState<SortKey>("exitDate");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [costBasis, setCostBasis] = useState<CostBasisMethod>("fifo");
+  const [jurisdiction, setJurisdiction] = useState<TaxJurisdiction>("us");
   const supabase = createClient();
 
   const fetchTrades = useCallback(async () => {
@@ -129,13 +138,14 @@ export default function TaxesPage() {
     fetchTrades();
   }, [fetchTrades]);
 
-  // Load cost basis method from settings
+  // Load cost basis method and jurisdiction from settings
   useEffect(() => {
     try {
       const stored = localStorage.getItem("stargate-global-settings");
       if (stored) {
         const settings = JSON.parse(stored);
         if (settings.costBasisMethod) setCostBasis(settings.costBasisMethod);
+        if (settings.taxJurisdiction) setJurisdiction(settings.taxJurisdiction);
       }
     } catch { /* ignore */ }
   }, []);
@@ -146,6 +156,13 @@ export default function TaxesPage() {
     () => calculateTaxReport(trades, selectedYear ?? undefined, costBasis),
     [trades, selectedYear, costBasis]
   );
+
+  const jurisdictionReport: JurisdictionTaxSummary = useMemo(
+    () => calculateTaxReportForJurisdiction(trades, selectedYear ?? undefined, jurisdiction, costBasis),
+    [trades, selectedYear, jurisdiction, costBasis]
+  );
+
+  const currentJurisdiction = TAX_JURISDICTIONS.find((j) => j.code === jurisdiction);
 
   const sortedTrades = useMemo(() => {
     const sorted = [...report.trades].sort((a, b) => {
@@ -213,9 +230,161 @@ export default function TaxesPage() {
           Tax Reports
         </h2>
         <p className="text-sm text-muted mt-0.5">
-          Capital gains & losses from closed trades — Form 8949 / Schedule D format
+          Capital gains & losses from closed trades {jurisdiction === "us" ? "— Form 8949 / Schedule D format" : `— ${currentJurisdiction?.name ?? "International"} tax rules`}
         </p>
       </div>
+
+      {/* Jurisdiction selector */}
+      <div className="glass rounded-2xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Globe size={14} className="text-accent" />
+          <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Tax Jurisdiction</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {TAX_JURISDICTIONS.map((j) => (
+            <button
+              key={j.code}
+              onClick={() => setJurisdiction(j.code)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                jurisdiction === j.code
+                  ? "bg-accent/10 text-accent border border-accent/30"
+                  : "bg-surface border border-border text-muted hover:text-foreground hover:border-accent/20"
+              }`}
+            >
+              <span className="text-sm">{j.flag}</span>
+              <span className="hidden sm:inline">{j.name}</span>
+              <span className="sm:hidden">{j.code.toUpperCase()}</span>
+            </button>
+          ))}
+          <button
+            onClick={() => setJurisdiction("other")}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+              jurisdiction === "other"
+                ? "bg-accent/10 text-accent border border-accent/30"
+                : "bg-surface border border-border text-muted hover:text-foreground hover:border-accent/20"
+            }`}
+          >
+            <Globe size={12} />
+            Other
+          </button>
+        </div>
+      </div>
+
+      {/* "Other" country message */}
+      {jurisdiction === "other" && (
+        <div className="glass rounded-2xl border border-amber-500/20 p-6 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
+          <Globe size={32} className="text-amber-500 mx-auto mb-3" />
+          <h3 className="text-sm font-semibold text-foreground mb-1">Your country isn&apos;t listed yet</h3>
+          <p className="text-xs text-muted">
+            Contact us at <a href="mailto:support@stargate.trade" className="text-accent hover:underline">support@stargate.trade</a> and we&apos;ll add it.
+          </p>
+        </div>
+      )}
+
+      {/* Jurisdiction info cards */}
+      {jurisdiction !== "other" && currentJurisdiction && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Tax Rate Card */}
+          <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign size={14} className="text-accent" />
+              <span className="text-[10px] text-muted font-semibold uppercase tracking-widest">Tax Rates</span>
+            </div>
+            <p className="text-sm font-bold text-foreground">{currentJurisdiction.rates}</p>
+          </div>
+
+          {/* Method Card */}
+          <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <Scale size={14} className="text-accent" />
+              <span className="text-[10px] text-muted font-semibold uppercase tracking-widest">Cost Basis Method</span>
+            </div>
+            <p className="text-sm font-bold text-foreground">{currentJurisdiction.method}</p>
+          </div>
+
+          {/* Holding Exemption Card */}
+          {currentJurisdiction.holdingExemption && (
+            <div className={`glass rounded-2xl border p-5 ${
+              currentJurisdiction.holdingExemption.includes("TAX FREE")
+                ? "border-win/30 bg-win/5"
+                : "border-border/50"
+            }`} style={{ boxShadow: "var(--shadow-card)" }}>
+              <div className="flex items-center gap-2 mb-2">
+                <Shield size={14} className={currentJurisdiction.holdingExemption.includes("TAX FREE") ? "text-win" : "text-accent"} />
+                <span className="text-[10px] text-muted font-semibold uppercase tracking-widest">Holding Exemption</span>
+              </div>
+              <p className={`text-sm font-bold ${
+                currentJurisdiction.holdingExemption.includes("TAX FREE") ? "text-win" : "text-foreground"
+              }`}>
+                {currentJurisdiction.holdingExemption}
+              </p>
+              {currentJurisdiction.holdingExemption.includes("TAX FREE") && (
+                <p className="text-[10px] text-win/80 mt-1 font-medium">
+                  Hold your crypto &gt;1 year to pay zero tax!
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Notes Card */}
+          <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <BookOpen size={14} className="text-accent" />
+              <span className="text-[10px] text-muted font-semibold uppercase tracking-widest">Details</span>
+            </div>
+            <p className="text-[11px] text-muted leading-relaxed">{currentJurisdiction.notes}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Jurisdiction-specific effective rate note */}
+      {jurisdiction !== "other" && jurisdiction !== "us" && (
+        <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-accent/5 border border-accent/10">
+          <Info size={14} className="text-accent mt-0.5 shrink-0" />
+          <p className="text-[11px] text-muted leading-relaxed">
+            <strong className="text-accent">{currentJurisdiction?.flag} {currentJurisdiction?.name}:</strong>{" "}
+            {jurisdictionReport.effectiveRateNote}
+          </p>
+        </div>
+      )}
+
+      {/* Exempt trades highlight for DE/PT */}
+      {(jurisdiction === "de" || jurisdiction === "pt") && jurisdictionReport.exempt.count > 0 && (
+        <div className="glass rounded-2xl border border-win/20 bg-win/5 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Shield size={16} className="text-win" />
+            <h3 className="text-sm font-semibold text-win">Tax-Exempt Trades</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Exempt Trades</p>
+              <p className="text-2xl font-bold text-win">{jurisdictionReport.exempt.count}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Exempt Gain/Loss</p>
+              <p className={`text-2xl font-bold ${jurisdictionReport.exempt.gains >= 0 ? "text-win" : "text-loss"}`}>
+                {jurisdictionReport.exempt.gains >= 0 ? "+" : "-"}{formatDollars(jurisdictionReport.exempt.gains)}
+              </p>
+            </div>
+          </div>
+          <p className="text-[10px] text-win/70 mt-2">
+            These trades were held longer than {jurisdiction === "de" ? "1 year" : "365 days"} and are completely tax-free under {currentJurisdiction?.name} law.
+          </p>
+        </div>
+      )}
+
+      {/* Netherlands wealth-based notice */}
+      {jurisdiction === "nl" && (
+        <div className="glass rounded-2xl border border-amber-500/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle size={16} className="text-amber-500" />
+            <h3 className="text-sm font-semibold text-foreground">Wealth-Based Taxation (Box 3)</h3>
+          </div>
+          <p className="text-[11px] text-muted leading-relaxed">
+            The Netherlands does not tax individual crypto trades. Instead, your total crypto holdings at January 1st are included in your Box 3 wealth declaration. A deemed return is calculated and taxed at 36%. The per-trade breakdown below is shown for record-keeping, but your actual tax liability depends on your total net assets, not individual gains/losses.
+          </p>
+        </div>
+      )}
 
       {/* Year selector + Cost Basis Method */}
       <div className="flex flex-wrap items-center gap-3">
@@ -262,30 +431,34 @@ export default function TaxesPage() {
         </div>
       </div>
 
-      {/* Export toolbar */}
+      {/* Export toolbar — US-specific exports + universal Koinly */}
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={() => downloadBlob(
-            generateForm8949CSV(report.trades, selectedYear),
-            `form-8949${selectedYear ? `-${selectedYear}` : ""}.csv`,
-            "text/csv"
-          )}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border text-xs font-semibold text-muted hover:text-foreground hover:border-accent/30 transition-all"
-        >
-          <FileSpreadsheet size={14} className="text-accent" />
-          Form 8949 CSV
-        </button>
-        <button
-          onClick={() => downloadBlob(
-            generateScheduleD(report, selectedYear),
-            `schedule-d-summary${selectedYear ? `-${selectedYear}` : ""}.txt`,
-            "text/plain"
-          )}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border text-xs font-semibold text-muted hover:text-foreground hover:border-accent/30 transition-all"
-        >
-          <FileText size={14} className="text-accent" />
-          Schedule D Summary
-        </button>
+        {jurisdiction === "us" && (
+          <>
+            <button
+              onClick={() => downloadBlob(
+                generateForm8949CSV(report.trades, selectedYear),
+                `form-8949${selectedYear ? `-${selectedYear}` : ""}.csv`,
+                "text/csv"
+              )}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border text-xs font-semibold text-muted hover:text-foreground hover:border-accent/30 transition-all"
+            >
+              <FileSpreadsheet size={14} className="text-accent" />
+              Form 8949 CSV
+            </button>
+            <button
+              onClick={() => downloadBlob(
+                generateScheduleD(report, selectedYear),
+                `schedule-d-summary${selectedYear ? `-${selectedYear}` : ""}.txt`,
+                "text/plain"
+              )}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border text-xs font-semibold text-muted hover:text-foreground hover:border-accent/30 transition-all"
+            >
+              <FileText size={14} className="text-accent" />
+              Schedule D Summary
+            </button>
+          </>
+        )}
         <button
           onClick={() => downloadBlob(
             generateKoinlyCSV(report.trades),
@@ -427,8 +600,8 @@ export default function TaxesPage() {
         })}
       </div>
 
-      {/* Enhanced IRS info section */}
-      <div className="glass rounded-2xl border border-border/50 p-5 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
+      {/* Enhanced IRS info section — US only */}
+      {jurisdiction === "us" && <div className="glass rounded-2xl border border-border/50 p-5 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="flex items-center gap-2 mb-1">
           <Info size={16} className="text-accent shrink-0" />
           <h3 className="text-sm font-semibold text-foreground">Tax Reporting Guide</h3>
@@ -498,7 +671,17 @@ export default function TaxesPage() {
             <strong className="text-amber-500">Disclaimer:</strong> This is for informational purposes only and does not constitute tax advice. Crypto tax rules are complex and change frequently. Always consult a qualified CPA or tax professional for your specific situation.
           </p>
         </div>
-      </div>
+      </div>}
+
+      {/* Universal disclaimer — all jurisdictions */}
+      {jurisdiction !== "us" && jurisdiction !== "other" && (
+        <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
+          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+          <p className="text-[11px] text-muted leading-relaxed">
+            <strong className="text-amber-500">Disclaimer:</strong> This is for informational purposes only and does not constitute tax advice. Tax rules for {currentJurisdiction?.name} may change. Always consult a qualified tax professional in your jurisdiction.
+          </p>
+        </div>
+      )}
 
       {/* Trade-by-trade table */}
       <div

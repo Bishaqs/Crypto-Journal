@@ -39,25 +39,7 @@ import {
   Percent,
 } from "lucide-react";
 import { Header } from "@/components/header";
-
-function InfoTooltip({ text }: { text: string }) {
-  const [show, setShow] = useState(false);
-  return (
-    <span
-      className="relative inline-flex ml-1.5 cursor-help"
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-      onClick={() => setShow(!show)}
-    >
-      <Info size={12} className="text-muted/40 hover:text-accent transition-colors" />
-      {show && (
-        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 rounded-lg bg-surface border border-border text-[11px] text-muted leading-relaxed z-50 shadow-lg pointer-events-none">
-          {text}
-        </span>
-      )}
-    </span>
-  );
-}
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 function StatBlock({
   label,

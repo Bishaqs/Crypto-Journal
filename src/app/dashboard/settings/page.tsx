@@ -26,6 +26,7 @@ import {
   Mail,
   X,
   Info,
+  TrendingUp,
 } from "lucide-react";
 import type { Chain, Wallet as WalletType } from "@/lib/types";
 import { CHAINS } from "@/lib/types";
@@ -764,20 +765,20 @@ export default function SettingsPage() {
               },
               {
                 name: "Pro",
-                price: billing === "monthly" ? "$12" : "$100",
+                price: billing === "monthly" ? "$19" : "$149",
                 period: billing === "monthly" ? "/month" : "/year",
                 badge: "Most Popular",
                 highlight: true,
-                features: ["Unlimited trades", "50+ metrics", "Psychology engine", "Weekly reports", "4 animated themes", "Playbook & risk calc"],
+                features: ["Unlimited trades", "50+ metrics", "Psychology engine", "Weekly reports", "4 animated themes", "Playbook & risk calc", "DEX trade logging"],
                 current: false,
               },
               {
                 name: "Max",
-                price: billing === "monthly" ? "$25" : "$250",
+                price: billing === "monthly" ? "$39" : "$279",
                 period: billing === "monthly" ? "/month" : "/year",
                 badge: "Power User",
                 highlight: false,
-                features: ["Everything in Pro", "AI Trading Coach", "Monte Carlo sims", "Crypto tax reports", "Custom dashboards", "Priority support"],
+                features: ["Everything in Pro", "AI Trading Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support"],
                 current: false,
               },
             ].map((plan) => (
@@ -827,6 +828,67 @@ export default function SettingsPage() {
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Stock Add-Ons */}
+          <div className="glass rounded-2xl border border-border/50 p-6 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <TrendingUp size={14} className="text-accent" />
+                Stock Trading Plans
+              </h3>
+              <p className="text-[10px] text-muted mt-0.5">Expand your journal to track equities and options</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Stock Add-On */}
+              <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 space-y-3">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">For Crypto Traders</span>
+                <h4 className="text-base font-bold text-foreground">Stock Add-On</h4>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-foreground">$29</span>
+                  <span className="text-xs text-muted">/year</span>
+                </div>
+                <ul className="space-y-1.5">
+                  {["Stock dashboard & analytics", "Position tracking", "Sector breakdown", "Session performance", "Integrated with your crypto data"].map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-xs">
+                      <CheckCircle2 size={12} className="text-accent shrink-0 mt-0.5" />
+                      <span className="text-foreground">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => alert("Coming soon! Stripe integration pending.")}
+                  className="w-full py-2.5 rounded-xl font-semibold text-sm bg-accent text-background hover:bg-accent-hover transition-all"
+                >
+                  Add Stocks — $29/yr
+                </button>
+              </div>
+
+              {/* Stock-Only Plan */}
+              <div className="rounded-xl border border-border/50 bg-surface-hover/30 p-4 space-y-3">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">Stocks Only</span>
+                <h4 className="text-base font-bold text-foreground">Stock Journal</h4>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-foreground">$49</span>
+                  <span className="text-xs text-muted">/year</span>
+                </div>
+                <ul className="space-y-1.5">
+                  {["Stock dashboard & analytics", "Position tracking & trade log", "Journal, calendar & weekly reports", "Sector & session analysis", "No crypto features included"].map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-xs">
+                      <CheckCircle2 size={12} className="text-win/70 shrink-0 mt-0.5" />
+                      <span className="text-foreground">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => alert("Coming soon! Stripe integration pending.")}
+                  className="w-full py-2.5 rounded-xl font-semibold text-sm bg-surface-hover text-foreground hover:bg-border transition-all"
+                >
+                  Get Stock Journal — $49/yr
+                </button>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted text-center">Max plan users get stock trading included at no extra cost.</p>
           </div>
         </div>
       )}
@@ -892,6 +954,7 @@ export default function SettingsPage() {
           <SectionCard icon={Star} title="Reward Tiers" description="The more you share, the more you earn.">
             <div className="space-y-2">
               {[
+                { referrals: "1", reward: "7 days Pro free" },
                 { referrals: "5", reward: "1 month Pro free" },
                 { referrals: "10", reward: "3 months Pro free" },
                 { referrals: "25", reward: "1 year Pro free" },

@@ -13,6 +13,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Header } from "@/components/header";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -207,7 +208,7 @@ export default function HeatMapsPage() {
         </h2>
         <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
           <Sparkles size={12} className="text-accent" />
-          Overtrading Detector &mdash; Sample data
+          Overtrading Detector <InfoTooltip text="Shows how your edge degrades with each additional trade per session. Most traders peak at 3-4 trades." size={12} /> &mdash; Sample data
         </p>
       </div>
 

@@ -27,6 +27,7 @@ import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
 import { Plus, Sparkles, Download, Upload, Activity, Dices, Receipt, TrendingUp, Calculator } from "lucide-react";
 import Link from "next/link";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -215,13 +216,13 @@ export default function DashboardPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">Sharpe Ratio</p>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Sharpe Ratio <InfoTooltip text="Risk-adjusted return metric. Measures excess return per unit of volatility. Above 1.0 = good, above 2.0 = excellent." size={11} /></p>
                 <p className={`text-lg font-bold ${adv.sharpeRatio >= 1 ? "text-win" : adv.sharpeRatio >= 0 ? "text-foreground" : "text-loss"}`}>
                   {adv.sharpeRatio.toFixed(2)}
                 </p>
               </div>
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">Expectancy</p>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Expectancy <InfoTooltip text="Average profit per unit of risk. Positive = your system has an edge over time." size={11} /></p>
                 <p className={`text-lg font-bold ${adv.expectancy >= 0 ? "text-win" : "text-loss"}`}>
                   {adv.expectancy >= 0 ? "+" : ""}${adv.expectancy.toFixed(2)}
                 </p>

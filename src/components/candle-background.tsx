@@ -19,12 +19,12 @@ const COLOR_SCHEMES = {
   brand: {
     up: "139,92,246",    // violet-500
     down: "167,139,250", // violet-400
-    bodyUp: 0.38,
-    bodyDown: 0.30,
-    wickUp: 0.35,
-    wickDown: 0.28,
-    borderUp: 0.22,
-    borderDown: 0.18,
+    bodyUp: 0.50,
+    bodyDown: 0.40,
+    wickUp: 0.45,
+    wickDown: 0.35,
+    borderUp: 0.30,
+    borderDown: 0.25,
   },
 } as const;
 
