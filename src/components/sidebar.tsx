@@ -182,6 +182,11 @@ export function Sidebar() {
       })
     : mainItems;
 
+  // Hide crypto-specific advanced tools in stocks mode
+  const resolvedAdvancedItems = assetContext === "stocks"
+    ? advancedToolItems.filter(item => !["/dashboard/prop-firm", "/dashboard/simulations"].includes(item.href))
+    : advancedToolItems;
+
   const sidebarContent = (isMobile: boolean) => (
     <>
       {/* Logo */}
@@ -303,7 +308,7 @@ export function Sidebar() {
               </p>
             )}
             <div className="space-y-0.5">
-              {advancedToolItems.map((item) => (
+              {resolvedAdvancedItems.map((item) => (
                 <NavLink key={item.href} item={item} isMobile={isMobile} />
               ))}
             </div>
