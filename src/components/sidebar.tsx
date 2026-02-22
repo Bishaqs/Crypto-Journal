@@ -88,6 +88,8 @@ export function Sidebar() {
 
   // Check if user has stocks addon or Max tier
   function hasStocksAccess(): boolean {
+    // Demo mode: always grant access
+    if (typeof document !== "undefined" && document.cookie.includes("stargate-demo=true")) return true;
     try {
       const addonsRaw = localStorage.getItem("stargate-addons");
       if (addonsRaw) {
@@ -119,12 +121,17 @@ export function Sidebar() {
     if (savedContext === "crypto" || savedContext === "stocks") {
       // Only restore stocks if user still has access
       if (savedContext === "stocks") {
-        try {
-          const addonsRaw = localStorage.getItem("stargate-addons");
-          const addons: UserAddons = addonsRaw ? JSON.parse(addonsRaw) : { stocks: false };
-          const tier = localStorage.getItem("stargate-tier");
-          if (addons.stocks || tier === "max") setAssetContext("stocks");
-        } catch { /* fallback to crypto */ }
+        const isDemo = typeof document !== "undefined" && document.cookie.includes("stargate-demo=true");
+        if (isDemo) {
+          setAssetContext("stocks");
+        } else {
+          try {
+            const addonsRaw = localStorage.getItem("stargate-addons");
+            const addons: UserAddons = addonsRaw ? JSON.parse(addonsRaw) : { stocks: false };
+            const tier = localStorage.getItem("stargate-tier");
+            if (addons.stocks || tier === "max") setAssetContext("stocks");
+          } catch { /* fallback to crypto */ }
+        }
       } else {
         setAssetContext(savedContext);
       }

@@ -17,8 +17,10 @@ export function setUserAddons(addons: UserAddons): void {
 }
 
 export function hasStockAccess(): boolean {
+  // Demo mode: always grant access
+  if (typeof document !== "undefined" && document.cookie.includes("stargate-demo=true")) return true;
+
   // Max tier users always have stock access
-  // For now, check localStorage for tier or addons
   const addons = getUserAddons();
   if (addons.stocks) return true;
 
