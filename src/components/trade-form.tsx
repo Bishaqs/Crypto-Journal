@@ -90,8 +90,7 @@ export function TradeForm({
       try {
         const raw = localStorage.getItem("stargate-subscription-cache");
         const tier: SubscriptionTier = raw ? (JSON.parse(raw).data?.tier ?? "free") : "free";
-        const isDemoUser = document.cookie.includes("stargate-demo=true");
-        if (!isDemoUser && !checkFeatureAccess(tier, "unlimited-trades")) {
+        if (!checkFeatureAccess(tier, "unlimited-trades")) {
           const now = new Date();
           const weekStart = new Date(now);
           weekStart.setDate(now.getDate() - now.getDay());

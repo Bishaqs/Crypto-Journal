@@ -238,6 +238,31 @@ export type UserAddons = {
   stocks: boolean;
 };
 
+// Referral system types
+export type ReferralLink = {
+  id: string;
+  user_id: string;
+  code: string;
+  created_at: string;
+};
+
+export type Referral = {
+  id: string;
+  referrer_id: string;
+  referred_user_id: string;
+  status: "signed_up" | "converted" | "expired";
+  created_at: string;
+  converted_at: string | null;
+};
+
+export type ReferralReward = {
+  id: string;
+  user_id: string;
+  reward_days: number;
+  reason: string;
+  applied_at: string;
+};
+
 // Stock sectors (GICS-based)
 export const STOCK_SECTORS = [
   // GICS Sectors

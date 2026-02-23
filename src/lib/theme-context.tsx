@@ -61,12 +61,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (isProTheme(t)) {
       try {
         const raw = localStorage.getItem("stargate-subscription-cache");
-        const isDemoUser = document.cookie.includes("stargate-demo=true");
-        if (!isDemoUser && raw) {
+        if (raw) {
           const cache = JSON.parse(raw);
           const tier = cache.data?.tier ?? "free";
           if (tier === "free") return;
-        } else if (!isDemoUser && !raw) {
+        } else {
           return; // no subscription data = free user
         }
       } catch {}

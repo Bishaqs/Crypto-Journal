@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { clearSubscriptionCache } from "@/lib/use-subscription";
 import {
   ArrowRight,
   ArrowLeft,
@@ -104,14 +105,24 @@ export default function LoginPage() {
   const [cardCvc, setCardCvc] = useState("");
   const [cardName, setCardName] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const inviteCodeRef = useRef<string | null>(null);
+  const refCodeRef = useRef<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
+    // Clear stale subscription cache on login page load
+    clearSubscriptionCache();
+
     const params = new URLSearchParams(window.location.search);
     if (params.get("error") === "oauth_failed") {
       setError("Google sign-in failed. Please try again.");
     }
+    // Capture invite and referral codes from URL
+    const invite = params.get("invite");
+    if (invite) inviteCodeRef.current = invite;
+    const ref = params.get("ref");
+    if (ref) refCodeRef.current = ref;
   }, []);
 
   async function handleAuthSubmit(e: React.FormEvent) {
@@ -145,7 +156,42 @@ export default function LoginPage() {
       return;
     }
 
-    // Sign in success → go to plan selection
+    // Sign in success → handle invite/referral codes, then navigate
+    clearSubscriptionCache();
+    await handlePostAuth();
+  }
+
+  async function handlePostAuth() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLoading(false); setStep(2); return; }
+
+    // Auto-redeem invite code if present
+    if (inviteCodeRef.current) {
+      try {
+        const { data: result } = await supabase.rpc("redeem_invite_code", {
+          p_code: inviteCodeRef.current,
+          p_user_id: user.id,
+        });
+        if (result?.success) {
+          clearSubscriptionCache();
+          setSuccess(`Invite code applied! You now have ${result.tier} access.`);
+          setLoading(false);
+          setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1500);
+          return;
+        }
+      } catch {}
+    }
+
+    // Track referral signup if present
+    if (refCodeRef.current) {
+      try {
+        await supabase.rpc("track_referral_signup", {
+          p_code: refCodeRef.current,
+          p_new_user_id: user.id,
+        });
+      } catch {}
+    }
+
     setLoading(false);
     setStep(2);
   }
@@ -317,17 +363,24 @@ export default function LoginPage() {
                 onClick={async () => {
                   setError(null);
                   try {
+                    // Pass invite/ref codes through OAuth callback
+                    let nextUrl = "/dashboard";
+                    const params = new URLSearchParams();
+                    if (inviteCodeRef.current) params.set("invite", inviteCodeRef.current);
+                    if (refCodeRef.current) params.set("ref", refCodeRef.current);
+                    if (params.toString()) nextUrl += `?${params.toString()}`;
+
                     const { error: oauthError } = await supabase.auth.signInWithOAuth({
                       provider: "google",
                       options: {
-                        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+                        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`,
                       },
                     });
                     if (oauthError) {
-                      setError("Google sign-in is not available yet. Use email/password or try the demo below.");
+                      setError("Google sign-in is not available yet. Please use email/password.");
                     }
                   } catch {
-                    setError("Google sign-in is not available yet. Use email/password or try the demo below.");
+                    setError("Google sign-in is not available yet. Please use email/password.");
                   }
                 }}
                 className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg bg-surface border border-border text-foreground font-medium hover:bg-surface-hover hover:border-accent/30 transition-all mb-6"
@@ -490,19 +543,6 @@ export default function LoginPage() {
                 </p>
               )}
 
-              {/* Demo access */}
-              <div className="mt-6 pt-6 border-t border-border/50">
-                <button
-                  onClick={() => router.push("/dashboard?demo=true")}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-border text-sm text-muted hover:text-foreground hover:border-accent/30 hover:bg-accent/5 transition-all"
-                >
-                  <Zap size={14} />
-                  Try Demo — no account needed
-                </button>
-                <p className="text-center text-[10px] text-muted/40 mt-2">
-                  Explore the full dashboard with sample data
-                </p>
-              </div>
             </div>
           )}
 

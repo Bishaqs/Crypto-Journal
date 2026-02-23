@@ -29,21 +29,13 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname, searchParams } = request.nextUrl;
-
-  // Demo bypass for screenshots (dev only)
-  const isDemoBypass = searchParams.get("demo") === "true" || request.cookies.get("stargate-demo")?.value === "true";
+  const { pathname } = request.nextUrl;
 
   // If not logged in and trying to access dashboard, redirect to login
-  if (!user && !isDemoBypass && pathname.startsWith("/dashboard")) {
+  if (!user && pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
-  }
-
-  // Set demo cookie if ?demo=true so subsequent navigations work
-  if (isDemoBypass && !request.cookies.get("stargate-demo")) {
-    supabaseResponse.cookies.set("stargate-demo", "true", { path: "/", maxAge: 2592000 }); // 30 days
   }
 
   // Owner auto-provisioning: ensure owner email always has Max tier

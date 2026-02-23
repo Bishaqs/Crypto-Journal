@@ -17,7 +17,6 @@ export function setUserAddons(addons: UserAddons): void {
 }
 
 export function hasStockAccess(): boolean {
-  if (typeof document !== "undefined" && document.cookie.includes("stargate-demo=true")) return true;
   const addons = getUserAddons();
   if (addons.stocks) return true;
   try {
