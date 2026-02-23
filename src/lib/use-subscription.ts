@@ -34,6 +34,12 @@ const FEATURE_TIERS: Record<string, SubscriptionTier[]> = {
   "stock-trading": ["max"],
 };
 
+export function clearSubscriptionCache() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(CACHE_KEY);
+  }
+}
+
 export function checkFeatureAccess(tier: SubscriptionTier, feature: string): boolean {
   const allowed = FEATURE_TIERS[feature];
   if (!allowed) return true; // unknown feature = allow

@@ -1,6 +1,6 @@
 import { Sidebar } from "@/components/sidebar";
 import { DailyCheckin } from "@/components/daily-checkin";
-import { OnboardingGate } from "@/components/onboarding-gate";
+import { InviteRedeemer } from "@/components/invite-redeemer";
 import { Starfield } from "@/components/starfield";
 import { QuickEmotionFab } from "@/components/quick-emotion-fab";
 import { OnboardingTour } from "@/components/onboarding-tour";
@@ -22,7 +22,7 @@ export default function DashboardLayout({
           </ErrorBoundary>
         </main>
         <DailyCheckin />
-        <OnboardingGate />
+        <InviteRedeemer />
         <QuickEmotionFab />
       </div>
     </OnboardingTour>

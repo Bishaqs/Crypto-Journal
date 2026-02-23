@@ -31,6 +31,7 @@ import {
 import type { Chain, Wallet as WalletType } from "@/lib/types";
 import { CHAINS } from "@/lib/types";
 import { useSubscription } from "@/lib/use-subscription";
+import { useReferral } from "@/lib/use-referral";
 import { InviteCodesTab } from "@/components/settings/invite-codes-tab";
 import { RedeemCodeSection } from "@/components/settings/redeem-code-section";
 import { Ticket } from "lucide-react";
@@ -236,6 +237,7 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
 
 export default function SettingsPage() {
   const { tier, isOwner, loading: subLoading } = useSubscription();
+  const { code: referralCode, totalReferrals, converted: referralConverted, freeDaysEarned, loading: refLoading } = useReferral();
   const [tab, setTab] = useState<SettingsTab>("account");
   const [config, setConfig] = useState<ExchangeConfig>(DEFAULT_CONFIG);
   const [saved, setSaved] = useState(false);
@@ -307,8 +309,13 @@ export default function SettingsPage() {
     setTimeout(() => setGlobalSaved(false), 2000);
   }
 
+  const referralUrl = referralCode
+    ? `https://stargate-journal.vercel.app/login?ref=${referralCode}`
+    : "";
+
   function copyReferralLink() {
-    navigator.clipboard.writeText(`https://stargate.app/ref/${displayName.toLowerCase().replace(/\s+/g, "-")}`);
+    if (!referralUrl) return;
+    navigator.clipboard.writeText(referralUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -941,7 +948,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2">
               <input
                 readOnly
-                value={`https://stargate.app/ref/${displayName.toLowerCase().replace(/\s+/g, "-")}`}
+                value={refLoading ? "Loading..." : referralUrl}
                 className="flex-1 px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm font-mono focus:outline-none"
               />
               <button
@@ -957,8 +964,8 @@ export default function SettingsPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => {
-                  const url = `https://stargate.app/ref/${displayName.toLowerCase().replace(/\s+/g, "-")}`;
-                  window.open(`https://twitter.com/intent/tweet?text=Check+out+Stargate+crypto+trading+journal!&url=${encodeURIComponent(url)}`, "_blank");
+                  if (!referralUrl) return;
+                  window.open(`https://twitter.com/intent/tweet?text=Check+out+Stargate+crypto+trading+journal!&url=${encodeURIComponent(referralUrl)}`, "_blank");
                 }}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-surface-hover border border-border text-sm text-foreground hover:border-accent/30 transition-all"
               >
@@ -978,9 +985,9 @@ export default function SettingsPage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: "Total Referrals", value: "0", color: "text-foreground" },
-              { label: "Active Users", value: "0", color: "text-win" },
-              { label: "Free Days Earned", value: "0", color: "text-accent" },
+              { label: "Total Referrals", value: String(totalReferrals), color: "text-foreground" },
+              { label: "Converted", value: String(referralConverted), color: "text-win" },
+              { label: "Free Days Earned", value: String(freeDaysEarned), color: "text-accent" },
             ].map((stat) => (
               <div key={stat.label} className="glass rounded-2xl border border-border/50 p-5 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
                 <p className="text-2xl font-bold mb-1" style={{ color: `var(--${stat.color === "text-foreground" ? "foreground" : stat.color === "text-win" ? "win" : "accent"})` }}>
