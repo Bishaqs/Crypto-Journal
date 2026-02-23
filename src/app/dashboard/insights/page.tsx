@@ -528,7 +528,8 @@ export default function InsightsPage() {
     );
   }
 
-  if (!subLoading && !hasAccess("advanced-analytics")) return <UpgradePrompt feature="advanced-analytics" requiredTier="pro" />;
+  if (subLoading) return null;
+  if (!hasAccess("advanced-analytics")) return <UpgradePrompt feature="advanced-analytics" requiredTier="pro" />;
 
   const hasEmotionData = emotionData.length > 0;
   const hasConfidenceData = confidenceData.length >= 3;

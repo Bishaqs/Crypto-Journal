@@ -164,7 +164,8 @@ export default function PlaybookPage() {
     return null;
   }
 
-  if (!subLoading && !hasAccess("playbook")) return <UpgradePrompt feature="playbook" requiredTier="pro" />;
+  if (subLoading) return null;
+  if (!hasAccess("playbook")) return <UpgradePrompt feature="playbook" requiredTier="pro" />;
 
   if (loading) {
     return (

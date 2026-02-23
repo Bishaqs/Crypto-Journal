@@ -216,7 +216,8 @@ export default function TaxesPage() {
     return `$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
-  if (!subLoading && !hasAccess("tax-reports")) return <UpgradePrompt feature="tax-reports" requiredTier="max" />;
+  if (subLoading) return null;
+  if (!hasAccess("tax-reports")) return <UpgradePrompt feature="tax-reports" requiredTier="max" />;
 
   if (loading) {
     return (

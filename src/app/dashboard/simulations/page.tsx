@@ -175,7 +175,8 @@ export default function SimulationsPage() {
       }))
     : [];
 
-  if (!subLoading && !hasAccess("monte-carlo")) return <UpgradePrompt feature="monte-carlo" requiredTier="max" />;
+  if (subLoading) return null;
+  if (!hasAccess("monte-carlo")) return <UpgradePrompt feature="monte-carlo" requiredTier="max" />;
 
   if (loading) {
     return (

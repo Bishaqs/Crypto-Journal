@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Key,
   RefreshCw,
@@ -235,10 +236,25 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
    MAIN SETTINGS PAGE
    ================================================================ */
 
+const VALID_TABS = new Set<SettingsTab>(["account", "connections", "trading-accounts", "global", "subscription", "invite-codes", "referrals", "export"]);
+
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsContent />
+    </Suspense>
+  );
+}
+
+function SettingsContent() {
+  const searchParams = useSearchParams();
+  const initialTab = useMemo(() => {
+    const param = searchParams.get("tab") as SettingsTab | null;
+    return param && VALID_TABS.has(param) ? param : "account";
+  }, [searchParams]);
   const { tier, isOwner, loading: subLoading } = useSubscription();
   const { code: referralCode, totalReferrals, converted: referralConverted, freeDaysEarned, loading: refLoading } = useReferral();
-  const [tab, setTab] = useState<SettingsTab>("account");
+  const [tab, setTab] = useState<SettingsTab>(initialTab);
   const [config, setConfig] = useState<ExchangeConfig>(DEFAULT_CONFIG);
   const [saved, setSaved] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
