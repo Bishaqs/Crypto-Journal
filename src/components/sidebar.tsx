@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
@@ -32,10 +32,12 @@ import {
   ShieldAlert,
   TrendingUp,
   Lock,
+  LogOut,
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
 import { hasStockAccess } from "@/lib/addons";
+import { createClient } from "@/lib/supabase/client";
 
 interface NavItem {
   href: string;
@@ -80,10 +82,12 @@ const bottomItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [assetContext, setAssetContext] = useState<"crypto" | "stocks">("crypto");
   const [showStockUpgrade, setShowStockUpgrade] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { viewMode, toggleViewMode } = useTheme();
 
   function handleAssetToggle(context: "crypto" | "stocks") {
@@ -126,7 +130,7 @@ export function Sidebar() {
     const tourId = `tour-${item.href.replace("/dashboard/", "").replace("/dashboard", "home") || "home"}`;
     return (
       <Link
-        id={tourId}
+        id={!isMobile ? tourId : undefined}
         href={item.href}
         title={!isMobile && collapsed ? item.label : undefined}
         className={`flex items-center gap-3 ${
@@ -294,7 +298,7 @@ export function Sidebar() {
       <div className="border-t border-border py-2 px-2">
         {/* View mode toggle — prominent */}
         <button
-          id="tour-view-toggle"
+          id={!isMobile ? "tour-view-toggle" : undefined}
           onClick={toggleViewMode}
           className={`w-full flex items-center gap-3 ${
             !isMobile && collapsed ? "justify-center px-2" : "px-3"
@@ -318,6 +322,16 @@ export function Sidebar() {
         {bottomItems.map((item) => (
           <NavLink key={item.href} item={item} isMobile={isMobile} />
         ))}
+        <button
+          onClick={() => setShowLogoutConfirm(true)}
+          className={`w-full flex items-center gap-3 ${
+            !isMobile && collapsed ? "justify-center px-2" : "px-3"
+          } py-2 rounded-xl text-sm font-medium text-muted hover:text-loss hover:bg-loss/10 transition-all duration-200`}
+          title={!isMobile && collapsed ? "Log Out" : undefined}
+        >
+          <LogOut size={18} />
+          {(isMobile || !collapsed) && <span>Log Out</span>}
+        </button>
         {(isMobile || !collapsed) && (
           <p className="text-[10px] text-muted/40 text-center mt-2 pb-1">
             Stargate v0.1
@@ -365,6 +379,40 @@ export function Sidebar() {
       >
         {sidebarContent(false)}
       </aside>
+
+      {/* Logout confirmation modal */}
+      {showLogoutConfirm && (
+        <>
+          <div className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)} />
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+            <div className="glass border border-border/50 rounded-2xl w-full max-w-sm p-6 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
+              <div className="w-12 h-12 rounded-full bg-loss/10 flex items-center justify-center mx-auto mb-4">
+                <LogOut size={22} className="text-loss" />
+              </div>
+              <h3 className="text-lg font-bold text-foreground mb-1">Log Out?</h3>
+              <p className="text-sm text-muted mb-6">Are you sure you want to log out?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted bg-surface border border-border hover:text-foreground hover:bg-surface-hover transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    const supabase = createClient();
+                    await supabase.auth.signOut();
+                    router.push("/login");
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-loss hover:bg-loss/80 transition-all"
+                >
+                  Log Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
