@@ -14,6 +14,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // Return to login on error
-  return NextResponse.redirect(`${origin}/login`);
+  // Return to login with error feedback
+  return NextResponse.redirect(`${origin}/login?error=oauth_failed`);
 }
