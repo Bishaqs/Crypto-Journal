@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
+import { useSubscription } from "@/lib/use-subscription";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { useDateRange } from "@/lib/date-range-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -56,6 +58,7 @@ import { Plus, X } from "lucide-react";
 
 
 export default function InsightsPage() {
+  const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -524,6 +527,8 @@ export default function InsightsPage() {
       </div>
     );
   }
+
+  if (!subLoading && !hasAccess("advanced-analytics")) return <UpgradePrompt feature="advanced-analytics" requiredTier="pro" />;
 
   const hasEmotionData = emotionData.length > 0;
   const hasConfidenceData = confidenceData.length >= 3;

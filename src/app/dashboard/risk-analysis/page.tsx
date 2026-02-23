@@ -14,6 +14,8 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { useSubscription } from "@/lib/use-subscription";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 
 // ---------------------------------------------------------------------------
 // DEMO DATA — 30 realistic crypto trades
@@ -106,6 +108,7 @@ function MetricCard({
 // ---------------------------------------------------------------------------
 
 export default function RiskAnalysisPage() {
+  const { hasAccess, loading: subLoading } = useSubscription();
   const [activeTab, setActiveTab] = useState<"r-multiples" | "mae-mfe">("r-multiples");
   const [rTableSortDir, setRTableSortDir] = useState<"asc" | "desc">("desc");
   const [maeTableSortDir, setMaeTableSortDir] = useState<"asc" | "desc">("desc");
@@ -216,6 +219,8 @@ export default function RiskAnalysisPage() {
   const mfeXMax = Math.max(...DEMO_TRADES.map((t) => t.mfe));
   const pnlMin = Math.min(...DEMO_TRADES.map((t) => t.pnl));
   const pnlMax = Math.max(...DEMO_TRADES.map((t) => t.pnl));
+
+  if (!subLoading && !hasAccess("risk-analysis")) return <UpgradePrompt feature="risk-analysis" requiredTier="max" />;
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-6">

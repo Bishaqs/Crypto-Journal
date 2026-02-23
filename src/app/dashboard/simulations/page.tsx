@@ -40,6 +40,8 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { useSubscription } from "@/lib/use-subscription";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 
 function StatBlock({
   label,
@@ -72,6 +74,7 @@ function StatBlock({
 }
 
 export default function SimulationsPage() {
+  const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const { filterTrades } = useDateRange();
@@ -171,6 +174,8 @@ export default function SimulationsPage() {
         p95: result.percentiles.p95[i],
       }))
     : [];
+
+  if (!subLoading && !hasAccess("monte-carlo")) return <UpgradePrompt feature="monte-carlo" requiredTier="max" />;
 
   if (loading) {
     return (

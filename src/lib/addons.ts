@@ -17,22 +17,17 @@ export function setUserAddons(addons: UserAddons): void {
 }
 
 export function hasStockAccess(): boolean {
-  // DEV BYPASS — remove before launch and uncomment the checks below
-  return true;
-
-  /* Production gating:
   if (typeof document !== "undefined" && document.cookie.includes("stargate-demo=true")) return true;
   const addons = getUserAddons();
   if (addons.stocks) return true;
   try {
-    const sub = localStorage.getItem("stargate-subscription");
-    if (sub) {
-      const parsed = JSON.parse(sub);
-      if (parsed.tier === "max") return true;
+    const raw = localStorage.getItem("stargate-subscription-cache");
+    if (raw) {
+      const cache = JSON.parse(raw);
+      if (cache.data?.tier === "max") return true;
     }
   } catch {}
   return false;
-  */
 }
 
 export type AssetContext = "crypto" | "stocks";

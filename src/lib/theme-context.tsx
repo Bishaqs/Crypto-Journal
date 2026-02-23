@@ -57,6 +57,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   function setTheme(t: Theme) {
+    // Gate pro themes — Free users can only use light + dark-simple
+    if (isProTheme(t)) {
+      try {
+        const raw = localStorage.getItem("stargate-subscription-cache");
+        const isDemoUser = document.cookie.includes("stargate-demo=true");
+        if (!isDemoUser && raw) {
+          const cache = JSON.parse(raw);
+          const tier = cache.data?.tier ?? "free";
+          if (tier === "free") return;
+        } else if (!isDemoUser && !raw) {
+          return; // no subscription data = free user
+        }
+      } catch {}
+    }
     setThemeState(t);
   }
 

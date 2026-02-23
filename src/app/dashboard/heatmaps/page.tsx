@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { useSubscription } from "@/lib/use-subscription";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -123,6 +125,7 @@ const OVERTRADING_DATA = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function HeatMapsPage() {
+  const { hasAccess, loading: subLoading } = useSubscription();
   const [tab, setTab] = useState<TabId>("time-day");
   const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null);
   const [dailyLimit, setDailyLimit] = useState(4);
@@ -195,6 +198,8 @@ export default function HeatMapsPage() {
     () => Math.max(...OVERTRADING_DATA.map((d) => Math.abs(d.avgPnl))),
     []
   );
+
+  if (!subLoading && !hasAccess("heatmaps")) return <UpgradePrompt feature="heatmaps" requiredTier="max" />;
 
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">

@@ -11,6 +11,7 @@ import { PreTradeChecklist } from "./pre-trade-checklist";
 import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
 import { getCustomTagPresets } from "@/lib/tag-manager";
+import { checkFeatureAccess, type SubscriptionTier } from "@/lib/use-subscription";
 
 const NARRATIVE_OPTIONS = [
   "AI", "Memecoin", "RWA", "DeFi", "L2/Infra", "BTC ETF",
@@ -83,6 +84,30 @@ export function TradeForm({
     e.preventDefault();
     setErrors({});
     setSaving(true);
+
+    // Free tier: 2 trades per week limit
+    if (!editTrade) {
+      try {
+        const raw = localStorage.getItem("stargate-subscription-cache");
+        const tier: SubscriptionTier = raw ? (JSON.parse(raw).data?.tier ?? "free") : "free";
+        const isDemoUser = document.cookie.includes("stargate-demo=true");
+        if (!isDemoUser && !checkFeatureAccess(tier, "unlimited-trades")) {
+          const now = new Date();
+          const weekStart = new Date(now);
+          weekStart.setDate(now.getDate() - now.getDay());
+          weekStart.setHours(0, 0, 0, 0);
+          const { count } = await supabase
+            .from("trades")
+            .select("*", { count: "exact", head: true })
+            .gte("created_at", weekStart.toISOString());
+          if ((count ?? 0) >= 2) {
+            setErrors({ symbol: "Free tier is limited to 2 trades per week. Upgrade to Pro for unlimited trades." });
+            setSaving(false);
+            return;
+          }
+        }
+      } catch {}
+    }
 
     const formData = new FormData(e.currentTarget);
     const raw = {

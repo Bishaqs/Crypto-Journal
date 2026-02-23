@@ -30,6 +30,10 @@ import {
 } from "lucide-react";
 import type { Chain, Wallet as WalletType } from "@/lib/types";
 import { CHAINS } from "@/lib/types";
+import { useSubscription } from "@/lib/use-subscription";
+import { InviteCodesTab } from "@/components/settings/invite-codes-tab";
+import { RedeemCodeSection } from "@/components/settings/redeem-code-section";
+import { Ticket } from "lucide-react";
 
 /* ================================================================
    TYPES
@@ -86,15 +90,17 @@ type SettingsTab =
   | "trading-accounts"
   | "global"
   | "subscription"
+  | "invite-codes"
   | "referrals"
   | "export";
 
-const TABS: { value: SettingsTab; label: string; icon: React.ElementType }[] = [
+const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerOnly?: boolean }[] = [
   { value: "account", label: "Account", icon: User },
   { value: "connections", label: "Connected Accounts", icon: Link2 },
   { value: "trading-accounts", label: "Trading Accounts", icon: Wallet },
   { value: "global", label: "Global Settings", icon: Globe },
   { value: "subscription", label: "Subscription", icon: CreditCard },
+  { value: "invite-codes", label: "Invite Codes", icon: Ticket, ownerOnly: true },
   { value: "referrals", label: "Referrals", icon: Gift },
   { value: "export", label: "Export Data", icon: Download },
 ];
@@ -229,6 +235,7 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
    ================================================================ */
 
 export default function SettingsPage() {
+  const { tier, isOwner, loading: subLoading } = useSubscription();
   const [tab, setTab] = useState<SettingsTab>("account");
   const [config, setConfig] = useState<ExchangeConfig>(DEFAULT_CONFIG);
   const [saved, setSaved] = useState(false);
@@ -346,7 +353,7 @@ export default function SettingsPage() {
 
       {/* Tab bar */}
       <div className="flex gap-1 mb-6 overflow-x-auto pb-1">
-        {TABS.map((t) => (
+        {TABS.filter((t) => !t.ownerOnly || isOwner).map((t) => (
           <button
             key={t.value}
             onClick={() => setTab(t.value)}
@@ -717,16 +724,21 @@ export default function SettingsPage() {
       {/* ============ SUBSCRIPTION TAB ============ */}
       {tab === "subscription" && (
         <div className="space-y-6">
-          {/* 14-day trial banner */}
-          <div className="flex items-center justify-between px-5 py-4 rounded-2xl bg-accent/10 border border-accent/20">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Start your 14-day Pro trial</p>
-              <p className="text-xs text-muted mt-0.5">Full access to all Pro features. No credit card required.</p>
+          {/* 14-day trial banner — only for free users */}
+          {tier === "free" && (
+            <div className="flex items-center justify-between px-5 py-4 rounded-2xl bg-accent/10 border border-accent/20">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Start your 14-day Pro trial</p>
+                <p className="text-xs text-muted mt-0.5">Full access to all Pro features. No credit card required.</p>
+              </div>
+              <button
+                onClick={() => alert("Coming soon! Trial system will be available with Stripe integration.")}
+                className="px-4 py-2 rounded-xl bg-accent text-background text-xs font-semibold hover:bg-accent-hover transition-all"
+              >
+                Start Free Trial
+              </button>
             </div>
-            <button className="px-4 py-2 rounded-xl bg-accent text-background text-xs font-semibold hover:bg-accent-hover transition-all">
-              Start Free Trial
-            </button>
-          </div>
+          )}
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-1">
@@ -761,7 +773,7 @@ export default function SettingsPage() {
                 badge: null,
                 highlight: false,
                 features: ["2 trade logs/week", "Basic analytics", "Calendar heatmap", "Light + Dark Simple themes", "CSV import"],
-                current: true,
+                current: tier === "free",
               },
               {
                 name: "Pro",
@@ -770,7 +782,7 @@ export default function SettingsPage() {
                 badge: "Most Popular",
                 highlight: true,
                 features: ["Unlimited trades", "50+ metrics", "Psychology engine", "Weekly reports", "4 animated themes", "Playbook & risk calc", "DEX trade logging"],
-                current: false,
+                current: tier === "pro",
               },
               {
                 name: "Max",
@@ -779,7 +791,7 @@ export default function SettingsPage() {
                 badge: "Power User",
                 highlight: false,
                 features: ["Everything in Pro", "AI Trading Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support"],
-                current: false,
+                current: tier === "max",
               },
             ].map((plan) => (
               <div
@@ -890,8 +902,14 @@ export default function SettingsPage() {
             </div>
             <p className="text-[10px] text-muted text-center">Max plan users get stock trading included at no extra cost.</p>
           </div>
+
+          {/* Redeem invite code */}
+          <RedeemCodeSection />
         </div>
       )}
+
+      {/* ============ INVITE CODES TAB (Owner Only) ============ */}
+      {tab === "invite-codes" && <InviteCodesTab />}
 
       {/* ============ REFERRALS TAB ============ */}
       {tab === "referrals" && (
