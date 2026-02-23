@@ -10,10 +10,43 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      await provisionOwner(supabase);
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
   // Return to login with error feedback
   return NextResponse.redirect(`${origin}/login?error=oauth_failed`);
+}
+
+async function provisionOwner(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+  if (!ownerEmail) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || user.email?.toLowerCase() !== ownerEmail.toLowerCase()) return;
+
+  const { data: sub, error: selectErr } = await supabase
+    .from("user_subscriptions")
+    .select("tier, is_owner")
+    .eq("user_id", user.id)
+    .single();
+
+  if (selectErr && selectErr.code !== "PGRST116") {
+    console.error("[owner-provision] SELECT failed:", selectErr.message);
+    return;
+  }
+
+  if (!sub) {
+    const { error: insertErr } = await supabase
+      .from("user_subscriptions")
+      .insert({ user_id: user.id, tier: "max", is_owner: true });
+    if (insertErr) console.error("[owner-provision] INSERT failed:", insertErr.message);
+  } else if (sub.tier !== "max" || !sub.is_owner) {
+    const { error: updateErr } = await supabase
+      .from("user_subscriptions")
+      .update({ tier: "max", is_owner: true, updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
+    if (updateErr) console.error("[owner-provision] UPDATE failed:", updateErr.message);
+  }
 }

@@ -38,29 +38,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Owner auto-provisioning: ensure owner email always has Max tier
-  const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
-  if (user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase()) {
-    const { data: sub } = await supabase
-      .from("user_subscriptions")
-      .select("tier, is_owner")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!sub) {
-      await supabase.from("user_subscriptions").insert({
-        user_id: user.id,
-        tier: "max",
-        is_owner: true,
-      });
-    } else if (sub.tier !== "max" || !sub.is_owner) {
-      await supabase
-        .from("user_subscriptions")
-        .update({ tier: "max", is_owner: true, updated_at: new Date().toISOString() })
-        .eq("user_id", user.id);
-    }
-  }
-
   // If logged in and on login page, redirect to dashboard
   if (user && pathname === "/login") {
     const url = request.nextUrl.clone();
