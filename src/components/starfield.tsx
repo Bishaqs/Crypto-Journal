@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "@/lib/theme-context";
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { CandleBackground } from "./candle-background";
 import { RealisticBlackHole } from "./realistic-black-hole";
 
@@ -13,18 +13,24 @@ const MATRIX_COLUMNS = 70;
 const MATRIX_CHARS = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
 
 function MatrixRain() {
-  const columns = useMemo(() =>
-    Array.from({ length: MATRIX_COLUMNS }).map((_, i) => {
-      const speed = 4 + Math.random() * 10;
-      const charCount = 25 + Math.floor(Math.random() * 25);
-      const fontSize = 11 + Math.random() * 5;
-      const opacity = 0.3 + Math.random() * 0.5;
-      const left = (i / MATRIX_COLUMNS) * 100;
-      const chars = Array.from({ length: charCount }).map(() =>
-        MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]
-      );
-      return { speed, charCount, fontSize, opacity, left, chars };
-    }), []);
+  const [columns, setColumns] = useState<{ speed: number; charCount: number; fontSize: number; opacity: number; left: number; chars: string[]; rainDelay: number }[]>([]);
+
+  useEffect(() => {
+    setColumns(
+      Array.from({ length: MATRIX_COLUMNS }).map((_, i) => {
+        const speed = 4 + Math.random() * 10;
+        const charCount = 25 + Math.floor(Math.random() * 25);
+        const fontSize = 11 + Math.random() * 5;
+        const opacity = 0.3 + Math.random() * 0.5;
+        const left = (i / MATRIX_COLUMNS) * 100;
+        const chars = Array.from({ length: charCount }).map(() =>
+          MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]
+        );
+        const rainDelay = Math.random() * -15;
+        return { speed, charCount, fontSize, opacity, left, chars, rainDelay };
+      })
+    );
+  }, []);
 
   return (
     <>
@@ -35,7 +41,7 @@ function MatrixRain() {
           style={{
             left: `${col.left}%`,
             "--rain-duration": `${col.speed}s`,
-            "--rain-delay": `${Math.random() * -15}s`,
+            "--rain-delay": `${col.rainDelay}s`,
             fontSize: `${col.fontSize}px`,
           } as React.CSSProperties}
         >
@@ -75,37 +81,46 @@ const ERUPTION_PARTICLE_COUNT = 28;
 const SMOKE_WISP_COUNT = 5;
 
 function VolcanoBackground() {
-  const embers = useMemo(() =>
-    Array.from({ length: EMBER_COUNT }).map(() => ({
-      left: 5 + Math.random() * 90,
-      bottom: Math.random() * 30,
-      duration: 5 + Math.random() * 8,
-      delay: Math.random() * -12,
-      size: 1.5 + Math.random() * 4,
-      hue: 15 + Math.random() * 30, // 15-45 (red to orange-amber)
-      brightness: 0.75 + Math.random() * 0.25,
-    })), []);
+  type Ember = { left: number; bottom: number; duration: number; delay: number; size: number; hue: number; brightness: number };
+  type EruptionParticle = { left: number; size: number; hue: number; duration: number; delay: number; xDrift: number };
+  type SmokeWisp = { left: number; size: number; duration: number; delay: number; opacity: number };
 
-  // Eruption burst particles — shoot upward from crater area periodically
-  const eruptionParticles = useMemo(() =>
-    Array.from({ length: ERUPTION_PARTICLE_COUNT }).map(() => ({
-      left: 42 + Math.random() * 16, // crater area (~42-58%)
-      size: 2 + Math.random() * 5,
-      hue: 20 + Math.random() * 35, // orange to yellow
-      duration: 1.5 + Math.random() * 2,
-      delay: Math.random() * 1.2, // stagger within burst
-      xDrift: -30 + Math.random() * 60, // spread horizontally
-    })), []);
+  const [embers, setEmbers] = useState<Ember[]>([]);
+  const [eruptionParticles, setEruptionParticles] = useState<EruptionParticle[]>([]);
+  const [smokeWisps, setSmokeWisps] = useState<SmokeWisp[]>([]);
 
-  // Smoke wisps drifting upward from crater
-  const smokeWisps = useMemo(() =>
-    Array.from({ length: SMOKE_WISP_COUNT }).map((_, i) => ({
-      left: 43 + i * 3.5,
-      size: 30 + Math.random() * 40,
-      duration: 8 + Math.random() * 6,
-      delay: -(Math.random() * 10),
-      opacity: 0.06 + Math.random() * 0.06,
-    })), []);
+  useEffect(() => {
+    setEmbers(
+      Array.from({ length: EMBER_COUNT }).map(() => ({
+        left: 5 + Math.random() * 90,
+        bottom: Math.random() * 30,
+        duration: 5 + Math.random() * 8,
+        delay: Math.random() * -12,
+        size: 1.5 + Math.random() * 4,
+        hue: 15 + Math.random() * 30,
+        brightness: 0.75 + Math.random() * 0.25,
+      }))
+    );
+    setEruptionParticles(
+      Array.from({ length: ERUPTION_PARTICLE_COUNT }).map(() => ({
+        left: 42 + Math.random() * 16,
+        size: 2 + Math.random() * 5,
+        hue: 20 + Math.random() * 35,
+        duration: 1.5 + Math.random() * 2,
+        delay: Math.random() * 1.2,
+        xDrift: -30 + Math.random() * 60,
+      }))
+    );
+    setSmokeWisps(
+      Array.from({ length: SMOKE_WISP_COUNT }).map((_, i) => ({
+        left: 43 + i * 3.5,
+        size: 30 + Math.random() * 40,
+        duration: 8 + Math.random() * 6,
+        delay: -(Math.random() * 10),
+        opacity: 0.06 + Math.random() * 0.06,
+      }))
+    );
+  }, []);
 
   return (
     <>
@@ -223,71 +238,82 @@ const JELLYFISH_COUNT = 6;
 const SMALL_FISH_COUNT = 10;
 
 function OceanBackground() {
-  const smallFish = useMemo(() =>
-    Array.from({ length: SMALL_FISH_COUNT }).map((_, i) => {
-      const colorVariants = [
-        { body: "rgba(100, 220, 255, 0.6)", glow: "rgba(14, 165, 233, 0.3)" },     // cyan
-        { body: "rgba(100, 255, 218, 0.55)", glow: "rgba(45, 212, 191, 0.3)" },     // teal
-        { body: "rgba(255, 180, 220, 0.5)", glow: "rgba(236, 72, 153, 0.25)" },     // pink
-        { body: "rgba(180, 240, 255, 0.5)", glow: "rgba(125, 211, 252, 0.25)" },    // pale blue
-        { body: "rgba(200, 160, 255, 0.5)", glow: "rgba(168, 85, 247, 0.25)" },     // lavender
-      ];
-      const color = colorVariants[i % colorVariants.length];
-      const goingRight = i % 2 === 0;
-      return {
-        top: 15 + Math.random() * 70,
-        size: 8 + Math.random() * 10,
-        duration: 22 + Math.random() * 18,
-        delay: -(Math.random() * 40),
-        goingRight,
-        ...color,
-      };
-    }), []);
+  type Fish = { top: number; size: number; duration: number; delay: number; goingRight: boolean; body: string; glow: string };
+  type BioDot = { left: number; top: number; duration: number; delay: number; size: number; bg: string; shadow: string };
+  type Jelly = { left: number; top: number; size: number; duration: number; pulseDuration: number; delay: number; bg: string; border: string };
 
-  const bioDots = useMemo(() =>
-    Array.from({ length: BIO_DOT_COUNT }).map(() => {
-      // Mix of colors: cyan, pink, purple, warm white
-      const colorVariants = [
-        { bg: "rgba(100, 220, 255, 0.85)", shadow: "rgba(14, 165, 233, 0.45)" },  // cyan
-        { bg: "rgba(200, 120, 255, 0.75)", shadow: "rgba(168, 85, 247, 0.45)" },  // purple
-        { bg: "rgba(255, 130, 200, 0.75)", shadow: "rgba(236, 72, 153, 0.45)" },  // pink
-        { bg: "rgba(180, 240, 255, 0.65)", shadow: "rgba(125, 211, 252, 0.4)" },  // warm white-blue
-        { bg: "rgba(100, 255, 218, 0.65)", shadow: "rgba(45, 212, 191, 0.4)" },   // teal
-        { bg: "rgba(255, 200, 100, 0.75)", shadow: "rgba(251, 191, 36, 0.45)" },  // amber/gold
-        { bg: "rgba(250, 160, 80, 0.65)", shadow: "rgba(245, 158, 11, 0.4)" },    // warm orange
-      ];
-      const color = colorVariants[Math.floor(Math.random() * colorVariants.length)];
-      return {
-        left: 3 + Math.random() * 94,
-        top: 15 + Math.random() * 80,
-        duration: 6 + Math.random() * 12,
-        delay: Math.random() * -15,
-        size: 2 + Math.random() * 4,
-        ...color,
-      };
-    }), []);
+  const [smallFish, setSmallFish] = useState<Fish[]>([]);
+  const [bioDots, setBioDots] = useState<BioDot[]>([]);
+  const [jellyfish, setJellyfish] = useState<Jelly[]>([]);
 
-  const jellyfish = useMemo(() =>
-    Array.from({ length: JELLYFISH_COUNT }).map(() => {
-      const colors = [
-        { bg: "rgba(200, 120, 255, 0.3)", border: "rgba(200, 120, 255, 0.4)" },
-        { bg: "rgba(100, 220, 255, 0.28)", border: "rgba(100, 220, 255, 0.38)" },
-        { bg: "rgba(255, 130, 200, 0.28)", border: "rgba(255, 130, 200, 0.38)" },
-        { bg: "rgba(100, 255, 218, 0.25)", border: "rgba(100, 255, 218, 0.35)" },
-        { bg: "rgba(255, 200, 100, 0.25)", border: "rgba(255, 200, 100, 0.35)" },
-        { bg: "rgba(180, 240, 255, 0.28)", border: "rgba(180, 240, 255, 0.38)" },
-      ];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      return {
-        left: 10 + Math.random() * 80,
-        top: 20 + Math.random() * 60,
-        size: 30 + Math.random() * 50,
-        duration: 18 + Math.random() * 15,
-        pulseDuration: 4 + Math.random() * 4,
-        delay: Math.random() * -20,
-        ...color,
-      };
-    }), []);
+  useEffect(() => {
+    const fishColorVariants = [
+      { body: "rgba(100, 220, 255, 0.6)", glow: "rgba(14, 165, 233, 0.3)" },
+      { body: "rgba(100, 255, 218, 0.55)", glow: "rgba(45, 212, 191, 0.3)" },
+      { body: "rgba(255, 180, 220, 0.5)", glow: "rgba(236, 72, 153, 0.25)" },
+      { body: "rgba(180, 240, 255, 0.5)", glow: "rgba(125, 211, 252, 0.25)" },
+      { body: "rgba(200, 160, 255, 0.5)", glow: "rgba(168, 85, 247, 0.25)" },
+    ];
+    setSmallFish(
+      Array.from({ length: SMALL_FISH_COUNT }).map((_, i) => {
+        const color = fishColorVariants[i % fishColorVariants.length];
+        return {
+          top: 15 + Math.random() * 70,
+          size: 8 + Math.random() * 10,
+          duration: 22 + Math.random() * 18,
+          delay: -(Math.random() * 40),
+          goingRight: i % 2 === 0,
+          ...color,
+        };
+      })
+    );
+
+    const bioColorVariants = [
+      { bg: "rgba(100, 220, 255, 0.85)", shadow: "rgba(14, 165, 233, 0.45)" },
+      { bg: "rgba(200, 120, 255, 0.75)", shadow: "rgba(168, 85, 247, 0.45)" },
+      { bg: "rgba(255, 130, 200, 0.75)", shadow: "rgba(236, 72, 153, 0.45)" },
+      { bg: "rgba(180, 240, 255, 0.65)", shadow: "rgba(125, 211, 252, 0.4)" },
+      { bg: "rgba(100, 255, 218, 0.65)", shadow: "rgba(45, 212, 191, 0.4)" },
+      { bg: "rgba(255, 200, 100, 0.75)", shadow: "rgba(251, 191, 36, 0.45)" },
+      { bg: "rgba(250, 160, 80, 0.65)", shadow: "rgba(245, 158, 11, 0.4)" },
+    ];
+    setBioDots(
+      Array.from({ length: BIO_DOT_COUNT }).map(() => {
+        const color = bioColorVariants[Math.floor(Math.random() * bioColorVariants.length)];
+        return {
+          left: 3 + Math.random() * 94,
+          top: 15 + Math.random() * 80,
+          duration: 6 + Math.random() * 12,
+          delay: Math.random() * -15,
+          size: 2 + Math.random() * 4,
+          ...color,
+        };
+      })
+    );
+
+    const jellyColors = [
+      { bg: "rgba(200, 120, 255, 0.3)", border: "rgba(200, 120, 255, 0.4)" },
+      { bg: "rgba(100, 220, 255, 0.28)", border: "rgba(100, 220, 255, 0.38)" },
+      { bg: "rgba(255, 130, 200, 0.28)", border: "rgba(255, 130, 200, 0.38)" },
+      { bg: "rgba(100, 255, 218, 0.25)", border: "rgba(100, 255, 218, 0.35)" },
+      { bg: "rgba(255, 200, 100, 0.25)", border: "rgba(255, 200, 100, 0.35)" },
+      { bg: "rgba(180, 240, 255, 0.28)", border: "rgba(180, 240, 255, 0.38)" },
+    ];
+    setJellyfish(
+      Array.from({ length: JELLYFISH_COUNT }).map(() => {
+        const color = jellyColors[Math.floor(Math.random() * jellyColors.length)];
+        return {
+          left: 10 + Math.random() * 80,
+          top: 20 + Math.random() * 60,
+          size: 30 + Math.random() * 50,
+          duration: 18 + Math.random() * 15,
+          pulseDuration: 4 + Math.random() * 4,
+          delay: Math.random() * -20,
+          ...color,
+        };
+      })
+    );
+  }, []);
 
   return (
     <>

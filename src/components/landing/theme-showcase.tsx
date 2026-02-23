@@ -149,7 +149,7 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
               animationDuration: `${2 + (i % 4)}s`,
             }}
           >
-            {Array.from({ length: 12 }, () => Math.random() > 0.5 ? "1" : "0").join("\n")}
+            {Array.from({ length: 12 }, (_, j) => ((i * 12 + j) * 7 + 3) % 5 < 3 ? "1" : "0").join("\n")}
           </div>
         ))}
         {/* Scan-line overlay */}
@@ -232,8 +232,8 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
                 height: `${2 + (i % 3)}px`,
                 background: colors[ci],
                 boxShadow: `0 0 8px 3px ${shadows[ci]}`,
-                top: `${15 + Math.random() * 70}%`,
-                left: `${5 + Math.random() * 90}%`,
+                top: `${15 + ((Math.sin(i * 7.3 + 2.1) * 0.5 + 0.5) * 70)}%`,
+                left: `${5 + ((Math.sin(i * 3.1 + 11.7) * 0.5 + 0.5) * 90)}%`,
                 animationDelay: `${i * 0.4}s`,
                 animationDuration: `${3 + (i % 4) * 1.5}s`,
               }}
@@ -311,9 +311,9 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
           className="absolute w-px h-px rounded-full animate-pulse"
           style={{
             background: i % 5 === 0 ? "#C4B5FD" : "#fff",
-            opacity: 0.3 + Math.random() * 0.4,
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
+            opacity: 0.3 + ((Math.sin(i * 7.3 + 2.1) * 0.5 + 0.5) * 0.4),
+            top: `${(Math.sin(i * 13.7 + 5.3) * 0.5 + 0.5) * 100}%`,
+            left: `${(Math.sin(i * 3.1 + 11.7) * 0.5 + 0.5) * 100}%`,
             animationDelay: `${i * 0.2}s`,
           }}
         />

@@ -139,7 +139,12 @@ export function CandleBackground({
     }
   }, [sentimentProp]);
 
-  const candles = generateCandles(sentiment);
+  const [candles, setCandles] = useState<Candle[]>([]);
+
+  useEffect(() => {
+    setCandles(generateCandles(sentiment));
+  }, [sentiment]);
+
   const scheme = COLOR_SCHEMES[colorScheme];
 
   return (

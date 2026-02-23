@@ -103,6 +103,7 @@ export default function LoginPage() {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
   const [cardName, setCardName] = useState("");
+  const [resetSent, setResetSent] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -140,6 +141,22 @@ export default function LoginPage() {
     // Sign in success → go to plan selection
     setLoading(false);
     setStep(2);
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      setError("Enter your email first, then click Forgot password.");
+      return;
+    }
+    setError(null);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
+      setResetSent(true);
+    }
   }
 
   function handlePlanSelect(planId: string) {
@@ -291,12 +308,20 @@ export default function LoginPage() {
               {/* Google OAuth */}
               <button
                 onClick={async () => {
-                  await supabase.auth.signInWithOAuth({
-                    provider: "google",
-                    options: {
-                      redirectTo: `${window.location.origin}/auth/callback?next=/login?step=2`,
-                    },
-                  });
+                  setError(null);
+                  try {
+                    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+                      provider: "google",
+                      options: {
+                        redirectTo: `${window.location.origin}/auth/callback?next=/login?step=2`,
+                      },
+                    });
+                    if (oauthError) {
+                      setError("Google sign-in is not available yet. Use email/password or try the demo below.");
+                    }
+                  } catch {
+                    setError("Google sign-in is not available yet. Use email/password or try the demo below.");
+                  }
                 }}
                 className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg bg-surface border border-border text-foreground font-medium hover:bg-surface-hover hover:border-accent/30 transition-all mb-6"
               >
@@ -365,6 +390,18 @@ export default function LoginPage() {
                   />
                 </div>
 
+                {!isSignUp && (
+                  <div className="flex justify-end -mt-1">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-[11px] text-muted hover:text-accent transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                )}
+
                 {isSignUp && (
                   <div>
                     <label
@@ -395,6 +432,12 @@ export default function LoginPage() {
                 {success && (
                   <p className="text-sm text-accent bg-accent/10 px-3 py-2.5 rounded-lg">
                     {success}
+                  </p>
+                )}
+
+                {resetSent && (
+                  <p className="text-sm text-accent bg-accent/10 px-3 py-2.5 rounded-lg">
+                    Password reset email sent! Check your inbox.
                   </p>
                 )}
 
@@ -439,6 +482,20 @@ export default function LoginPage() {
                   No credit card required. Free plan available forever.
                 </p>
               )}
+
+              {/* Demo access */}
+              <div className="mt-6 pt-6 border-t border-border/50">
+                <button
+                  onClick={() => router.push("/dashboard?demo=true")}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-border text-sm text-muted hover:text-foreground hover:border-accent/30 hover:bg-accent/5 transition-all"
+                >
+                  <Zap size={14} />
+                  Try Demo — no account needed
+                </button>
+                <p className="text-center text-[10px] text-muted/40 mt-2">
+                  Explore the full dashboard with sample data
+                </p>
+              </div>
             </div>
           )}
 
