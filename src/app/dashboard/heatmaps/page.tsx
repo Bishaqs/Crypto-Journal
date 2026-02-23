@@ -201,7 +201,8 @@ export default function HeatMapsPage() {
     []
   );
 
-  if (!subLoading && !hasAccess("heatmaps")) return <UpgradePrompt feature="heatmaps" requiredTier="max" />;
+  if (subLoading) return null;
+  if (!hasAccess("heatmaps")) return <UpgradePrompt feature="heatmaps" requiredTier="max" />;
 
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">

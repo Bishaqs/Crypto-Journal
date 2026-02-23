@@ -222,7 +222,8 @@ export default function RiskAnalysisPage() {
   const pnlMin = Math.min(...DEMO_TRADES.map((t) => t.pnl));
   const pnlMax = Math.max(...DEMO_TRADES.map((t) => t.pnl));
 
-  if (!subLoading && !hasAccess("risk-analysis")) return <UpgradePrompt feature="risk-analysis" requiredTier="max" />;
+  if (subLoading) return null;
+  if (!hasAccess("risk-analysis")) return <UpgradePrompt feature="risk-analysis" requiredTier="max" />;
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-6">
