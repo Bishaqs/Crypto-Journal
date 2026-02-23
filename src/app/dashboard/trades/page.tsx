@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
@@ -26,6 +27,7 @@ type SortDir = "asc" | "desc";
 const EMOTION_OPTIONS = ["All", "Calm", "Confident", "Excited", "Anxious", "FOMO", "Frustrated", "Revenge", "Bored"];
 
 export default function TradesPage() {
+  const router = useRouter();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -274,7 +276,7 @@ export default function TradesPage() {
                       <div
                         className="grid cursor-pointer hover:bg-surface-hover transition-colors"
                         style={{ gridTemplateColumns: "repeat(9, auto)" }}
-                        onClick={() => setExpandedId(isExpanded ? null : trade.id)}
+                        onClick={() => router.push(`/dashboard/trades/${trade.id}`)}
                       >
                         <div className="px-4 py-3 text-muted whitespace-nowrap border-b border-border/50">
                           {new Date(trade.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Table2,
   Search,
@@ -152,6 +153,7 @@ type SortDir = "asc" | "desc";
 // ---------------------------------------------------------------------------
 
 export default function StockTradesPage() {
+  const router = useRouter();
   const [trades] = useState<StockTrade[]>(MOCK_STOCK_TRADES);
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState("All");
@@ -303,7 +305,7 @@ export default function StockTradesPage() {
               key={trade.id}
               className="glass rounded-xl border border-border/50 p-4"
               style={{ boxShadow: "var(--shadow-card)" }}
-              onClick={() => setExpandedId(expandedId === trade.id ? null : trade.id)}
+              onClick={() => router.push(`/dashboard/stocks/trades/${trade.id}`)}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -416,7 +418,7 @@ export default function StockTradesPage() {
                       <div
                         className="grid cursor-pointer hover:bg-surface-hover transition-colors"
                         style={{ gridTemplateColumns: "repeat(8, auto)" }}
-                        onClick={() => setExpandedId(isExpanded ? null : trade.id)}
+                        onClick={() => router.push(`/dashboard/stocks/trades/${trade.id}`)}
                       >
                         {/* Date */}
                         <div className="px-4 py-3 text-muted whitespace-nowrap border-b border-border/50">
