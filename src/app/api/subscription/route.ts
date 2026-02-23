@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  // Authenticate user via cookie-based client
   const supabase = await createClient();
   const {
     data: { user },
@@ -11,7 +13,9 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: sub, error } = await supabase
+  // Query with admin client (bypasses RLS — safe because user is already authenticated)
+  const admin = createAdminClient();
+  const { data: sub, error } = await admin
     .from("user_subscriptions")
     .select("tier, is_owner, is_trial, trial_end, granted_by_invite_code")
     .eq("user_id", user.id)
