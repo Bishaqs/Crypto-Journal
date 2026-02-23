@@ -51,7 +51,7 @@ export function useSubscription() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Try cache first
+    // Stale-while-revalidate: show cache instantly, always revalidate from DB
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -59,11 +59,11 @@ export function useSubscription() {
         if (Date.now() - cache.ts < CACHE_TTL) {
           setData(cache.data);
           setLoading(false);
-          return;
         }
       }
     } catch {}
 
+    // Always fetch fresh from DB
     fetchSub();
   }, []);
 
