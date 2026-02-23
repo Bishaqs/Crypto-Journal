@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest) {
 
   // Set demo cookie if ?demo=true so subsequent navigations work
   if (isDemoBypass && !request.cookies.get("stargate-demo")) {
-    supabaseResponse.cookies.set("stargate-demo", "true", { path: "/", maxAge: 3600 });
+    supabaseResponse.cookies.set("stargate-demo", "true", { path: "/", maxAge: 2592000 }); // 30 days
   }
 
   // If logged in and on login page, redirect to dashboard
