@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { DemoBanner } from "@/components/demo-banner";
 import { useDateRange } from "@/lib/date-range-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -68,6 +69,7 @@ function StatBlock({
 export default function StatisticsPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -79,7 +81,12 @@ export default function StatisticsPage() {
       .select("*")
       .order("open_timestamp", { ascending: false });
     const dbTrades = (data as Trade[]) ?? [];
-    setTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
+    if (dbTrades.length === 0) {
+      setTrades(DEMO_TRADES);
+      setUsingDemo(true);
+    } else {
+      setTrades(dbTrades);
+    }
     setLoading(false);
   }, [supabase]);
 
@@ -136,6 +143,7 @@ export default function StatisticsPage() {
           {stats.totalTrades} closed trades in range
         </p>
       </div>
+      {usingDemo && <DemoBanner feature="statistics" />}
 
       {/* Key metrics grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

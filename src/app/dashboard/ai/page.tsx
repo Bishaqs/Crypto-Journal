@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { formatAndSanitizeMarkdown } from "@/lib/sanitize";
 import {
   Brain,
   Send,
@@ -622,21 +623,10 @@ function ChatBubble({ message }: { message: Message }) {
         </div>
         <div
           className="prose prose-sm prose-invert max-w-none [&_strong]:text-accent [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-2 [&_ul]:space-y-1 [&_li]:text-muted"
-          dangerouslySetInnerHTML={{ __html: formatMarkdown(message.content) }}
+          dangerouslySetInnerHTML={{ __html: formatAndSanitizeMarkdown(message.content) }}
         />
       </div>
     </div>
   );
 }
 
-function formatMarkdown(text: string): string {
-  return text
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, '<ul>$&</ul>')
-    .replace(/\n\n/g, '<br/><br/>')
-    .replace(/\n/g, '<br/>');
-}

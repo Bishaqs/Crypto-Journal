@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, CHAINS } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { formatAndSanitizeAiSummary } from "@/lib/sanitize";
 import { useTheme } from "@/lib/theme-context";
 import {
   ArrowLeft,
@@ -284,7 +285,7 @@ export default function TradeDetailPage() {
           </div>
           {aiSummary ? (
             <div className="text-sm text-foreground leading-relaxed prose prose-invert prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: aiSummary.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br/>") }} />
+              dangerouslySetInnerHTML={{ __html: formatAndSanitizeAiSummary(aiSummary) }} />
           ) : (
             <p className="text-xs text-muted/50 italic">Click &quot;Generate&quot; for an AI analysis of this trade.</p>
           )}

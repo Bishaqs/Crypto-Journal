@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { DemoBanner } from "@/components/demo-banner";
 import { useDateRange } from "@/lib/date-range-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -538,16 +539,10 @@ export default function InsightsPage() {
             Behavioral Insights
           </h2>
           <p className="text-sm text-muted mt-0.5">
-            {usingDemo ? (
-              <span className="flex items-center gap-1.5">
-                <Sparkles size={12} className="text-accent" />
-                Sample data — log trades with emotions to see your patterns
-              </span>
-            ) : (
-              "How your psychology impacts your trading performance"
-            )}
+            {usingDemo ? "Sample data" : "How your psychology impacts your trading performance"}
           </p>
         </div>
+        {usingDemo && <DemoBanner feature="insights" />}
         <button
           onClick={() => setShowNoteEditor(true)}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300"

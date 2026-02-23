@@ -3,6 +3,8 @@
 import { useRef, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { JournalNote } from "@/lib/types";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { uploadJournalImage } from "@/lib/image-upload";
 import {
   X,
   Bold,
@@ -65,6 +67,7 @@ interface NoteEditorProps {
 
 export function NoteEditor({ editNote = null, initialTemplate = "free", onClose, onSaved }: NoteEditorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState(initialTemplate);
+  const [uploading, setUploading] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -78,6 +81,17 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
     if (url) execFormat("createLink", url);
   }
 
+  async function insertImage(file: File) {
+    setUploading(true);
+    try {
+      const url = await uploadJournalImage(file);
+      execFormat("insertImage", url);
+    } catch {
+      // Silently fail — image just won't appear
+    }
+    setUploading(false);
+  }
+
   function handlePaste(e: React.ClipboardEvent) {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -85,12 +99,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
       if (item.type.startsWith("image/")) {
         e.preventDefault();
         const file = item.getAsFile();
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          execFormat("insertImage", event.target?.result as string);
-        };
-        reader.readAsDataURL(file);
+        if (file) insertImage(file);
         return;
       }
     }
@@ -102,11 +111,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
     if (!files) return;
     for (const file of files) {
       if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          execFormat("insertImage", event.target?.result as string);
-        };
-        reader.readAsDataURL(file);
+        insertImage(file);
       }
     }
   }
@@ -117,12 +122,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
     input.accept = "image/*";
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        execFormat("insertImage", event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (file) insertImage(file);
     };
     input.click();
   }
@@ -130,7 +130,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
   async function saveNote(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const htmlContent = contentRef.current?.innerHTML ?? "";
+    const htmlContent = sanitizeHtml(contentRef.current?.innerHTML ?? "");
     const payload = {
       title: (formData.get("title") as string) || null,
       content: htmlContent,
@@ -172,7 +172,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
                 onClick={() => {
                   setSelectedTemplate(t.id);
                   if (contentRef.current) {
-                    contentRef.current.innerHTML = t.content;
+                    contentRef.current.innerHTML = sanitizeHtml(t.content);
                     contentRef.current.focus();
                   }
                 }}
@@ -207,14 +207,16 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
             ref={contentRef}
             contentEditable
             suppressContentEditableWarning
-            dangerouslySetInnerHTML={{ __html: editNote?.content ?? (TEMPLATES.find((t) => t.id === selectedTemplate)?.content ?? "") }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(editNote?.content ?? (TEMPLATES.find((t) => t.id === selectedTemplate)?.content ?? "")) }}
             onPaste={handlePaste}
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
             className="w-full min-h-[200px] max-h-[400px] overflow-y-auto px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm leading-relaxed focus:outline-none focus:border-accent/50 transition-all note-content [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_h2]:font-semibold [&_h2]:text-base [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4"
             data-placeholder="What did you learn today? Paste screenshots directly..."
           />
-          <p className="text-[10px] text-muted/40">Paste images from clipboard or drag & drop screenshots</p>
+          <p className="text-[10px] text-muted/40">
+            {uploading ? "Uploading image..." : "Paste images from clipboard or drag & drop screenshots"}
+          </p>
           <input name="tags" defaultValue={editNote?.tags?.join(", ") ?? ""} placeholder="Tags (comma separated): psychology, strategy, mistake" className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50" />
           <button type="submit" className="w-full py-3 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300">
             {editNote ? "Update Note" : "Save Note"}

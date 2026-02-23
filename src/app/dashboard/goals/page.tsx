@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { DemoBanner } from "@/components/demo-banner";
 import { calculateStats, calculateAdvancedStats } from "@/lib/calculations";
 import { Target, Trophy, TrendingDown, Percent, Brain, Hash, Save, RotateCcw, Sparkles } from "lucide-react";
 import { Header } from "@/components/header";
@@ -164,16 +165,10 @@ export default function GoalsPage() {
             Monthly Goals
           </h2>
           <p className="text-sm text-muted mt-0.5">
-            {usingDemo ? (
-              <span className="flex items-center gap-1.5">
-                <Sparkles size={12} className="text-accent" />
-                Sample data — {getMonthLabel()}
-              </span>
-            ) : (
-              `${getMonthLabel()} — Day ${currentDay} of ${daysInMonth}`
-            )}
+            {usingDemo ? "Sample data" : `${getMonthLabel()} — Day ${currentDay} of ${daysInMonth}`}
           </p>
         </div>
+        {usingDemo && <DemoBanner feature="goals" />}
         {!editing ? (
           <button
             onClick={startEditing}

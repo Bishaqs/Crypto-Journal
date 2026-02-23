@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { JournalNote } from "@/lib/types";
 import { DEMO_JOURNAL_NOTES } from "@/lib/demo-data";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { DemoBanner } from "@/components/demo-banner";
 import { NoteEditor, TEMPLATES } from "@/components/note-editor";
 import {
   Plus,
@@ -97,14 +99,7 @@ export default function JournalPage() {
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight">Journal</h2>
           <p className="text-sm text-muted mt-0.5">
-            {usingDemo ? (
-              <span className="flex items-center gap-1.5">
-                <Sparkles size={12} className="text-accent" />
-                Sample entries — create a note to start your journal
-              </span>
-            ) : (
-              `${notes.length} notes`
-            )}
+            {usingDemo ? "Sample entries" : `${notes.length} notes`}
           </p>
         </div>
         <button
@@ -115,6 +110,7 @@ export default function JournalPage() {
           New Note
         </button>
       </div>
+      {usingDemo && <DemoBanner feature="journal" />}
 
       <div className="space-y-3">
         <div className="relative">
@@ -201,7 +197,7 @@ export default function JournalPage() {
                   className={`text-sm text-muted leading-relaxed flex-1 note-content [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_h2]:text-foreground [&_h2]:font-semibold [&_h2]:text-sm [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-0.5 [&_strong]:text-foreground ${
                     isExpanded ? "" : "line-clamp-4"
                   }`}
-                  dangerouslySetInnerHTML={{ __html: note.content }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
                 />
                 {note.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">

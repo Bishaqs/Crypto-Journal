@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { DemoBanner } from "@/components/demo-banner";
 import {
   generateWeeklyReport,
   getAvailableWeeks,
@@ -27,6 +28,7 @@ import {
 export default function ReportsPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usingDemo, setUsingDemo] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
   const supabase = createClient();
 
@@ -36,7 +38,12 @@ export default function ReportsPage() {
       .select("*")
       .order("open_timestamp", { ascending: false });
     const dbTrades = (data as Trade[]) ?? [];
-    setTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
+    if (dbTrades.length === 0) {
+      setTrades(DEMO_TRADES);
+      setUsingDemo(true);
+    } else {
+      setTrades(dbTrades);
+    }
     setLoading(false);
   }, [supabase]);
 
@@ -103,6 +110,7 @@ export default function ReportsPage() {
           </p>
         </div>
       </div>
+      {usingDemo && <DemoBanner feature="reports" />}
 
       {/* Week navigation */}
       <div className="flex items-center gap-3">

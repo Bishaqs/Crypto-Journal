@@ -28,6 +28,8 @@ import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
 import { Plus, Sparkles, Download, Upload, Activity, Dices, Receipt, TrendingUp, Calculator } from "lucide-react";
 import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { CSVImportModal } from "@/components/csv-import-modal";
+import { GettingStartedCard } from "@/components/getting-started";
 
 export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -35,6 +37,7 @@ export default function DashboardPage() {
   const [showForm, setShowForm] = useState(false);
   const [editTrade, setEditTrade] = useState<Trade | null>(null);
   const [usingDemo, setUsingDemo] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const { filterTrades } = useDateRange();
   const { viewMode } = useTheme();
   const supabase = createClient();
@@ -80,17 +83,24 @@ export default function DashboardPage() {
 
   // Export trades as CSV
   function exportCSV() {
-    const headers = ["symbol", "position", "entry_price", "exit_price", "quantity", "fees", "open_timestamp", "close_timestamp", "pnl", "tags", "notes"];
-    const rows = trades
-      .filter((t) => !t.id.startsWith("demo-"))
-      .map((t) =>
-        headers.map((h) => {
-          const val = t[h as keyof Trade];
-          if (Array.isArray(val)) return val.join(";");
-          if (val === null || val === undefined) return "";
-          return String(val);
-        }).join(",")
-      );
+    const headers = [
+      "symbol", "position", "entry_price", "exit_price", "quantity", "fees",
+      "open_timestamp", "close_timestamp", "pnl", "tags", "notes",
+      "emotion", "confidence", "setup_type", "process_score",
+      "trade_source", "chain", "dex_protocol", "tx_hash", "wallet_address",
+      "gas_fee", "gas_fee_native",
+    ];
+    const realTrades = trades.filter((t) => !t.id.startsWith("demo-"));
+    if (realTrades.length === 0) return;
+    const rows = realTrades.map((t) =>
+      headers.map((h) => {
+        const val = t[h as keyof Trade];
+        if (Array.isArray(val)) return `"${val.join(";")}"`;
+        if (val === null || val === undefined) return "";
+        const str = String(val);
+        return str.includes(",") ? `"${str}"` : str;
+      }).join(",")
+    );
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -99,41 +109,6 @@ export default function DashboardPage() {
     a.download = `stargate-trades-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  // Import trades from CSV
-  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const text = ev.target?.result as string;
-      const lines = text.split("\n").filter(Boolean);
-      const headers = lines[0].split(",");
-
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(",");
-        const row: Record<string, string> = {};
-        headers.forEach((h, idx) => (row[h.trim()] = values[idx]?.trim() ?? ""));
-
-        await supabase.from("trades").insert({
-          symbol: row.symbol,
-          position: row.position,
-          entry_price: parseFloat(row.entry_price) || 0,
-          exit_price: row.exit_price ? parseFloat(row.exit_price) : null,
-          quantity: parseFloat(row.quantity) || 0,
-          fees: parseFloat(row.fees) || 0,
-          open_timestamp: row.open_timestamp,
-          close_timestamp: row.close_timestamp || null,
-          pnl: row.pnl ? parseFloat(row.pnl) : null,
-          tags: row.tags ? row.tags.split(";") : [],
-          notes: row.notes || null,
-        });
-      }
-      fetchTrades();
-    };
-    reader.readAsText(file);
-    e.target.value = "";
   }
 
   if (loading) {
@@ -158,6 +133,13 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {usingDemo && (
+        <GettingStartedCard
+          onLogTrade={() => { setEditTrade(null); setShowForm(true); }}
+          onImport={() => setShowImport(true)}
+        />
+      )}
+
       {/* Control bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -176,11 +158,13 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <label className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium cursor-pointer hover:text-foreground hover:border-accent/30 transition-all">
+          <button
+            onClick={() => setShowImport(true)}
+            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
+          >
             <Upload size={14} />
             Import
-            <input type="file" accept=".csv" onChange={handleImport} className="hidden" />
-          </label>
+          </button>
           <button
             onClick={exportCSV}
             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
@@ -348,6 +332,13 @@ export default function DashboardPage() {
           }}
           onSaved={fetchTrades}
           editTrade={editTrade}
+        />
+      )}
+
+      {showImport && (
+        <CSVImportModal
+          onClose={() => setShowImport(false)}
+          onImported={fetchTrades}
         />
       )}
     </div>

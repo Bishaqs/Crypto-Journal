@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { DemoBanner } from "@/components/demo-banner";
 import { useDateRange } from "@/lib/date-range-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -248,16 +249,10 @@ export default function AnalyticsPage() {
           Analytics
         </h2>
         <p className="text-sm text-muted mt-0.5">
-          {usingDemo ? (
-            <span className="flex items-center gap-1.5">
-              <Sparkles size={12} className="text-accent" />
-              Sample data — log trades to see your real analytics
-            </span>
-          ) : (
-            `${filtered.length} trades in range`
-          )}
+          {usingDemo ? "Sample data" : `${filtered.length} trades in range`}
         </p>
       </div>
+      {usingDemo && <DemoBanner feature="analytics" />}
 
       {/* Tabs */}
       <div className="flex gap-1 glass rounded-xl border border-border/50 p-1" style={{ boxShadow: "var(--shadow-card)" }}>

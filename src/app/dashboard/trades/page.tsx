@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { DemoBanner } from "@/components/demo-banner";
 import { calculateTradePnl } from "@/lib/calculations";
 import { CHAINS } from "@/lib/types";
 import {
@@ -136,16 +137,10 @@ export default function TradesPage() {
           Trade Log <InfoTooltip text="All your trades in one place — filter, sort, and review" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
-          {usingDemo ? (
-            <span className="flex items-center gap-1.5">
-              <Sparkles size={12} className="text-accent" />
-              Sample data
-            </span>
-          ) : (
-            `${filtered.length} of ${trades.length} trades`
-          )}
+          {usingDemo ? "Sample data" : `${filtered.length} of ${trades.length} trades`}
         </p>
       </div>
+      {usingDemo && <DemoBanner feature="trade log" />}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">

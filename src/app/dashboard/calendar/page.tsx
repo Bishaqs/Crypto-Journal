@@ -12,10 +12,12 @@ import {
   X,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { DemoBanner } from "@/components/demo-banner";
 
 export default function CalendarPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usingDemo, setUsingDemo] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const supabase = createClient();
@@ -26,7 +28,12 @@ export default function CalendarPage() {
       .select("*")
       .order("open_timestamp", { ascending: false });
     const dbTrades = (data as Trade[]) ?? [];
-    setTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
+    if (dbTrades.length === 0) {
+      setTrades(DEMO_TRADES);
+      setUsingDemo(true);
+    } else {
+      setTrades(dbTrades);
+    }
     setLoading(false);
   }, [supabase]);
 
@@ -147,6 +154,7 @@ export default function CalendarPage() {
           </p>
         </div>
       </div>
+      {usingDemo && <DemoBanner feature="calendar" />}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar grid */}
