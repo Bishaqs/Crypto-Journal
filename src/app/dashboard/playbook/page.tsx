@@ -17,6 +17,8 @@ import {
   X,
 } from "lucide-react";
 import { Header } from "@/components/header";
+import { useSubscription } from "@/lib/use-subscription";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 
 type PlaybookEntry = {
   id: string;
@@ -97,6 +99,7 @@ type SetupStats = {
 };
 
 export default function PlaybookPage() {
+  const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -160,6 +163,8 @@ export default function PlaybookPage() {
     }
     return null;
   }
+
+  if (!subLoading && !hasAccess("playbook")) return <UpgradePrompt feature="playbook" requiredTier="pro" />;
 
   if (loading) {
     return (

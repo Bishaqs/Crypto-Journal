@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useSubscription } from "@/lib/use-subscription";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import {
@@ -114,6 +116,7 @@ NOTE: This is for informational purposes only. Consult a qualified CPA for tax f
 }
 
 export default function TaxesPage() {
+  const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -212,6 +215,8 @@ export default function TaxesPage() {
   function formatDollars(n: number) {
     return `$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
+
+  if (!subLoading && !hasAccess("tax-reports")) return <UpgradePrompt feature="tax-reports" requiredTier="max" />;
 
   if (loading) {
     return (
