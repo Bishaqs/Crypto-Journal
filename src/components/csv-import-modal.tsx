@@ -22,10 +22,42 @@ interface CSVImportModalProps {
 
 type Step = "upload" | "preview" | "importing" | "done";
 
+type ExchangePreset = {
+  label: string;
+  group: "cex" | "stocks" | "dex";
+  tip: string;
+};
+
+const EXCHANGE_PRESETS: ExchangePreset[] = [
+  { label: "Binance", group: "cex", tip: "Binance > Orders > Trade History > Export" },
+  { label: "Bybit", group: "cex", tip: "Bybit > Assets > Trade History > Export CSV" },
+  { label: "OKX", group: "cex", tip: "OKX > Assets > Order History > Export" },
+  { label: "Coinbase", group: "cex", tip: "Coinbase > Taxes > Generate Report > Download CSV" },
+  { label: "Kraken", group: "cex", tip: "Kraken > History > Export" },
+  { label: "KuCoin", group: "cex", tip: "KuCoin > Orders > Trade History > Export" },
+  { label: "Gate.io", group: "cex", tip: "Gate.io > Orders > Trade History > Export" },
+  { label: "Bitget", group: "cex", tip: "Bitget > Orders > Spot Orders > Export" },
+  { label: "MEXC", group: "cex", tip: "MEXC > Orders > Trade History > Export" },
+  { label: "HTX", group: "cex", tip: "HTX > Orders > Trade History > Export" },
+  { label: "Crypto.com", group: "cex", tip: "Crypto.com > Accounts > Transaction History > Export" },
+  { label: "Gemini", group: "cex", tip: "Gemini > Account > Balances > Download History" },
+  { label: "Bitstamp", group: "cex", tip: "Bitstamp > Transactions > Export" },
+  { label: "Robinhood", group: "stocks", tip: "Robinhood > Account > Statements > Download CSV" },
+  { label: "Schwab", group: "stocks", tip: "Schwab > Accounts > History > Export" },
+  { label: "IBKR", group: "stocks", tip: "IBKR > Reports > Activity Statements > CSV" },
+  { label: "Webull", group: "stocks", tip: "Webull > Orders > History > Export" },
+  { label: "Fidelity", group: "stocks", tip: "Fidelity > Activity & Orders > Download" },
+  { label: "E*Trade", group: "stocks", tip: "E*Trade > Accounts > Transactions > Download" },
+  { label: "Etherscan", group: "dex", tip: "Etherscan > Address > Download CSV Export" },
+  { label: "Solscan", group: "dex", tip: "Solscan > Account > Export Transactions" },
+  { label: "Zerion", group: "dex", tip: "Zerion > History > Export to CSV" },
+];
+
 export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
   const [step, setStep] = useState<Step>("upload");
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [selectedExchange, setSelectedExchange] = useState("");
   const [importProgress, setImportProgress] = useState(0);
   const [importedCount, setImportedCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
@@ -103,26 +135,61 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
         <div className="p-5 overflow-y-auto flex-1">
           {/* Step: Upload */}
           {step === "upload" && (
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => fileRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
-                dragOver ? "border-accent bg-accent/5" : "border-border hover:border-accent/30"
-              }`}
-            >
-              <FileText size={40} className="text-accent/40 mx-auto mb-4" />
-              <p className="text-sm font-medium text-foreground mb-1">
-                Drop your CSV file here
-              </p>
-              <p className="text-xs text-muted mb-4">
-                or click to browse
-              </p>
-              <p className="text-[10px] text-muted/50">
-                Supports exports from Binance, Bybit, Coinbase, TradingView, and more
-              </p>
-              <input ref={fileRef} type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
+            <div className="space-y-4">
+              {/* Exchange selector */}
+              <div>
+                <p className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-2">Select your exchange (optional)</p>
+                <select
+                  value={selectedExchange}
+                  onChange={(e) => setSelectedExchange(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all"
+                >
+                  <option value="">Auto-detect (Recommended)</option>
+                  <optgroup label="Crypto Exchanges">
+                    {EXCHANGE_PRESETS.filter((p) => p.group === "cex").map((p) => (
+                      <option key={p.label} value={p.label}>{p.label}</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Stock Brokers">
+                    {EXCHANGE_PRESETS.filter((p) => p.group === "stocks").map((p) => (
+                      <option key={p.label} value={p.label}>{p.label}</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="DEX / Blockchain">
+                    {EXCHANGE_PRESETS.filter((p) => p.group === "dex").map((p) => (
+                      <option key={p.label} value={p.label}>{p.label}</option>
+                    ))}
+                  </optgroup>
+                </select>
+                {selectedExchange && (
+                  <p className="text-[10px] text-accent mt-1.5 px-1">
+                    {EXCHANGE_PRESETS.find((p) => p.label === selectedExchange)?.tip}
+                  </p>
+                )}
+              </div>
+
+              {/* Drop zone */}
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => fileRef.current?.click()}
+                className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
+                  dragOver ? "border-accent bg-accent/5" : "border-border hover:border-accent/30"
+                }`}
+              >
+                <FileText size={40} className="text-accent/40 mx-auto mb-4" />
+                <p className="text-sm font-medium text-foreground mb-1">
+                  Drop your CSV file here
+                </p>
+                <p className="text-xs text-muted mb-4">
+                  or click to browse
+                </p>
+                <p className="text-[10px] text-muted/50">
+                  Supports 13+ exchanges, 6 stock brokers, and DEX exports
+                </p>
+                <input ref={fileRef} type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
+              </div>
             </div>
           )}
 

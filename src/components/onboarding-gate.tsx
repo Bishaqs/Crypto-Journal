@@ -2,18 +2,42 @@
 
 import { useState, useEffect } from "react";
 import { Onboarding } from "./onboarding";
+import { FeatureExplainer } from "./feature-explainer";
+
+type GateStep = "loading" | "onboarding" | "features" | "done";
 
 export function OnboardingGate() {
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [step, setStep] = useState<GateStep>("loading");
 
   useEffect(() => {
     const onboarded = localStorage.getItem("stargate-onboarded");
+    const featuresSeen = localStorage.getItem("stargate-features-seen");
+
     if (!onboarded) {
-      setShowOnboarding(true);
+      setStep("onboarding");
+    } else if (!featuresSeen) {
+      setStep("features");
+    } else {
+      setStep("done");
     }
   }, []);
 
-  if (!showOnboarding) return null;
+  if (step === "loading" || step === "done") return null;
 
-  return <Onboarding onComplete={() => setShowOnboarding(false)} />;
+  if (step === "onboarding") {
+    return (
+      <Onboarding
+        onComplete={() => {
+          const featuresSeen = localStorage.getItem("stargate-features-seen");
+          setStep(featuresSeen ? "done" : "features");
+        }}
+      />
+    );
+  }
+
+  if (step === "features") {
+    return <FeatureExplainer onComplete={() => setStep("done")} />;
+  }
+
+  return null;
 }

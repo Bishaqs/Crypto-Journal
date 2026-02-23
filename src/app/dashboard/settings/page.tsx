@@ -896,7 +896,30 @@ export default function SettingsPage() {
       {/* ============ REFERRALS TAB ============ */}
       {tab === "referrals" && (
         <div className="space-y-6">
-          <SectionCard icon={Gift} title="Your Referral Link" description="Share with friends and earn free months.">
+          {/* How it works */}
+          <div className="glass rounded-2xl border border-accent/20 p-5 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
+            <h3 className="text-sm font-bold text-foreground">How It Works</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { step: "1", title: "Share your link", desc: "Send your unique referral link to friends and fellow traders." },
+                { step: "2", title: "Friend signs up", desc: "They create an account and upgrade to Pro within 90 days." },
+                { step: "3", title: "You both win", desc: "You earn free Pro days. They get 20% off their first 3 months." },
+              ].map((s) => (
+                <div key={s.step} className="flex items-start gap-3 p-3 rounded-xl bg-background border border-border">
+                  <div className="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-accent">{s.step}</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">{s.title}</p>
+                    <p className="text-[10px] text-muted mt-0.5 leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Referral link */}
+          <SectionCard icon={Gift} title="Your Referral Link" description="Share with friends and earn free Pro days.">
             <div className="flex items-center gap-2">
               <input
                 readOnly
@@ -939,7 +962,7 @@ export default function SettingsPage() {
             {[
               { label: "Total Referrals", value: "0", color: "text-foreground" },
               { label: "Active Users", value: "0", color: "text-win" },
-              { label: "Rewards Earned", value: "$0", color: "text-accent" },
+              { label: "Free Days Earned", value: "0", color: "text-accent" },
             ].map((stat) => (
               <div key={stat.label} className="glass rounded-2xl border border-border/50 p-5 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
                 <p className="text-2xl font-bold mb-1" style={{ color: `var(--${stat.color === "text-foreground" ? "foreground" : stat.color === "text-win" ? "win" : "accent"})` }}>
@@ -950,22 +973,35 @@ export default function SettingsPage() {
             ))}
           </div>
 
+          {/* What your friend gets */}
+          <div className="rounded-2xl border border-win/20 bg-win/5 p-5 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-win/10 flex items-center justify-center shrink-0">
+              <Gift size={16} className="text-win" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">What your friend gets</p>
+              <p className="text-xs text-muted mt-0.5">Every friend who signs up through your link gets <span className="text-win font-semibold">20% off their first 3 months</span> of Pro. They save money, you earn free days.</p>
+            </div>
+          </div>
+
           {/* Reward tiers */}
-          <SectionCard icon={Star} title="Reward Tiers" description="The more you share, the more you earn.">
+          <SectionCard icon={Star} title="Your Reward Tiers" description="The more you share, the more you earn.">
             <div className="space-y-2">
               {[
-                { referrals: "1", reward: "7 days Pro free" },
-                { referrals: "5", reward: "1 month Pro free" },
-                { referrals: "10", reward: "3 months Pro free" },
-                { referrals: "25", reward: "1 year Pro free" },
-                { referrals: "50", reward: "Lifetime Pro access" },
+                { referrals: "1", reward: "14 days Pro free", highlight: true },
+                { referrals: "3", reward: "1 month Pro free", highlight: false },
+                { referrals: "5", reward: "2 months Pro free", highlight: false },
+                { referrals: "10", reward: "6 months Pro free", highlight: false },
+                { referrals: "25", reward: "1 year Pro free", highlight: false },
+                { referrals: "50", reward: "Lifetime Pro access", highlight: false },
               ].map((tier) => (
-                <div key={tier.referrals} className="flex items-center justify-between px-4 py-3 rounded-xl bg-background border border-border">
+                <div key={tier.referrals} className={`flex items-center justify-between px-4 py-3 rounded-xl border ${tier.highlight ? "bg-accent/5 border-accent/20" : "bg-background border-border"}`}>
                   <span className="text-sm text-foreground font-medium">{tier.referrals} referral{tier.referrals !== "1" ? "s" : ""}</span>
-                  <span className="text-xs text-accent font-semibold">{tier.reward}</span>
+                  <span className={`text-xs font-semibold ${tier.highlight ? "text-accent" : "text-accent/70"}`}>{tier.reward}</span>
                 </div>
               ))}
             </div>
+            <p className="text-[10px] text-muted mt-3">Referrals count when your friend signs up and upgrades within 90 days.</p>
           </SectionCard>
         </div>
       )}
