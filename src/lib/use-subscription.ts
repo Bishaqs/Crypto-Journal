@@ -32,6 +32,7 @@ const FEATURE_TIERS: Record<string, SubscriptionTier[]> = {
   "rule-tracker": ["max"],
   "tax-reports": ["max"],
   "stock-trading": ["max"],
+  "auto-link-notes": ["max"],
 };
 
 export function clearSubscriptionCache() {
@@ -72,15 +73,27 @@ export function useSubscription() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    const { data: sub } = await supabase
+    const { data: sub, error } = await supabase
       .from("user_subscriptions")
       .select("tier, is_owner, is_trial, trial_end, granted_by_invite_code")
       .eq("user_id", user.id)
       .single();
 
+    if (error) {
+      console.error("[subscription] fetch error:", error.message, error.code);
+    }
+
     if (sub) {
       setData(sub);
       localStorage.setItem(CACHE_KEY, JSON.stringify({ data: sub, ts: Date.now() }));
+    } else {
+      // Fallback: owner always gets max even if DB query fails
+      const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+      if (ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase()) {
+        const fallback: SubData = { tier: "max", is_owner: true, is_trial: false, trial_end: null, granted_by_invite_code: null };
+        setData(fallback);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: fallback, ts: Date.now() }));
+      }
     }
     setLoading(false);
   }
