@@ -294,6 +294,7 @@ export function Sidebar() {
       <div className="border-t border-border py-2 px-2">
         {/* View mode toggle — prominent */}
         <button
+          id="tour-view-toggle"
           onClick={toggleViewMode}
           className={`w-full flex items-center gap-3 ${
             !isMobile && collapsed ? "justify-center px-2" : "px-3"

@@ -172,7 +172,7 @@ export default function DashboardPage() {
             <Download size={14} />
             Export
           </button>
-          <button
+          <button id="tour-log-trade"
             onClick={() => {
               setEditTrade(null);
               setShowForm(true);
@@ -186,7 +186,9 @@ export default function DashboardPage() {
       </div>
 
       <TiltWarnings signals={tiltSignals} />
-      <StatsCards stats={stats} />
+      <div id="tour-stats">
+        <StatsCards stats={stats} />
+      </div>
 
       {/* Advanced mode stats — appears right below basic stats with smooth animation */}
       <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
@@ -278,12 +280,16 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <EquityCurve data={equityData} />
-        <PnlChart data={dailyPnl} />
+        <div id="tour-equity">
+          <EquityCurve data={equityData} />
+        </div>
+        <div id="tour-pnl-chart">
+          <PnlChart data={dailyPnl} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+        <div id="tour-trades-table" className="lg:col-span-2 space-y-6">
           <TradesTable
             trades={filteredTrades}
             onEdit={
@@ -297,9 +303,9 @@ export default function DashboardPage() {
           />
         </div>
         <div className="space-y-6">
-          <StreakWidget />
-          <CalendarHeatmap dailyPnl={dailyPnl} />
-          <AISummaryWidget trades={filteredTrades} />
+          <div id="tour-streak"><StreakWidget /></div>
+          <div id="tour-heatmap-mini"><CalendarHeatmap dailyPnl={dailyPnl} /></div>
+          <div id="tour-ai-summary"><AISummaryWidget trades={filteredTrades} /></div>
           {/* Advanced mode links — in sidebar, visible immediately */}
           {viewMode === "advanced" && taxReport && (
             <div className="space-y-3">

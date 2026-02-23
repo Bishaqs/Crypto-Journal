@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { X, Sun, Coffee, Zap } from "lucide-react";
+import { isTourComplete } from "@/lib/onboarding";
 
 const MOOD_LEVELS = [
   { value: 1, emoji: "😞", label: "Awful" },
@@ -80,7 +81,7 @@ export function DailyCheckin() {
     setShow(false);
   }
 
-  if (!show || alreadyCheckedIn) return null;
+  if (!show || alreadyCheckedIn || !isTourComplete("welcome")) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">

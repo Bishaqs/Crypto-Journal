@@ -16,6 +16,7 @@ import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
+import { usePageTour } from "@/lib/use-page-tour";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -125,6 +126,7 @@ const OVERTRADING_DATA = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function HeatMapsPage() {
+  usePageTour("heatmaps-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [tab, setTab] = useState<TabId>("time-day");
   const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null);

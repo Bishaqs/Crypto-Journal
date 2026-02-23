@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 export type SubscriptionTier = "free" | "pro" | "max";
 
@@ -52,7 +51,7 @@ export function useSubscription() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Stale-while-revalidate: show cache instantly, always revalidate from DB
+    // Stale-while-revalidate: show cache instantly, always revalidate from server
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -64,36 +63,23 @@ export function useSubscription() {
       }
     } catch {}
 
-    // Always fetch fresh from DB
+    // Always fetch fresh from server API
     fetchSub();
   }, []);
 
   async function fetchSub() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
-
-    const { data: sub, error } = await supabase
-      .from("user_subscriptions")
-      .select("tier, is_owner, is_trial, trial_end, granted_by_invite_code")
-      .eq("user_id", user.id)
-      .single();
-
-    if (error) {
-      console.error("[subscription] fetch error:", error.message, error.code);
-    }
-
-    if (sub) {
+    try {
+      const res = await fetch("/api/subscription");
+      if (!res.ok) {
+        console.error("[subscription] API error:", res.status);
+        setLoading(false);
+        return;
+      }
+      const sub: SubData = await res.json();
       setData(sub);
       localStorage.setItem(CACHE_KEY, JSON.stringify({ data: sub, ts: Date.now() }));
-    } else {
-      // Fallback: owner always gets max even if DB query fails
-      const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
-      if (ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase()) {
-        const fallback: SubData = { tier: "max", is_owner: true, is_trial: false, trial_end: null, granted_by_invite_code: null };
-        setData(fallback);
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: fallback, ts: Date.now() }));
-      }
+    } catch (err) {
+      console.error("[subscription] fetch failed:", err);
     }
     setLoading(false);
   }

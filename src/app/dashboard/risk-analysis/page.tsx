@@ -16,6 +16,7 @@ import {
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
+import { usePageTour } from "@/lib/use-page-tour";
 
 // ---------------------------------------------------------------------------
 // DEMO DATA — 30 realistic crypto trades
@@ -108,6 +109,7 @@ function MetricCard({
 // ---------------------------------------------------------------------------
 
 export default function RiskAnalysisPage() {
+  usePageTour("risk-analysis-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [activeTab, setActiveTab] = useState<"r-multiples" | "mae-mfe">("r-multiples");
   const [rTableSortDir, setRTableSortDir] = useState<"asc" | "desc">("desc");

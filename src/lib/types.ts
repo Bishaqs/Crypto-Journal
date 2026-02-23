@@ -42,6 +42,7 @@ export type JournalNote = {
   content: string;
   tags: string[];
   trade_id: string | null;
+  auto_link_on_import?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -222,6 +223,14 @@ export type StockTrade = {
   notes: string | null;
   tags: string[];
   pnl: number | null;
+  created_at: string;
+};
+
+export type UserTemplate = {
+  id: string;
+  user_id: string;
+  name: string;
+  content: string;
   created_at: string;
 };
 
