@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { usePageTour } from "@/lib/use-page-tour";
 
 type SortKey = "date" | "symbol" | "pnl" | "emotion" | "process_score";
 type SortDir = "asc" | "desc";
@@ -28,6 +29,7 @@ type SortDir = "asc" | "desc";
 const EMOTION_OPTIONS = ["All", "Calm", "Confident", "Excited", "Anxious", "FOMO", "Frustrated", "Revenge", "Bored"];
 
 export default function TradesPage() {
+  usePageTour("trades-page");
   const router = useRouter();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,7 +133,7 @@ export default function TradesPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
-      <div>
+      <div id="trades-header">
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Table2 size={24} className="text-accent" />
           Trade Log <InfoTooltip text="All your trades in one place — filter, sort, and review" />
@@ -143,7 +145,7 @@ export default function TradesPage() {
       {usingDemo && <DemoBanner feature="trade log" />}
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div id="trades-filters" className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
           <input

@@ -18,8 +18,10 @@ import {
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { usePageTour } from "@/lib/use-page-tour";
 
 export default function JournalPage() {
+  usePageTour("journal-page");
   const [notes, setNotes] = useState<JournalNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -95,7 +97,7 @@ export default function JournalPage() {
 
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
-      <div className="flex items-center justify-between">
+      <div id="journal-header" className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight">Journal</h2>
           <p className="text-sm text-muted mt-0.5">

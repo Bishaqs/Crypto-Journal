@@ -18,6 +18,7 @@ import {
   Info,
 } from "lucide-react";
 import { Header } from "@/components/header";
+import { usePageTour } from "@/lib/use-page-tour";
 
 // ─── Firm Presets ────────────────────────────────────────────────────────────
 
@@ -170,6 +171,7 @@ function getBarGradient(percent: number): string {
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function PropFirmPage() {
+  usePageTour("prop-firm-page");
   const { viewMode } = useTheme();
   const [config, setConfig] = useState<PropFirmConfig>(getDefaultConfig);
   const [mounted, setMounted] = useState(false);
@@ -334,7 +336,7 @@ export default function PropFirmPage() {
       <Header />
 
       {/* Page header */}
-      <div>
+      <div id="prop-firm-header">
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Shield size={24} className="text-accent" />
           Prop Firm Tracker
@@ -365,6 +367,7 @@ export default function PropFirmPage() {
 
       {/* ─── Firm Selection + Config ──────────────────────────────────────── */}
       <div
+        id="prop-firm-presets"
         className="glass rounded-2xl border border-border/50 p-6 space-y-5"
         style={{ boxShadow: "var(--shadow-card)" }}
       >
