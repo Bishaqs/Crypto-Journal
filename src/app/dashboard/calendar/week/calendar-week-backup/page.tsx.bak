@@ -1,0 +1,228 @@
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import { useTrades } from "@/hooks/use-trades";
+import { generateWeeklyReport, getAvailableWeeks } from "@/lib/calculations";
+import { useTheme } from "@/lib/theme-context";
+import { getChartColors } from "@/lib/chart-colors";
+import { DemoBanner } from "@/components/demo-banner";
+import { ChevronLeft, ChevronRight, CalendarRange } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Cell,
+} from "recharts";
+
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function formatWeekRange(weekStart: string) {
+  const start = new Date(weekStart + "T12:00:00");
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`;
+}
+
+function getCurrentMonday() {
+  const d = new Date();
+  const day = d.getDay();
+  d.setDate(d.getDate() - ((day + 6) % 7));
+  return d.toISOString().split("T")[0];
+}
+
+export default function CalendarWeekPage() {
+  const { trades, loading, usingDemo } = useTrades();
+  const { theme } = useTheme();
+  const colors = getChartColors(theme);
+  const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
+
+  const weeks = useMemo(() => getAvailableWeeks(trades), [trades]);
+
+  useEffect(() => {
+    if (weeks.length > 0 && !selectedWeek) {
+      setSelectedWeek(weeks[0]);
+    }
+  }, [weeks, selectedWeek]);
+
+  const report = useMemo(() => {
+    if (!selectedWeek) return null;
+    return generateWeeklyReport(trades, selectedWeek);
+  }, [trades, selectedWeek]);
+
+  const weekIdx = weeks.indexOf(selectedWeek ?? "");
+  const canPrev = weekIdx < weeks.length - 1;
+  const canNext = weekIdx > 0;
+
+  // Build 7-day row from Mon to Sun
+  const weekDays = useMemo(() => {
+    if (!selectedWeek || !report) return [];
+    const pnlMap = new Map(report.dailyPnl.map((d) => [d.date, d]));
+    const result = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(selectedWeek + "T12:00:00");
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toISOString().split("T")[0];
+      const data = pnlMap.get(dateStr);
+      result.push({
+        day: DAY_NAMES[i],
+        date: d.getDate(),
+        dateStr,
+        pnl: data?.pnl ?? 0,
+        trades: data?.tradeCount ?? 0,
+        hasData: !!data,
+      });
+    }
+    return result;
+  }, [selectedWeek, report]);
+
+  const chartData = weekDays.map((d) => ({ name: d.day, pnl: d.pnl }));
+
+  const tooltipStyle = {
+    backgroundColor: colors.tooltipBg,
+    border: colors.tooltipBorder,
+    borderRadius: "12px",
+    fontSize: "12px",
+    color: "var(--color-foreground)",
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-pulse text-accent">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <CalendarRange size={24} className="text-accent" />
+            Week View
+          </h2>
+          <p className="text-sm text-muted mt-0.5">{selectedWeek ? formatWeekRange(selectedWeek) : "No weeks available"}</p>
+        </div>
+        <div className="flex gap-1">
+          <button onClick={() => canPrev && setSelectedWeek(weeks[weekIdx + 1])} disabled={!canPrev} className="p-2 rounded-xl hover:bg-surface-hover text-muted hover:text-foreground transition-all disabled:opacity-30">
+            <ChevronLeft size={18} />
+          </button>
+          <button onClick={() => setSelectedWeek(getCurrentMonday())} className="px-3 py-1.5 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all">
+            This Week
+          </button>
+          <button onClick={() => canNext && setSelectedWeek(weeks[weekIdx - 1])} disabled={!canNext} className="p-2 rounded-xl hover:bg-surface-hover text-muted hover:text-foreground transition-all disabled:opacity-30">
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      </div>
+      {usingDemo && <DemoBanner feature="week view" />}
+
+      {/* 7-day row */}
+      <div className="grid grid-cols-7 gap-2">
+        {weekDays.map((d) => (
+          <div
+            key={d.dateStr}
+            className={`glass rounded-xl border p-3 text-center transition-all ${
+              d.hasData
+                ? d.pnl > 0 ? "border-win/30" : d.pnl < 0 ? "border-loss/30" : "border-border/50"
+                : "border-border/30"
+            }`}
+            style={{ boxShadow: "var(--shadow-card)" }}
+          >
+            <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">{d.day}</p>
+            <p className="text-lg font-bold text-foreground">{d.date}</p>
+            {d.hasData ? (
+              <>
+                <p className={`text-sm font-bold tabular-nums ${d.pnl >= 0 ? "text-win" : "text-loss"}`}>
+                  ${d.pnl.toFixed(0)}
+                </p>
+                <p className="text-[10px] text-muted">{d.trades}t</p>
+              </>
+            ) : (
+              <p className="text-xs text-muted/30 mt-1">—</p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Weekly stats */}
+      {report && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            { label: "Total P&L", value: `$${report.totalPnl.toFixed(2)}`, color: report.totalPnl >= 0 ? "text-win" : "text-loss" },
+            { label: "Trades", value: `${report.tradeCount}`, color: "text-foreground" },
+            { label: "Win Rate", value: `${report.winRate.toFixed(1)}%`, color: report.winRate >= 50 ? "text-win" : "text-loss" },
+            { label: "Green Days", value: `${report.greenDays}`, color: "text-win" },
+            { label: "Red Days", value: `${report.redDays}`, color: "text-loss" },
+            { label: "Trading Days", value: `${report.tradingDays}`, color: "text-foreground" },
+          ].map((s) => (
+            <div key={s.label} className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+              <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">{s.label}</p>
+              <p className={`text-lg font-bold tabular-nums ${s.color}`}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Daily P&L chart */}
+      {report && report.tradeCount > 0 && (
+        <div className="bg-surface rounded-2xl border border-border p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Daily P&L</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+              <XAxis dataKey="name" tick={{ fill: colors.tick, fontSize: 12 }} stroke={colors.grid} />
+              <YAxis tick={{ fill: colors.tick, fontSize: 11 }} stroke={colors.grid} tickFormatter={(v) => `$${v}`} />
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [`$${Number(v ?? 0).toFixed(2)}`, "P&L"]} />
+              <Bar dataKey="pnl" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                {chartData.map((entry, i) => (
+                  <Cell key={i} fill={entry.pnl >= 0 ? colors.win : colors.loss} fillOpacity={0.8} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Best/Worst trades */}
+      {report && (report.bestTrade || report.worstTrade) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {report.bestTrade && (
+            <div className="glass rounded-xl border border-win/30 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+              <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold mb-1">Best Trade</p>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-foreground">{report.bestTrade.symbol}</span>
+                <span className="text-win font-bold">${report.bestTrade.pnl.toFixed(2)}</span>
+              </div>
+              <p className="text-[10px] text-muted mt-0.5">{report.bestTrade.date}</p>
+            </div>
+          )}
+          {report.worstTrade && (
+            <div className="glass rounded-xl border border-loss/30 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+              <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold mb-1">Worst Trade</p>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-foreground">{report.worstTrade.symbol}</span>
+                <span className="text-loss font-bold">${report.worstTrade.pnl.toFixed(2)}</span>
+              </div>
+              <p className="text-[10px] text-muted mt-0.5">{report.worstTrade.date}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!report && (
+        <div className="text-center py-16">
+          <CalendarRange size={48} className="text-accent/20 mx-auto mb-4" />
+          <p className="text-lg font-semibold text-foreground mb-2">No week data</p>
+          <p className="text-sm text-muted">Add trades to see weekly analysis.</p>
+        </div>
+      )}
+    </div>
+  );
+}
