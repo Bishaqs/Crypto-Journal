@@ -33,6 +33,10 @@ import {
   TrendingUp,
   Lock,
   LogOut,
+  Globe,
+  Coins,
+  Search,
+  Percent,
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
@@ -43,15 +47,16 @@ interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ size?: number }>;
+  tourId?: string;
 }
 
 const mainItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/trades", label: "Trade Log", icon: Table2 },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tourId: "tour-home" },
+  { href: "/dashboard/trades", label: "Trade Log", icon: Table2, tourId: "tour-trades" },
   { href: "/dashboard/journal", label: "Journal", icon: BookOpen },
   { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, tourId: "tour-analytics" },
+  { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList, tourId: "tour-plans" },
 ];
 
 const intelligenceItems: NavItem[] = [
@@ -61,12 +66,16 @@ const intelligenceItems: NavItem[] = [
 ];
 
 const toolItems: NavItem[] = [
+  { href: "/dashboard/market", label: "Market Overview", icon: Globe },
+  { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
   { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
   { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
   { href: "/dashboard/goals", label: "Goals", icon: Target },
 ];
 
 const advancedToolItems: NavItem[] = [
+  { href: "/dashboard/screener", label: "Token Screener", icon: Search },
+  { href: "/dashboard/funding-rates", label: "Funding Rates", icon: Percent },
   { href: "/dashboard/prop-firm", label: "Prop Firm", icon: Flame },
   { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
   { href: "/dashboard/risk-analysis", label: "Risk Analysis", icon: TrendingDown },
@@ -127,7 +136,7 @@ export function Sidebar() {
       : pathname.startsWith(href);
 
   function NavLink({ item, isMobile }: { item: NavItem; isMobile: boolean }) {
-    const tourId = `tour-${item.href.replace("/dashboard/", "").replace("/dashboard", "home") || "home"}`;
+    const tourId = item.tourId ?? `tour-${item.href.replace("/dashboard/", "").replace("/dashboard", "home") || "home"}`;
     return (
       <Link
         id={!isMobile ? tourId : undefined}
@@ -160,9 +169,15 @@ export function Sidebar() {
       })
     : mainItems;
 
-  // Hide crypto-specific advanced tools in stocks mode
+  // In stocks mode: reroute Market Overview, hide crypto-only tools
+  const resolvedToolItems = assetContext === "stocks"
+    ? toolItems
+        .filter(item => !["/dashboard/dca"].includes(item.href))
+        .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/stocks/market" } : item)
+    : toolItems;
+
   const resolvedAdvancedItems = assetContext === "stocks"
-    ? advancedToolItems.filter(item => !["/dashboard/prop-firm", "/dashboard/simulations"].includes(item.href))
+    ? advancedToolItems.filter(item => !["/dashboard/prop-firm", "/dashboard/simulations", "/dashboard/screener", "/dashboard/funding-rates"].includes(item.href))
     : advancedToolItems;
 
   const sidebarContent = (isMobile: boolean) => (
@@ -271,7 +286,7 @@ export function Sidebar() {
           </p>
         )}
         <div className="space-y-0.5">
-          {toolItems.map((item) => (
+          {resolvedToolItems.map((item) => (
             <NavLink key={item.href} item={item} isMobile={isMobile} />
           ))}
         </div>
@@ -314,7 +329,7 @@ export function Sidebar() {
             <div className="flex items-center justify-between flex-1 min-w-0">
               <span className="truncate">{viewMode === "simple" ? "Simple" : "Advanced"}</span>
               {viewMode === "advanced" && (
-                <span className="text-[10px] font-normal text-accent/60 ml-1">12 tools</span>
+                <span className="text-[10px] font-normal text-accent/60 ml-1">{resolvedToolItems.length + resolvedAdvancedItems.length + intelligenceItems.length} tools</span>
               )}
             </div>
           )}
