@@ -161,7 +161,7 @@ export const welcomeTour: Tour = {
       content:
         "Your cumulative P&L over time. A rising curve = consistent edge. Sharp drops reveal drawdown periods. This is the single most important chart for any trader.",
       selector: "#tour-equity",
-      side: "bottom",
+      side: "top",
       showControls: true,
       showSkip: true,
       pointerPadding: 10,
@@ -173,7 +173,7 @@ export const welcomeTour: Tour = {
       content:
         "Each bar = one trading day's profit or loss. Green bars above zero = profitable days. Look for consistency — small steady gains beat big volatile swings.",
       selector: "#tour-pnl-chart",
-      side: "bottom",
+      side: "top",
       showControls: true,
       showSkip: true,
       pointerPadding: 10,
@@ -185,7 +185,7 @@ export const welcomeTour: Tour = {
       content:
         "Your latest trades with P&L, emotion tags, and process scores. Click any row to see full details. Use this to spot patterns — are you more profitable when calm?",
       selector: "#tour-trades-table",
-      side: "top",
+      side: "bottom",
       showControls: true,
       showSkip: true,
       pointerPadding: 10,
@@ -231,8 +231,7 @@ export const welcomeTour: Tour = {
       icon: "✅",
       title: "You're All Set!",
       content:
-        "Click the button below to log your first trade. The more data you add, the smarter Stargate gets. Each page has its own quick tour when you visit it for the first time. Happy trading!",
-      selector: "#tour-log-trade",
+        "Hit the Log Trade button to record your first trade. The more data you add, the smarter Stargate gets. Each page has its own quick tour when you visit it for the first time. Happy trading!",
       side: "bottom",
       showControls: true,
       showSkip: false,

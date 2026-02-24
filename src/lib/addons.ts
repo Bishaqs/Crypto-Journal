@@ -17,15 +17,16 @@ export function setUserAddons(addons: UserAddons): void {
 }
 
 export function hasStockAccess(): boolean {
-  const addons = getUserAddons();
-  if (addons.stocks) return true;
+  // Owner always has stock access
   try {
     const raw = localStorage.getItem("stargate-subscription-cache");
     if (raw) {
       const cache = JSON.parse(raw);
-      if (cache.data?.tier === "max") return true;
+      if (cache.data?.is_owner || cache.data?.tier === "max") return true;
     }
   } catch {}
+  const addons = getUserAddons();
+  if (addons.stocks) return true;
   return false;
 }
 
