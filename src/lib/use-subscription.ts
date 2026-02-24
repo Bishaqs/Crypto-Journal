@@ -88,6 +88,7 @@ export function useSubscription() {
   const isOwner = data?.is_owner ?? false;
 
   function hasAccess(feature: string): boolean {
+    if (isOwner) return true;
     return checkFeatureAccess(tier, feature);
   }
 
