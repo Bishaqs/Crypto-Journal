@@ -106,12 +106,25 @@ export function useSubscription() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Re-fetch when tab regains focus (handles cookies arriving after initial fetch)
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible" && !data) {
+        fetchSub();
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
   async function fetchSub(attempt = 0) {
     try {
       const res = await fetch("/api/subscription");
       if (!res.ok) {
-        if (res.status === 401 && attempt < 3) {
-          setTimeout(() => fetchSub(attempt + 1), 500 * Math.pow(2, attempt));
+        if (res.status === 401) {
+          const delay = Math.min(500 * Math.pow(2, attempt), 10000);
+          setTimeout(() => fetchSub(attempt + 1), delay);
           return;
         }
         console.error("[subscription] API error:", res.status);
