@@ -47,12 +47,12 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     const resp = NextResponse.redirect(url);
-    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/" });
+    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
     return resp;
   }
 
   if (isOwner) {
-    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/" });
+    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
   } else {
     supabaseResponse.cookies.delete("stargate-owner");
   }

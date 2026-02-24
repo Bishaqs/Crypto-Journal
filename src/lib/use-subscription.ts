@@ -14,6 +14,7 @@ type SubData = {
 };
 
 const CACHE_KEY = "stargate-subscription-cache";
+const OWNER_FLAG_KEY = "stargate-is-owner";
 const CACHE_TTL = 5 * 60 * 1000;
 const OWNER_EMAIL = process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
 
@@ -60,6 +61,7 @@ export function useSubscription() {
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user?.email?.toLowerCase() === OWNER_EMAIL) {
           setClientOwner(true);
+          localStorage.setItem(OWNER_FLAG_KEY, "1");
           const ownerData: SubData = {
             tier: "max", is_owner: true, is_trial: false,
             trial_end: null, granted_by_invite_code: null,
@@ -119,17 +121,23 @@ export function useSubscription() {
       const sub: SubData = await res.json();
       setData(sub);
       localStorage.setItem(CACHE_KEY, JSON.stringify({ data: sub, ts: Date.now() }));
+      if (sub.is_owner) {
+        localStorage.setItem(OWNER_FLAG_KEY, "1");
+      } else {
+        localStorage.removeItem(OWNER_FLAG_KEY);
+      }
     } catch (err) {
       console.error("[subscription] fetch failed:", err);
     }
     setLoading(false);
   }
 
-  // Synchronous owner check from middleware cookie — no async race
+  // Synchronous owner checks — no async race
   const cookieOwner = typeof document !== "undefined" && document.cookie.includes("stargate-owner=1");
+  const persistentOwner = typeof window !== "undefined" && localStorage.getItem(OWNER_FLAG_KEY) === "1";
 
   const tier: SubscriptionTier = data?.tier ?? "free";
-  const isOwner = cookieOwner || clientOwner || (data?.is_owner ?? false);
+  const isOwner = cookieOwner || persistentOwner || clientOwner || (data?.is_owner ?? false);
 
   function hasAccess(feature: string): boolean {
     if (isOwner) return true;
