@@ -231,8 +231,7 @@ export const welcomeTour: Tour = {
       icon: "✅",
       title: "You're All Set!",
       content:
-        "Click the button below to log your first trade. The more data you add, the smarter Stargate gets. Each page has its own quick tour when you visit it for the first time. Happy trading!",
-      selector: "#tour-log-trade",
+        "Hit the Log Trade button to record your first trade. The more data you add, the smarter Stargate gets. Each page has its own quick tour when you visit it for the first time. Happy trading!",
       side: "bottom",
       showControls: true,
       showSkip: false,
