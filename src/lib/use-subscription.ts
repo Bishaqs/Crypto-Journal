@@ -125,8 +125,11 @@ export function useSubscription() {
     setLoading(false);
   }
 
+  // Synchronous owner check from middleware cookie — no async race
+  const cookieOwner = typeof document !== "undefined" && document.cookie.includes("stargate-owner=1");
+
   const tier: SubscriptionTier = data?.tier ?? "free";
-  const isOwner = clientOwner || (data?.is_owner ?? false);
+  const isOwner = cookieOwner || clientOwner || (data?.is_owner ?? false);
 
   function hasAccess(feature: string): boolean {
     if (isOwner) return true;

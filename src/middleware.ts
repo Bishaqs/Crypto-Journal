@@ -31,6 +31,10 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Owner flag cookie — synchronous client-side check
+  const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+  const isOwner = !!(user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
+
   // If not logged in and trying to access dashboard, redirect to login
   if (!user && pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
@@ -42,7 +46,15 @@ export async function middleware(request: NextRequest) {
   if (user && pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+    const resp = NextResponse.redirect(url);
+    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/" });
+    return resp;
+  }
+
+  if (isOwner) {
+    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/" });
+  } else {
+    supabaseResponse.cookies.delete("stargate-owner");
   }
 
   return supabaseResponse;
