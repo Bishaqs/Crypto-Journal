@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { Coins, DollarSign, TrendingUp, Percent } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 import {
   AreaChart,
   Area,
@@ -73,6 +75,7 @@ function calculateDCA(
 }
 
 export default function DCACalculatorPage() {
+  usePageTour("dca-page");
   const { theme } = useTheme();
   const colors = getChartColors(theme);
 
@@ -108,10 +111,11 @@ export default function DCACalculatorPage() {
 
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
-      <div>
+      <div id="tour-dca-header">
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Coins size={24} className="text-accent" />
           DCA Calculator
+          <PageInfoButton tourName="dca-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Project your dollar-cost averaging returns over time
@@ -120,7 +124,7 @@ export default function DCACalculatorPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Input panel */}
-        <div className="glass rounded-2xl border border-border/50 p-6 space-y-5" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div id="tour-dca-inputs" className="glass rounded-2xl border border-border/50 p-6 space-y-5" style={{ boxShadow: "var(--shadow-card)" }}>
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Parameters</h3>
 
           <div>
@@ -216,7 +220,7 @@ export default function DCACalculatorPage() {
           </div>
 
           {/* Projection chart */}
-          <div className="bg-surface rounded-2xl border border-border p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div id="tour-dca-chart" className="bg-surface rounded-2xl border border-border p-4" style={{ boxShadow: "var(--shadow-card)" }}>
             <h3 className="text-sm font-semibold text-foreground mb-3">Value Projection</h3>
             <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>

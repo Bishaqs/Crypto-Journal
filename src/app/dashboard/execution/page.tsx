@@ -18,6 +18,8 @@ import {
   Activity,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -144,6 +146,7 @@ function radarLabelPos(index: number, maxR: number, cx: number, cy: number, padd
 // ---------------------------------------------------------------------------
 
 export default function ExecutionScoringPage() {
+  usePageTour("execution-page");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -264,10 +267,11 @@ export default function ExecutionScoringPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       {/* Header */}
-      <div>
+      <div id="tour-execution-header">
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Target size={24} className="text-accent" />
           Execution Scoring <InfoTooltip text="Rate 5 dimensions per trade: entry timing, stop placement, position sizing, exit execution, plan adherence." />
+          <PageInfoButton tourName="execution-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Separate strategy from execution — measure how well you follow your own rules
@@ -453,6 +457,7 @@ export default function ExecutionScoringPage() {
       {/* 3. System Edge vs Execution Gap                                     */}
       {/* ================================================================== */}
       <div
+        id="tour-execution-analysis"
         className="glass rounded-2xl border border-border/50 p-6"
         style={{ boxShadow: "var(--shadow-card)" }}
       >

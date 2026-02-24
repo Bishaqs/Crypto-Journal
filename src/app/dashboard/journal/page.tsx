@@ -19,6 +19,7 @@ import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 export default function JournalPage() {
   usePageTour("journal-page");
@@ -99,7 +100,7 @@ export default function JournalPage() {
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <div id="journal-header" className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight">Journal</h2>
+          <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">Journal <PageInfoButton tourName="journal-page" /></h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? "Sample entries" : `${notes.length} notes`}
           </p>

@@ -17,6 +17,7 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 // ---------------------------------------------------------------------------
 // DEMO DATA — 30 realistic crypto trades
@@ -229,8 +230,9 @@ export default function RiskAnalysisPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           Risk Analysis
+          <PageInfoButton tourName="risk-analysis-page" />
         </h1>
         <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
           R-Multiples <InfoTooltip text="Normalizes every trade to units of risk (R). A 2R winner means you made 2x your initial risk. Helps compare trades of different sizes." size={12} /> &amp; MAE/MFE <InfoTooltip text="MAE = worst drawdown during a trade. MFE = best unrealized profit. Helps optimize stop-losses and take-profit levels." size={12} />

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 // ─── Firm Presets ────────────────────────────────────────────────────────────
 
@@ -340,6 +341,7 @@ export default function PropFirmPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Shield size={24} className="text-accent" />
           Prop Firm Tracker
+          <PageInfoButton tourName="prop-firm-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Monitor your evaluation progress and stay within firm risk limits

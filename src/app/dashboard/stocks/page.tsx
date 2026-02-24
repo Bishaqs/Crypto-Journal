@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -225,6 +227,7 @@ const SECTOR_COLORS = [
 // ---------------------------------------------------------------------------
 
 export default function StocksDashboardPage() {
+  usePageTour("stocks-dashboard-page");
   const [trades] = useState<StockTrade[]>(MOCK_STOCK_TRADES);
   const session = getCurrentSession();
 
@@ -300,11 +303,12 @@ export default function StocksDashboardPage() {
       <Header />
 
       {/* Title & session indicator */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="tour-stocks-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Briefcase size={24} className="text-accent" />
             Stocks
+            <PageInfoButton tourName="stocks-dashboard-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
             <Clock size={12} />
@@ -348,7 +352,7 @@ export default function StocksDashboardPage() {
       )}
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div id="tour-stocks-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div
           className="glass rounded-2xl border border-border/50 p-4"
           style={{ boxShadow: "var(--shadow-card)" }}
@@ -413,6 +417,7 @@ export default function StocksDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sector Breakdown Pie */}
         <div
+          id="tour-stocks-sector"
           className="glass rounded-2xl border border-border/50 p-6"
           style={{ boxShadow: "var(--shadow-card)" }}
         >

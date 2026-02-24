@@ -17,6 +17,7 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -213,6 +214,7 @@ export default function HeatMapsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Heat Maps
+          <PageInfoButton tourName="heatmaps-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
           <Sparkles size={12} className="text-accent" />

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Percent, RefreshCw, Info, Search } from "lucide-react";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 interface FundingRate {
   symbol: string;
@@ -40,6 +42,7 @@ function formatCountdown(nextTime: number): string {
 }
 
 export default function FundingRatesPage() {
+  usePageTour("funding-rates-page");
   const [rates, setRates] = useState<FundingRate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -127,10 +130,11 @@ export default function FundingRatesPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <div className="flex items-center justify-between">
-        <div>
+        <div id="tour-funding-header">
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Percent size={24} className="text-accent" />
             Funding Rates
+            <PageInfoButton tourName="funding-rates-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Perpetual futures funding rates from Binance</p>
         </div>
@@ -220,7 +224,7 @@ export default function FundingRatesPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div id="tour-funding-data" className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-surface z-10">

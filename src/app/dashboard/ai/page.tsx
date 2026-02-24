@@ -20,6 +20,8 @@ import {
   XCircle,
   Shield,
 } from "lucide-react";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 type Message = {
   role: "user" | "assistant" | "error";
@@ -122,6 +124,7 @@ Based on your trading data, here are some observations:
 const API_KEY_STORAGE = "stargate-ai-api-key";
 
 export default function AIPage() {
+  usePageTour("ai-coach-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -277,9 +280,10 @@ export default function AIPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <h1 id="tour-ai-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Brain size={24} className="text-accent" />
             AI Trading Coach
+            <PageInfoButton tourName="ai-coach-page" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Ask questions about your trading patterns, psychology, and performance
@@ -335,7 +339,7 @@ export default function AIPage() {
                 </p>
 
                 {/* Suggested questions */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
+                <div id="tour-ai-suggestions" className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
                   {SUGGESTED_QUESTIONS.map((q) => (
                     <button
                       key={q}

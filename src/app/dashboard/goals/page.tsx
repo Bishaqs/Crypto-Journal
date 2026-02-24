@@ -8,6 +8,8 @@ import { DemoBanner } from "@/components/demo-banner";
 import { calculateStats, calculateAdvancedStats } from "@/lib/calculations";
 import { Target, Trophy, TrendingDown, Percent, Brain, Hash, Save, RotateCcw, Sparkles } from "lucide-react";
 import { Header } from "@/components/header";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 type Goal = {
   label: string;
@@ -47,6 +49,7 @@ function getMonthTrades(trades: Trade[]): Trade[] {
 type GoalValues = Record<string, number>;
 
 export default function GoalsPage() {
+  usePageTour("goals-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -159,10 +162,11 @@ export default function GoalsPage() {
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
       <div className="flex items-center justify-between">
-        <div>
+        <div id="tour-goals-header">
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Target size={24} className="text-accent" />
             Monthly Goals
+            <PageInfoButton tourName="goals-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? "Sample data" : `${getMonthLabel()} — Day ${currentDay} of ${daysInMonth}`}
@@ -220,7 +224,7 @@ export default function GoalsPage() {
       </div>
 
       {/* Goal cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div id="tour-goals-list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {GOAL_DEFINITIONS.map((goal) => {
           const progress = getProgress(goal);
           const isDrawdown = goal.key === "max_drawdown";

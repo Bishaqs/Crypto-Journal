@@ -42,6 +42,8 @@ import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 function StatBlock({
   label,
@@ -74,6 +76,7 @@ function StatBlock({
 }
 
 export default function SimulationsPage() {
+  usePageTour("simulations-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -192,10 +195,11 @@ export default function SimulationsPage() {
 
       {/* Title + Info toggle */}
       <div className="flex items-start justify-between">
-        <div>
+        <div id="tour-sim-header">
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Dices size={24} className="text-accent" />
             Monte Carlo Simulations
+            <PageInfoButton tourName="simulations-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Bootstrap resampling of your trade history to project future equity curves
@@ -617,6 +621,7 @@ export default function SimulationsPage() {
             <>
               {/* Fan chart */}
               <div
+                id="tour-sim-chart"
                 className="glass rounded-2xl border border-border/50 p-5"
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
@@ -697,7 +702,7 @@ export default function SimulationsPage() {
               </div>
 
               {/* Stats grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div id="tour-sim-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <StatBlock
                   label="Median Outcome"
                   value={`$${result.stats.medianFinalEquity.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}

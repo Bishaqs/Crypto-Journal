@@ -24,8 +24,11 @@ import {
   XCircle,
   Brain,
 } from "lucide-react";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 export default function ReportsPage() {
+  usePageTour("reports-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -101,9 +104,10 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <h1 id="tour-reports-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <FileBarChart size={24} className="text-accent" />
             Weekly Report
+            <PageInfoButton tourName="reports-page" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Auto-generated performance review
@@ -180,7 +184,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Report sections grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div id="tour-reports-content" className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Best Trade (P&L) */}
         {report.bestTrade && (
           <ReportCard

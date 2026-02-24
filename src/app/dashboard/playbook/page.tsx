@@ -19,6 +19,8 @@ import {
 import { Header } from "@/components/header";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 type PlaybookEntry = {
   id: string;
@@ -99,6 +101,7 @@ type SetupStats = {
 };
 
 export default function PlaybookPage() {
+  usePageTour("playbook-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -179,10 +182,11 @@ export default function PlaybookPage() {
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
       <div className="flex items-center justify-between">
-        <div>
+        <div id="tour-playbook-header">
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <BookMarked size={24} className="text-accent" />
             Playbook
+            <PageInfoButton tourName="playbook-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Document your setups, track their performance
@@ -198,7 +202,7 @@ export default function PlaybookPage() {
       </div>
 
       {/* Playbook entries */}
-      <div className="space-y-4">
+      <div id="tour-playbook-entries" className="space-y-4">
         {DEMO_PLAYBOOK.map((entry) => {
           const stats = getStatsForEntry(entry);
           const isExpanded = expandedId === entry.id;
