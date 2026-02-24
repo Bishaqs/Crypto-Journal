@@ -17,17 +17,7 @@ export function setUserAddons(addons: UserAddons): void {
 }
 
 export function hasStockAccess(): boolean {
-  // Owner always has stock access
-  try {
-    const raw = localStorage.getItem("stargate-subscription-cache");
-    if (raw) {
-      const cache = JSON.parse(raw);
-      if (cache.data?.is_owner || cache.data?.tier === "max") return true;
-    }
-  } catch {}
-  const addons = getUserAddons();
-  if (addons.stocks) return true;
-  return false;
+  return true; // All features unlocked — re-enable tiers before launch
 }
 
 export type AssetContext = "crypto" | "stocks";
