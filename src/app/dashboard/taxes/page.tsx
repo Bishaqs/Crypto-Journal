@@ -36,6 +36,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Header } from "@/components/header";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 type SortKey =
   | "symbol"
@@ -116,6 +118,7 @@ NOTE: This is for informational purposes only. Consult a qualified CPA for tax f
 }
 
 export default function TaxesPage() {
+  usePageTour("taxes-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -230,10 +233,11 @@ export default function TaxesPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
-      <div>
+      <div id="tour-taxes-header">
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Receipt size={24} className="text-accent" />
           Tax Reports
+          <PageInfoButton tourName="taxes-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Capital gains & losses from closed trades {jurisdiction === "us" ? "— Form 8949 / Schedule D format" : `— ${currentJurisdiction?.name ?? "International"} tax rules`}
@@ -479,7 +483,7 @@ export default function TaxesPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="tour-taxes-summary" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div
           className="glass rounded-2xl border border-border/50 p-5"
           style={{ boxShadow: "var(--shadow-card)" }}

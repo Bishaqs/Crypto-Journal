@@ -13,6 +13,8 @@ import {
   Filter,
 } from "lucide-react";
 import { Header } from "@/components/header";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -153,6 +155,7 @@ type SortDir = "asc" | "desc";
 // ---------------------------------------------------------------------------
 
 export default function StockTradesPage() {
+  usePageTour("stocks-trades-page");
   const router = useRouter();
   const [trades] = useState<StockTrade[]>(MOCK_STOCK_TRADES);
   const [search, setSearch] = useState("");
@@ -232,11 +235,12 @@ export default function StockTradesPage() {
       <Header />
 
       {/* Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="tour-stock-trades-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Table2 size={24} className="text-accent" />
             Stock Trade Log
+            <PageInfoButton tourName="stocks-trades-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {filtered.length} of {trades.length} trades
@@ -249,7 +253,7 @@ export default function StockTradesPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div id="tour-stock-trades-filters" className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
           <input
@@ -375,6 +379,7 @@ export default function StockTradesPage() {
 
       {/* Desktop Table */}
       <div
+        id="tour-stock-trades-table"
         className="hidden md:block bg-surface rounded-2xl border border-border overflow-hidden"
         style={{ boxShadow: "var(--shadow-card)" }}
       >

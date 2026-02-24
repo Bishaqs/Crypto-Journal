@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Globe, TrendingUp, TrendingDown, RefreshCw, Activity } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 import {
   Sparklines,
   SparklinesLine,
@@ -90,6 +92,7 @@ function FearGreedGauge({ value, label }: { value: number; label: string }) {
 }
 
 export default function MarketOverviewPage() {
+  usePageTour("market-page");
   const { theme } = useTheme();
   const colors = getChartColors(theme);
   const [data, setData] = useState<MarketData | null>(null);
@@ -130,10 +133,11 @@ export default function MarketOverviewPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <div className="flex items-center justify-between">
-        <div>
+        <div id="tour-market-header">
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Globe size={24} className="text-accent" />
             Market Overview
+            <PageInfoButton tourName="market-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Live crypto market data</p>
         </div>
@@ -154,7 +158,7 @@ export default function MarketOverviewPage() {
       )}
 
       {/* Global stats + Fear & Greed */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div id="tour-market-data" className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { label: "Market Cap", value: g ? formatLargeNumber(g.total_market_cap.usd) : "—", sub: g ? `${g.market_cap_change_percentage_24h_usd >= 0 ? "+" : ""}${g.market_cap_change_percentage_24h_usd.toFixed(2)}% 24h` : "", color: g && g.market_cap_change_percentage_24h_usd >= 0 ? "text-win" : "text-loss" },
           { label: "24h Volume", value: g ? formatLargeNumber(g.total_volume.usd) : "—", sub: "", color: "text-foreground" },

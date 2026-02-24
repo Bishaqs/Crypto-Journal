@@ -13,8 +13,11 @@ import {
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { DemoBanner } from "@/components/demo-banner";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 export default function CalendarPage() {
+  usePageTour("calendar-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -146,8 +149,9 @@ export default function CalendarPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <h1 id="tour-calendar-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             Calendar <InfoTooltip text="Green days = profit, red days = loss — spot patterns at a glance" />
+            <PageInfoButton tourName="calendar-page" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Click a day to see trade details
@@ -159,6 +163,7 @@ export default function CalendarPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar grid */}
         <div
+          id="tour-calendar-grid"
           className="lg:col-span-2 glass rounded-2xl border border-border/50 p-6"
           style={{ boxShadow: "var(--shadow-card)" }}
         >

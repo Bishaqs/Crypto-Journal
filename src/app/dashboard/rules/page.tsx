@@ -12,6 +12,8 @@ import {
   XCircle,
   BarChart3,
 } from "lucide-react";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 type Rule = {
   id: string;
@@ -53,6 +55,7 @@ const DEMO_VIOLATIONS: Violation[] = [
 ];
 
 export default function RulesPage() {
+  usePageTour("rules-page");
   const [rules, setRules] = useState<Rule[]>(DEFAULT_RULES);
   const [violations] = useState<Violation[]>(DEMO_VIOLATIONS);
   const [newRuleName, setNewRuleName] = useState("");
@@ -125,10 +128,11 @@ export default function RulesPage() {
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div>
+      <div id="tour-rules-header">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Shield size={22} className="text-accent" />
           Rule Tracker
+          <PageInfoButton tourName="rules-page" />
         </h1>
         <p className="text-sm text-muted mt-1">
           Define your rules. Track violations. See what breaking them costs you.
@@ -154,7 +158,7 @@ export default function RulesPage() {
 
       {/* ═══════════ OVERVIEW ═══════════ */}
       {tab === "overview" && (
-        <div className="space-y-6">
+        <div id="tour-rules-list" className="space-y-6">
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="rounded-2xl border border-loss/20 bg-loss/5 p-5">

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw } from "lucide-react";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 interface CoinData {
   id: string;
@@ -39,6 +41,7 @@ function formatPrice(p: number): string {
 }
 
 export default function TokenScreenerPage() {
+  usePageTour("screener-page");
   const [coins, setCoins] = useState<CoinData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,10 +110,11 @@ export default function TokenScreenerPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <div className="flex items-center justify-between">
-        <div>
+        <div id="tour-screener-header">
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Search size={24} className="text-accent" />
             Token Screener
+            <PageInfoButton tourName="screener-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Top movers, volume leaders, and market cap rankings</p>
         </div>
@@ -154,7 +158,7 @@ export default function TokenScreenerPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div id="tour-screener-results" className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

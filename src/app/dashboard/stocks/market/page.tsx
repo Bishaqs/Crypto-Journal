@@ -5,6 +5,8 @@ import { Globe, RefreshCw, CalendarDays, DollarSign, BarChart3, ChevronDown } fr
 import { TradingViewMiniChart, TradingViewTechnicalAnalysis } from "@/components/tradingview-mini-chart";
 import { getRecentAndUpcoming, EVENT_META } from "@/lib/macro-calendar";
 import type { MacroEvent, EventType } from "@/lib/macro-calendar";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 interface IndexData {
   price: number;
@@ -76,6 +78,7 @@ const FOREX_PAIRS: { symbol: string; label: string; base: string; invert: boolea
 ];
 
 export default function StockMarketOverviewPage() {
+  usePageTour("stocks-market-page");
   const [data, setData] = useState<StockMarketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,11 +122,12 @@ export default function StockMarketOverviewPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div id="tour-stock-market-header" className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Globe size={24} className="text-accent" />
             Stock Market Overview
+            <PageInfoButton tourName="stocks-market-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Indices, macro data & forex</p>
         </div>
@@ -144,7 +148,7 @@ export default function StockMarketOverviewPage() {
       )}
 
       {/* Section 1: Major Indices + VIX */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div id="tour-stock-market-indices" className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <IndexCard label="S&P 500" data={data?.indices?.SP500} icon="📈" />
         <IndexCard label="NASDAQ" data={data?.indices?.NASDAQ} icon="💻" />
         <IndexCard label="DOW" data={data?.indices?.DOW} icon="🏭" />
@@ -224,7 +228,7 @@ export default function StockMarketOverviewPage() {
       </div>
 
       {/* Section 4: Economic Calendar */}
-      <div className="bg-surface rounded-2xl border border-border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div id="tour-stock-market-calendar" className="bg-surface rounded-2xl border border-border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
         <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
           <CalendarDays size={16} className="text-accent" />
           Economic Calendar

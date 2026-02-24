@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { Calculator, DollarSign, Target, AlertTriangle, TrendingUp } from "lucide-react";
 import { Header } from "@/components/header";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 export default function RiskCalculatorPage() {
+  usePageTour("risk-calc-page");
   const [accountSize, setAccountSize] = useState(10000);
   const [riskPercent, setRiskPercent] = useState(1);
   const [entryPrice, setEntryPrice] = useState(97000);
@@ -34,10 +37,11 @@ export default function RiskCalculatorPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
-      <div>
+      <div id="tour-risk-header">
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Calculator size={24} className="text-accent" />
           Risk Calculator
+          <PageInfoButton tourName="risk-calc-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Calculate position size, dollar risk, and R-multiple targets
@@ -46,7 +50,7 @@ export default function RiskCalculatorPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input panel */}
-        <div className="glass rounded-2xl border border-border/50 p-6 space-y-5" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div id="tour-risk-inputs" className="glass rounded-2xl border border-border/50 p-6 space-y-5" style={{ boxShadow: "var(--shadow-card)" }}>
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Trade Parameters</h3>
 
           <div className="space-y-4">
@@ -119,7 +123,7 @@ export default function RiskCalculatorPage() {
         </div>
 
         {/* Results panel */}
-        <div className="space-y-4">
+        <div id="tour-risk-results" className="space-y-4">
           {/* Direction badge */}
           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${
             direction === "long" ? "bg-win/10 text-win border border-win/20" : "bg-loss/10 text-loss border border-loss/20"

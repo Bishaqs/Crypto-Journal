@@ -18,6 +18,8 @@ import {
 import { Header } from "@/components/header";
 import { STOCK_SECTORS } from "@/lib/types";
 import { useTheme } from "@/lib/theme-context";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -138,6 +140,7 @@ function TradingViewTickerTape({ colorTheme }: { colorTheme: "dark" | "light" })
 // ---------------------------------------------------------------------------
 
 export default function StockWatchlistPage() {
+  usePageTour("stocks-watchlist-page");
   const { theme } = useTheme();
   const tvColorTheme = theme === "light" ? "light" : "dark";
   const [items, setItems] = useState<WatchlistItem[]>(loadWatchlist);
@@ -230,11 +233,12 @@ export default function StockWatchlistPage() {
       <TradingViewTickerTape colorTheme={tvColorTheme} />
 
       {/* Title + Actions */}
-      <div className="flex items-center justify-between">
+      <div id="tour-watchlist-header" className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Eye size={24} className="text-accent" />
             Watchlist
+            <PageInfoButton tourName="stocks-watchlist-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Stocks you&apos;re watching — set targets and track opportunities
@@ -331,7 +335,7 @@ export default function StockWatchlistPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div id="tour-watchlist-cards" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((item) => {
             const chartOpen = openCharts.has(item.id);
             const detailsOpen = openDetails.has(item.id);

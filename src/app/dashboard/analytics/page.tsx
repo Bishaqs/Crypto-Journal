@@ -37,6 +37,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Header } from "@/components/header";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 const TABS = [
   { id: "overview", label: "Overview", icon: TrendingUp },
@@ -50,6 +52,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 
 export default function AnalyticsPage() {
+  usePageTour("analytics-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabId>("overview");
@@ -244,9 +247,10 @@ export default function AnalyticsPage() {
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
       <div>
-        <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+        <h2 id="tour-analytics-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Analytics
+          <PageInfoButton tourName="analytics-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           {usingDemo ? "Sample data" : `${filtered.length} trades in range`}
@@ -274,7 +278,7 @@ export default function AnalyticsPage() {
 
       {/* Tab content */}
       {tab === "overview" && (
-        <div className="space-y-6">
+        <div id="tour-analytics-charts" className="space-y-6">
           {/* Key stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[

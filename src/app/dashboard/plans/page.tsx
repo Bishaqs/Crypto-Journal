@@ -16,8 +16,11 @@ import {
   ChevronRight,
   Trash2,
 } from "lucide-react";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 export default function PlansPage() {
+  usePageTour("plans-page");
   const [plan, setPlan] = useState<DailyPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -128,8 +131,9 @@ export default function PlansPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">
+          <h1 id="tour-plans-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             Trade / Day Plans
+            <PageInfoButton tourName="plans-page" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Plan before trading. Review after.
@@ -176,7 +180,7 @@ export default function PlansPage() {
           <div className="animate-pulse text-accent">Loading...</div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div id="tour-plans-list" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pre-Market Plan */}
           <div
             className="glass rounded-2xl border border-border/50 p-6 space-y-5"

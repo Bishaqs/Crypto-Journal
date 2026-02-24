@@ -432,6 +432,9 @@ export const riskAnalysisPageTour: Tour = {
 
 // ─── All Tours Array ───────────────────────────────────────────
 
+import { allCryptoPageTours } from "./tours/crypto-page-tours";
+import { allStockPageTours } from "./tours/stock-page-tours";
+
 export const allTours: Tour[] = [
   welcomeTour,
   tradesPageTour,
@@ -439,6 +442,8 @@ export const allTours: Tour[] = [
   propFirmPageTour,
   heatmapsPageTour,
   riskAnalysisPageTour,
+  ...allCryptoPageTours,
+  ...allStockPageTours,
 ];
 
 // Backward-compatible aliases for committed onboarding-tour.tsx

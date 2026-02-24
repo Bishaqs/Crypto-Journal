@@ -55,9 +55,12 @@ import { Header } from "@/components/header";
 import { BehavioralLogbook } from "@/components/dashboard/behavioral-logbook";
 import { EMOTION_CONFIG } from "@/components/psychology-inputs";
 import { Plus, X } from "lucide-react";
+import { usePageTour } from "@/lib/use-page-tour";
+import { PageInfoButton } from "@/components/ui/page-info-button";
 
 
 export default function InsightsPage() {
+  usePageTour("insights-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -540,9 +543,10 @@ export default function InsightsPage() {
       <Header />
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <h2 id="tour-insights-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Brain size={24} className="text-accent" />
             Behavioral Insights
+            <PageInfoButton tourName="insights-page" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? "Sample data" : "How your psychology impacts your trading performance"}
@@ -575,7 +579,7 @@ export default function InsightsPage() {
 
       {/* C2: Dollar Cost of Emotions — the #1 headline feature */}
       {emotionDollarCost && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div id="tour-insights-emotion" className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {emotionDollarCost.worstEmotion && emotionDollarCost.worstEmotion[1] < 0 && (
             <div className="rounded-2xl border border-loss/20 bg-loss/5 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center gap-2 mb-2">
@@ -676,7 +680,7 @@ export default function InsightsPage() {
 
       {/* Trading DNA summary */}
       {tradingDna && (
-        <div className="bg-surface rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-glow)" }}>
+        <div id="tour-insights-discipline" className="bg-surface rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-glow)" }}>
           <div className="flex items-center gap-2 mb-4">
             <Dna size={16} className="text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Your Trading DNA</h3>
