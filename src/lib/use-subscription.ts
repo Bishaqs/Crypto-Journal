@@ -30,9 +30,7 @@ export function clearSubscriptionCache() {
 }
 
 export function checkFeatureAccess(tier: SubscriptionTier, feature: string): boolean {
-  const allowed = FEATURE_TIERS[feature];
-  if (!allowed) return true;
-  return allowed.includes(tier);
+  return true; // All features unlocked — re-enable tiers before launch
 }
 
 export function useSubscription() {
