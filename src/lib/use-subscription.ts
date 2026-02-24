@@ -86,6 +86,24 @@ export function useSubscription() {
     fetchSub();
   }, []);
 
+  // Re-fetch on auth state changes (logout → login cycles)
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        localStorage.removeItem(CACHE_KEY);
+        fetchSub();
+      }
+      if (event === "SIGNED_OUT") {
+        localStorage.removeItem(CACHE_KEY);
+        setData(null);
+        setClientOwner(false);
+        setLoading(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   async function fetchSub(attempt = 0) {
     try {
       const res = await fetch("/api/subscription");
