@@ -232,6 +232,7 @@ export default function TradesPage() {
 
       {/* Desktop table */}
       <div
+        id="trades-table"
         className="hidden md:block bg-surface rounded-2xl border border-border overflow-hidden"
         style={{ boxShadow: "var(--shadow-card)" }}
       >

@@ -6,7 +6,6 @@ import type { CardComponentProps } from "nextstepjs";
 import { useNextAdapter } from "nextstepjs/adapters/next";
 import {
   allTours,
-  LEGACY_ONBOARDING_KEY,
   isTourComplete,
   markTourComplete,
 } from "@/lib/onboarding";
@@ -110,17 +109,49 @@ function TourCard({
   );
 }
 
-function TourAutoStart() {
-  const { startNextStep } = useNextStep();
+const TOUR_STATE_KEY = "stargate-tour-active";
 
+function TourStateManager() {
+  const {
+    startNextStep,
+    currentTour,
+    currentStep,
+    setCurrentStep,
+    isNextStepVisible,
+  } = useNextStep();
+
+  // Restore state on mount (HMR recovery)
   useEffect(() => {
+    const saved = sessionStorage.getItem(TOUR_STATE_KEY);
+    if (saved) {
+      try {
+        const { tour, step } = JSON.parse(saved);
+        if (tour && !isTourComplete(tour)) {
+          startNextStep(tour);
+          if (step > 0) setTimeout(() => setCurrentStep(step), 50);
+          return;
+        }
+      } catch {
+        /* ignore parse errors */
+      }
+      sessionStorage.removeItem(TOUR_STATE_KEY);
+    }
+    // No saved state — start welcome tour if needed
     if (!isTourComplete("welcome")) {
-      const timer = setTimeout(() => {
-        startNextStep("welcome");
-      }, 1000);
+      const timer = setTimeout(() => startNextStep("welcome"), 1000);
       return () => clearTimeout(timer);
     }
-  }, [startNextStep]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist state on step changes
+  useEffect(() => {
+    if (isNextStepVisible && currentTour) {
+      sessionStorage.setItem(
+        TOUR_STATE_KEY,
+        JSON.stringify({ tour: currentTour, step: currentStep }),
+      );
+    }
+  }, [currentTour, currentStep, isNextStepVisible]);
 
   return null;
 }
@@ -137,19 +168,15 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
         disableConsoleLogs
         onComplete={(tourName: string | null) => {
           if (tourName) markTourComplete(tourName);
-          if (tourName === "welcome") {
-            localStorage.setItem(LEGACY_ONBOARDING_KEY, "true");
-          }
+          sessionStorage.removeItem(TOUR_STATE_KEY);
         }}
         onSkip={(_step: number, tourName: string | null) => {
           if (tourName) markTourComplete(tourName);
-          if (tourName === "welcome") {
-            localStorage.setItem(LEGACY_ONBOARDING_KEY, "true");
-          }
+          sessionStorage.removeItem(TOUR_STATE_KEY);
         }}
       >
         {children}
-        <TourAutoStart />
+        <TourStateManager />
       </NextStep>
     </NextStepProvider>
   );

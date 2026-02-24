@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
@@ -32,24 +32,31 @@ import {
   ShieldAlert,
   TrendingUp,
   Lock,
+  LogOut,
+  Globe,
+  Coins,
+  Search,
+  Percent,
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
 import { hasStockAccess } from "@/lib/addons";
+import { createClient } from "@/lib/supabase/client";
 
 interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ size?: number }>;
+  tourId?: string;
 }
 
 const mainItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/trades", label: "Trade Log", icon: Table2 },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tourId: "tour-home" },
+  { href: "/dashboard/trades", label: "Trade Log", icon: Table2, tourId: "tour-trades" },
   { href: "/dashboard/journal", label: "Journal", icon: BookOpen },
   { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, tourId: "tour-analytics" },
+  { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList, tourId: "tour-plans" },
 ];
 
 const intelligenceItems: NavItem[] = [
@@ -59,12 +66,16 @@ const intelligenceItems: NavItem[] = [
 ];
 
 const toolItems: NavItem[] = [
+  { href: "/dashboard/market", label: "Market Overview", icon: Globe },
+  { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
   { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
   { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
   { href: "/dashboard/goals", label: "Goals", icon: Target },
 ];
 
 const advancedToolItems: NavItem[] = [
+  { href: "/dashboard/screener", label: "Token Screener", icon: Search },
+  { href: "/dashboard/funding-rates", label: "Funding Rates", icon: Percent },
   { href: "/dashboard/prop-firm", label: "Prop Firm", icon: Flame },
   { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
   { href: "/dashboard/risk-analysis", label: "Risk Analysis", icon: TrendingDown },
@@ -80,10 +91,12 @@ const bottomItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [assetContext, setAssetContext] = useState<"crypto" | "stocks">("crypto");
   const [showStockUpgrade, setShowStockUpgrade] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { viewMode, toggleViewMode } = useTheme();
 
   function handleAssetToggle(context: "crypto" | "stocks") {
@@ -123,10 +136,10 @@ export function Sidebar() {
       : pathname.startsWith(href);
 
   function NavLink({ item, isMobile }: { item: NavItem; isMobile: boolean }) {
-    const tourId = `tour-${item.href.replace("/dashboard/", "").replace("/dashboard", "home") || "home"}`;
+    const tourId = item.tourId ?? `tour-${item.href.replace("/dashboard/", "").replace("/dashboard", "home") || "home"}`;
     return (
       <Link
-        id={tourId}
+        id={!isMobile ? tourId : undefined}
         href={item.href}
         title={!isMobile && collapsed ? item.label : undefined}
         className={`flex items-center gap-3 ${
@@ -156,9 +169,15 @@ export function Sidebar() {
       })
     : mainItems;
 
-  // Hide crypto-specific advanced tools in stocks mode
+  // In stocks mode: reroute Market Overview, hide crypto-only tools
+  const resolvedToolItems = assetContext === "stocks"
+    ? toolItems
+        .filter(item => !["/dashboard/dca"].includes(item.href))
+        .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/stocks/market" } : item)
+    : toolItems;
+
   const resolvedAdvancedItems = assetContext === "stocks"
-    ? advancedToolItems.filter(item => !["/dashboard/prop-firm", "/dashboard/simulations"].includes(item.href))
+    ? advancedToolItems.filter(item => !["/dashboard/prop-firm", "/dashboard/simulations", "/dashboard/screener", "/dashboard/funding-rates"].includes(item.href))
     : advancedToolItems;
 
   const sidebarContent = (isMobile: boolean) => (
@@ -267,7 +286,7 @@ export function Sidebar() {
           </p>
         )}
         <div className="space-y-0.5">
-          {toolItems.map((item) => (
+          {resolvedToolItems.map((item) => (
             <NavLink key={item.href} item={item} isMobile={isMobile} />
           ))}
         </div>
@@ -294,7 +313,7 @@ export function Sidebar() {
       <div className="border-t border-border py-2 px-2">
         {/* View mode toggle — prominent */}
         <button
-          id="tour-view-toggle"
+          id={!isMobile ? "tour-view-toggle" : undefined}
           onClick={toggleViewMode}
           className={`w-full flex items-center gap-3 ${
             !isMobile && collapsed ? "justify-center px-2" : "px-3"
@@ -310,7 +329,7 @@ export function Sidebar() {
             <div className="flex items-center justify-between flex-1 min-w-0">
               <span className="truncate">{viewMode === "simple" ? "Simple" : "Advanced"}</span>
               {viewMode === "advanced" && (
-                <span className="text-[10px] font-normal text-accent/60 ml-1">12 tools</span>
+                <span className="text-[10px] font-normal text-accent/60 ml-1">{resolvedToolItems.length + resolvedAdvancedItems.length + intelligenceItems.length} tools</span>
               )}
             </div>
           )}
@@ -318,6 +337,16 @@ export function Sidebar() {
         {bottomItems.map((item) => (
           <NavLink key={item.href} item={item} isMobile={isMobile} />
         ))}
+        <button
+          onClick={() => setShowLogoutConfirm(true)}
+          className={`w-full flex items-center gap-3 ${
+            !isMobile && collapsed ? "justify-center px-2" : "px-3"
+          } py-2 rounded-xl text-sm font-medium text-muted hover:text-loss hover:bg-loss/10 transition-all duration-200`}
+          title={!isMobile && collapsed ? "Log Out" : undefined}
+        >
+          <LogOut size={18} />
+          {(isMobile || !collapsed) && <span>Log Out</span>}
+        </button>
         {(isMobile || !collapsed) && (
           <p className="text-[10px] text-muted/40 text-center mt-2 pb-1">
             Stargate v0.1
@@ -365,6 +394,40 @@ export function Sidebar() {
       >
         {sidebarContent(false)}
       </aside>
+
+      {/* Logout confirmation modal */}
+      {showLogoutConfirm && (
+        <>
+          <div className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)} />
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+            <div className="glass border border-border/50 rounded-2xl w-full max-w-sm p-6 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
+              <div className="w-12 h-12 rounded-full bg-loss/10 flex items-center justify-center mx-auto mb-4">
+                <LogOut size={22} className="text-loss" />
+              </div>
+              <h3 className="text-lg font-bold text-foreground mb-1">Log Out?</h3>
+              <p className="text-sm text-muted mb-6">Are you sure you want to log out?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted bg-surface border border-border hover:text-foreground hover:bg-surface-hover transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    const supabase = createClient();
+                    await supabase.auth.signOut();
+                    router.push("/login");
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-loss hover:bg-loss/80 transition-all"
+                >
+                  Log Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
