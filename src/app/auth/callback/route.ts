@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -7,11 +8,31 @@ export async function GET(request: Request) {
   const next = searchParams.get("next") ?? "/dashboard";
 
   if (code) {
-    const supabase = await createClient();
+    const cookieStore = await cookies();
+    const response = NextResponse.redirect(`${origin}${next}`);
+
+    // Write cookies DIRECTLY to the redirect response — not via cookieStore.
+    // This guarantees auth cookies travel with the redirect to /dashboard.
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
+            });
+          },
+        },
+      }
+    );
+
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       const isOwner = await provisionOwner(supabase);
-      const response = NextResponse.redirect(`${origin}${next}`);
       if (isOwner) {
         response.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
       }
@@ -19,11 +40,10 @@ export async function GET(request: Request) {
     }
   }
 
-  // Return to login with error feedback
   return NextResponse.redirect(`${origin}/login?error=oauth_failed`);
 }
 
-async function provisionOwner(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+async function provisionOwner(supabase: ReturnType<typeof createServerClient>): Promise<boolean> {
   const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
   if (!ownerEmail) return false;
 
