@@ -10,8 +10,12 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      await provisionOwner(supabase);
-      return NextResponse.redirect(`${origin}${next}`);
+      const isOwner = await provisionOwner(supabase);
+      const response = NextResponse.redirect(`${origin}${next}`);
+      if (isOwner) {
+        response.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
+      }
+      return response;
     }
   }
 
@@ -19,12 +23,12 @@ export async function GET(request: Request) {
   return NextResponse.redirect(`${origin}/login?error=oauth_failed`);
 }
 
-async function provisionOwner(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function provisionOwner(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
   const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
-  if (!ownerEmail) return;
+  if (!ownerEmail) return false;
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email?.toLowerCase() !== ownerEmail.toLowerCase()) return;
+  if (!user || user.email?.toLowerCase() !== ownerEmail.toLowerCase()) return false;
 
   const { data: sub, error: selectErr } = await supabase
     .from("user_subscriptions")
@@ -34,7 +38,7 @@ async function provisionOwner(supabase: Awaited<ReturnType<typeof createClient>>
 
   if (selectErr && selectErr.code !== "PGRST116") {
     console.error("[owner-provision] SELECT failed:", selectErr.message);
-    return;
+    return true;
   }
 
   if (!sub) {
@@ -49,4 +53,5 @@ async function provisionOwner(supabase: Awaited<ReturnType<typeof createClient>>
       .eq("user_id", user.id);
     if (updateErr) console.error("[owner-provision] UPDATE failed:", updateErr.message);
   }
+  return true;
 }
