@@ -92,7 +92,7 @@ export function useSubscription() {
   useEffect(() => {
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
+      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         localStorage.removeItem(CACHE_KEY);
         fetchSub();
       }
