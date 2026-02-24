@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export type SubscriptionTier = "free" | "pro" | "max";
 
@@ -14,6 +15,7 @@ type SubData = {
 
 const CACHE_KEY = "stargate-subscription-cache";
 const CACHE_TTL = 5 * 60 * 1000;
+const OWNER_EMAIL = process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
 
 const FEATURE_TIERS: Record<string, SubscriptionTier[]> = {
   "unlimited-trades": ["pro", "max"],
@@ -42,16 +44,34 @@ export function clearSubscriptionCache() {
 
 export function checkFeatureAccess(tier: SubscriptionTier, feature: string): boolean {
   const allowed = FEATURE_TIERS[feature];
-  if (!allowed) return true; // unknown feature = allow
+  if (!allowed) return true;
   return allowed.includes(tier);
 }
 
 export function useSubscription() {
   const [data, setData] = useState<SubData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [clientOwner, setClientOwner] = useState(false);
 
   useEffect(() => {
-    // Stale-while-revalidate: show cache instantly, always revalidate from server
+    // Client-side owner check — instant, no API needed
+    if (OWNER_EMAIL) {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user?.email?.toLowerCase() === OWNER_EMAIL) {
+          setClientOwner(true);
+          const ownerData: SubData = {
+            tier: "max", is_owner: true, is_trial: false,
+            trial_end: null, granted_by_invite_code: null,
+          };
+          setData(ownerData);
+          setLoading(false);
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: ownerData, ts: Date.now() }));
+        }
+      });
+    }
+
+    // Stale-while-revalidate cache
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -63,7 +83,6 @@ export function useSubscription() {
       }
     } catch {}
 
-    // Always fetch fresh from server API
     fetchSub();
   }, []);
 
@@ -85,7 +104,7 @@ export function useSubscription() {
   }
 
   const tier: SubscriptionTier = data?.tier ?? "free";
-  const isOwner = data?.is_owner ?? false;
+  const isOwner = clientOwner || (data?.is_owner ?? false);
 
   function hasAccess(feature: string): boolean {
     if (isOwner) return true;
@@ -98,5 +117,5 @@ export function useSubscription() {
     fetchSub();
   }
 
-  return { tier, isOwner, loading, hasAccess, refetch, isTrial: data?.is_trial ?? false };
+  return { tier: isOwner ? "max" as SubscriptionTier : tier, isOwner, loading, hasAccess, refetch, isTrial: data?.is_trial ?? false };
 }
