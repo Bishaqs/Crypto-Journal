@@ -86,10 +86,14 @@ export function useSubscription() {
     fetchSub();
   }, []);
 
-  async function fetchSub() {
+  async function fetchSub(attempt = 0) {
     try {
       const res = await fetch("/api/subscription");
       if (!res.ok) {
+        if (res.status === 401 && attempt < 3) {
+          setTimeout(() => fetchSub(attempt + 1), 500 * Math.pow(2, attempt));
+          return;
+        }
         console.error("[subscription] API error:", res.status);
         setLoading(false);
         return;

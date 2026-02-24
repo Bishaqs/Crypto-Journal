@@ -42,6 +42,7 @@ import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
 import { hasStockAccess } from "@/lib/addons";
 import { createClient } from "@/lib/supabase/client";
+import { clearSubscriptionCache } from "@/lib/use-subscription";
 
 interface NavItem {
   href: string;
@@ -416,6 +417,7 @@ export function Sidebar() {
                 <button
                   onClick={async () => {
                     const supabase = createClient();
+                    clearSubscriptionCache();
                     await supabase.auth.signOut();
                     router.push("/login");
                   }}
