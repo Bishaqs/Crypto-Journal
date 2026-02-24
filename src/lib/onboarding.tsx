@@ -197,7 +197,7 @@ export const welcomeTour: Tour = {
       content:
         "Like Duolingo, but for trading. Journal every day to keep your streak alive. Consistency compounds — the data you log today powers tomorrow's insights.",
       selector: "#tour-streak",
-      side: "left",
+      side: "top",
       showControls: true,
       showSkip: true,
       pointerPadding: 8,
@@ -209,7 +209,7 @@ export const welcomeTour: Tour = {
       content:
         "A quick visual of your recent trading days. Green = profit, red = loss, gray = no trades. At a glance, you can see if you're in a hot streak or cold spell.",
       selector: "#tour-heatmap-mini",
-      side: "left",
+      side: "top",
       showControls: true,
       showSkip: true,
       pointerPadding: 8,
@@ -221,7 +221,7 @@ export const welcomeTour: Tour = {
       content:
         "AI-powered analysis of your recent trading patterns, updated automatically. No need to ask — it watches for patterns and surfaces actionable insights.",
       selector: "#tour-ai-summary",
-      side: "left",
+      side: "top",
       showControls: true,
       showSkip: true,
       pointerPadding: 8,
