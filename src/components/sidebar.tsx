@@ -40,6 +40,13 @@ import {
   Percent,
   Shield,
   PieChart,
+  Activity,
+  Tag,
+  Layers,
+  Hash,
+  BarChart,
+  DollarSign,
+  TreePine,
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
@@ -90,6 +97,21 @@ const advancedToolItems: NavItem[] = [
   { href: "/dashboard/taxes", label: "Tax Reports", icon: Receipt },
 ];
 
+const analysisItems: NavItem[] = [
+  { href: "/dashboard/analysis/running-pnl", label: "Running PnL Analysis", icon: Activity },
+  { href: "/dashboard/analysis/tag-groups", label: "Tag Groups", icon: Tag },
+  { href: "/dashboard/analysis/sectors", label: "Sectors", icon: Layers },
+  { href: "/dashboard/analysis/trade-count", label: "Trade Count", icon: Hash },
+  { href: "/dashboard/analysis/volume", label: "Volume", icon: BarChart },
+  { href: "/dashboard/analysis/fees", label: "Commissions/Fees", icon: DollarSign },
+];
+
+const treemapItems: NavItem[] = [
+  { href: "/dashboard/analysis/treemap/symbol", label: "Symbol", icon: TreePine },
+  { href: "/dashboard/analysis/treemap/sector", label: "Sector", icon: TreePine },
+  { href: "/dashboard/analysis/treemap/tags", label: "Tags", icon: TreePine },
+];
+
 const summaryItems: NavItem[] = [
   { href: "/dashboard/summaries/accounts", label: "Accounts Statistics", icon: BarChart3 },
   { href: "/dashboard/summaries/tags", label: "Tag Groups Statistics", icon: BarChart3 },
@@ -109,6 +131,8 @@ export function Sidebar() {
   const [showStockUpgrade, setShowStockUpgrade] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [summariesOpen, setSummariesOpen] = useState(true);
+  const [analysisOpen, setAnalysisOpen] = useState(true);
+  const [treemapOpen, setTreemapOpen] = useState(true);
   const { isOwner } = useSubscriptionContext();
   const { viewMode, toggleViewMode } = useTheme();
 
@@ -135,6 +159,10 @@ export function Sidebar() {
     }
     const savedSummaries = localStorage.getItem("stargate-summaries-open");
     if (savedSummaries === "false") setSummariesOpen(false);
+    const savedAnalysis = localStorage.getItem("stargate-trades-analysis-open");
+    if (savedAnalysis === "false") setAnalysisOpen(false);
+    const savedTreemap = localStorage.getItem("stargate-treemap-open");
+    if (savedTreemap === "false") setTreemapOpen(false);
   }, []);
 
   useEffect(() => {
@@ -338,6 +366,71 @@ export function Sidebar() {
             {summaryItems.map((item) => (
               <NavLink key={item.href} item={item} isMobile={isMobile} />
             ))}
+          </div>
+        )}
+
+        {/* Trades Analysis section — collapsible */}
+        <div className="h-px bg-border/50 mx-2 my-3" />
+        {(isMobile || !collapsed) ? (
+          <button
+            onClick={() => {
+              const next = !analysisOpen;
+              setAnalysisOpen(next);
+              localStorage.setItem("stargate-trades-analysis-open", String(next));
+            }}
+            className="w-full flex items-center justify-between px-3 mb-1 group"
+          >
+            <div className="flex items-center gap-1.5">
+              <BarChart3 size={12} className="text-muted/60" />
+              <span className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold group-hover:text-muted transition-colors">
+                Trades Analysis
+              </span>
+            </div>
+            <ChevronDown
+              size={12}
+              className={`text-muted/60 transition-transform duration-200 ${analysisOpen ? "" : "-rotate-90"}`}
+            />
+          </button>
+        ) : (
+          <div className="flex justify-center py-1">
+            <BarChart3 size={16} className="text-muted/60" />
+          </div>
+        )}
+        {analysisOpen && (
+          <div className="space-y-0.5">
+            {analysisItems.map((item) => (
+              <NavLink key={item.href} item={item} isMobile={isMobile} />
+            ))}
+
+            {/* Treemap Charts — nested collapsible */}
+            {(isMobile || !collapsed) ? (
+              <button
+                onClick={() => {
+                  const next = !treemapOpen;
+                  setTreemapOpen(next);
+                  localStorage.setItem("stargate-treemap-open", String(next));
+                }}
+                className="w-full flex items-center justify-between px-3 py-1.5 group"
+              >
+                <div className="flex items-center gap-1.5">
+                  <TreePine size={11} className="text-muted/50" />
+                  <span className="text-[10px] uppercase tracking-wider text-muted/50 font-semibold group-hover:text-muted transition-colors">
+                    Treemap Charts
+                  </span>
+                </div>
+                <ChevronDown
+                  size={10}
+                  className={`text-muted/50 transition-transform duration-200 ${treemapOpen ? "" : "-rotate-90"}`}
+                />
+              </button>
+            ) : null}
+            {treemapOpen && (
+              <div className="space-y-0.5 pl-2">
+                {treemapItems.map((item) => (
+                  <NavLink key={item.href} item={item} isMobile={isMobile} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 

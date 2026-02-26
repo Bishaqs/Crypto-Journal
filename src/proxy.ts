@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Owner flag cookie — synchronous client-side check
-  const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+  const ownerEmail = process.env.OWNER_EMAIL || process.env.NEXT_PUBLIC_OWNER_EMAIL;
   const isOwner = !!(user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
 
   // If not logged in and trying to access dashboard, redirect to login

@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 }
 
 async function provisionOwner(supabase: ReturnType<typeof createServerClient>): Promise<boolean> {
-  const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+  const ownerEmail = process.env.OWNER_EMAIL || process.env.NEXT_PUBLIC_OWNER_EMAIL;
   if (!ownerEmail) return false;
 
   const { data: { user } } = await supabase.auth.getUser();

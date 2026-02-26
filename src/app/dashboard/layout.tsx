@@ -7,7 +7,6 @@ import { OnboardingTour } from "@/components/onboarding-tour";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { SubscriptionProvider } from "@/lib/subscription-context";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import type { SubscriptionTier } from "@/lib/use-subscription";
 
 export default async function DashboardLayout({
@@ -19,34 +18,34 @@ export default async function DashboardLayout({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+  const ownerEmail = process.env.OWNER_EMAIL || process.env.NEXT_PUBLIC_OWNER_EMAIL;
   let isOwner = !!(user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
 
   let tier: SubscriptionTier = "free";
   let isTrial = false;
 
-  if (isOwner) {
-    tier = "max";
-  } else if (user) {
+  if (user) {
     try {
-      const admin = createAdminClient();
-      const { data: sub } = await admin
+      // Use regular client — RLS allows SELECT on own rows, no admin client needed
+      const { data: sub } = await supabase
         .from("user_subscriptions")
         .select("tier, is_trial, is_owner")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
       if (sub) {
         tier = (sub.tier as SubscriptionTier) ?? "free";
         isTrial = sub.is_trial ?? false;
-        // Fallback: DB is_owner flag (set by auth callback) overrides env var check
         if (sub.is_owner) {
           isOwner = true;
-          tier = "max";
         }
       }
     } catch (err) {
       console.error("[dashboard] subscription fetch failed:", err instanceof Error ? err.message : err);
     }
+  }
+
+  if (isOwner) {
+    tier = "max";
   }
 
   return (

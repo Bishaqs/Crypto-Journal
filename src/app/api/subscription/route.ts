@@ -1,14 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
-
-const OWNER_RESPONSE = {
-  tier: "max" as const,
-  is_owner: true,
-  is_trial: false,
-  trial_end: null,
-  granted_by_invite_code: null,
-};
 
 const FREE_RESPONSE = {
   tier: "free" as const,
@@ -28,45 +19,41 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Owner always gets max — check FIRST before any DB query
-  const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
-  if (ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase()) {
-    return NextResponse.json(OWNER_RESPONSE);
-  }
+  // Owner check via env var
+  const ownerEmail = process.env.OWNER_EMAIL || process.env.NEXT_PUBLIC_OWNER_EMAIL;
+  const isOwnerByEnv = !!(ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
 
-  // Query with admin client (bypasses RLS)
-  try {
-    const admin = createAdminClient();
-    const { data: sub, error } = await admin
-      .from("user_subscriptions")
-      .select("tier, is_owner, is_trial, trial_end, granted_by_invite_code")
-      .eq("user_id", user.id)
-      .single();
+  // Query with regular client — RLS allows SELECT on own rows
+  const { data: sub, error } = await supabase
+    .from("user_subscriptions")
+    .select("tier, is_owner, is_trial, trial_end, granted_by_invite_code")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-    if (error) {
-      // PGRST116 = "no rows returned" — user has no subscription row yet → free tier
-      if (error.code === "PGRST116") {
-        return NextResponse.json(FREE_RESPONSE);
-      }
-      // Any other DB error is a real problem — don't silently downgrade paying users
-      console.error("[subscription] fetch error:", error.message, error.code);
-      return NextResponse.json(
-        { error: "Failed to load subscription" },
-        { status: 500 }
-      );
+  if (error) {
+    console.error("[subscription] fetch error:", error.message, error.code);
+    // If env var says owner, still grant max even if DB fails
+    if (isOwnerByEnv) {
+      return NextResponse.json({ ...FREE_RESPONSE, tier: "max", is_owner: true });
     }
-
-    if (sub) {
-      return NextResponse.json(sub);
-    }
-  } catch (err) {
-    console.error("[subscription] admin client failed:", err);
     return NextResponse.json(
-      { error: "Subscription service unavailable" },
+      { error: "Failed to load subscription" },
       { status: 500 }
     );
   }
 
-  // Fallback — should not reach here, but if it does, free tier
+  if (sub) {
+    // Override tier to max if owner (by env var or DB flag)
+    if (isOwnerByEnv || sub.is_owner) {
+      return NextResponse.json({ ...sub, tier: "max", is_owner: true });
+    }
+    return NextResponse.json(sub);
+  }
+
+  // No subscription row — owner still gets max
+  if (isOwnerByEnv) {
+    return NextResponse.json({ ...FREE_RESPONSE, tier: "max", is_owner: true });
+  }
+
   return NextResponse.json(FREE_RESPONSE);
 }

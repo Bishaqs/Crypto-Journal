@@ -24,6 +24,8 @@ export type Trade = {
   process_score: number | null;
   checklist: Record<string, boolean> | null;
   review: Record<string, string> | null;
+  // Classification
+  sector: string | null;
   // DEX fields
   trade_source: "cex" | "dex";
   chain: Chain | null;
@@ -301,6 +303,30 @@ export const STOCK_SECTORS = [
   "EV / Clean Energy",
   "AI / Machine Learning",
   "Crypto-Related",
+] as const;
+
+export const CRYPTO_SECTORS = [
+  "Layer 1",
+  "Layer 2",
+  "DeFi",
+  "DEX",
+  "Lending",
+  "Stablecoins",
+  "Gaming / GameFi",
+  "Metaverse",
+  "NFT / Collectibles",
+  "AI / Machine Learning",
+  "Meme",
+  "RWA",
+  "Infrastructure",
+  "Oracle",
+  "Privacy",
+  "Storage",
+  "Cross-Chain / Bridge",
+  "Liquid Staking",
+  "Restaking",
+  "SocialFi",
+  "DePin",
 ] as const;
 
 export const CHAINS: { id: Chain; label: string; explorer: string }[] = [
