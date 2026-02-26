@@ -304,36 +304,6 @@ export function Sidebar() {
           ))}
         </div>
 
-        {/* Separator */}
-        <div className="h-px bg-border/50 mx-2 my-3" />
-
-        {/* Intelligence section */}
-        {(isMobile || !collapsed) && (
-          <p className="px-3 mb-1 text-[10px] uppercase tracking-wider text-muted/60 font-semibold">
-            Intelligence
-          </p>
-        )}
-        <div className="space-y-0.5">
-          {intelligenceItems.map((item) => (
-            <NavLink key={item.href} item={item} isMobile={isMobile} />
-          ))}
-        </div>
-
-        {/* Separator */}
-        <div className="h-px bg-border/50 mx-2 my-3" />
-
-        {/* Tools section */}
-        {(isMobile || !collapsed) && (
-          <p className="px-3 mb-1 text-[10px] uppercase tracking-wider text-muted/60 font-semibold">
-            Tools
-          </p>
-        )}
-        <div className="space-y-0.5">
-          {resolvedToolItems.map((item) => (
-            <NavLink key={item.href} item={item} isMobile={isMobile} />
-          ))}
-        </div>
-
         {/* Summaries section — collapsible */}
         <div className="h-px bg-border/50 mx-2 my-3" />
         {(isMobile || !collapsed) ? (
@@ -433,6 +403,36 @@ export function Sidebar() {
             )}
           </div>
         )}
+
+        {/* Separator */}
+        <div className="h-px bg-border/50 mx-2 my-3" />
+
+        {/* Intelligence section */}
+        {(isMobile || !collapsed) && (
+          <p className="px-3 mb-1 text-[10px] uppercase tracking-wider text-muted/60 font-semibold">
+            Intelligence
+          </p>
+        )}
+        <div className="space-y-0.5">
+          {intelligenceItems.map((item) => (
+            <NavLink key={item.href} item={item} isMobile={isMobile} />
+          ))}
+        </div>
+
+        {/* Separator */}
+        <div className="h-px bg-border/50 mx-2 my-3" />
+
+        {/* Tools section */}
+        {(isMobile || !collapsed) && (
+          <p className="px-3 mb-1 text-[10px] uppercase tracking-wider text-muted/60 font-semibold">
+            Tools
+          </p>
+        )}
+        <div className="space-y-0.5">
+          {resolvedToolItems.map((item) => (
+            <NavLink key={item.href} item={item} isMobile={isMobile} />
+          ))}
+        </div>
 
         {/* Advanced Tools — only in advanced mode */}
         {viewMode === "advanced" && (
