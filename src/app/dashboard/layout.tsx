@@ -48,16 +48,6 @@ export default async function DashboardLayout({
     tier = "max";
   }
 
-  // Diagnostic logging — check Vercel function logs
-  console.log("[dashboard] owner-check:", {
-    OWNER_EMAIL: process.env.OWNER_EMAIL ? "set" : "unset",
-    NEXT_PUBLIC_OWNER_EMAIL: process.env.NEXT_PUBLIC_OWNER_EMAIL ? "set" : "unset",
-    resolvedOwnerEmail: ownerEmail ?? "none",
-    userEmail: user?.email ?? "no-user",
-    isOwner,
-    tier,
-  });
-
   return (
     <SubscriptionProvider tier={tier} isOwner={isOwner} isTrial={isTrial}>
       <OnboardingTour>
