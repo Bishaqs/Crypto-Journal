@@ -22,6 +22,15 @@ export default async function AdminLayout({
     if (sub?.is_owner) isOwner = true;
   }
 
+  // Diagnostic logging — check Vercel function logs
+  console.log("[admin-layout] owner-check:", {
+    OWNER_EMAIL: process.env.OWNER_EMAIL ? "set" : "unset",
+    NEXT_PUBLIC_OWNER_EMAIL: process.env.NEXT_PUBLIC_OWNER_EMAIL ? "set" : "unset",
+    resolvedOwnerEmail: ownerEmail ?? "none",
+    userEmail: user?.email ?? "no-user",
+    isOwner,
+  });
+
   if (!isOwner) {
     redirect("/dashboard");
   }
