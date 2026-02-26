@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Percent, RefreshCw, Info, Search } from "lucide-react";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 interface FundingRate {
   symbol: string;

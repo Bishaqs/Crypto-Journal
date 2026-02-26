@@ -11,14 +11,8 @@ import {
   Sparkles,
   AlertCircle,
   Loader2,
-  Key,
   MessageSquare,
   Trash2,
-  Eye,
-  EyeOff,
-  CheckCircle2,
-  XCircle,
-  Shield,
 } from "lucide-react";
 import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
@@ -39,7 +33,7 @@ const SUGGESTED_QUESTIONS = [
   "Analyze my risk management habits.",
 ];
 
-// Demo responses shown when no API key is configured
+// Demo responses shown when AI service is not configured
 const DEMO_RESPONSES: Record<string, string> = {
   "What patterns do you see in my losing trades?": `## Losing Trade Patterns
 
@@ -119,9 +113,7 @@ Based on your trading data, here are some observations:
 - Set a daily max loss and respect it
 - Journal your emotional state honestly — the patterns will keep improving
 
-*Connect your API key for personalized, real-time analysis of your specific trading patterns.*`;
-
-const API_KEY_STORAGE = "stargate-ai-api-key";
+*AI Coach is currently in demo mode. Contact your administrator to enable live analysis.*`;
 
 export default function AIPage() {
   usePageTour("ai-coach-page");
@@ -130,10 +122,7 @@ export default function AIPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [noApiKey, setNoApiKey] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  const [showKey, setShowKey] = useState(false);
-  const [keyStatus, setKeyStatus] = useState<"idle" | "testing" | "valid" | "invalid">("idle");
+  const [demoMode, setDemoMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -151,58 +140,9 @@ export default function AIPage() {
     fetchTrades();
   }, [fetchTrades]);
 
-  // Load saved API key
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(API_KEY_STORAGE);
-      if (saved) {
-        setApiKey(saved);
-        setKeyStatus("valid");
-      }
-    } catch { /* ignore */ }
-  }, []);
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  function saveApiKey() {
-    if (!apiKey.trim()) return;
-    localStorage.setItem(API_KEY_STORAGE, apiKey.trim());
-    setKeyStatus("valid");
-    setNoApiKey(false);
-  }
-
-  function removeApiKey() {
-    localStorage.removeItem(API_KEY_STORAGE);
-    setApiKey("");
-    setKeyStatus("idle");
-  }
-
-  async function testApiKey() {
-    if (!apiKey.trim()) return;
-    setKeyStatus("testing");
-    try {
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "Say hello in one sentence.",
-          trades: [],
-          apiKey: apiKey.trim(),
-        }),
-      });
-      if (res.ok) {
-        setKeyStatus("valid");
-        localStorage.setItem(API_KEY_STORAGE, apiKey.trim());
-        setNoApiKey(false);
-      } else {
-        setKeyStatus("invalid");
-      }
-    } catch {
-      setKeyStatus("invalid");
-    }
-  }
 
   async function sendMessage(text?: string) {
     const msg = text ?? input.trim();
@@ -212,25 +152,20 @@ export default function AIPage() {
     setMessages((prev) => [...prev, { role: "user", content: msg }]);
     setSending(true);
 
-    // Get stored API key
-    const storedKey = localStorage.getItem(API_KEY_STORAGE) || "";
-
     try {
-      const res = await fetch("/api/ai", {
+      const res = await fetch("/api/ai/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: msg,
           trades: trades.slice(0, 50),
-          apiKey: storedKey,
         }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        if (data.error?.includes("ANTHROPIC_API_KEY") || data.error?.includes("not configured")) {
-          setNoApiKey(true);
+        const data = await res.json().catch(() => ({ error: "Unknown error" }));
+        if (data.error?.includes("not configured")) {
+          setDemoMode(true);
           const demoReply = DEMO_RESPONSES[msg] ?? DEMO_FALLBACK;
           await new Promise((r) => setTimeout(r, 800));
           setMessages((prev) => [
@@ -243,15 +178,55 @@ export default function AIPage() {
             { role: "error", content: data.error || "Something went wrong." },
           ]);
         }
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.response },
-        ]);
+        return;
+      }
+
+      // Stream response — append an empty assistant message, then fill it token by token
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const payload = line.slice(6);
+              if (payload === "[DONE]") break;
+              try {
+                const parsed = JSON.parse(payload);
+                if (parsed.text) {
+                  accumulated += parsed.text;
+                  const current = accumulated;
+                  setMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { role: "assistant", content: current };
+                    return updated;
+                  });
+                }
+                if (parsed.error) {
+                  setMessages((prev) => [
+                    ...prev.slice(0, -1),
+                    { role: "error", content: parsed.error },
+                  ]);
+                }
+              } catch {
+                // Skip unparseable lines
+              }
+            }
+          }
+        }
       }
     } catch {
       const demoReply = DEMO_RESPONSES[msg] ?? DEMO_FALLBACK;
-      setNoApiKey(true);
+      setDemoMode(true);
       await new Promise((r) => setTimeout(r, 800));
       setMessages((prev) => [
         ...prev,
@@ -264,7 +239,7 @@ export default function AIPage() {
 
   function clearChat() {
     setMessages([]);
-    setNoApiKey(false);
+    setDemoMode(false);
   }
 
   if (loading) {
@@ -288,7 +263,7 @@ export default function AIPage() {
           <p className="text-sm text-muted mt-0.5">
             Ask questions about your trading patterns, psychology, and performance
           </p>
-          {noApiKey && (
+          {demoMode && (
             <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500">
               <Sparkles size={10} />
               Demo Mode — sample responses
@@ -313,65 +288,35 @@ export default function AIPage() {
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            {noApiKey ? (
-              <ApiKeyInput
-                apiKey={apiKey}
-                setApiKey={setApiKey}
-                showKey={showKey}
-                setShowKey={setShowKey}
-                keyStatus={keyStatus}
-                onSave={saveApiKey}
-                onTest={testApiKey}
-                onRemove={removeApiKey}
-              />
-            ) : (
-              <>
-                <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
-                  <Sparkles size={28} className="text-accent" />
-                </div>
-                <h2 className="text-lg font-bold text-foreground mb-2">
-                  Your AI Trading Coach
-                </h2>
-                <p className="text-sm text-muted max-w-md mb-8">
-                  Powered by Claude. Ask about your patterns, psychology, risk management,
-                  or anything about your trading data. The AI has access to your trade history,
-                  emotions, process scores, and more.
-                </p>
+            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+              <Sparkles size={28} className="text-accent" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground mb-2">
+              Your AI Trading Coach
+            </h2>
+            <p className="text-sm text-muted max-w-md mb-8">
+              Powered by Claude. Ask about your patterns, psychology, risk management,
+              or anything about your trading data. The AI has access to your trade history,
+              emotions, process scores, and more.
+            </p>
 
-                {/* Suggested questions */}
-                <div id="tour-ai-suggestions" className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
-                  {SUGGESTED_QUESTIONS.map((q) => (
-                    <button
-                      key={q}
-                      onClick={() => sendMessage(q)}
-                      disabled={sending}
-                      className="text-left text-sm px-4 py-3 rounded-xl border border-border hover:border-accent/30 hover:bg-accent/5 text-muted hover:text-foreground transition-all"
-                    >
-                      <MessageSquare
-                        size={12}
-                        className="inline mr-2 text-accent/60"
-                      />
-                      {q}
-                    </button>
-                  ))}
-                </div>
-
-                {/* API Key section — collapsed */}
-                <div className="mt-8 w-full max-w-md">
-                  <ApiKeyInput
-                    apiKey={apiKey}
-                    setApiKey={setApiKey}
-                    showKey={showKey}
-                    setShowKey={setShowKey}
-                    keyStatus={keyStatus}
-                    onSave={saveApiKey}
-                    onTest={testApiKey}
-                    onRemove={removeApiKey}
-                    compact
+            {/* Suggested questions */}
+            <div id="tour-ai-suggestions" className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
+              {SUGGESTED_QUESTIONS.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => sendMessage(q)}
+                  disabled={sending}
+                  className="text-left text-sm px-4 py-3 rounded-xl border border-border hover:border-accent/30 hover:bg-accent/5 text-muted hover:text-foreground transition-all"
+                >
+                  <MessageSquare
+                    size={12}
+                    className="inline mr-2 text-accent/60"
                   />
-                </div>
-              </>
-            )}
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <>
@@ -384,22 +329,13 @@ export default function AIPage() {
                 Analyzing your trading data...
               </div>
             )}
-            {noApiKey && !sending && messages.length > 0 && (
+            {demoMode && !sending && messages.length > 0 && (
               <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-                <p className="text-xs text-amber-500 font-medium mb-2">
-                  These are sample responses to preview the feature
+                <p className="text-xs text-amber-500 font-medium flex items-center gap-1.5">
+                  <Sparkles size={12} />
+                  Demo mode — these are sample responses to preview the feature.
+                  Contact the administrator to enable live AI analysis.
                 </p>
-                <ApiKeyInput
-                  apiKey={apiKey}
-                  setApiKey={setApiKey}
-                  showKey={showKey}
-                  setShowKey={setShowKey}
-                  keyStatus={keyStatus}
-                  onSave={saveApiKey}
-                  onTest={testApiKey}
-                  onRemove={removeApiKey}
-                  compact
-                />
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -436,160 +372,6 @@ export default function AIPage() {
           AI analyzes your last 50 trades. Responses are not financial advice.
         </p>
       </div>
-    </div>
-  );
-}
-
-function ApiKeyInput({
-  apiKey,
-  setApiKey,
-  showKey,
-  setShowKey,
-  keyStatus,
-  onSave,
-  onTest,
-  onRemove,
-  compact,
-}: {
-  apiKey: string;
-  setApiKey: (v: string) => void;
-  showKey: boolean;
-  setShowKey: (v: boolean) => void;
-  keyStatus: "idle" | "testing" | "valid" | "invalid";
-  onSave: () => void;
-  onTest: () => void;
-  onRemove: () => void;
-  compact?: boolean;
-}) {
-  if (compact) {
-    return (
-      <div className="w-full">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Key size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
-            <input
-              type={showKey ? "text" : "password"}
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-ant-..."
-              className="w-full bg-background border border-border rounded-lg pl-9 pr-9 py-2 text-xs text-foreground placeholder:text-muted/30 focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all font-mono"
-            />
-            <button
-              onClick={() => setShowKey(!showKey)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted/40 hover:text-muted"
-            >
-              {showKey ? <EyeOff size={12} /> : <Eye size={12} />}
-            </button>
-          </div>
-          {keyStatus === "valid" ? (
-            <button
-              onClick={onRemove}
-              className="px-3 py-2 rounded-lg text-[11px] font-semibold text-loss bg-loss/10 hover:bg-loss/20 transition-all shrink-0"
-            >
-              Remove
-            </button>
-          ) : (
-            <button
-              onClick={onSave}
-              disabled={!apiKey.trim()}
-              className="px-3 py-2 rounded-lg text-[11px] font-semibold text-accent bg-accent/10 hover:bg-accent/20 transition-all disabled:opacity-30 shrink-0"
-            >
-              Save
-            </button>
-          )}
-        </div>
-        {keyStatus === "valid" && (
-          <p className="text-[10px] text-win mt-1 flex items-center gap-1">
-            <CheckCircle2 size={10} /> API key saved
-          </p>
-        )}
-        {keyStatus === "invalid" && (
-          <p className="text-[10px] text-loss mt-1 flex items-center gap-1">
-            <XCircle size={10} /> Invalid key — check and try again
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-md text-center">
-      <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4 mx-auto">
-        <Key size={28} className="text-accent" />
-      </div>
-      <h2 className="text-lg font-bold text-foreground mb-2">
-        Connect Your AI Coach
-      </h2>
-      <p className="text-sm text-muted mb-6">
-        Enter your Anthropic API key to enable real AI analysis of your trading data.
-      </p>
-
-      <div className="bg-background rounded-xl border border-border p-4 text-left space-y-3">
-        <div className="relative">
-          <Key size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
-          <input
-            type={showKey ? "text" : "password"}
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="sk-ant-api03-..."
-            className="w-full bg-surface border border-border rounded-lg pl-9 pr-9 py-2.5 text-sm text-foreground placeholder:text-muted/30 focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all font-mono"
-          />
-          <button
-            onClick={() => setShowKey(!showKey)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted/40 hover:text-muted"
-          >
-            {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onSave}
-            disabled={!apiKey.trim()}
-            className="flex-1 py-2.5 rounded-lg bg-accent text-background text-sm font-semibold hover:bg-accent-hover transition-all disabled:opacity-30"
-          >
-            Save Key
-          </button>
-          <button
-            onClick={onTest}
-            disabled={!apiKey.trim() || keyStatus === "testing"}
-            className="flex-1 py-2.5 rounded-lg border border-border text-sm font-semibold text-muted hover:text-foreground hover:border-accent/30 transition-all disabled:opacity-30"
-          >
-            {keyStatus === "testing" ? (
-              <span className="flex items-center justify-center gap-2">
-                <Loader2 size={14} className="animate-spin" /> Testing...
-              </span>
-            ) : (
-              "Test Connection"
-            )}
-          </button>
-        </div>
-
-        {keyStatus === "valid" && (
-          <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-win/5 border border-win/10">
-            <p className="text-xs text-win font-medium flex items-center gap-1.5">
-              <CheckCircle2 size={12} /> Connected — key saved
-            </p>
-            <button onClick={onRemove} className="text-[10px] text-loss hover:underline">
-              Remove
-            </button>
-          </div>
-        )}
-        {keyStatus === "invalid" && (
-          <p className="text-xs text-loss flex items-center gap-1.5 px-3 py-2 rounded-lg bg-loss/5 border border-loss/10">
-            <XCircle size={12} /> Connection failed — check your key
-          </p>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2 mt-4 text-[11px] text-muted/60 justify-center">
-        <Shield size={12} />
-        Stored locally in your browser only — never sent to our servers
-      </div>
-      <p className="text-[11px] text-muted mt-2">
-        Get your key at{" "}
-        <span className="text-accent">console.anthropic.com</span>
-      </p>
     </div>
   );
 }
@@ -633,4 +415,3 @@ function ChatBubble({ message }: { message: Message }) {
     </div>
   );
 }
-

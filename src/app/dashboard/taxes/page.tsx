@@ -36,8 +36,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Header } from "@/components/header";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 type SortKey =
   | "symbol"

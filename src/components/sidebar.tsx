@@ -19,6 +19,7 @@ import {
   Target,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Menu,
   X,
   Dices,
@@ -37,12 +38,15 @@ import {
   Coins,
   Search,
   Percent,
+  Shield,
+  PieChart,
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
 import { hasStockAccess } from "@/lib/addons";
 import { createClient } from "@/lib/supabase/client";
 import { clearSubscriptionCache } from "@/lib/use-subscription";
+import { useSubscriptionContext } from "@/lib/subscription-context";
 
 interface NavItem {
   href: string;
@@ -86,6 +90,12 @@ const advancedToolItems: NavItem[] = [
   { href: "/dashboard/taxes", label: "Tax Reports", icon: Receipt },
 ];
 
+const summaryItems: NavItem[] = [
+  { href: "/dashboard/summaries/accounts", label: "Accounts Statistics", icon: BarChart3 },
+  { href: "/dashboard/summaries/tags", label: "Tag Groups Statistics", icon: BarChart3 },
+  { href: "/dashboard/summaries/open-trades", label: "Open Trades Summary", icon: BarChart3 },
+];
+
 const bottomItems: NavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
@@ -98,6 +108,8 @@ export function Sidebar() {
   const [assetContext, setAssetContext] = useState<"crypto" | "stocks">("crypto");
   const [showStockUpgrade, setShowStockUpgrade] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [summariesOpen, setSummariesOpen] = useState(true);
+  const { isOwner } = useSubscriptionContext();
   const { viewMode, toggleViewMode } = useTheme();
 
   function handleAssetToggle(context: "crypto" | "stocks") {
@@ -121,6 +133,8 @@ export function Sidebar() {
         setAssetContext("crypto");
       }
     }
+    const savedSummaries = localStorage.getItem("stargate-summaries-open");
+    if (savedSummaries === "false") setSummariesOpen(false);
   }, []);
 
   useEffect(() => {
@@ -292,6 +306,41 @@ export function Sidebar() {
           ))}
         </div>
 
+        {/* Summaries section — collapsible */}
+        <div className="h-px bg-border/50 mx-2 my-3" />
+        {(isMobile || !collapsed) ? (
+          <button
+            onClick={() => {
+              const next = !summariesOpen;
+              setSummariesOpen(next);
+              localStorage.setItem("stargate-summaries-open", String(next));
+            }}
+            className="w-full flex items-center justify-between px-3 mb-1 group"
+          >
+            <div className="flex items-center gap-1.5">
+              <PieChart size={12} className="text-muted/60" />
+              <span className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold group-hover:text-muted transition-colors">
+                Summaries
+              </span>
+            </div>
+            <ChevronDown
+              size={12}
+              className={`text-muted/60 transition-transform duration-200 ${summariesOpen ? "" : "-rotate-90"}`}
+            />
+          </button>
+        ) : (
+          <div className="flex justify-center py-1">
+            <PieChart size={16} className="text-muted/60" />
+          </div>
+        )}
+        {summariesOpen && (
+          <div className="space-y-0.5">
+            {summaryItems.map((item) => (
+              <NavLink key={item.href} item={item} isMobile={isMobile} />
+            ))}
+          </div>
+        )}
+
         {/* Advanced Tools — only in advanced mode */}
         {viewMode === "advanced" && (
           <>
@@ -335,6 +384,9 @@ export function Sidebar() {
             </div>
           )}
         </button>
+        {isOwner && (
+          <NavLink item={{ href: "/dashboard/admin", label: "Admin", icon: Shield }} isMobile={isMobile} />
+        )}
         {bottomItems.map((item) => (
           <NavLink key={item.href} item={item} isMobile={isMobile} />
         ))}

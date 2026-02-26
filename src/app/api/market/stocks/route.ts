@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 const YAHOO_SPARK =
   "https://query1.finance.yahoo.com/v8/finance/spark?symbols=%5EGSPC,%5EIXIC,%5EDJI,%5EVIX,DX-Y.NYB&range=5d&interval=1d";
@@ -6,6 +7,12 @@ const FRANKFURTER =
   "https://api.frankfurter.app/latest?base=USD&symbols=EUR,GBP,JPY,CHF,CAD,AUD";
 
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const [yahooRes, fxRes] = await Promise.allSettled([
       fetch(YAHOO_SPARK, {
@@ -60,7 +67,8 @@ export async function GET() {
       "s-maxage=300, stale-while-revalidate=600"
     );
     return response;
-  } catch {
+  } catch (err) {
+    console.error("[market/stocks]", err instanceof Error ? err.message : err);
     return NextResponse.json(
       { error: "Failed to fetch stock market data" },
       { status: 500 }

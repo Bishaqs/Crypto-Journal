@@ -168,10 +168,12 @@ export default function LoginPage() {
     // Auto-redeem invite code if present
     if (inviteCodeRef.current) {
       try {
-        const { data: result } = await supabase.rpc("redeem_invite_code", {
-          p_code: inviteCodeRef.current,
-          p_user_id: user.id,
+        const res = await fetch("/api/invite/redeem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: inviteCodeRef.current }),
         });
+        const result = await res.json();
         if (result?.success) {
           clearSubscriptionCache();
           setSuccess(`Invite code applied! You now have ${result.tier} access.`);

@@ -420,7 +420,7 @@ export default function PropFirmPage() {
         </div>
 
         {/* Editable rule fields */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div id="prop-firm-rules" className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <div>
             <label className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 block">
               Daily Loss (%)

@@ -5,8 +5,8 @@ import { Globe, RefreshCw, CalendarDays, DollarSign, BarChart3, ChevronDown } fr
 import { TradingViewMiniChart, TradingViewTechnicalAnalysis } from "@/components/tradingview-mini-chart";
 import { getRecentAndUpcoming, EVENT_META } from "@/lib/macro-calendar";
 import type { MacroEvent, EventType } from "@/lib/macro-calendar";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 interface IndexData {
   price: number;

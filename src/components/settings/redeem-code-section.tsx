@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Gift, Check } from "lucide-react";
 
 export function RedeemCodeSection() {
@@ -14,26 +13,29 @@ export function RedeemCodeSection() {
     setLoading(true);
     setMessage(null);
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setMessage({ type: "error", text: "You must be logged in" }); setLoading(false); return; }
+    try {
+      const res = await fetch("/api/invite/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim().toUpperCase() }),
+      });
+      const data = await res.json();
 
-    const { data, error } = await supabase.rpc("redeem_invite_code", {
-      p_code: code.trim().toUpperCase(),
-      p_user_id: user.id,
-    });
+      if (!data.success) {
+        setMessage({ type: "error", text: data.error ?? "Failed to redeem" });
+        setLoading(false);
+        return;
+      }
 
-    if (error || !data?.success) {
-      setMessage({ type: "error", text: data?.error ?? error?.message ?? "Failed to redeem" });
+      setMessage({ type: "success", text: `You now have ${(data.tier as string).toUpperCase()} tier access!` });
+      setCode("");
       setLoading(false);
-      return;
+      localStorage.removeItem("stargate-subscription-cache");
+      setTimeout(() => window.location.reload(), 2000);
+    } catch {
+      setMessage({ type: "error", text: "Failed to redeem code" });
+      setLoading(false);
     }
-
-    setMessage({ type: "success", text: `You now have ${(data.tier as string).toUpperCase()} tier access!` });
-    setCode("");
-    setLoading(false);
-    localStorage.removeItem("stargate-subscription-cache");
-    setTimeout(() => window.location.reload(), 2000);
   }
 
   return (

@@ -18,8 +18,8 @@ import {
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 export default function JournalPage() {
   usePageTour("journal-page");
@@ -227,12 +227,14 @@ export default function JournalPage() {
       )}
 
       {showEditor && (
-        <NoteEditor
-          editNote={editNote}
-          initialTemplate={selectedTemplate}
-          onClose={() => { setShowEditor(false); setEditNote(null); }}
-          onSaved={fetchNotes}
-        />
+        <div id="journal-editor">
+          <NoteEditor
+            editNote={editNote}
+            initialTemplate={selectedTemplate}
+            onClose={() => { setShowEditor(false); setEditNote(null); }}
+            onSaved={fetchNotes}
+          />
+        </div>
       )}
 
       {showTagManager && (

@@ -20,7 +20,7 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
-  const isOwner = !!(user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
+  let isOwner = !!(user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
 
   let tier: SubscriptionTier = "free";
   let isTrial = false;
@@ -32,14 +32,21 @@ export default async function DashboardLayout({
       const admin = createAdminClient();
       const { data: sub } = await admin
         .from("user_subscriptions")
-        .select("tier, is_trial")
+        .select("tier, is_trial, is_owner")
         .eq("user_id", user.id)
         .single();
       if (sub) {
         tier = (sub.tier as SubscriptionTier) ?? "free";
         isTrial = sub.is_trial ?? false;
+        // Fallback: DB is_owner flag (set by auth callback) overrides env var check
+        if (sub.is_owner) {
+          isOwner = true;
+          tier = "max";
+        }
       }
-    } catch {}
+    } catch (err) {
+      console.error("[dashboard] subscription fetch failed:", err instanceof Error ? err.message : err);
+    }
   }
 
   return (
@@ -48,7 +55,7 @@ export default async function DashboardLayout({
         <div className="flex h-screen overflow-hidden relative">
           <Starfield />
           <Sidebar />
-          <main className="flex-1 overflow-y-auto px-4 md:px-8 py-6 pt-16 md:pt-6 transition-all duration-300 relative z-10">
+          <main id="dashboard-viewport" className="flex-1 overflow-y-auto px-4 md:px-8 py-6 pt-16 md:pt-6 transition-all duration-300 relative z-10">
             <ErrorBoundary>
               {children}
             </ErrorBoundary>

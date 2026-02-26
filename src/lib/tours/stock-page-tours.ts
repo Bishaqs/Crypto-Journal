@@ -5,6 +5,7 @@ const STEP_DEFAULTS = {
   showSkip: true,
   pointerPadding: 10,
   pointerRadius: 12,
+  viewportID: "dashboard-viewport",
 } as const;
 
 export const stocksDashboardPageTour: Tour = {

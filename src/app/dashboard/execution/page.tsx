@@ -18,8 +18,8 @@ import {
   Activity,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 // ---------------------------------------------------------------------------
 // Types

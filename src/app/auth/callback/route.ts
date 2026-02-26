@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -50,7 +51,10 @@ async function provisionOwner(supabase: ReturnType<typeof createServerClient>): 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || user.email?.toLowerCase() !== ownerEmail.toLowerCase()) return false;
 
-  const { data: sub, error: selectErr } = await supabase
+  // Use admin client (service role) to bypass RLS on user_subscriptions
+  const admin = createAdminClient();
+
+  const { data: sub, error: selectErr } = await admin
     .from("user_subscriptions")
     .select("tier, is_owner")
     .eq("user_id", user.id)
@@ -62,12 +66,12 @@ async function provisionOwner(supabase: ReturnType<typeof createServerClient>): 
   }
 
   if (!sub) {
-    const { error: insertErr } = await supabase
+    const { error: insertErr } = await admin
       .from("user_subscriptions")
       .insert({ user_id: user.id, tier: "max", is_owner: true });
     if (insertErr) console.error("[owner-provision] INSERT failed:", insertErr.message);
   } else if (sub.tier !== "max" || !sub.is_owner) {
-    const { error: updateErr } = await supabase
+    const { error: updateErr } = await admin
       .from("user_subscriptions")
       .update({ tier: "max", is_owner: true, updated_at: new Date().toISOString() })
       .eq("user_id", user.id);

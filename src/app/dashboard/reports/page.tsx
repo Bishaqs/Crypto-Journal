@@ -24,8 +24,8 @@ import {
   XCircle,
   Brain,
 } from "lucide-react";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 export default function ReportsPage() {
   usePageTour("reports-page");

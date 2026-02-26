@@ -8,8 +8,8 @@ import { DemoBanner } from "@/components/demo-banner";
 import { calculateStats, calculateAdvancedStats } from "@/lib/calculations";
 import { Target, Trophy, TrendingDown, Percent, Brain, Hash, Save, RotateCcw, Sparkles } from "lucide-react";
 import { Header } from "@/components/header";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 type Goal = {
   label: string;

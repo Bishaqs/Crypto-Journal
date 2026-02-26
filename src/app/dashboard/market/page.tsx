@@ -4,12 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Globe, TrendingUp, TrendingDown, RefreshCw, Activity } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
-import { usePageTour } from "@/lib/use-page-tour";
+import { formatLargeNumber, formatPrice } from "@/lib/format";
 import { PageInfoButton } from "@/components/ui/page-info-button";
 import {
   Sparklines,
   SparklinesLine,
 } from "react-sparklines";
+import { usePageTour } from "@/lib/use-page-tour";
 
 interface CoinData {
   id: string;
@@ -38,19 +39,6 @@ interface MarketData {
   fearGreed: { value: string; value_classification: string } | null;
   trending: { item: { id: string; name: string; symbol: string; thumb: string; data?: { price_change_percentage_24h?: Record<string, number> } } }[];
   timestamp: number;
-}
-
-function formatLargeNumber(n: number): string {
-  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  return `$${n.toLocaleString()}`;
-}
-
-function formatPrice(p: number): string {
-  if (p >= 1000) return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (p >= 1) return `$${p.toFixed(2)}`;
-  return `$${p.toFixed(6)}`;
 }
 
 function PctBadge({ value }: { value?: number }) {

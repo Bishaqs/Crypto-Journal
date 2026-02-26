@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 const FNG_URL = "https://api.alternative.me/fng/?limit=1";
 
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const [coinsRes, globalRes, fngRes, trendingRes] = await Promise.allSettled([
       fetch(
@@ -45,7 +52,8 @@ export async function GET() {
       "s-maxage=300, stale-while-revalidate=600"
     );
     return response;
-  } catch {
+  } catch (err) {
+    console.error("[market/overview]", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Failed to fetch market data" }, { status: 500 });
   }
 }

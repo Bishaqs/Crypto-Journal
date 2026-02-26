@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { StockTrade } from "@/lib/types";
 import { DEMO_STOCK_TRADES } from "@/lib/demo-data";
-import { formatAndSanitizeAiSummary } from "@/lib/sanitize";
+import { formatAndSanitizeMarkdown } from "@/lib/sanitize";
 import { useTheme } from "@/lib/theme-context";
 import {
   ArrowLeft,
@@ -113,12 +113,11 @@ export default function StockTradeDetailPage() {
   async function generateSummary() {
     if (!trade) return;
     setAiLoading(true);
-    const apiKey = localStorage.getItem("stargate-ai-api-key") || "";
     try {
       const res = await fetch("/api/ai/trade-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trade, apiKey }),
+        body: JSON.stringify({ trade }),
       });
       const data = await res.json();
       if (data.summary) {
@@ -128,7 +127,7 @@ export default function StockTradeDetailPage() {
         setAiSummary(`Error: ${data.error}`);
       }
     } catch {
-      setAiSummary("Failed to generate summary. Check your API key in AI Coach settings.");
+      setAiSummary("Failed to generate summary.");
     }
     setAiLoading(false);
   }
@@ -289,7 +288,7 @@ export default function StockTradeDetailPage() {
           </div>
           {aiSummary ? (
             <div className="text-sm text-foreground leading-relaxed prose prose-invert prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: formatAndSanitizeAiSummary(aiSummary) }} />
+              dangerouslySetInnerHTML={{ __html: formatAndSanitizeMarkdown(aiSummary) }} />
           ) : (
             <p className="text-xs text-muted/50 italic">Click &quot;Generate&quot; for an AI analysis of this trade.</p>
           )}

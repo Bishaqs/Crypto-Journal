@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@/lib/supabase/server";
+import { TradeSummarySchema } from "@/lib/schemas/ai";
+import { rateLimit } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `You are Stargate AI — a trading psychology coach analyzing a single trade.
 
@@ -12,19 +15,36 @@ Provide a concise analysis covering:
 Be direct and specific. Reference the actual trade data. Keep under 200 words. Use markdown.`;
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { trade, apiKey: clientKey } = body;
+  // Auth check — only authenticated users can get trade summaries
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY || clientKey;
-  if (!apiKey) {
+  // Rate limit: 30 requests per minute per user
+  const rl = rateLimit(`ai-summary:${user.id}`, 30, 60_000);
+  if (!rl.success) {
     return NextResponse.json(
-      { error: "No API key configured. Add one in AI Coach settings." },
-      { status: 500 }
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
     );
   }
 
-  if (!trade) {
-    return NextResponse.json({ error: "Trade data is required" }, { status: 400 });
+  const body = await req.json();
+  const parsed = TradeSummarySchema.safeParse(body);
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map((e) => e.message).join(", ");
+    return NextResponse.json({ error: msg }, { status: 400 });
+  }
+  const { trade } = parsed.data;
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "AI service not configured. Contact the administrator." },
+      { status: 500 }
+    );
   }
 
   const pnl = trade.pnl != null ? `$${Number(trade.pnl).toFixed(2)}` : "OPEN";

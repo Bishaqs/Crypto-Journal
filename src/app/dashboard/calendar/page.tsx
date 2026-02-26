@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { DemoBanner } from "@/components/demo-banner";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 export default function CalendarPage() {
   usePageTour("calendar-page");

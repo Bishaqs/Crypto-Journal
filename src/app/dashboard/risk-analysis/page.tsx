@@ -265,7 +265,7 @@ export default function RiskAnalysisPage() {
       {/* R-MULTIPLES TAB                                                    */}
       {/* ================================================================= */}
       {activeTab === "r-multiples" && (
-        <div className="space-y-6">
+        <div id="risk-r-multiples" className="space-y-6">
           {/* Key Metrics Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricCard
@@ -585,6 +585,7 @@ export default function RiskAnalysisPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* MAE vs Outcome */}
             <div
+              id="risk-mae-section"
               className="glass rounded-2xl border border-border/50 p-6"
               style={{ boxShadow: "var(--shadow-card)" }}
             >
@@ -657,6 +658,7 @@ export default function RiskAnalysisPage() {
 
             {/* MFE vs Outcome */}
             <div
+              id="risk-mfe-section"
               className="glass rounded-2xl border border-border/50 p-6"
               style={{ boxShadow: "var(--shadow-card)" }}
             >

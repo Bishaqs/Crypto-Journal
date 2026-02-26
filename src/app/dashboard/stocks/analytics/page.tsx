@@ -22,8 +22,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Header } from "@/components/header";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 // ---------------------------------------------------------------------------
 // Mock data — Sector Rotation (monthly P&L by sector over 6 months)

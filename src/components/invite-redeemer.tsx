@@ -22,13 +22,17 @@ export function InviteRedeemer() {
       if (!user) return;
 
       if (invite) {
-        const { data: result } = await supabase.rpc("redeem_invite_code", {
-          p_code: invite,
-          p_user_id: user.id,
-        });
-        if (result?.success) {
-          clearSubscriptionCache();
-        }
+        try {
+          const res = await fetch("/api/invite/redeem", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: invite }),
+          });
+          const result = await res.json();
+          if (result?.success) {
+            clearSubscriptionCache();
+          }
+        } catch {}
       }
 
       if (ref) {

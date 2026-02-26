@@ -18,8 +18,8 @@ import {
 import { Header } from "@/components/header";
 import { STOCK_SECTORS } from "@/lib/types";
 import { useTheme } from "@/lib/theme-context";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 // ---------------------------------------------------------------------------
 // Types

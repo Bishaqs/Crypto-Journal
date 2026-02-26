@@ -12,8 +12,8 @@ import {
   XCircle,
   BarChart3,
 } from "lucide-react";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 type Rule = {
   id: string;

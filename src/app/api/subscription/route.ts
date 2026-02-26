@@ -44,7 +44,16 @@ export async function GET() {
       .single();
 
     if (error) {
+      // PGRST116 = "no rows returned" — user has no subscription row yet → free tier
+      if (error.code === "PGRST116") {
+        return NextResponse.json(FREE_RESPONSE);
+      }
+      // Any other DB error is a real problem — don't silently downgrade paying users
       console.error("[subscription] fetch error:", error.message, error.code);
+      return NextResponse.json(
+        { error: "Failed to load subscription" },
+        { status: 500 }
+      );
     }
 
     if (sub) {
@@ -52,7 +61,12 @@ export async function GET() {
     }
   } catch (err) {
     console.error("[subscription] admin client failed:", err);
+    return NextResponse.json(
+      { error: "Subscription service unavailable" },
+      { status: 500 }
+    );
   }
 
+  // Fallback — should not reach here, but if it does, free tier
   return NextResponse.json(FREE_RESPONSE);
 }

@@ -373,6 +373,38 @@ body { background: var(--background); color: var(--foreground); font-family: var
   animation-iteration-count: infinite;
 }
 
+/* ===== AI Message Markdown Tables ===== */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  font-size: 0.8125rem;
+}
+.prose th {
+  text-align: left;
+  padding: 0.4em 0.75em;
+  border-bottom: 1px solid var(--border);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.prose td {
+  padding: 0.35em 0.75em;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+}
+.prose tbody tr:last-child td { border-bottom: none; }
+.prose tbody tr:hover td { background: var(--surface-hover); }
+.prose code {
+  background: var(--surface-hover);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
+  color: var(--accent);
+}
+
 /* ===== Glassmorphism ===== */
 .dark .glass {
   background: rgba(8, 12, 20, 0.70);

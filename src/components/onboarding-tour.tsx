@@ -23,20 +23,52 @@ function TourCard({
   const isLast = currentStep === totalSteps - 1;
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Clamp card into viewport if clipped at top/bottom
+  // Clamp card into the dashboard viewport (both X and Y axes)
+  // Re-runs on step change AND on window resize (handles rotation, sidebar toggle)
   useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    el.style.transform = "";
-    requestAnimationFrame(() => {
-      const rect = el.getBoundingClientRect();
-      let dy = 0;
-      if (rect.top < 8) dy = -rect.top + 8;
-      else if (rect.bottom > window.innerHeight - 8)
-        dy = window.innerHeight - 8 - rect.bottom;
-      if (dy !== 0) el.style.transform = `translateY(${dy}px)`;
-    });
+    function clampCard() {
+      const el = cardRef.current;
+      if (!el) return;
+      el.style.transform = "";
+      requestAnimationFrame(() => {
+        const viewport = document.getElementById("dashboard-viewport");
+        const rect = el.getBoundingClientRect();
+        const bounds = viewport?.getBoundingClientRect() ?? {
+          top: 0,
+          bottom: window.innerHeight,
+          left: 0,
+          right: window.innerWidth,
+        };
+        let dy = 0;
+        let dx = 0;
+        // Vertical clamping
+        if (rect.top < bounds.top + 8) dy = bounds.top + 8 - rect.top;
+        else if (rect.bottom > bounds.bottom - 8)
+          dy = bounds.bottom - 8 - rect.bottom;
+        // Horizontal clamping
+        if (rect.left < bounds.left + 8) dx = bounds.left + 8 - rect.left;
+        else if (rect.right > bounds.right - 8)
+          dx = bounds.right - 8 - rect.right;
+        if (dy !== 0 || dx !== 0)
+          el.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+    }
+
+    clampCard();
+    window.addEventListener("resize", clampCard);
+    return () => window.removeEventListener("resize", clampCard);
   }, [currentStep]);
+
+  // Keyboard navigation: Escape to skip, ArrowRight for next, ArrowLeft for back
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && skipTour) skipTour();
+      else if (e.key === "ArrowRight") nextStep();
+      else if (e.key === "ArrowLeft" && currentStep > 0) prevStep();
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [currentStep, nextStep, prevStep, skipTour]);
 
   return (
     <div
@@ -138,7 +170,10 @@ function TourStateManager() {
     }
     // No saved state — start welcome tour if needed
     if (!isTourComplete("welcome")) {
-      const timer = setTimeout(() => startNextStep("welcome"), 1000);
+      const timer = setTimeout(() => {
+        startNextStep("welcome");
+        requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

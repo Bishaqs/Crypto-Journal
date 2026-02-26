@@ -16,8 +16,8 @@ import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
+import { usePageTour } from "@/lib/use-page-tour";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -224,6 +224,7 @@ export default function HeatMapsPage() {
 
       {/* Tab selector */}
       <div
+        id="heatmap-grid"
         className="flex gap-1 glass rounded-xl border border-border/50 p-1"
         style={{ boxShadow: "var(--shadow-card)" }}
       >
