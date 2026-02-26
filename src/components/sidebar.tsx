@@ -304,11 +304,6 @@ export function Sidebar() {
           ))}
         </div>
 
-        {/* DEBUG: Remove after confirming sidebar renders new code */}
-        <p style={{ color: "red", fontSize: "14px", padding: "8px 12px", fontWeight: "bold", background: "rgba(255,0,0,0.1)", borderRadius: "8px", margin: "8px 0" }}>
-          DEBUG: NEW SIDEBAR CODE v2
-        </p>
-
         {/* Summaries section — collapsible */}
         <div className="h-px bg-border/50 mx-2 my-3" />
         {(isMobile || !collapsed) ? (
