@@ -535,7 +535,7 @@ export function Sidebar() {
       <aside
         className={`hidden md:flex ${
           collapsed ? "w-[68px]" : "w-60"
-        } glass border-r border-border/50 flex-col shrink-0 transition-all duration-300 relative z-10`}
+        } h-full overflow-hidden glass border-r border-border/50 flex-col shrink-0 transition-all duration-300 relative z-10`}
         style={{ boxShadow: "var(--shadow-card)" }}
       >
         {sidebarContent(false)}
