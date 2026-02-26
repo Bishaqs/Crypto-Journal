@@ -133,7 +133,15 @@ export function Sidebar() {
   const [summariesOpen, setSummariesOpen] = useState(true);
   const [analysisOpen, setAnalysisOpen] = useState(true);
   const [treemapOpen, setTreemapOpen] = useState(true);
-  const { isOwner } = useSubscriptionContext();
+  const { isOwner: isOwnerFromContext } = useSubscriptionContext();
+  const [isOwner, setIsOwner] = useState(isOwnerFromContext);
+
+  useEffect(() => {
+    // Fallback: middleware sets stargate-owner cookie (non-httpOnly)
+    if (!isOwnerFromContext && document.cookie.includes("stargate-owner=1")) {
+      setIsOwner(true);
+    }
+  }, [isOwnerFromContext]);
   const { viewMode, toggleViewMode } = useTheme();
 
   function handleAssetToggle(context: "crypto" | "stocks") {
