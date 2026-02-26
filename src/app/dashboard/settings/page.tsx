@@ -33,9 +33,7 @@ import type { Chain, Wallet as WalletType } from "@/lib/types";
 import { CHAINS } from "@/lib/types";
 import { useSubscription } from "@/lib/use-subscription";
 import { useReferral } from "@/lib/use-referral";
-import { InviteCodesTab } from "@/components/settings/invite-codes-tab";
 import { RedeemCodeSection } from "@/components/settings/redeem-code-section";
-import { Ticket } from "lucide-react";
 
 /* ================================================================
    TYPES
@@ -92,7 +90,6 @@ type SettingsTab =
   | "trading-accounts"
   | "global"
   | "subscription"
-  | "invite-codes"
   | "referrals"
   | "export";
 
@@ -102,7 +99,6 @@ const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerO
   { value: "trading-accounts", label: "Trading Accounts", icon: Wallet },
   { value: "global", label: "Global Settings", icon: Globe },
   { value: "subscription", label: "Subscription", icon: CreditCard },
-  { value: "invite-codes", label: "Invite Codes", icon: Ticket, ownerOnly: true },
   { value: "referrals", label: "Referrals", icon: Gift },
   { value: "export", label: "Export Data", icon: Download },
 ];
@@ -236,7 +232,7 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
    MAIN SETTINGS PAGE
    ================================================================ */
 
-const VALID_TABS = new Set<SettingsTab>(["account", "connections", "trading-accounts", "global", "subscription", "invite-codes", "referrals", "export"]);
+const VALID_TABS = new Set<SettingsTab>(["account", "connections", "trading-accounts", "global", "subscription", "referrals", "export"]);
 
 export default function SettingsPage() {
   return (
@@ -747,192 +743,213 @@ function SettingsContent() {
       {/* ============ SUBSCRIPTION TAB ============ */}
       {tab === "subscription" && (
         <div className="space-y-6">
-          {/* 14-day trial banner — only for free users */}
-          {tier === "free" && (
-            <div className="flex items-center justify-between px-5 py-4 rounded-2xl bg-accent/10 border border-accent/20">
-              <div>
-                <p className="text-sm font-semibold text-foreground">Start your 14-day Pro trial</p>
-                <p className="text-xs text-muted mt-0.5">Full access to all Pro features. No credit card required.</p>
-              </div>
-              <button
-                onClick={() => alert("Coming soon! Trial system will be available with Stripe integration.")}
-                className="px-4 py-2 rounded-xl bg-accent text-background text-xs font-semibold hover:bg-accent-hover transition-all"
-              >
-                Start Free Trial
-              </button>
-            </div>
-          )}
-
-          {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-1">
-            <div className="inline-flex items-center rounded-xl glass border border-border/50 p-1">
-              <button
-                onClick={() => setBilling("monthly")}
-                className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
-                  billing === "monthly" ? "bg-accent/15 text-accent border border-accent/30" : "text-muted hover:text-foreground border border-transparent"
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBilling("yearly")}
-                className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
-                  billing === "yearly" ? "bg-accent/15 text-accent border border-accent/30" : "text-muted hover:text-foreground border border-transparent"
-                }`}
-              >
-                Yearly
-                <span className="text-[9px] bg-win/15 text-win px-1.5 py-0.5 rounded-full font-bold">Save</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Plan cards */}
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              {
-                name: "Free",
-                price: "$0",
-                period: "forever",
-                badge: null,
-                highlight: false,
-                features: ["2 trade logs/week", "Basic analytics", "Calendar heatmap", "Light + Dark Simple themes", "CSV import"],
-                current: tier === "free",
-              },
-              {
-                name: "Pro",
-                price: billing === "monthly" ? "$19" : "$149",
-                period: billing === "monthly" ? "/month" : "/year",
-                badge: "Most Popular",
-                highlight: true,
-                features: ["Unlimited trades", "50+ metrics", "Psychology engine", "Weekly reports", "4 animated themes", "Playbook & risk calc", "DEX trade logging"],
-                current: tier === "pro",
-              },
-              {
-                name: "Max",
-                price: billing === "monthly" ? "$39" : "$279",
-                period: billing === "monthly" ? "/month" : "/year",
-                badge: "Power User",
-                highlight: false,
-                features: ["Everything in Pro", "AI Trading Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support"],
-                current: tier === "max",
-              },
-            ].map((plan) => (
-              <div
-                key={plan.name}
-                className={`rounded-2xl border p-5 flex flex-col ${
-                  plan.highlight ? "border-accent/40 glass" : plan.current ? "border-win/30 glass" : "glass border-border/50"
-                }`}
-                style={{ boxShadow: "var(--shadow-card)" }}
-              >
-                {plan.badge && (
-                  <span className={`text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 ${plan.highlight ? "text-accent" : "text-muted"}`}>
-                    {plan.highlight ? <Star size={10} /> : <Crown size={10} />}
-                    {plan.badge}
-                  </span>
-                )}
-                {plan.current && (
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-win flex items-center gap-1">
-                    <CheckCircle2 size={10} />
-                    Current Plan
-                  </span>
-                )}
-                <h3 className="text-lg font-bold text-foreground mt-1">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-2xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-xs text-muted">{plan.period}</span>
+          {tier === "max" ? (
+            /* Max plan banner — no upgrade options needed */
+            <div className="glass rounded-2xl border border-accent/30 p-6 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center">
+                  <Crown size={20} className="text-accent" />
                 </div>
-                <ul className="mt-4 space-y-2 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-xs">
-                      <CheckCircle2 size={12} className={`shrink-0 mt-0.5 ${plan.highlight ? "text-accent" : "text-win/70"}`} />
-                      <span className="text-foreground">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                {!plan.current && (
+                <div>
+                  <h3 className="text-base font-bold text-foreground">You have the Max plan</h3>
+                  <p className="text-xs text-muted">{isOwner ? "Owner account — lifetime access" : "Full access to every feature"}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {["Unlimited trades", "AI Trading Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support", "All themes"].map((f) => (
+                  <span key={f} className="text-[11px] font-medium bg-accent/10 text-accent px-2.5 py-1 rounded-full">
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* 14-day trial banner — only for free users */}
+              {tier === "free" && (
+                <div className="flex items-center justify-between px-5 py-4 rounded-2xl bg-accent/10 border border-accent/20">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Start your 14-day Pro trial</p>
+                    <p className="text-xs text-muted mt-0.5">Full access to all Pro features. No credit card required.</p>
+                  </div>
                   <button
-                    onClick={() => alert("Coming soon! Stripe integration pending.")}
-                    className={`mt-4 w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${
-                      plan.highlight
-                        ? "bg-accent text-background hover:bg-accent-hover"
-                        : "bg-surface-hover text-foreground hover:bg-border"
+                    onClick={() => alert("Coming soon! Trial system will be available with Stripe integration.")}
+                    className="px-4 py-2 rounded-xl bg-accent text-background text-xs font-semibold hover:bg-accent-hover transition-all"
+                  >
+                    Start Free Trial
+                  </button>
+                </div>
+              )}
+
+              {/* Billing toggle */}
+              <div className="flex items-center justify-center gap-1">
+                <div className="inline-flex items-center rounded-xl glass border border-border/50 p-1">
+                  <button
+                    onClick={() => setBilling("monthly")}
+                    className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                      billing === "monthly" ? "bg-accent/15 text-accent border border-accent/30" : "text-muted hover:text-foreground border border-transparent"
                     }`}
                   >
-                    Upgrade to {plan.name}
+                    Monthly
                   </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Stock Add-Ons */}
-          <div className="glass rounded-2xl border border-border/50 p-6 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
-            <div>
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <TrendingUp size={14} className="text-accent" />
-                Stock Trading Plans
-              </h3>
-              <p className="text-[10px] text-muted mt-0.5">Expand your journal to track equities and options</p>
-            </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Stock Add-On */}
-              <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 space-y-3">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">For Crypto Traders</span>
-                <h4 className="text-base font-bold text-foreground">Stock Add-On</h4>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-foreground">$29</span>
-                  <span className="text-xs text-muted">/year</span>
+                  <button
+                    onClick={() => setBilling("yearly")}
+                    className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+                      billing === "yearly" ? "bg-accent/15 text-accent border border-accent/30" : "text-muted hover:text-foreground border border-transparent"
+                    }`}
+                  >
+                    Yearly
+                    <span className="text-[9px] bg-win/15 text-win px-1.5 py-0.5 rounded-full font-bold">Save</span>
+                  </button>
                 </div>
-                <ul className="space-y-1.5">
-                  {["Stock dashboard & analytics", "Position tracking", "Sector breakdown", "Session performance", "Integrated with your crypto data"].map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-xs">
-                      <CheckCircle2 size={12} className="text-accent shrink-0 mt-0.5" />
-                      <span className="text-foreground">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => alert("Coming soon! Stripe integration pending.")}
-                  className="w-full py-2.5 rounded-xl font-semibold text-sm bg-accent text-background hover:bg-accent-hover transition-all"
-                >
-                  Add Stocks — $29/yr
-                </button>
               </div>
 
-              {/* Stock-Only Plan */}
-              <div className="rounded-xl border border-border/50 bg-surface-hover/30 p-4 space-y-3">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">Stocks Only</span>
-                <h4 className="text-base font-bold text-foreground">Stock Journal</h4>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-foreground">$49</span>
-                  <span className="text-xs text-muted">/year</span>
-                </div>
-                <ul className="space-y-1.5">
-                  {["Stock dashboard & analytics", "Position tracking & trade log", "Journal, calendar & weekly reports", "Sector & session analysis", "No crypto features included"].map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-xs">
-                      <CheckCircle2 size={12} className="text-win/70 shrink-0 mt-0.5" />
-                      <span className="text-foreground">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => alert("Coming soon! Stripe integration pending.")}
-                  className="w-full py-2.5 rounded-xl font-semibold text-sm bg-surface-hover text-foreground hover:bg-border transition-all"
-                >
-                  Get Stock Journal — $49/yr
-                </button>
+              {/* Plan cards */}
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  {
+                    name: "Free",
+                    price: "$0",
+                    period: "forever",
+                    badge: null,
+                    highlight: false,
+                    features: ["2 trade logs/week", "Basic analytics", "Calendar heatmap", "Light + Dark Simple themes", "CSV import"],
+                    current: tier === "free",
+                  },
+                  {
+                    name: "Pro",
+                    price: billing === "monthly" ? "$19" : "$149",
+                    period: billing === "monthly" ? "/month" : "/year",
+                    badge: "Most Popular",
+                    highlight: true,
+                    features: ["Unlimited trades", "50+ metrics", "Psychology engine", "Weekly reports", "4 animated themes", "Playbook & risk calc", "DEX trade logging"],
+                    current: tier === "pro",
+                  },
+                  {
+                    name: "Max",
+                    price: billing === "monthly" ? "$39" : "$279",
+                    period: billing === "monthly" ? "/month" : "/year",
+                    badge: "Power User",
+                    highlight: false,
+                    features: ["Everything in Pro", "AI Trading Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support"],
+                    current: false,
+                  },
+                ].map((plan) => (
+                  <div
+                    key={plan.name}
+                    className={`rounded-2xl border p-5 flex flex-col ${
+                      plan.highlight ? "border-accent/40 glass" : plan.current ? "border-win/30 glass" : "glass border-border/50"
+                    }`}
+                    style={{ boxShadow: "var(--shadow-card)" }}
+                  >
+                    {plan.badge && (
+                      <span className={`text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 ${plan.highlight ? "text-accent" : "text-muted"}`}>
+                        {plan.highlight ? <Star size={10} /> : <Crown size={10} />}
+                        {plan.badge}
+                      </span>
+                    )}
+                    {plan.current && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-win flex items-center gap-1">
+                        <CheckCircle2 size={10} />
+                        Current Plan
+                      </span>
+                    )}
+                    <h3 className="text-lg font-bold text-foreground mt-1">{plan.name}</h3>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-2xl font-bold text-foreground">{plan.price}</span>
+                      <span className="text-xs text-muted">{plan.period}</span>
+                    </div>
+                    <ul className="mt-4 space-y-2 flex-1">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-xs">
+                          <CheckCircle2 size={12} className={`shrink-0 mt-0.5 ${plan.highlight ? "text-accent" : "text-win/70"}`} />
+                          <span className="text-foreground">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {!plan.current && (
+                      <button
+                        onClick={() => alert("Coming soon! Stripe integration pending.")}
+                        className={`mt-4 w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                          plan.highlight
+                            ? "bg-accent text-background hover:bg-accent-hover"
+                            : "bg-surface-hover text-foreground hover:bg-border"
+                        }`}
+                      >
+                        Upgrade to {plan.name}
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
-            </div>
-            <p className="text-[10px] text-muted text-center">Max plan users get stock trading included at no extra cost.</p>
-          </div>
+
+              {/* Stock Add-Ons */}
+              <div className="glass rounded-2xl border border-border/50 p-6 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <TrendingUp size={14} className="text-accent" />
+                    Stock Trading Plans
+                  </h3>
+                  <p className="text-[10px] text-muted mt-0.5">Expand your journal to track equities and options</p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Stock Add-On */}
+                  <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 space-y-3">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">For Crypto Traders</span>
+                    <h4 className="text-base font-bold text-foreground">Stock Add-On</h4>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold text-foreground">$29</span>
+                      <span className="text-xs text-muted">/year</span>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {["Stock dashboard & analytics", "Position tracking", "Sector breakdown", "Session performance", "Integrated with your crypto data"].map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-xs">
+                          <CheckCircle2 size={12} className="text-accent shrink-0 mt-0.5" />
+                          <span className="text-foreground">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={() => alert("Coming soon! Stripe integration pending.")}
+                      className="w-full py-2.5 rounded-xl font-semibold text-sm bg-accent text-background hover:bg-accent-hover transition-all"
+                    >
+                      Add Stocks — $29/yr
+                    </button>
+                  </div>
+
+                  {/* Stock-Only Plan */}
+                  <div className="rounded-xl border border-border/50 bg-surface-hover/30 p-4 space-y-3">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">Stocks Only</span>
+                    <h4 className="text-base font-bold text-foreground">Stock Journal</h4>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold text-foreground">$49</span>
+                      <span className="text-xs text-muted">/year</span>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {["Stock dashboard & analytics", "Position tracking & trade log", "Journal, calendar & weekly reports", "Sector & session analysis", "No crypto features included"].map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-xs">
+                          <CheckCircle2 size={12} className="text-win/70 shrink-0 mt-0.5" />
+                          <span className="text-foreground">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={() => alert("Coming soon! Stripe integration pending.")}
+                      className="w-full py-2.5 rounded-xl font-semibold text-sm bg-surface-hover text-foreground hover:bg-border transition-all"
+                    >
+                      Get Stock Journal — $49/yr
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted text-center">Max plan users get stock trading included at no extra cost.</p>
+              </div>
+            </>
+          )}
 
           {/* Redeem invite code */}
           <RedeemCodeSection />
         </div>
       )}
-
-      {/* ============ INVITE CODES TAB (Owner Only) ============ */}
-      {tab === "invite-codes" && <InviteCodesTab />}
 
       {/* ============ REFERRALS TAB ============ */}
       {tab === "referrals" && (
