@@ -12,8 +12,11 @@ export function OnboardingGate() {
   useEffect(() => {
     const onboarded = localStorage.getItem("stargate-onboarded");
     const featuresSeen = localStorage.getItem("stargate-features-seen");
+    // Existing users who completed the nextstepjs welcome tour skip onboarding
+    const legacyTour = localStorage.getItem("stargate-tour-welcome");
+    const legacyOnboarding = localStorage.getItem("stargate-onboarding-complete");
 
-    if (!onboarded) {
+    if (!onboarded && !legacyTour && !legacyOnboarding) {
       setStep("onboarding");
     } else if (!featuresSeen) {
       setStep("features");

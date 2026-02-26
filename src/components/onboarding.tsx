@@ -8,9 +8,12 @@ import {
   BookOpen,
   Sparkles,
   CheckCircle2,
+  UserCircle,
 } from "lucide-react";
 
 type OnboardingData = {
+  displayName: string;
+  experienceLevel: string;
   tradeType: string;
   inputMethod: string;
 };
@@ -18,11 +21,60 @@ type OnboardingData = {
 export function Onboarding({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
+    displayName: "",
+    experienceLevel: "",
     tradeType: "",
     inputMethod: "",
   });
 
   const steps = [
+    {
+      title: "Let's get to know you",
+      subtitle: "This helps us personalize your experience",
+      content: (
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs text-muted mb-2 font-medium">Your name</label>
+            <div className="relative">
+              <UserCircle size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+              <input
+                type="text"
+                value={data.displayName}
+                onChange={(e) => setData({ ...data, displayName: e.target.value })}
+                placeholder="What should we call you?"
+                className="w-full pl-11 pr-4 py-3 rounded-2xl border border-border bg-surface text-foreground text-sm placeholder-muted focus:border-accent focus:outline-none transition-colors"
+                autoFocus
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-muted mb-2 font-medium">Trading experience</label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { value: "beginner", label: "Beginner", desc: "Just getting started" },
+                { value: "intermediate", label: "Intermediate", desc: "1-3 years trading" },
+                { value: "advanced", label: "Advanced", desc: "3+ years, consistent" },
+                { value: "professional", label: "Professional", desc: "Full-time trader" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setData({ ...data, experienceLevel: opt.value })}
+                  className={`p-4 rounded-2xl border text-left transition-all ${
+                    data.experienceLevel === opt.value
+                      ? "border-accent bg-accent/10 shadow-[0_0_20px_rgba(0,180,216,0.1)]"
+                      : "border-border bg-surface hover:border-accent/30"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-foreground">{opt.label}</p>
+                  <p className="text-xs text-muted mt-0.5">{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ),
+      canProceed: data.displayName.trim() !== "" && data.experienceLevel !== "",
+    },
     {
       title: "What do you trade?",
       subtitle: "We'll customize your experience",
@@ -152,8 +204,18 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
   const currentStep = steps[step];
   const isLast = step === steps.length - 1;
 
+  function saveData() {
+    if (data.displayName.trim()) {
+      localStorage.setItem("stargate-display-name", data.displayName.trim());
+    }
+    if (data.experienceLevel) {
+      localStorage.setItem("stargate-experience-level", data.experienceLevel);
+    }
+  }
+
   function handleNext() {
     if (isLast) {
+      saveData();
       localStorage.setItem("stargate-onboarded", "true");
       onComplete();
     } else {
@@ -223,6 +285,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
         {!isLast && (
           <button
             onClick={() => {
+              saveData();
               localStorage.setItem("stargate-onboarded", "true");
               onComplete();
             }}

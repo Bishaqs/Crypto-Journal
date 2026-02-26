@@ -4,6 +4,7 @@ import { InviteRedeemer } from "@/components/invite-redeemer";
 import { Starfield } from "@/components/starfield";
 import { QuickEmotionFab } from "@/components/quick-emotion-fab";
 import { OnboardingTour } from "@/components/onboarding-tour";
+import { OnboardingGate } from "@/components/onboarding-gate";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { SubscriptionProvider } from "@/lib/subscription-context";
 import { createClient } from "@/lib/supabase/server";
@@ -50,6 +51,7 @@ export default async function DashboardLayout({
 
   return (
     <SubscriptionProvider tier={tier} isOwner={isOwner} isTrial={isTrial}>
+      <OnboardingGate />
       <OnboardingTour>
         <div className="flex h-screen overflow-hidden relative">
           <Starfield />

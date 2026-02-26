@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle } from "lucide-react";
+import { AdminInviteManager } from "@/components/admin/invite-codes-manager";
 
 type UserSub = {
   user_id: string;
@@ -14,9 +15,11 @@ type InviteCode = {
   id: string;
   code: string;
   grants_tier: string;
+  description: string | null;
   current_uses: number;
   max_uses: number | null;
   is_active: boolean;
+  created_at: string;
 };
 
 export default async function AdminPage() {
@@ -36,7 +39,7 @@ export default async function AdminPage() {
   // Fetch invite codes
   const { data: codes, error: codesErr } = await admin
     .from("invite_codes")
-    .select("id, code, grants_tier, current_uses, max_uses, is_active")
+    .select("id, code, grants_tier, description, current_uses, max_uses, is_active, created_at")
     .order("created_at", { ascending: false });
   if (codesErr) {
     console.error("[admin] invite codes query failed:", codesErr.message);
@@ -161,53 +164,13 @@ export default async function AdminPage() {
         </div>
       </section>
 
-      {/* Invite codes */}
-      <section className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-        <div className="px-5 py-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Ticket size={18} className="text-accent" />
-            Invite Codes ({inviteCodes.length})
-          </h2>
+      {/* Invite codes — interactive management */}
+      <section className="bg-surface rounded-2xl border border-border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex items-center gap-2 mb-4">
+          <Ticket size={18} className="text-accent" />
+          <h2 className="text-lg font-semibold text-foreground">Invite Codes</h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-muted">
-                <th className="px-5 py-3 font-medium">Code</th>
-                <th className="px-5 py-3 font-medium">Grants</th>
-                <th className="px-5 py-3 font-medium">Uses</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inviteCodes.map((code) => (
-                <tr key={code.id} className="border-b border-border/50 hover:bg-surface-hover transition-colors">
-                  <td className="px-5 py-3 font-mono text-foreground text-xs">{code.code}</td>
-                  <td className="px-5 py-3"><TierBadge tier={code.grants_tier} /></td>
-                  <td className="px-5 py-3 text-muted tabular-nums">
-                    {code.current_uses}{code.max_uses ? ` / ${code.max_uses}` : " / ∞"}
-                  </td>
-                  <td className="px-5 py-3">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      code.is_active
-                        ? "text-win bg-win/10"
-                        : "text-muted bg-surface-hover"
-                    }`}>
-                      {code.is_active ? "Active" : "Disabled"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {inviteCodes.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-5 py-8 text-center text-muted">
-                    No invite codes created yet
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AdminInviteManager initialCodes={inviteCodes} />
       </section>
     </div>
   );

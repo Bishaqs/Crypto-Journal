@@ -32,7 +32,9 @@ export function InviteRedeemer() {
           if (result?.success) {
             clearSubscriptionCache();
           }
-        } catch {}
+        } catch (err) {
+          console.error("[InviteRedeemer] Auto-redeem failed:", err instanceof Error ? err.message : err);
+        }
       }
 
       if (ref) {
