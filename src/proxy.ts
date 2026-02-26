@@ -31,6 +31,11 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Dev-only: allow Puppeteer screenshots without auth
+  if (process.env.NODE_ENV === "development" && request.cookies.get("screenshot-bypass")?.value === "1") {
+    return supabaseResponse;
+  }
+
   // Owner flag cookie — synchronous client-side check
   const ownerEmail = process.env.OWNER_EMAIL || process.env.NEXT_PUBLIC_OWNER_EMAIL;
   const isOwner = !!(user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
