@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTheme, THEMES } from "@/lib/theme-context";
+import { useTheme, THEMES, isProTheme } from "@/lib/theme-context";
+import { useSubscriptionContext } from "@/lib/subscription-context";
 import { useDateRange, DATE_RANGES } from "@/lib/date-range-context";
 import {
   Palette,
@@ -22,6 +23,7 @@ function formatToday(): string {
 
 export function Header() {
   const { theme, setTheme } = useTheme();
+  const { tier } = useSubscriptionContext();
   const [syncing, setSyncing] = useState(false);
   const { dateRange, setDateRange } = useDateRange();
   const [showRanges, setShowRanges] = useState(false);
@@ -127,6 +129,7 @@ export function Header() {
                   <button
                     key={t.value}
                     onClick={() => {
+                      if (isProTheme(t.value) && tier === "free") return;
                       setTheme(t.value);
                       setShowThemes(false);
                     }}
