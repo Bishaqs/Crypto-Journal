@@ -44,6 +44,7 @@ type LiqFilter = "all" | "longs" | "shorts";
 type FundingSortKey = "rate" | "symbol" | "markPrice";
 type VolumeSortKey = "symbol" | "lastPrice" | "change" | "volume" | "trades";
 type LiqSortKey = "time" | "symbol" | "side" | "price" | "size";
+type MinSize = 0 | 10_000 | 50_000 | 100_000 | 500_000 | 1_000_000;
 
 // ── Helpers ────────────────────────────────────────────
 
@@ -89,6 +90,18 @@ function formatTime(ts: number): string {
   return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
+function formatElapsed(ms: number): string {
+  const mins = Math.floor(ms / 60_000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  const rem = mins % 60;
+  return `${hrs}h ${rem}m`;
+}
+
+function liqUsd(l: LiquidationEvent): number {
+  return parseFloat(l.price) * parseFloat(l.quantity);
+}
+
 // ── Constants ──────────────────────────────────────────
 
 const FUNDING_URLS = [
@@ -104,7 +117,46 @@ const VOLUME_URLS = [
 ];
 
 const WS_URL = "wss://fstream.binance.com/ws/!forceOrder@arr";
-const MAX_LIQUIDATIONS = 500;
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+const SESSION_KEY = "stargate-liq-events";
+
+const TIME_WINDOWS = [
+  { label: "1h", ms: 1 * 60 * 60 * 1000 },
+  { label: "4h", ms: 4 * 60 * 60 * 1000 },
+  { label: "12h", ms: 12 * 60 * 60 * 1000 },
+  { label: "24h", ms: 24 * 60 * 60 * 1000 },
+] as const;
+
+const MIN_SIZE_OPTIONS: { value: MinSize; label: string }[] = [
+  { value: 0, label: "All" },
+  { value: 10_000, label: "$10K+" },
+  { value: 50_000, label: "$50K+" },
+  { value: 100_000, label: "$100K+" },
+  { value: 500_000, label: "$500K+" },
+  { value: 1_000_000, label: "$1M+" },
+];
+
+// ── SessionStorage persistence ─────────────────────────
+
+function loadEvents(): LiquidationEvent[] {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return [];
+    const events: LiquidationEvent[] = JSON.parse(raw);
+    const cutoff = Date.now() - TWENTY_FOUR_HOURS;
+    return events.filter((e) => e.tradeTime > cutoff);
+  } catch {
+    return [];
+  }
+}
+
+function saveEvents(events: LiquidationEvent[]) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(events));
+  } catch {
+    // sessionStorage full or unavailable — ignore
+  }
+}
 
 // ── Component ──────────────────────────────────────────
 
@@ -127,11 +179,13 @@ export default function DerivativesPage() {
   const [volumeSortAsc, setVolumeSortAsc] = useState(false);
 
   // Liquidations state
-  const [liquidations, setLiquidations] = useState<LiquidationEvent[]>([]);
+  const [liquidations, setLiquidations] = useState<LiquidationEvent[]>(loadEvents);
   const [liqFilter, setLiqFilter] = useState<LiqFilter>("all");
-  const [liqSortKey, setLiqSortKey] = useState<LiqSortKey>("time");
+  const [liqSortKey, setLiqSortKey] = useState<LiqSortKey>("size");
   const [liqSortAsc, setLiqSortAsc] = useState(false);
+  const [minSize, setMinSize] = useState<MinSize>(10_000);
   const [wsConnected, setWsConnected] = useState(false);
+  const [connectedSince, setConnectedSince] = useState<number | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -196,7 +250,10 @@ export default function DerivativesPage() {
       const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
 
-      ws.onopen = () => setWsConnected(true);
+      ws.onopen = () => {
+        setWsConnected(true);
+        setConnectedSince(Date.now());
+      };
 
       ws.onmessage = (event) => {
         try {
@@ -211,8 +268,9 @@ export default function DerivativesPage() {
             tradeTime: o.T,
           };
           setLiquidations((prev) => {
-            const next = [evt, ...prev];
-            return next.length > MAX_LIQUIDATIONS ? next.slice(0, MAX_LIQUIDATIONS) : next;
+            const cutoff = Date.now() - TWENTY_FOUR_HOURS;
+            const next = [evt, ...prev.filter((e) => e.tradeTime > cutoff)];
+            return next;
           });
         } catch {
           // ignore malformed messages
@@ -232,15 +290,21 @@ export default function DerivativesPage() {
     return () => {
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       if (wsRef.current) {
-        wsRef.current.onclose = null; // prevent reconnect on intentional close
+        wsRef.current.onclose = null;
         wsRef.current.close();
       }
     };
   }, []);
 
-  // Tick countdown every minute
+  // Persist liquidations to sessionStorage periodically
   useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 60_000);
+    const interval = setInterval(() => saveEvents(liquidations), 10_000);
+    return () => clearInterval(interval);
+  }, [liquidations]);
+
+  // Tick every 30s for elapsed time display
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 30_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -313,9 +377,9 @@ export default function DerivativesPage() {
       const q = search.toUpperCase();
       data = data.filter((l) => l.symbol.includes(q));
     }
-    // BUY = short liquidated, SELL = long liquidated
     if (liqFilter === "longs") data = data.filter((l) => l.side === "SELL");
     if (liqFilter === "shorts") data = data.filter((l) => l.side === "BUY");
+    if (minSize > 0) data = data.filter((l) => liqUsd(l) >= minSize);
 
     data.sort((a, b) => {
       let cmp = 0;
@@ -324,12 +388,12 @@ export default function DerivativesPage() {
         case "symbol": cmp = a.symbol.localeCompare(b.symbol); break;
         case "side": cmp = a.side.localeCompare(b.side); break;
         case "price": cmp = parseFloat(a.price) - parseFloat(b.price); break;
-        case "size": cmp = (parseFloat(a.price) * parseFloat(a.quantity)) - (parseFloat(b.price) * parseFloat(b.quantity)); break;
+        case "size": cmp = liqUsd(a) - liqUsd(b); break;
       }
       return liqSortAsc ? cmp : -cmp;
     });
     return data;
-  }, [liquidations, liqFilter, liqSortKey, liqSortAsc, search]);
+  }, [liquidations, liqFilter, liqSortKey, liqSortAsc, search, minSize]);
 
   // ── Stats ────────────────────────────────────────────
 
@@ -355,15 +419,28 @@ export default function DerivativesPage() {
     return { totalVolume, mostActive, biggestGainer };
   }, [tickers]);
 
-  const liqStats = useMemo(() => {
-    if (liquidations.length === 0) return null;
+  // Time-window liquidation stats (1h, 4h, 12h, 24h)
+  const windowStats = useMemo(() => {
+    const now = Date.now();
     const usdtLiqs = liquidations.filter((l) => l.symbol.endsWith("USDT"));
-    const sizes = usdtLiqs.map((l) => ({ ...l, usd: parseFloat(l.price) * parseFloat(l.quantity) }));
-    const totalUsd = sizes.reduce((s, l) => s + l.usd, 0);
-    const biggest = sizes.reduce((best, l) => l.usd > best.usd ? l : best, sizes[0]);
-    const longCount = usdtLiqs.filter((l) => l.side === "SELL").length;
-    const shortCount = usdtLiqs.filter((l) => l.side === "BUY").length;
-    return { totalUsd, biggest, longCount, shortCount };
+
+    return TIME_WINDOWS.map((w) => {
+      const cutoff = now - w.ms;
+      const inWindow = usdtLiqs.filter((l) => l.tradeTime > cutoff);
+      const longLiqs = inWindow.filter((l) => l.side === "SELL");
+      const shortLiqs = inWindow.filter((l) => l.side === "BUY");
+      const longUsd = longLiqs.reduce((s, l) => s + liqUsd(l), 0);
+      const shortUsd = shortLiqs.reduce((s, l) => s + liqUsd(l), 0);
+      return {
+        label: w.label,
+        ms: w.ms,
+        total: longUsd + shortUsd,
+        longUsd,
+        shortUsd,
+        longCount: longLiqs.length,
+        shortCount: shortLiqs.length,
+      };
+    });
   }, [liquidations]);
 
   // ── Render ───────────────────────────────────────────
@@ -382,8 +459,10 @@ export default function DerivativesPage() {
   const subtitles: Record<Tab, string> = {
     funding: "Perpetual futures funding rates from Binance",
     volume: "24-hour trading volume and price changes from Binance Futures",
-    liquidations: "Real-time forced liquidation events from Binance Futures",
+    liquidations: "Aggregated liquidation data from Binance Futures",
   };
+
+  const elapsed = connectedSince ? Date.now() - connectedSince : 0;
 
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
@@ -476,8 +555,8 @@ export default function DerivativesPage() {
           )}
           {tab === "liquidations" && (
             <>
-              <p className="font-semibold text-foreground">Liquidation Events</p>
-              <p>Real-time forced liquidation orders from Binance Futures. When a trader&apos;s margin is insufficient, their position is forcefully closed.</p>
+              <p className="font-semibold text-foreground">Liquidation Overview</p>
+              <p>Aggregated forced liquidation data from Binance Futures. Data is collected in real-time via WebSocket and accumulated over time windows. The longer the page stays open, the more accurate the totals become.</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-lg bg-loss/5 border border-loss/10 p-2">
                   <span className="font-semibold text-loss">Long liquidated</span> → Longs forced out (price dropped)
@@ -491,7 +570,7 @@ export default function DerivativesPage() {
         </div>
       )}
 
-      {/* ── Stats Cards ── */}
+      {/* ── Funding Stats ── */}
       {tab === "funding" && fundingStats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -513,6 +592,7 @@ export default function DerivativesPage() {
         </div>
       )}
 
+      {/* ── Volume Stats ── */}
       {tab === "volume" && volumeStats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -532,38 +612,56 @@ export default function DerivativesPage() {
         </div>
       )}
 
+      {/* ── Liquidation Summary Boxes (1h, 4h, 12h, 24h) ── */}
       {tab === "liquidations" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {liqStats ? (
-            <>
-              <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">Total Liquidated</p>
-                <p className="text-lg font-bold tabular-nums text-foreground">{formatVolume(liqStats.totalUsd)}</p>
-                <p className="text-[10px] text-muted">{liquidations.length} events</p>
-              </div>
-              <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">Biggest Liquidation</p>
-                <p className="text-lg font-bold tabular-nums text-loss">{formatVolume(liqStats.biggest.usd)}</p>
-                <p className="text-[10px] text-muted">{liqStats.biggest.symbol.replace("USDT", "")} — {liqStats.biggest.side === "SELL" ? "Long" : "Short"}</p>
-              </div>
-              <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">Long vs Short</p>
-                <p className="text-lg font-bold tabular-nums">
-                  <span className="text-loss">{liqStats.longCount}</span>
-                  <span className="text-muted/40 mx-1">/</span>
-                  <span className="text-win">{liqStats.shortCount}</span>
-                </p>
-                <p className="text-[10px] text-muted">longs liq. / shorts liq.</p>
-              </div>
-            </>
-          ) : (
-            <div className="glass rounded-xl border border-border/50 p-4 col-span-3 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
-              <p className="text-sm text-muted">
-                {wsConnected ? "Waiting for liquidation events..." : "Connecting to Binance WebSocket..."}
-              </p>
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {windowStats.map((w) => {
+              const windowCovered = elapsed >= w.ms;
+              return (
+                <div key={w.label} className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">{w.label} Liquidations</p>
+                    {!windowCovered && elapsed > 0 && (
+                      <span className="text-[9px] text-muted/40">{formatElapsed(elapsed)} collected</span>
+                    )}
+                  </div>
+                  {w.total > 0 ? (
+                    <>
+                      <p className="text-lg font-bold tabular-nums text-foreground">{formatVolume(w.total)}</p>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <div className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-loss" />
+                          <span className="text-[10px] text-loss tabular-nums">{formatVolume(w.longUsd)}</span>
+                          <span className="text-[9px] text-muted/40">({w.longCount})</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-win" />
+                          <span className="text-[10px] text-win tabular-nums">{formatVolume(w.shortUsd)}</span>
+                          <span className="text-[9px] text-muted/40">({w.shortCount})</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted/40 mt-1">
+                      {wsConnected ? "Collecting..." : "Connecting..."}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Connection status */}
+          {elapsed > 0 && (
+            <div className="flex items-center gap-2 text-[10px] text-muted/50">
+              <span className={`w-1.5 h-1.5 rounded-full ${wsConnected ? "bg-win animate-pulse" : "bg-loss"}`} />
+              {wsConnected ? `Live — collecting for ${formatElapsed(elapsed)}` : "Reconnecting..."}
+              <span className="text-muted/30">|</span>
+              <span>{liquidations.length} events in buffer</span>
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* ── Filters ── */}
@@ -600,6 +698,17 @@ export default function DerivativesPage() {
               }`}>{f.label}</button>
           ))}
         </div>
+        {/* Min size filter for liquidations */}
+        {tab === "liquidations" && (
+          <div className="flex gap-1 rounded-xl border border-border/50 p-1 glass" style={{ boxShadow: "var(--shadow-card)" }}>
+            {MIN_SIZE_OPTIONS.map((opt) => (
+              <button key={opt.value} onClick={() => setMinSize(opt.value)}
+                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                  minSize === opt.value ? "bg-accent/10 text-accent shadow-sm" : "text-muted hover:text-foreground hover:bg-surface-hover"
+                }`}>{opt.label}</button>
+            ))}
+          </div>
+        )}
         <div className="relative flex-1 max-w-xs">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
           <input
@@ -701,13 +810,17 @@ export default function DerivativesPage() {
         </div>
       )}
 
-      {/* ── Liquidations Table ── */}
+      {/* ── Liquidations Table (large events only) ── */}
       {tab === "liquidations" && (
         <div className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             {filteredLiquidations.length === 0 ? (
               <div className="flex items-center justify-center h-40 text-sm text-muted">
-                {wsConnected ? "Waiting for liquidation events..." : "Connecting..."}
+                {wsConnected
+                  ? minSize > 0
+                    ? `No liquidations above ${formatVolume(minSize)} yet — collecting...`
+                    : "Waiting for liquidation events..."
+                  : "Connecting..."}
               </div>
             ) : (
               <table className="w-full text-sm">
@@ -733,7 +846,7 @@ export default function DerivativesPage() {
                 <tbody>
                   {filteredLiquidations.map((l, i) => {
                     const isLongLiq = l.side === "SELL";
-                    const size = parseFloat(l.price) * parseFloat(l.quantity);
+                    const size = liqUsd(l);
                     return (
                       <tr key={`${l.symbol}-${l.tradeTime}-${i}`} className="border-b border-border/30 hover:bg-surface-hover/50 transition-colors">
                         <td className="px-4 py-2.5 text-xs text-muted tabular-nums">{formatTime(l.tradeTime)}</td>
