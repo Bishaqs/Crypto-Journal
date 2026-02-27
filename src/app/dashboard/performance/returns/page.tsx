@@ -112,7 +112,7 @@ export default function ReturnsDistributionPage() {
             <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
             <XAxis dataKey="range" tick={{ fill: colors.tick, fontSize: 10 }} />
             <YAxis tick={{ fill: colors.tick, fontSize: 10 }} allowDecimals={false} />
-            <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [v, "Trades"]} />
+            <Tooltip contentStyle={tooltipStyle} formatter={(v: number | undefined) => [v ?? 0, "Trades"]} />
             <ReferenceLine x={distData.buckets.findIndex(b => b.rangeMin <= 0 && b.rangeMin + (distData.buckets[1]?.rangeMin - distData.buckets[0]?.rangeMin) > 0) >= 0 ? distData.buckets[distData.buckets.findIndex(b => b.rangeMin <= 0 && b.rangeMin + (distData.buckets[1]?.rangeMin - distData.buckets[0]?.rangeMin) > 0)]?.range : undefined} stroke={colors.tick} strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: "$0", fill: colors.tick, fontSize: 10 }} />
             <Bar dataKey="count" radius={[4, 4, 0, 0]}>
               {distData.buckets.map((d, i) => <Cell key={i} fill={d.rangeMin >= 0 ? colors.win : colors.loss} fillOpacity={0.85} />)}
