@@ -47,6 +47,13 @@ import {
   BarChart,
   DollarSign,
   TreePine,
+  LineChart,
+  Ruler,
+  Gauge,
+  Scale,
+  ArrowUpDown,
+  BarChart2,
+  CalendarCheck,
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme } from "@/lib/theme-context";
@@ -118,6 +125,22 @@ const summaryItems: NavItem[] = [
   { href: "/dashboard/summaries/open-trades", label: "Open Trades Summary", icon: BarChart3 },
 ];
 
+const dateChartItems: NavItem[] = [
+  { href: "/dashboard/trades/day-grouped", label: "Day Grouped", icon: CalendarDays },
+  { href: "/dashboard/performance/calendar", label: "Calendar Grouped", icon: CalendarCheck },
+];
+
+const performanceItems: NavItem[] = [
+  { href: "/dashboard/performance/expectancy", label: "Trade Expectancy", icon: LineChart },
+  { href: "/dashboard/performance/r-value", label: "R-Value", icon: Ruler },
+  { href: "/dashboard/performance/hit-ratio", label: "Hit Ratio", icon: Gauge },
+  { href: "/dashboard/performance/profit-factor", label: "Profit Factor", icon: Scale },
+  { href: "/dashboard/performance/mfe-mae", label: "MFE / MAE", icon: ArrowUpDown },
+  { href: "/dashboard/performance/volume", label: "Relative Volume", icon: BarChart2 },
+  { href: "/dashboard/performance/returns", label: "Returns Distribution", icon: BarChart },
+  { href: "/dashboard/performance/trends", label: "Trend Analysis", icon: TrendingUp },
+];
+
 const bottomItems: NavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
@@ -130,6 +153,8 @@ export function Sidebar() {
   const [assetContext, setAssetContext] = useState<"crypto" | "stocks">("crypto");
   const [showStockUpgrade, setShowStockUpgrade] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [dateChartsOpen, setDateChartsOpen] = useState(true);
+  const [performanceOpen, setPerformanceOpen] = useState(false);
   const [summariesOpen, setSummariesOpen] = useState(true);
   const [analysisOpen, setAnalysisOpen] = useState(true);
   const [treemapOpen, setTreemapOpen] = useState(true);
@@ -165,6 +190,10 @@ export function Sidebar() {
         setAssetContext("crypto");
       }
     }
+    const savedDateCharts = localStorage.getItem("stargate-date-charts-open");
+    if (savedDateCharts === "false") setDateChartsOpen(false);
+    const savedPerformance = localStorage.getItem("stargate-performance-open");
+    if (savedPerformance !== "false" && savedPerformance !== null) setPerformanceOpen(savedPerformance === "true");
     const savedSummaries = localStorage.getItem("stargate-summaries-open");
     if (savedSummaries === "false") setSummariesOpen(false);
     const savedAnalysis = localStorage.getItem("stargate-trades-analysis-open");
@@ -311,6 +340,76 @@ export function Sidebar() {
             <NavLink key={item.href} item={item} isMobile={isMobile} />
           ))}
         </div>
+
+        {/* Date Charts section — collapsible */}
+        <div className="h-px bg-border/50 mx-2 my-3" />
+        {(isMobile || !collapsed) ? (
+          <button
+            onClick={() => {
+              const next = !dateChartsOpen;
+              setDateChartsOpen(next);
+              localStorage.setItem("stargate-date-charts-open", String(next));
+            }}
+            className="w-full flex items-center justify-between px-3 mb-1 group"
+          >
+            <div className="flex items-center gap-1.5">
+              <CalendarDays size={12} className="text-muted/60" />
+              <span className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold group-hover:text-muted transition-colors">
+                Date Charts
+              </span>
+            </div>
+            <ChevronDown
+              size={12}
+              className={`text-muted/60 transition-transform duration-200 ${dateChartsOpen ? "" : "-rotate-90"}`}
+            />
+          </button>
+        ) : (
+          <div className="flex justify-center py-1">
+            <CalendarDays size={16} className="text-muted/60" />
+          </div>
+        )}
+        {dateChartsOpen && (
+          <div className="space-y-0.5">
+            {dateChartItems.map((item) => (
+              <NavLink key={item.href} item={item} isMobile={isMobile} />
+            ))}
+          </div>
+        )}
+
+        {/* Performance Metrics section — collapsible */}
+        <div className="h-px bg-border/50 mx-2 my-3" />
+        {(isMobile || !collapsed) ? (
+          <button
+            onClick={() => {
+              const next = !performanceOpen;
+              setPerformanceOpen(next);
+              localStorage.setItem("stargate-performance-open", String(next));
+            }}
+            className="w-full flex items-center justify-between px-3 mb-1 group"
+          >
+            <div className="flex items-center gap-1.5">
+              <Activity size={12} className="text-muted/60" />
+              <span className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold group-hover:text-muted transition-colors">
+                Performance
+              </span>
+            </div>
+            <ChevronDown
+              size={12}
+              className={`text-muted/60 transition-transform duration-200 ${performanceOpen ? "" : "-rotate-90"}`}
+            />
+          </button>
+        ) : (
+          <div className="flex justify-center py-1">
+            <Activity size={16} className="text-muted/60" />
+          </div>
+        )}
+        {performanceOpen && (
+          <div className="space-y-0.5">
+            {performanceItems.map((item) => (
+              <NavLink key={item.href} item={item} isMobile={isMobile} />
+            ))}
+          </div>
+        )}
 
         {/* Summaries section — collapsible */}
         <div className="h-px bg-border/50 mx-2 my-3" />
@@ -543,7 +642,7 @@ export function Sidebar() {
       <aside
         className={`hidden md:flex ${
           collapsed ? "w-[68px]" : "w-60"
-        } h-full overflow-hidden glass border-r border-border/50 flex-col shrink-0 transition-all duration-300 relative z-10`}
+        } h-full overflow-x-visible overflow-y-hidden glass border-r border-border/50 flex-col shrink-0 transition-all duration-300 relative z-10`}
         style={{ boxShadow: "var(--shadow-card)" }}
       >
         {sidebarContent(false)}
