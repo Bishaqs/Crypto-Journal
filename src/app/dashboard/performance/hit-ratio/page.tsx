@@ -51,7 +51,7 @@ export default function HitRatioPage() {
 
   const dayOfWeekData = useMemo(() => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return (advanced.pnlByDayOfWeek ?? []).map(d => ({ day: days[d.day as number] ?? d.day, winRate: parseFloat(d.winRate.toFixed(1)), count: d.count, pnl: d.pnl }));
+    return (advanced.pnlByDayOfWeek ?? []).map(d => ({ day: days[Number(d.day)] ?? d.day, winRate: parseFloat(d.winRate.toFixed(1)), count: d.count, pnl: d.pnl }));
   }, [advanced.pnlByDayOfWeek]);
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>;
