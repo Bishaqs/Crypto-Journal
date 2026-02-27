@@ -96,7 +96,7 @@ export default function RValuePage() {
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
               <XAxis dataKey="index" tick={{ fill: colors.tick, fontSize: 10 }} />
               <YAxis tick={{ fill: colors.tick, fontSize: 10 }} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number | undefined) => [`${v ?? 0}R`, "R-Multiple"]} labelFormatter={(l: string | number) => `Trade #${l}`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: number | undefined) => [`${v ?? 0}R`, "R-Multiple"]} labelFormatter={(l) => `Trade #${l}`} />
               <ReferenceLine y={0} stroke={colors.tick} strokeOpacity={0.3} />
               <Bar dataKey="r" radius={[2, 2, 0, 0]}>
                 {rData.trades.map((d, i) => <Cell key={i} fill={d.r >= 0 ? colors.win : colors.loss} fillOpacity={0.85} />)}
