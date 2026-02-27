@@ -349,16 +349,6 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* Collapse toggle (desktop only) */}
-      {!isMobile && (
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-[52px] z-10 w-6 h-6 rounded-full bg-surface border border-border flex items-center justify-center text-muted hover:text-accent hover:border-accent/30 transition-colors shadow-sm"
-        >
-          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-        </button>
-      )}
-
       {/* Main nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2">
         <div className="space-y-0.5">
@@ -665,14 +655,20 @@ export function Sidebar() {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside
-        className={`hidden md:flex ${
-          collapsed ? "w-[68px]" : "w-60"
-        } h-full overflow-x-visible overflow-y-hidden glass border-r border-border/50 flex-col shrink-0 transition-all duration-300 relative z-10`}
-        style={{ boxShadow: "var(--shadow-card)" }}
-      >
-        {sidebarContent(false)}
-      </aside>
+      <div className={`hidden md:flex ${collapsed ? "w-[68px]" : "w-60"} shrink-0 relative transition-all duration-300`}>
+        <aside
+          className="w-full h-full overflow-y-hidden glass border-r border-border/50 flex flex-col z-10"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
+          {sidebarContent(false)}
+        </aside>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-[52px] z-20 w-6 h-6 rounded-full bg-surface border border-border flex items-center justify-center text-muted hover:text-accent hover:border-accent/30 transition-colors shadow-sm"
+        >
+          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        </button>
+      </div>
 
       {/* Logout confirmation modal */}
       {showLogoutConfirm && (
