@@ -51,9 +51,9 @@ export default async function DashboardLayout({
 
   return (
     <SubscriptionProvider tier={tier} isOwner={isOwner} isTrial={isTrial}>
-      <OnboardingGate />
+      <OnboardingGate userId={user?.id} />
       <OnboardingTour>
-        <div className="flex h-screen overflow-hidden relative">
+        <div className="flex h-screen overflow-y-hidden overflow-x-clip relative">
           <Starfield />
           <Sidebar />
           <main id="dashboard-viewport" className="flex-1 overflow-y-auto px-4 md:px-8 py-6 pt-16 md:pt-6 transition-all duration-300 relative z-10">
