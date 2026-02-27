@@ -87,7 +87,7 @@ export default function CalendarGroupedPage() {
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
               <XAxis dataKey="date" tick={{ fill: colors.tick, fontSize: 10 }} tickFormatter={(v: string) => v.slice(5)} />
               <YAxis tick={{ fill: colors.tick, fontSize: 10 }} tickFormatter={(v: number) => `$${v}`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`$${v.toFixed(2)}`, "P&L"]} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: number | undefined) => [`$${(v ?? 0).toFixed(2)}`, "P&L"]} />
               <Bar dataKey="pnl" radius={[2, 2, 0, 0]}>
                 {recentDays.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? colors.win : colors.loss} fillOpacity={0.85} />)}
               </Bar>
