@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export const preferredRegion = "sin1";
-
 const BINANCE_URLS = [
   "https://fapi.binance.com/fapi/v1/premiumIndex",
   "https://fapi1.binance.com/fapi/v1/premiumIndex",
