@@ -111,7 +111,7 @@ export default function PositionSizingPage() {
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
               <XAxis dataKey="index" tick={{ fill: colors.tick, fontSize: 10 }} />
               <YAxis tick={{ fill: colors.tick, fontSize: 10 }} tickFormatter={(v: number) => `$${v}`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number | undefined) => [`$${(v ?? 0).toFixed(2)}`, "P&L"]} labelFormatter={(l: string | number) => `Trade #${l}`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: number | undefined) => [`$${(v ?? 0).toFixed(2)}`, "P&L"]} labelFormatter={(l) => `Trade #${l}`} />
               <ReferenceLine y={0} stroke={colors.tick} strokeOpacity={0.3} />
               <Bar dataKey="pnl" radius={[2, 2, 0, 0]}>
                 {sizing.trades.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? colors.win : colors.loss} fillOpacity={0.85} />)}
@@ -128,7 +128,7 @@ export default function PositionSizingPage() {
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
               <XAxis dataKey="label" tick={{ fill: colors.tick, fontSize: 10 }} />
               <YAxis tick={{ fill: colors.tick, fontSize: 10 }} tickFormatter={(v: number) => `$${v}`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number | undefined, name: string) => { const n = v ?? 0; return [name === "pnl" ? `$${n.toFixed(2)}` : `${n}%`, name === "pnl" ? "Total P&L" : "Win Rate"]; }} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: number | undefined, name?: string) => { const n = v ?? 0; return [name === "pnl" ? `$${n.toFixed(2)}` : `${n}%`, name === "pnl" ? "Total P&L" : "Win Rate"]; }} />
               <ReferenceLine y={0} stroke={colors.tick} strokeOpacity={0.3} />
               <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
                 {sizing.quartileData.map((d, i) => <Cell key={i} fill={d.pnl >= 0 ? colors.win : colors.loss} fillOpacity={0.85} />)}
