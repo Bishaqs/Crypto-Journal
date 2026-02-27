@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
-export function DemoBanner({ feature }: { feature: string }) {
+export function DemoBanner({ feature = "data" }: { feature?: string }) {
   return (
     <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 flex items-center gap-3">
       <Sparkles size={16} className="text-accent shrink-0" />

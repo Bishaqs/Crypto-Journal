@@ -53,19 +53,35 @@ export default function FundingRatesPage() {
   const [showInfo, setShowInfo] = useState(false);
   const [, setTick] = useState(0);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch("/api/market/funding-rates");
-      if (!res.ok) throw new Error("Failed to fetch");
-      const json = await res.json();
-      setRates(json.rates ?? []);
-      setError(null);
-    } catch {
-      setError("Failed to load funding rates.");
-    } finally {
-      setLoading(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await fetch("/api/market/funding-rates");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const json = await res.json();
+        setRates(json.rates ?? []);
+        setError(null);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      } catch {
+        if (attempt === 0) {
+          await new Promise((r) => setTimeout(r, 2000));
+        }
+      }
     }
-  }, []);
+    // Both attempts failed — keep stale data if we have it
+    if (rates.length === 0) {
+      setError("Failed to load funding rates.");
+    } else {
+      setError("Refresh failed — showing cached data.");
+    }
+    setLoading(false);
+    setRefreshing(false);
+  }, [rates.length]);
 
   useEffect(() => {
     fetchData();
@@ -142,8 +158,8 @@ export default function FundingRatesPage() {
           <button onClick={() => setShowInfo(!showInfo)} className="p-2 rounded-xl hover:bg-surface-hover text-muted hover:text-foreground transition-all">
             <Info size={16} />
           </button>
-          <button onClick={fetchData} className="p-2 rounded-xl hover:bg-surface-hover text-muted hover:text-foreground transition-all">
-            <RefreshCw size={16} />
+          <button onClick={() => fetchData(true)} disabled={refreshing} className="p-2 rounded-xl hover:bg-surface-hover text-muted hover:text-foreground transition-all disabled:opacity-50">
+            <RefreshCw size={16} className={refreshing ? "animate-spin text-accent" : ""} />
           </button>
         </div>
       </div>
