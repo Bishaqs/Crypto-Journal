@@ -106,7 +106,7 @@ export default function InsightsPage() {
 
   // Emotion-P&L correlation table (advanced mode)
   const emotionCorrelation = useMemo(() => {
-    if (viewMode !== "advanced") return [];
+    if (viewMode === "simple") return [];
     const closed = filtered.filter((t) => t.close_timestamp && t.emotion);
     const map = new Map<string, { count: number; wins: number; pnl: number; holdTimeSum: number }>();
     for (const t of closed) {
@@ -1033,7 +1033,7 @@ export default function InsightsPage() {
       )}
 
       {/* Emotion-P&L Correlation Table (Advanced Mode) */}
-      {viewMode === "advanced" && emotionCorrelation.length > 0 && (
+      {viewMode !== "simple" && emotionCorrelation.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="flex items-center gap-2 mb-4">
             <Brain size={14} className="text-accent" />

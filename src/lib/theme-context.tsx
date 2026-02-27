@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 export type Theme = "dark" | "light" | "dark-simple" | "matrix" | "volcano" | "ocean";
-type ViewMode = "simple" | "advanced";
+export type ViewMode = "simple" | "advanced" | "expert";
 
 export const THEMES: { value: Theme; label: string; dot: string }[] = [
   { value: "light", label: "Light", dot: "#eef0f4" },
@@ -21,11 +21,14 @@ export function isProTheme(theme: Theme): boolean {
   return PRO_THEMES.includes(theme);
 }
 
+const VIEW_MODE_ORDER: ViewMode[] = ["simple", "advanced", "expert"];
+
 type ThemeContextType = {
   theme: Theme;
   setTheme: (t: Theme) => void;
   toggleTheme: () => void;
   viewMode: ViewMode;
+  setViewModeTo: (mode: ViewMode) => void;
   toggleViewMode: () => void;
 };
 
@@ -34,6 +37,7 @@ const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => {},
   toggleTheme: () => {},
   viewMode: "simple",
+  setViewModeTo: () => {},
   toggleViewMode: () => {},
 });
 
@@ -41,13 +45,15 @@ const ALL_THEME_CLASSES: Theme[] = ["dark", "light", "dark-simple", "matrix", "v
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("dark");
-  const [viewMode, setViewMode] = useState<ViewMode>("simple");
+  const [viewMode, setViewModeState] = useState<ViewMode>("simple");
 
   useEffect(() => {
     const saved = localStorage.getItem("stargate-theme") as Theme | null;
     if (saved && ALL_THEME_CLASSES.includes(saved)) setThemeState(saved);
-    const savedMode = localStorage.getItem("stargate-mode") as ViewMode | null;
-    if (savedMode) setViewMode(savedMode);
+    const savedMode = localStorage.getItem("stargate-mode") as string | null;
+    if (savedMode && VIEW_MODE_ORDER.includes(savedMode as ViewMode)) {
+      setViewModeState(savedMode as ViewMode);
+    }
   }, []);
 
   useEffect(() => {
@@ -65,14 +71,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(ALL_THEME_CLASSES[(idx + 1) % ALL_THEME_CLASSES.length]);
   }
 
+  function setViewModeTo(mode: ViewMode) {
+    setViewModeState(mode);
+    localStorage.setItem("stargate-mode", mode);
+  }
+
   function toggleViewMode() {
-    const next = viewMode === "simple" ? "advanced" : "simple";
-    setViewMode(next);
-    localStorage.setItem("stargate-mode", next);
+    const idx = VIEW_MODE_ORDER.indexOf(viewMode);
+    setViewModeTo(VIEW_MODE_ORDER[(idx + 1) % VIEW_MODE_ORDER.length]);
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, viewMode, toggleViewMode }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, viewMode, setViewModeTo, toggleViewMode }}>
       {children}
     </ThemeContext.Provider>
   );
