@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   LayoutDashboard,
   BookOpen,
@@ -94,7 +94,7 @@ const toolItems: NavItem[] = [
 
 const advancedToolItems: NavItem[] = [
   { href: "/dashboard/screener", label: "Token Screener", icon: Search },
-  { href: "/dashboard/funding-rates", label: "Funding Rates", icon: Percent },
+  { href: "/dashboard/funding-rates", label: "Derivatives", icon: BarChart3 },
   { href: "/dashboard/prop-firm", label: "Prop Firm", icon: Flame },
   { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
   { href: "/dashboard/risk-analysis", label: "Risk Analysis", icon: TrendingDown },
@@ -168,6 +168,32 @@ export function Sidebar() {
     }
   }, [isOwnerFromContext]);
   const { viewMode, toggleViewMode } = useTheme();
+
+  // Tour integration: expand sidebar when tour highlights a sidebar nav item
+  const collapsedRef = useRef(collapsed);
+  collapsedRef.current = collapsed;
+  const tourSavedCollapsed = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    function handleTourSidebar(e: Event) {
+      const { expand } = (e as CustomEvent).detail;
+      if (expand) {
+        if (tourSavedCollapsed.current === null) {
+          tourSavedCollapsed.current = collapsedRef.current;
+        }
+        setCollapsed(false);
+      } else if (tourSavedCollapsed.current !== null) {
+        setCollapsed(tourSavedCollapsed.current);
+        tourSavedCollapsed.current = null;
+      }
+    }
+    window.addEventListener("tour-sidebar", handleTourSidebar as EventListener);
+    return () =>
+      window.removeEventListener(
+        "tour-sidebar",
+        handleTourSidebar as EventListener,
+      );
+  }, []);
 
   function handleAssetToggle(context: "crypto" | "stocks") {
     if (context === "stocks" && !hasStockAccess()) {
