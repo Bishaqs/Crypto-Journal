@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-const BINANCE_URL = "https://fapi.binance.com/fapi/v1/premiumIndex";
+export const preferredRegion = "sin1";
+
+const BINANCE_URLS = [
+  "https://fapi.binance.com/fapi/v1/premiumIndex",
+  "https://fapi1.binance.com/fapi/v1/premiumIndex",
+  "https://fapi2.binance.com/fapi/v1/premiumIndex",
+];
 
 export async function GET() {
   const supabase = await createClient();
@@ -10,23 +16,33 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const res = await fetch(BINANCE_URL, { next: { revalidate: 300 } });
+  let lastError: string | undefined;
 
-    if (!res.ok) {
-      console.error("[market/funding-rates] Binance returned", res.status);
-      return NextResponse.json({ error: "Binance API error" }, { status: 502 });
+  for (const url of BINANCE_URLS) {
+    try {
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(5000),
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        lastError = `Binance returned ${res.status}`;
+        continue;
+      }
+
+      const data = await res.json();
+      const response = NextResponse.json({ rates: data, timestamp: Date.now() });
+      response.headers.set(
+        "Cache-Control",
+        "s-maxage=300, stale-while-revalidate=600"
+      );
+      return response;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      continue;
     }
-
-    const data = await res.json();
-    const response = NextResponse.json({ rates: data, timestamp: Date.now() });
-    response.headers.set(
-      "Cache-Control",
-      "s-maxage=300, stale-while-revalidate=600"
-    );
-    return response;
-  } catch (err) {
-    console.error("[market/funding-rates]", err instanceof Error ? err.message : err);
-    return NextResponse.json({ error: "Failed to fetch funding rates" }, { status: 500 });
   }
+
+  console.error("[market/funding-rates] All endpoints failed:", lastError);
+  return NextResponse.json({ error: "Failed to fetch funding rates" }, { status: 502 });
 }
