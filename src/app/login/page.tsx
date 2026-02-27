@@ -137,26 +137,46 @@ export default function LoginPage() {
       return;
     }
 
-    const { error } = isSignUp
-      ? await supabase.auth.signUp({ email, password })
-      : await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
-    }
-
     if (isSignUp) {
-      setSuccess(
-        "Check your email for a confirmation link, then come back to sign in."
-      );
-      setLoading(false);
-      setIsSignUp(false);
-      return;
+      // Step 1: Client-side signup (anon key — triggers work correctly)
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({ email, password });
+      if (signUpError) {
+        setError(signUpError.message);
+        setLoading(false);
+        return;
+      }
+      // Step 2: Auto-confirm email via admin API (just flips the flag)
+      if (signUpData.user) {
+        await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: signUpData.user.id }),
+        });
+      }
+      // Step 3: Sign in immediately (works now that email is confirmed)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) {
+        setError(signInError.message);
+        setLoading(false);
+        return;
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
     }
 
-    // Sign in success → handle invite/referral codes, then navigate
+    // Auth success → handle invite/referral codes, then navigate
     clearSubscriptionCache();
     await handlePostAuth();
   }

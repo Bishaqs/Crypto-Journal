@@ -6,10 +6,32 @@ import { FeatureExplainer } from "./feature-explainer";
 
 type GateStep = "loading" | "onboarding" | "features" | "done";
 
-export function OnboardingGate() {
+const ONBOARDING_KEYS = [
+  "stargate-onboarded",
+  "stargate-features-seen",
+  "stargate-display-name",
+  "stargate-experience-level",
+  "stargate-getting-started-dismissed",
+  "stargate-started-first-trade",
+  "stargate-started-first-journal",
+  "stargate-started-try-ai",
+  "stargate-started-import-trades",
+  "stargate-tour-welcome",
+];
+
+export function OnboardingGate({ userId }: { userId?: string }) {
   const [step, setStep] = useState<GateStep>("loading");
 
   useEffect(() => {
+    // Detect user switch — clear onboarding state so new user gets fresh experience
+    if (userId) {
+      const prevUser = localStorage.getItem("stargate-current-user");
+      if (prevUser !== userId) {
+        ONBOARDING_KEYS.forEach((k) => localStorage.removeItem(k));
+      }
+      localStorage.setItem("stargate-current-user", userId);
+    }
+
     const onboarded = localStorage.getItem("stargate-onboarded");
     const featuresSeen = localStorage.getItem("stargate-features-seen");
     // Existing users who completed the nextstepjs welcome tour skip onboarding
@@ -23,7 +45,7 @@ export function OnboardingGate() {
     } else {
       setStep("done");
     }
-  }, []);
+  }, [userId]);
 
   if (step === "loading" || step === "done") return null;
 

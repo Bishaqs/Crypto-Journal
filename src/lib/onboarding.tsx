@@ -146,7 +146,7 @@ export const welcomeTour: Tour = {
       content:
         "You're in Simple mode with 6 core tools. Toggle to Advanced to unlock 12+ pro tools: Prop Firm Tracker, Monte Carlo Simulations, Heat Maps, Risk Analysis, Tax Reports, and more.",
       selector: "#tour-view-toggle",
-      side: "top",
+      side: "right",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
@@ -198,7 +198,7 @@ export const welcomeTour: Tour = {
       content:
         "Your latest trades with P&L, emotion tags, and process scores. Click any row to see full details. Use this to spot patterns — are you more profitable when calm?",
       selector: "#tour-trades-table",
-      side: "bottom",
+      side: "top",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,

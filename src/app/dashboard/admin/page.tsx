@@ -1,6 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle } from "lucide-react";
 import { AdminInviteManager } from "@/components/admin/invite-codes-manager";
+import { AdminUsersManager } from "@/components/admin/users-manager";
+
+export const dynamic = "force-dynamic";
 
 type UserSub = {
   user_id: string;
@@ -56,18 +59,28 @@ export default async function AdminPage() {
     errors.push("Failed to load auth users");
   }
 
-  const userMap = new Map(authUsers.map((u) => [u.id, u]));
-  const subscriptions: UserSub[] = subs ?? [];
+  // Build subscription lookup by user_id
+  const subMap = new Map((subs ?? []).map((s) => [s.user_id, s as UserSub]));
   const inviteCodes: InviteCode[] = codes ?? [];
 
+  // Merge: auth users are the primary source, left-join with subscriptions
+  const allUsers = authUsers
+    .map((u) => ({
+      id: u.id,
+      email: u.email ?? u.id.slice(0, 8) + "...",
+      sub: subMap.get(u.id) ?? null,
+      created_at: (u as { created_at?: string }).created_at ?? "",
+    }))
+    .sort((a, b) => (b.created_at > a.created_at ? 1 : -1));
+
   // Stats
-  const totalUsers = subscriptions.length;
+  const totalUsers = allUsers.length;
   const tierCounts = { free: 0, pro: 0, max: 0 };
-  for (const s of subscriptions) {
-    const t = s.tier as keyof typeof tierCounts;
+  for (const u of allUsers) {
+    const t = (u.sub?.tier ?? "free") as keyof typeof tierCounts;
     if (t in tierCounts) tierCounts[t]++;
   }
-  const trialCount = subscriptions.filter((s) => s.is_trial).length;
+  const trialCount = allUsers.filter((u) => u.sub?.is_trial).length;
   const activeInvites = inviteCodes.filter((c) => c.is_active).length;
 
   return (
@@ -112,56 +125,17 @@ export default async function AdminPage() {
             All Users ({totalUsers})
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-muted">
-                <th className="px-5 py-3 font-medium">Email</th>
-                <th className="px-5 py-3 font-medium">Tier</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium">Signed Up</th>
-                <th className="px-5 py-3 font-medium">Last Updated</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subscriptions.map((sub) => {
-                const authUser = userMap.get(sub.user_id);
-                const email = authUser?.email ?? sub.user_id.slice(0, 8) + "...";
-                return (
-                  <tr key={sub.user_id} className="border-b border-border/50 hover:bg-surface-hover transition-colors">
-                    <td className="px-5 py-3 text-foreground font-medium">
-                      {email}
-                      {sub.is_owner && (
-                        <span className="ml-2 text-[10px] font-semibold text-accent bg-accent/10 px-1.5 py-0.5 rounded-full">
-                          OWNER
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3">
-                      <TierBadge tier={sub.tier} />
-                    </td>
-                    <td className="px-5 py-3 text-muted">
-                      {sub.is_trial ? "Trial" : "Active"}
-                    </td>
-                    <td className="px-5 py-3 text-muted tabular-nums">
-                      {new Date(sub.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-5 py-3 text-muted tabular-nums">
-                      {sub.updated_at ? new Date(sub.updated_at).toLocaleDateString() : "—"}
-                    </td>
-                  </tr>
-                );
-              })}
-              {subscriptions.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-5 py-8 text-center text-muted">
-                    No users yet
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AdminUsersManager
+          initialUsers={allUsers.map((u) => ({
+            id: u.id,
+            email: u.email,
+            tier: u.sub?.tier ?? null,
+            isOwner: u.sub?.is_owner ?? false,
+            isTrial: u.sub?.is_trial ?? false,
+            createdAt: u.created_at,
+            updatedAt: u.sub?.updated_at ?? null,
+          }))}
+        />
       </section>
 
       {/* Invite codes — interactive management */}
@@ -188,15 +162,3 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ComponentType<{ si
   );
 }
 
-function TierBadge({ tier }: { tier: string }) {
-  const styles: Record<string, string> = {
-    free: "text-muted bg-surface-hover",
-    pro: "text-amber-400 bg-amber-400/10",
-    max: "text-accent bg-accent/10",
-  };
-  return (
-    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${styles[tier] ?? styles.free}`}>
-      {tier}
-    </span>
-  );
-}
