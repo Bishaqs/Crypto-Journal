@@ -55,8 +55,13 @@ function TourCard({
     }
 
     clampCard();
+    // Re-clamp after sidebar expand/collapse transition (300ms) settles
+    const timer = setTimeout(clampCard, 400);
     window.addEventListener("resize", clampCard);
-    return () => window.removeEventListener("resize", clampCard);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", clampCard);
+    };
   }, [currentStep]);
 
   // Keyboard navigation: Escape to skip, ArrowRight for next, ArrowLeft for back
@@ -191,6 +196,41 @@ function TourStateManager() {
   return null;
 }
 
+function restoreSidebar() {
+  window.dispatchEvent(
+    new CustomEvent("tour-sidebar", { detail: { expand: false } }),
+  );
+}
+
+function handleStepChange(step: number, tourName: string | null) {
+  if (!tourName) return;
+  const tour = allTours.find((t) => t.tour === tourName);
+  const stepDef = tour?.steps[step];
+  if (!stepDef?.selector) {
+    // No selector = floating card, restore sidebar
+    restoreSidebar();
+    return;
+  }
+
+  const targetEl = document.querySelector(stepDef.selector);
+  if (!targetEl) return;
+
+  // Check if the target lives inside a sidebar <aside>
+  const sidebar = document.querySelector("aside");
+  if (sidebar?.contains(targetEl)) {
+    window.dispatchEvent(
+      new CustomEvent("tour-sidebar", { detail: { expand: true } }),
+    );
+  } else {
+    restoreSidebar();
+    // Scroll target into view within the custom scroll container
+    const viewport = document.getElementById("dashboard-viewport");
+    if (viewport?.contains(targetEl)) {
+      targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+}
+
 export function OnboardingTour({ children }: { children: React.ReactNode }) {
   return (
     <NextStepProvider>
@@ -201,13 +241,16 @@ export function OnboardingTour({ children }: { children: React.ReactNode }) {
         shadowOpacity="0.75"
         cardComponent={TourCard}
         disableConsoleLogs
+        onStepChange={handleStepChange}
         onComplete={(tourName: string | null) => {
           if (tourName) markTourComplete(tourName);
           sessionStorage.removeItem(TOUR_STATE_KEY);
+          restoreSidebar();
         }}
         onSkip={(_step: number, tourName: string | null) => {
           if (tourName) markTourComplete(tourName);
           sessionStorage.removeItem(TOUR_STATE_KEY);
+          restoreSidebar();
         }}
       >
         {children}
