@@ -41,6 +41,12 @@ function formatCountdown(nextTime: number): string {
   return `${hours}h ${mins}m`;
 }
 
+const BINANCE_URLS = [
+  "https://fapi.binance.com/fapi/v1/premiumIndex",
+  "https://fapi1.binance.com/fapi/v1/premiumIndex",
+  "https://fapi2.binance.com/fapi/v1/premiumIndex",
+];
+
 export default function FundingRatesPage() {
   usePageTour("funding-rates-page");
   const [rates, setRates] = useState<FundingRate[]>([]);
@@ -57,23 +63,21 @@ export default function FundingRatesPage() {
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (const url of BINANCE_URLS) {
       try {
-        const res = await fetch("/api/market/funding-rates");
-        if (!res.ok) throw new Error("Failed to fetch");
-        const json = await res.json();
-        setRates(json.rates ?? []);
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const data = await res.json();
+        setRates(data);
         setError(null);
         setLoading(false);
         setRefreshing(false);
         return;
       } catch {
-        if (attempt === 0) {
-          await new Promise((r) => setTimeout(r, 2000));
-        }
+        continue;
       }
     }
-    // Both attempts failed — keep stale data if we have it
+    // All URLs failed — keep stale data if we have it
     if (rates.length === 0) {
       setError("Failed to load funding rates.");
     } else {
