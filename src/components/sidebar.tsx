@@ -52,7 +52,6 @@ import {
   BarChart2,
   CalendarCheck,
   Clock,
-  MoreHorizontal,
 } from "lucide-react";
 import { StargateLogo } from "./stargate-logo";
 import { useTheme, type ViewMode } from "@/lib/theme-context";
@@ -60,7 +59,6 @@ import { hasStockAccess } from "@/lib/addons";
 import { createClient } from "@/lib/supabase/client";
 import { clearSubscriptionCache } from "@/lib/use-subscription";
 import { useSubscriptionContext } from "@/lib/subscription-context";
-import { SidebarFlyout } from "./sidebar-flyout";
 
 /* ────────────────────────────────────────────────────────────────── */
 /*  Nav item definitions                                              */
@@ -73,7 +71,9 @@ interface NavItem {
   tourId?: string;
 }
 
-const mainItems: NavItem[] = [
+/* ── Core (always visible, both modes) ─────────────────── */
+
+const coreItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tourId: "tour-home" },
   { href: "/dashboard/trades", label: "Trade Log", icon: Table2, tourId: "tour-trades" },
   { href: "/dashboard/journal", label: "Journal", icon: BookOpen },
@@ -82,35 +82,13 @@ const mainItems: NavItem[] = [
   { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList, tourId: "tour-plans" },
 ];
 
-const intelligenceItems: NavItem[] = [
-  { href: "/dashboard/insights", label: "Insights", icon: Brain },
-  { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles },
-  { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
-];
+/* ── Performance & Analysis ────────────────────────────── */
 
-const toolItems: NavItem[] = [
-  { href: "/dashboard/market", label: "Market Overview", icon: Globe },
-  { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
-  { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
-  { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
-  { href: "/dashboard/goals", label: "Goals", icon: Target },
-];
-
-const advancedToolItems: NavItem[] = [
-  { href: "/dashboard/screener", label: "Token Screener", icon: Search },
-  { href: "/dashboard/funding-rates", label: "Derivatives", icon: BarChart3 },
-  { href: "/dashboard/prop-firm", label: "Prop Firm", icon: Flame },
-  { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
-  { href: "/dashboard/risk-analysis", label: "Risk Analysis", icon: TrendingDown },
-  { href: "/dashboard/execution", label: "Execution", icon: Crosshair },
-  { href: "/dashboard/rules", label: "Rule Tracker", icon: ShieldAlert },
-  { href: "/dashboard/simulations", label: "Simulations", icon: Dices },
-  { href: "/dashboard/taxes", label: "Tax Reports", icon: Receipt },
-];
-
-const dateChartItems: NavItem[] = [
-  { href: "/dashboard/trades/day-grouped", label: "Day Grouped", icon: CalendarDays },
-  { href: "/dashboard/performance/calendar", label: "Calendar Grouped", icon: CalendarCheck },
+const analysisTopItems: NavItem[] = [
+  { href: "/dashboard/analysis/running-pnl", label: "Running PnL Analysis", icon: Activity },
+  { href: "/dashboard/analysis/trade-count", label: "Trade Count", icon: Hash },
+  { href: "/dashboard/analysis/volume", label: "Volume", icon: BarChart },
+  { href: "/dashboard/analysis/fees", label: "Commissions/Fees", icon: DollarSign },
 ];
 
 const performanceItems: NavItem[] = [
@@ -124,77 +102,167 @@ const performanceItems: NavItem[] = [
   { href: "/dashboard/performance/trends", label: "Trend Analysis", icon: TrendingUp },
 ];
 
+const exitAnalysisItems: NavItem[] = [
+  { href: "/dashboard/exit-analysis?tab=best-exit-pnl", label: "Exit PnL", icon: TrendingUp },
+  { href: "/dashboard/exit-analysis?tab=best-exit-efficiency", label: "Exit Efficiency", icon: Gauge },
+  { href: "/dashboard/exit-analysis?tab=best-exit-time", label: "Exit Time", icon: Clock },
+  { href: "/dashboard/exit-analysis?tab=eod-pnl", label: "EOD Exit PnL", icon: TrendingDown },
+  { href: "/dashboard/exit-analysis?tab=eod-efficiency", label: "EOD Efficiency", icon: Gauge },
+  { href: "/dashboard/exit-analysis?tab=multi-tf", label: "Multi-Timeframe", icon: Layers },
+];
+
+const breakdownItems: NavItem[] = [
+  { href: "/dashboard/analysis/tag-groups", label: "Tag Groups", icon: Tag },
+  { href: "/dashboard/analysis/sectors", label: "Sectors", icon: Layers },
+  { href: "/dashboard/analysis/treemap/symbol", label: "Treemap: Symbol", icon: TreePine },
+  { href: "/dashboard/analysis/treemap/sector", label: "Treemap: Sector", icon: TreePine },
+  { href: "/dashboard/analysis/treemap/tags", label: "Treemap: Tags", icon: TreePine },
+];
+
 const summaryItems: NavItem[] = [
   { href: "/dashboard/summaries/accounts", label: "Accounts Statistics", icon: BarChart3 },
   { href: "/dashboard/summaries/tags", label: "Tag Groups Statistics", icon: BarChart3 },
   { href: "/dashboard/summaries/open-trades", label: "Open Trades Summary", icon: BarChart3 },
 ];
 
-const analysisItems: NavItem[] = [
-  { href: "/dashboard/analysis/running-pnl", label: "Running PnL Analysis", icon: Activity },
-  { href: "/dashboard/analysis/tag-groups", label: "Tag Groups", icon: Tag },
-  { href: "/dashboard/analysis/sectors", label: "Sectors", icon: Layers },
-  { href: "/dashboard/analysis/trade-count", label: "Trade Count", icon: Hash },
-  { href: "/dashboard/analysis/volume", label: "Volume", icon: BarChart },
-  { href: "/dashboard/analysis/fees", label: "Commissions/Fees", icon: DollarSign },
+const dateViewItems: NavItem[] = [
+  { href: "/dashboard/trades/day-grouped", label: "Day Grouped", icon: CalendarDays },
+  { href: "/dashboard/performance/calendar", label: "Calendar Grouped", icon: CalendarCheck },
 ];
 
-const treemapItems: NavItem[] = [
-  { href: "/dashboard/analysis/treemap/symbol", label: "Symbol", icon: TreePine },
-  { href: "/dashboard/analysis/treemap/sector", label: "Sector", icon: TreePine },
-  { href: "/dashboard/analysis/treemap/tags", label: "Tags", icon: TreePine },
+/* ── Intelligence ──────────────────────────────────────── */
+
+const intelligenceItems: NavItem[] = [
+  { href: "/dashboard/insights", label: "Insights", icon: Brain },
+  { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles },
+  { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
 ];
 
-const bestExitItems: NavItem[] = [
-  { href: "/dashboard/exit-analysis?tab=best-exit-pnl", label: "Exit PnL", icon: TrendingUp },
-  { href: "/dashboard/exit-analysis?tab=best-exit-efficiency", label: "Exit Efficiency", icon: Gauge },
-  { href: "/dashboard/exit-analysis?tab=best-exit-time", label: "Exit Time", icon: Clock },
+/* ── Market & Tools ────────────────────────────────────── */
+
+const marketToolsItemsFull: NavItem[] = [
+  { href: "/dashboard/market", label: "Market Overview", icon: Globe },
+  { href: "/dashboard/screener", label: "Token Screener", icon: Search },
+  { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
+  { href: "/dashboard/funding-rates", label: "Derivatives", icon: BarChart3 },
+  { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
+  { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
+  { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
 ];
 
-const eodExitItems: NavItem[] = [
-  { href: "/dashboard/exit-analysis?tab=eod-pnl", label: "EOD Exit PnL", icon: TrendingDown },
-  { href: "/dashboard/exit-analysis?tab=eod-efficiency", label: "EOD Efficiency", icon: Gauge },
+const marketToolsItemsSimple: NavItem[] = [
+  { href: "/dashboard/market", label: "Market Overview", icon: Globe },
+  { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
+  { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
+  { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
+  { href: "/dashboard/goals", label: "Goals", icon: Target },
 ];
 
-const multiTimeframeItem: NavItem = {
-  href: "/dashboard/exit-analysis?tab=multi-tf",
-  label: "Multi-Timeframe",
-  icon: Layers,
-};
+/* ── Discipline ────────────────────────────────────────── */
 
-const exitAnalysisItemsFlat: NavItem[] = [...bestExitItems, ...eodExitItems, multiTimeframeItem];
+const disciplineItems: NavItem[] = [
+  { href: "/dashboard/rules", label: "Rule Tracker", icon: ShieldAlert },
+  { href: "/dashboard/execution", label: "Execution", icon: Crosshair },
+  { href: "/dashboard/goals", label: "Goals", icon: Target },
+  { href: "/dashboard/risk-analysis", label: "Risk Analysis", icon: TrendingDown },
+  { href: "/dashboard/prop-firm", label: "Prop Firm", icon: Flame },
+];
+
+/* ── Reports ───────────────────────────────────────────── */
+
+const reportItems: NavItem[] = [
+  { href: "/dashboard/taxes", label: "Tax Reports", icon: Receipt },
+  { href: "/dashboard/simulations", label: "Simulations", icon: Dices },
+];
+
+/* ── Bottom ────────────────────────────────────────────── */
 
 const bottomItems: NavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 /* ────────────────────────────────────────────────────────────────── */
-/*  Flyout section metadata                                           */
+/*  Section configuration                                             */
 /* ────────────────────────────────────────────────────────────────── */
 
-interface FlyoutSectionMeta {
+interface SubSection {
+  key: string;
+  label: string;
+  items: NavItem[];
+}
+
+interface NavSection {
   key: string;
   label: string;
   icon: React.ComponentType<{ size?: number }>;
+  items: NavItem[];
+  subSections?: SubSection[];
+  visibleInSimple: boolean;
+  simpleItems?: NavItem[];
 }
 
-const FLYOUT_SECTIONS: FlyoutSectionMeta[] = [
-  { key: "dateCharts", label: "Date Charts", icon: CalendarDays },
-  { key: "performance", label: "Performance", icon: Activity },
-  { key: "summaries", label: "Summaries", icon: PieChart },
-  { key: "analysis", label: "Trades Analysis", icon: BarChart3 },
-  { key: "exitAnalysis", label: "Exit Analysis", icon: Crosshair },
+const NAV_SECTIONS: NavSection[] = [
+  {
+    key: "analysis",
+    label: "Performance & Analysis",
+    icon: PieChart,
+    items: analysisTopItems,
+    subSections: [
+      { key: "performance", label: "Performance", items: performanceItems },
+      { key: "exitAnalysis", label: "Exit Analysis", items: exitAnalysisItems },
+      { key: "breakdowns", label: "Breakdown Views", items: breakdownItems },
+      { key: "summaries", label: "Summaries", items: summaryItems },
+      { key: "dateViews", label: "Date Views", items: dateViewItems },
+    ],
+    visibleInSimple: false,
+  },
+  {
+    key: "intelligence",
+    label: "Intelligence",
+    icon: Brain,
+    items: intelligenceItems,
+    visibleInSimple: true,
+  },
+  {
+    key: "market",
+    label: "Market & Tools",
+    icon: Globe,
+    items: marketToolsItemsFull,
+    visibleInSimple: true,
+    simpleItems: marketToolsItemsSimple,
+  },
+  {
+    key: "discipline",
+    label: "Discipline",
+    icon: ShieldAlert,
+    items: disciplineItems,
+    visibleInSimple: false,
+  },
+  {
+    key: "reports",
+    label: "Reports",
+    icon: FileBarChart,
+    items: reportItems,
+    visibleInSimple: false,
+  },
 ];
 
-function getFlatItems(key: string): NavItem[] {
-  switch (key) {
-    case "dateCharts": return dateChartItems;
-    case "performance": return performanceItems;
-    case "summaries": return summaryItems;
-    case "analysis": return [...analysisItems, ...treemapItems];
-    case "exitAnalysis": return exitAnalysisItemsFlat;
-    default: return [];
-  }
+/* ────────────────────────────────────────────────────────────────── */
+/*  localStorage helpers                                              */
+/* ────────────────────────────────────────────────────────────────── */
+
+const SECTION_STATE_KEY = "stargate-sidebar-sections";
+
+function loadSectionState(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(SECTION_STATE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return {};
+}
+
+function saveSectionState(state: Record<string, boolean>) {
+  localStorage.setItem(SECTION_STATE_KEY, JSON.stringify(state));
 }
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -209,14 +277,10 @@ export function Sidebar() {
   const [assetContext, setAssetContext] = useState<"crypto" | "stocks">("crypto");
   const [showStockUpgrade, setShowStockUpgrade] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [activeFlyout, setActiveFlyout] = useState<string | null>(null);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [sectionState, setSectionState] = useState<Record<string, boolean>>({});
   const { isOwner: isOwnerFromContext } = useSubscriptionContext();
   const [isOwner, setIsOwner] = useState(isOwnerFromContext);
   const { viewMode, setViewModeTo } = useTheme();
-
-  // Flyout trigger refs (desktop only)
-  const flyoutRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
     if (!isOwnerFromContext && document.cookie.includes("stargate-owner=1")) {
@@ -267,8 +331,7 @@ export function Sidebar() {
         setAssetContext("crypto");
       }
     }
-    const savedMore = localStorage.getItem("stargate-more-open");
-    if (savedMore === "true") setMoreOpen(true);
+    setSectionState(loadSectionState());
   }, []);
 
   useEffect(() => {
@@ -279,38 +342,62 @@ export function Sidebar() {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Close flyout on route change
-  useEffect(() => {
-    setActiveFlyout(null);
-  }, [pathname]);
-
   const isActive = (href: string) =>
     href === "/dashboard"
       ? pathname === "/dashboard"
       : pathname.startsWith(href.split("?")[0]);
 
-  const toggleFlyout = useCallback((key: string) => {
-    setActiveFlyout(prev => prev === key ? null : key);
+  const toggleSection = useCallback((key: string) => {
+    setSectionState(prev => {
+      const next = { ...prev, [key]: !(prev[key] ?? true) };
+      saveSectionState(next);
+      return next;
+    });
   }, []);
 
-  /* ── NavLink ─────────────────────────────────────── */
-  function NavLink({ item, isMobile, compact }: { item: NavItem; isMobile: boolean; compact?: boolean }) {
+  const isSectionOpen = useCallback((key: string) => {
+    return sectionState[key] ?? true; // default open
+  }, [sectionState]);
+
+  /* ── Asset context resolution ──────────────── */
+
+  const resolvedCoreItems: NavItem[] = assetContext === "stocks"
+    ? coreItems.map((item, i) => {
+        if (i === 0) return { ...item, href: "/dashboard/stocks", label: "Dashboard" };
+        if (i === 1) return { ...item, href: "/dashboard/stocks/trades", label: "Positions" };
+        if (i === 4) return { ...item, href: "/dashboard/stocks/analytics", label: "Analytics" };
+        if (i === 5) return { ...item, href: "/dashboard/stocks/plans", label: "Watchlist" };
+        return item;
+      })
+    : coreItems;
+
+  function resolveItems(items: NavItem[]): NavItem[] {
+    if (assetContext === "stocks") {
+      return items
+        .filter(item => !["/dashboard/dca", "/dashboard/screener", "/dashboard/funding-rates", "/dashboard/prop-firm", "/dashboard/simulations"].includes(item.href))
+        .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/stocks/market" } : item);
+    }
+    return items;
+  }
+
+  /* ── NavLink ─────────────────────────────────── */
+
+  function NavLink({ item, isMobile, indent }: { item: NavItem; isMobile: boolean; indent?: boolean }) {
     const tourId = item.tourId ?? `tour-${item.href.replace("/dashboard/", "").replace("/dashboard", "home") || "home"}`;
     return (
       <Link
         id={!isMobile ? tourId : undefined}
         href={item.href}
         title={!isMobile && collapsed ? item.label : undefined}
-        onClick={() => setActiveFlyout(null)}
         className={`flex items-center gap-3 ${
-          !isMobile && collapsed ? "justify-center px-2" : "px-3"
-        } ${compact ? "py-1.5" : "py-2"} rounded-xl text-sm font-medium transition-all duration-200 ${
+          !isMobile && collapsed ? "justify-center px-2" : indent ? "px-3 pl-7" : "px-3"
+        } py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
           isActive(item.href)
             ? "text-accent bg-accent/10 shadow-[0_0_12px_rgba(0,180,216,0.15)]"
             : "text-muted hover:text-foreground hover:bg-surface-hover"
         }`}
       >
-        <item.icon size={compact ? 16 : 18} />
+        <item.icon size={18} />
         {(isMobile || !collapsed) && (
           <span className="truncate">{item.label}</span>
         )}
@@ -318,150 +405,166 @@ export function Sidebar() {
     );
   }
 
-  /* ── FlyoutNavLink (used inside flyout panels) ─── */
-  function FlyoutNavLink({ item }: { item: NavItem }) {
+  /* ── Section header ──────────────────────────── */
+
+  function SectionHeader({
+    sectionKey,
+    label,
+    icon: Icon,
+    isMobile,
+    count,
+  }: {
+    sectionKey: string;
+    label: string;
+    icon: React.ComponentType<{ size?: number }>;
+    isMobile: boolean;
+    count?: number;
+  }) {
+    const open = isSectionOpen(sectionKey);
+
+    if (!isMobile && collapsed) {
+      return (
+        <button
+          onClick={() => {
+            setCollapsed(false);
+            if (!isSectionOpen(sectionKey)) toggleSection(sectionKey);
+          }}
+          className="w-full flex justify-center py-1.5 text-muted/60 hover:text-muted transition-colors"
+          title={label}
+        >
+          <Icon size={16} />
+        </button>
+      );
+    }
+
     return (
-      <Link
-        href={item.href}
-        onClick={() => setActiveFlyout(null)}
-        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-          isActive(item.href)
-            ? "text-accent bg-accent/10"
-            : "text-muted hover:text-foreground hover:bg-surface-hover"
-        }`}
+      <button
+        onClick={() => toggleSection(sectionKey)}
+        className="w-full flex items-center justify-between px-3 py-1.5 group"
       >
-        <item.icon size={16} />
-        <span className="truncate">{item.label}</span>
-      </Link>
+        <div className="flex items-center gap-1.5 text-muted/60">
+          <Icon size={12} />
+          <span className="text-[10px] uppercase tracking-wider font-semibold group-hover:text-muted transition-colors">
+            {label}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          {count !== undefined && (
+            <span className="text-[9px] text-muted/40">{count}</span>
+          )}
+          <ChevronDown
+            size={12}
+            className={`text-muted/40 transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+          />
+        </div>
+      </button>
     );
   }
 
-  /* ── Resolved items based on asset context ──────── */
-  const resolvedMainItems: NavItem[] = assetContext === "stocks"
-    ? mainItems.map((item, i) => {
-        if (i === 0) return { ...item, href: "/dashboard/stocks", label: "Dashboard" };
-        if (i === 1) return { ...item, href: "/dashboard/stocks/trades", label: "Positions" };
-        if (i === 4) return { ...item, href: "/dashboard/stocks/analytics", label: "Analytics" };
-        if (i === 5) return { ...item, href: "/dashboard/stocks/plans", label: "Watchlist" };
-        return item;
-      })
-    : mainItems;
+  /* ── Sub-section header (nested within a section) ── */
 
-  const resolvedToolItems = assetContext === "stocks"
-    ? toolItems
-        .filter(item => !["/dashboard/dca"].includes(item.href))
-        .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/stocks/market" } : item)
-    : toolItems;
+  function SubSectionHeader({
+    sectionKey,
+    label,
+    isMobile,
+  }: {
+    sectionKey: string;
+    label: string;
+    isMobile: boolean;
+  }) {
+    const open = isSectionOpen(sectionKey);
 
-  const resolvedAdvancedItems = assetContext === "stocks"
-    ? advancedToolItems.filter(item => !["/dashboard/prop-firm", "/dashboard/simulations", "/dashboard/screener", "/dashboard/funding-rates"].includes(item.href))
-    : advancedToolItems;
+    if (!isMobile && collapsed) return null;
 
-  // All items for the "More" section in Simple mode
-  const moreItems: NavItem[] = [
-    ...FLYOUT_SECTIONS.flatMap(s => getFlatItems(s.key)),
-    ...resolvedAdvancedItems,
-  ];
-
-  const isCompact = viewMode === "expert";
-
-  /* ── Flyout content renderers ───────────────────── */
-  function renderFlyoutContent(key: string) {
-    if (key === "analysis") {
-      return (
-        <>
-          {analysisItems.map(item => <FlyoutNavLink key={item.href} item={item} />)}
-          <p className="px-3 mt-2.5 mb-1 text-[10px] uppercase tracking-wider text-muted/50 font-semibold">
-            Treemap Charts
-          </p>
-          {treemapItems.map(item => <FlyoutNavLink key={item.href} item={item} />)}
-        </>
-      );
-    }
-    if (key === "exitAnalysis") {
-      return (
-        <>
-          <p className="px-3 mb-1 text-[10px] uppercase tracking-wider text-muted/50 font-semibold">
-            Best Exit
-          </p>
-          {bestExitItems.map(item => <FlyoutNavLink key={item.href} item={item} />)}
-          <p className="px-3 mt-2.5 mb-1 text-[10px] uppercase tracking-wider text-muted/50 font-semibold">
-            EOD Exit
-          </p>
-          {eodExitItems.map(item => <FlyoutNavLink key={item.href} item={item} />)}
-          <div className="h-px bg-border/50 mx-2 my-2" />
-          <FlyoutNavLink item={multiTimeframeItem} />
-        </>
-      );
-    }
-    return getFlatItems(key).map(item => <FlyoutNavLink key={item.href} item={item} />);
+    return (
+      <button
+        onClick={() => toggleSection(sectionKey)}
+        className="w-full flex items-center justify-between px-3 pl-5 py-1 group"
+      >
+        <span className="text-[10px] uppercase tracking-wider text-muted/50 font-semibold group-hover:text-muted/70 transition-colors">
+          {label}
+        </span>
+        <ChevronDown
+          size={10}
+          className={`text-muted/30 transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+        />
+      </button>
+    );
   }
 
-  /* ── Inline section (Expert mode + Mobile) ──────── */
-  function renderInlineSection(key: string, isMobile: boolean) {
-    if (key === "analysis") {
-      return (
-        <div className="space-y-0.5">
-          {analysisItems.map(item => <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />)}
-          {(isMobile || !collapsed) && (
-            <p className="px-3 py-1 text-[10px] uppercase tracking-wider text-muted/50 font-semibold">
-              Treemap Charts
-            </p>
-          )}
-          <div className="space-y-0.5 pl-1">
-            {treemapItems.map(item => <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />)}
-          </div>
-        </div>
-      );
-    }
-    if (key === "exitAnalysis") {
-      return (
-        <div className="space-y-0.5">
-          {(isMobile || !collapsed) && (
-            <p className="px-3 py-1 text-[10px] uppercase tracking-wider text-muted/50 font-semibold">
-              Best Exit
-            </p>
-          )}
-          {bestExitItems.map(item => <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />)}
-          {(isMobile || !collapsed) && (
-            <p className="px-3 py-1 text-[10px] uppercase tracking-wider text-muted/50 font-semibold">
-              EOD Exit
-            </p>
-          )}
-          {eodExitItems.map(item => <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />)}
-          <NavLink item={multiTimeframeItem} isMobile={isMobile} compact={isCompact} />
-        </div>
-      );
-    }
+  /* ── Render a full section ───────────────────── */
+
+  function renderSection(section: NavSection, isMobile: boolean) {
+    const isSimple = viewMode === "simple";
+    if (isSimple && !section.visibleInSimple) return null;
+
+    const items = isSimple && section.simpleItems
+      ? resolveItems(section.simpleItems)
+      : resolveItems(section.items);
+
+    if (items.length === 0 && !section.subSections?.length) return null;
+
+    const totalCount = items.length + (section.subSections?.reduce((s, sub) => s + resolveItems(sub.items).length, 0) ?? 0);
+    const open = isSectionOpen(section.key);
+
     return (
-      <div className="space-y-0.5">
-        {getFlatItems(key).map(item => <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />)}
+      <div key={section.key}>
+        <div className="h-px bg-border/50 mx-2 my-3" />
+        <SectionHeader
+          sectionKey={section.key}
+          label={isSimple && section.key === "market" ? "Tools" : section.label}
+          icon={section.icon}
+          isMobile={isMobile}
+          count={totalCount}
+        />
+        {(open || (!isMobile && collapsed)) && (
+          <div className="space-y-0.5">
+            {items.map(item => (
+              <NavLink key={item.href} item={item} isMobile={isMobile} />
+            ))}
+            {!isSimple && section.subSections?.map(sub => {
+              const subItems = resolveItems(sub.items);
+              if (subItems.length === 0) return null;
+              const subOpen = isSectionOpen(sub.key);
+              return (
+                <div key={sub.key}>
+                  <SubSectionHeader
+                    sectionKey={sub.key}
+                    label={sub.label}
+                    isMobile={isMobile}
+                  />
+                  {subOpen && (
+                    <div className="space-y-0.5">
+                      {subItems.map(item => (
+                        <NavLink key={item.href} item={item} isMobile={isMobile} indent />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }
 
-  /* ── Mode pill ──────────────────────────────────── */
+  /* ── Mode pill ──────────────────────────────── */
+
   function ModePill({ isMobile }: { isMobile: boolean }) {
     const modes: { value: ViewMode; label: string }[] = [
       { value: "simple", label: "Simple" },
-      { value: "advanced", label: "Advanced" },
-      { value: "expert", label: "Expert" },
+      { value: "full", label: "Full" },
     ];
 
     if (!isMobile && collapsed) {
-      // Collapsed: cycle button
-      const modeIcons: Record<ViewMode, string> = { simple: "S", advanced: "A", expert: "E" };
       return (
         <button
-          onClick={() => {
-            const order: ViewMode[] = ["simple", "advanced", "expert"];
-            const idx = order.indexOf(viewMode);
-            setViewModeTo(order[(idx + 1) % order.length]);
-          }}
+          onClick={() => setViewModeTo(viewMode === "simple" ? "full" : "simple")}
           className="w-full flex items-center justify-center px-2 py-2 rounded-xl text-xs font-bold transition-all duration-300 mb-1 bg-accent/10 text-accent border border-accent/20"
-          title={`Mode: ${viewMode.charAt(0).toUpperCase() + viewMode.slice(1)}`}
+          title={`Mode: ${viewMode === "simple" ? "Simple" : "Full"}`}
         >
-          {modeIcons[viewMode]}
+          {viewMode === "simple" ? "S" : "F"}
         </button>
       );
     }
@@ -554,192 +657,35 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3 px-2">
-
-        {/* ── Core items (always visible) ─────────── */}
+        {/* Core items (always visible) */}
         <div className="space-y-0.5">
-          {resolvedMainItems.map(item => (
-            <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />
+          {resolvedCoreItems.map(item => (
+            <NavLink key={item.href} item={item} isMobile={isMobile} />
           ))}
         </div>
 
-        {/* ── Sections: Advanced mode → flyout triggers, Expert → inline, Simple → hidden ── */}
-        {(viewMode !== "simple" || isMobile) && (
-          <>
-            {FLYOUT_SECTIONS.map(section => (
-              <div key={section.key}>
-                <div className={`h-px bg-border/50 mx-2 ${isCompact ? "my-2" : "my-3"}`} />
-
-                {/* Advanced mode (desktop): flyout trigger */}
-                {viewMode === "advanced" && !isMobile ? (
-                  (collapsed ? (
-                    <button
-                      ref={el => { flyoutRefs.current[section.key] = el; }}
-                      onClick={() => toggleFlyout(section.key)}
-                      className={`w-full flex justify-center py-1.5 group transition-colors ${activeFlyout === section.key ? "text-accent" : "text-muted/60 hover:text-muted"}`}
-                    >
-                      <section.icon size={16} />
-                    </button>
-                  ) : (
-                    <button
-                      ref={el => { flyoutRefs.current[section.key] = el; }}
-                      onClick={() => toggleFlyout(section.key)}
-                      className="w-full flex items-center justify-between px-3 py-1 group"
-                    >
-                      <div className={`flex items-center gap-1.5 ${activeFlyout === section.key ? "text-accent" : "text-muted/60"}`}>
-                        <section.icon size={12} />
-                        <span className={`text-[10px] uppercase tracking-wider font-semibold transition-colors ${
-                          activeFlyout === section.key ? "text-accent" : "text-muted/60 group-hover:text-muted"
-                        }`}>
-                          {section.label}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[9px] text-muted/40">{getFlatItems(section.key).length}</span>
-                        <ChevronRight
-                          size={12}
-                          className={`transition-all duration-200 ${
-                            activeFlyout === section.key ? "text-accent translate-x-0.5" : "text-muted/40"
-                          }`}
-                        />
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  /* Expert mode or Mobile: inline expanded */
-                  <>
-                    {(isMobile || !collapsed) ? (
-                      <p className="px-3 mb-1 text-[10px] uppercase tracking-wider text-muted/60 font-semibold flex items-center gap-1.5">
-                        <section.icon size={12} />
-                        {section.label}
-                        {isCompact && (
-                          <span className="text-[9px] text-muted/40 font-normal ml-auto">{getFlatItems(section.key).length}</span>
-                        )}
-                      </p>
-                    ) : (
-                      <div className="flex justify-center py-1 text-muted/60">
-                        <section.icon size={16} />
-                      </div>
-                    )}
-                    {renderInlineSection(section.key, isMobile)}
-                  </>
-                )}
-              </div>
-            ))}
-          </>
-        )}
-
-        {/* ── Separator ──────────────────────────── */}
-        <div className={`h-px bg-border/50 mx-2 ${isCompact ? "my-2" : "my-3"}`} />
-
-        {/* ── Intelligence (always visible) ──────── */}
-        {(isMobile || !collapsed) && (
-          <p className={`px-3 mb-1 text-[10px] uppercase tracking-wider text-muted/60 font-semibold`}>
-            Intelligence
-          </p>
-        )}
-        <div className="space-y-0.5">
-          {intelligenceItems.map(item => (
-            <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />
-          ))}
-        </div>
-
-        {/* ── Separator ──────────────────────────── */}
-        <div className={`h-px bg-border/50 mx-2 ${isCompact ? "my-2" : "my-3"}`} />
-
-        {/* ── Tools (always visible) ─────────────── */}
-        {(isMobile || !collapsed) && (
-          <p className={`px-3 mb-1 text-[10px] uppercase tracking-wider text-muted/60 font-semibold`}>
-            Tools
-          </p>
-        )}
-        <div className="space-y-0.5">
-          {resolvedToolItems.map(item => (
-            <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />
-          ))}
-        </div>
-
-        {/* ── Advanced Tools (Advanced + Expert) ─── */}
-        {viewMode !== "simple" && (
-          <>
-            <div className={`h-px bg-border/50 mx-2 ${isCompact ? "my-2" : "my-3"}`} />
-            {(isMobile || !collapsed) && (
-              <p className="px-3 mb-1 text-[10px] uppercase tracking-wider text-accent/50 font-semibold">
-                Advanced
-              </p>
-            )}
-            <div className="space-y-0.5">
-              {resolvedAdvancedItems.map(item => (
-                <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ── Simple mode: "More" collapsible ────── */}
-        {viewMode === "simple" && !isMobile && (
-          <>
-            <div className={`h-px bg-border/50 mx-2 my-3`} />
-            {collapsed ? (
-              <button
-                onClick={() => {
-                  const next = !moreOpen;
-                  setMoreOpen(next);
-                  localStorage.setItem("stargate-more-open", String(next));
-                }}
-                className="w-full flex justify-center py-1 group"
-              >
-                <MoreHorizontal size={16} className={`transition-colors ${moreOpen ? "text-accent" : "text-muted/60 group-hover:text-muted"}`} />
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  const next = !moreOpen;
-                  setMoreOpen(next);
-                  localStorage.setItem("stargate-more-open", String(next));
-                }}
-                className="w-full flex items-center justify-between px-3 py-1 group"
-              >
-                <div className="flex items-center gap-1.5">
-                  <MoreHorizontal size={12} className="text-muted/60" />
-                  <span className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold group-hover:text-muted transition-colors">
-                    Other Tabs
-                  </span>
-                </div>
-                <ChevronDown
-                  size={12}
-                  className={`text-muted/60 transition-transform duration-200 ${moreOpen ? "" : "-rotate-90"}`}
-                />
-              </button>
-            )}
-            {moreOpen && (
-              <div className="space-y-0.5">
-                {moreItems.map(item => (
-                  <NavLink key={item.href} item={item} isMobile={false} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+        {/* Sections */}
+        {NAV_SECTIONS.map(section => renderSection(section, isMobile))}
       </nav>
 
-      {/* ── Bottom: Mode pill + Settings + Logout ── */}
+      {/* Bottom: Mode pill + Settings + Logout */}
       <div className="border-t border-border py-2 px-2">
         <ModePill isMobile={isMobile} />
 
         {isOwner && (
-          <NavLink item={{ href: "/dashboard/admin", label: "Admin", icon: Shield }} isMobile={isMobile} compact={isCompact} />
+          <NavLink item={{ href: "/dashboard/admin", label: "Admin", icon: Shield }} isMobile={isMobile} />
         )}
         {bottomItems.map(item => (
-          <NavLink key={item.href} item={item} isMobile={isMobile} compact={isCompact} />
+          <NavLink key={item.href} item={item} isMobile={isMobile} />
         ))}
         <button
           onClick={() => setShowLogoutConfirm(true)}
           className={`w-full flex items-center gap-3 ${
             !isMobile && collapsed ? "justify-center px-2" : "px-3"
-          } ${isCompact ? "py-1.5" : "py-2"} rounded-xl text-sm font-medium text-muted hover:text-loss hover:bg-loss/10 transition-all duration-200`}
+          } py-2 rounded-xl text-sm font-medium text-muted hover:text-loss hover:bg-loss/10 transition-all duration-200`}
           title={!isMobile && collapsed ? "Log Out" : undefined}
         >
-          <LogOut size={isCompact ? 16 : 18} />
+          <LogOut size={18} />
           {(isMobile || !collapsed) && <span>Log Out</span>}
         </button>
         {(isMobile || !collapsed) && (
@@ -799,17 +745,6 @@ export function Sidebar() {
           {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
         </button>
       </div>
-
-      {/* Flyout panels (Advanced mode, desktop only) */}
-      {activeFlyout && flyoutRefs.current[activeFlyout] && (
-        <SidebarFlyout
-          triggerRef={{ current: flyoutRefs.current[activeFlyout] }}
-          sidebarWidth={collapsed ? 68 : 240}
-          onClose={() => setActiveFlyout(null)}
-        >
-          {renderFlyoutContent(activeFlyout)}
-        </SidebarFlyout>
-      )}
 
       {/* Logout confirmation modal */}
       {showLogoutConfirm && (

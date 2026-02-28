@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 export type Theme = "dark" | "light" | "dark-simple" | "matrix" | "volcano" | "ocean";
-export type ViewMode = "simple" | "advanced" | "expert";
+export type ViewMode = "simple" | "full";
 
 export const THEMES: { value: Theme; label: string; dot: string }[] = [
   { value: "light", label: "Light", dot: "#eef0f4" },
@@ -21,7 +21,7 @@ export function isProTheme(theme: Theme): boolean {
   return PRO_THEMES.includes(theme);
 }
 
-const VIEW_MODE_ORDER: ViewMode[] = ["simple", "advanced", "expert"];
+const VIEW_MODE_ORDER: ViewMode[] = ["simple", "full"];
 
 type ThemeContextType = {
   theme: Theme;
@@ -51,7 +51,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem("stargate-theme") as Theme | null;
     if (saved && ALL_THEME_CLASSES.includes(saved)) setThemeState(saved);
     const savedMode = localStorage.getItem("stargate-mode") as string | null;
-    if (savedMode && VIEW_MODE_ORDER.includes(savedMode as ViewMode)) {
+    if (savedMode === "advanced" || savedMode === "expert") {
+      setViewModeState("full");
+      localStorage.setItem("stargate-mode", "full");
+    } else if (savedMode && VIEW_MODE_ORDER.includes(savedMode as ViewMode)) {
       setViewModeState(savedMode as ViewMode);
     }
   }, []);
