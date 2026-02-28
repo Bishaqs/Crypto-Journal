@@ -70,8 +70,8 @@ export default function DashboardPage() {
   const dailyPnl = useMemo(() => calculateDailyPnl(filteredTrades), [filteredTrades]);
   const equityData = useMemo(() => buildEquityCurve(dailyPnl), [dailyPnl]);
   const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades), [filteredTrades]);
-  const adv = useMemo(() => viewMode === "advanced" ? calculateAdvancedStats(filteredTrades) : null, [viewMode, filteredTrades]);
-  const taxReport = useMemo(() => viewMode === "advanced" ? calculateTaxReport(trades, new Date().getFullYear()) : null, [viewMode, trades]);
+  const adv = useMemo(() => viewMode === "full" ? calculateAdvancedStats(filteredTrades) : null, [viewMode, filteredTrades]);
+  const taxReport = useMemo(() => viewMode === "full" ? calculateTaxReport(trades, new Date().getFullYear()) : null, [viewMode, trades]);
 
   // Save sentiment for light theme candle background
   useEffect(() => {
@@ -192,7 +192,7 @@ export default function DashboardPage() {
 
       {/* Advanced mode stats — appears right below basic stats with smooth animation */}
       <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-        viewMode === "advanced" && adv ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
+        viewMode === "full" && adv ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
       }`}>
         {adv && (
           <div className="space-y-4 pt-2">
@@ -307,7 +307,7 @@ export default function DashboardPage() {
           <div id="tour-heatmap-mini"><CalendarHeatmap dailyPnl={dailyPnl} /></div>
           <div id="tour-ai-summary"><AISummaryWidget trades={filteredTrades} /></div>
           {/* Advanced mode links — in sidebar, visible immediately */}
-          {viewMode === "advanced" && taxReport && (
+          {viewMode === "full" && taxReport && (
             <div className="space-y-3">
               <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
                 <div className="flex items-center gap-2 mb-1">
