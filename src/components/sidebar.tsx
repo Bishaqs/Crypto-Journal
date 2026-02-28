@@ -100,6 +100,8 @@ const performanceItems: NavItem[] = [
   { href: "/dashboard/performance/volume", label: "Relative Volume", icon: BarChart2 },
   { href: "/dashboard/performance/returns", label: "Returns Distribution", icon: BarChart },
   { href: "/dashboard/performance/trends", label: "Trend Analysis", icon: TrendingUp },
+  { href: "/dashboard/analysis/technical-analysis", label: "Technical Analysis", icon: Crosshair },
+  { href: "/dashboard/performance/metrics", label: "Metrics", icon: Activity },
 ];
 
 const exitAnalysisItems: NavItem[] = [
@@ -148,6 +150,7 @@ const marketToolsItemsFull: NavItem[] = [
   { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
   { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
   { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
+  { href: "/dashboard/stocks/options-analysis", label: "Options Analysis", icon: BarChart3 },
 ];
 
 const marketToolsItemsSimple: NavItem[] = [
@@ -377,7 +380,8 @@ export function Sidebar() {
         .filter(item => !["/dashboard/dca", "/dashboard/screener", "/dashboard/funding-rates", "/dashboard/prop-firm", "/dashboard/simulations"].includes(item.href))
         .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/stocks/market" } : item);
     }
-    return items;
+    // Crypto mode: hide stocks-only items
+    return items.filter(item => !item.href.startsWith("/dashboard/stocks/"));
   }
 
   /* ── NavLink ─────────────────────────────────── */
