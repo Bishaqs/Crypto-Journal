@@ -1,0 +1,176 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+
+// TODO: Replace this mock data generator with a real options flow data source
+// such as Unusual Whales (https://unusualwhales.com/api), CBOE DataShop,
+// or Tradier API when a subscription/API key is available.
+
+const SYMBOLS = [
+  "SPY", "AAPL", "TSLA", "NVDA", "AMZN",
+  "META", "QQQ", "IWM", "AMD", "MSFT",
+];
+
+const APPROXIMATE_PRICES: Record<string, number> = {
+  SPY: 520,
+  AAPL: 195,
+  TSLA: 245,
+  NVDA: 880,
+  AMZN: 185,
+  META: 510,
+  QQQ: 445,
+  IWM: 210,
+  AMD: 165,
+  MSFT: 415,
+};
+
+type OptionsFlowEntry = {
+  symbol: string;
+  expiry: string;
+  strike: number;
+  type: "CALL" | "PUT";
+  volume: number;
+  oi: number;
+  premium: number;
+  sentiment: "bullish" | "bearish" | "neutral";
+  timestamp: string;
+};
+
+// Seeded pseudo-random number generator for deterministic output per minute
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+function generateMockFlows(count: number): OptionsFlowEntry[] {
+  // Seed changes every minute so data appears to refresh
+  const minuteSeed = Math.floor(Date.now() / 60000);
+  const rand = seededRandom(minuteSeed);
+
+  const flows: OptionsFlowEntry[] = [];
+  const now = Date.now();
+
+  for (let i = 0; i < count; i++) {
+    const symbol = SYMBOLS[Math.floor(rand() * SYMBOLS.length)];
+    const basePrice = APPROXIMATE_PRICES[symbol] ?? 100;
+
+    // Strike near current price: +/- 10%
+    const strikeOffset = (rand() - 0.5) * 0.2 * basePrice;
+    const strike = Math.round((basePrice + strikeOffset) / 5) * 5; // Round to nearest $5
+
+    // Random expiry 1-60 days out, on a Friday
+    const daysOut = Math.floor(rand() * 60) + 1;
+    const expiryDate = new Date(now + daysOut * 86400000);
+    // Shift to next Friday
+    const dayOfWeek = expiryDate.getDay();
+    const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
+    expiryDate.setDate(expiryDate.getDate() + daysUntilFriday);
+    const expiry = expiryDate.toISOString().split("T")[0];
+
+    const type: "CALL" | "PUT" = rand() > 0.45 ? "CALL" : "PUT";
+
+    // Volume and OI: realistic ranges
+    const volume = Math.floor(rand() * 15000) + 100;
+    const oi = Math.floor(rand() * 50000) + 500;
+
+    // Premium: between $10K and $5M (larger = more notable)
+    const premiumBase = Math.floor(rand() * 5000000) + 10000;
+    const premium = Math.round(premiumBase / 100) * 100;
+
+    // Sentiment derived from call/put + premium size + volume/OI ratio
+    let sentiment: "bullish" | "bearish" | "neutral";
+    const volumeOiRatio = volume / oi;
+    if (type === "CALL" && volumeOiRatio > 0.5) {
+      sentiment = rand() > 0.2 ? "bullish" : "neutral";
+    } else if (type === "PUT" && volumeOiRatio > 0.5) {
+      sentiment = rand() > 0.2 ? "bearish" : "neutral";
+    } else {
+      const r = rand();
+      sentiment = r > 0.6 ? "bullish" : r > 0.3 ? "bearish" : "neutral";
+    }
+
+    // Timestamp: spread over last 30 minutes
+    const minutesAgo = Math.floor(rand() * 30);
+    const ts = new Date(now - minutesAgo * 60000);
+
+    flows.push({
+      symbol,
+      expiry,
+      strike,
+      type,
+      volume,
+      oi,
+      premium,
+      sentiment,
+      timestamp: ts.toISOString(),
+    });
+  }
+
+  // Sort by premium descending (biggest trades first)
+  flows.sort((a, b) => b.premium - a.premium);
+
+  return flows;
+}
+
+export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const flows = generateMockFlows(50);
+
+    const sentimentSummary = {
+      bullish: flows.filter((f) => f.sentiment === "bullish").length,
+      bearish: flows.filter((f) => f.sentiment === "bearish").length,
+      neutral: flows.filter((f) => f.sentiment === "neutral").length,
+    };
+
+    const totalPremium = flows.reduce((sum, f) => sum + f.premium, 0);
+    const callVolume = flows
+      .filter((f) => f.type === "CALL")
+      .reduce((sum, f) => sum + f.volume, 0);
+    const putVolume = flows
+      .filter((f) => f.type === "PUT")
+      .reduce((sum, f) => sum + f.volume, 0);
+
+    const response = NextResponse.json({
+      flows,
+      summary: {
+        totalFlows: flows.length,
+        totalPremium,
+        callVolume,
+        putVolume,
+        putCallRatio:
+          callVolume > 0
+            ? Math.round((putVolume / callVolume) * 100) / 100
+            : 0,
+        sentiment: sentimentSummary,
+      },
+      // NOTE: This endpoint serves mock/simulated data. Replace with a real
+      // options flow data source (Unusual Whales, CBOE DataShop, Tradier)
+      // when an API key or subscription becomes available.
+      isMockData: true,
+      timestamp: Date.now(),
+    });
+
+    response.headers.set(
+      "Cache-Control",
+      "s-maxage=60, stale-while-revalidate=120"
+    );
+    return response;
+  } catch (err) {
+    console.error(
+      "[market/options-flow]",
+      err instanceof Error ? err.message : err
+    );
+    return NextResponse.json(
+      { error: "Failed to generate options flow data" },
+      { status: 500 }
+    );
+  }
+}
