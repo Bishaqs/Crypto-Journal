@@ -11,6 +11,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import { AppsDropdown } from "@/components/apps-dropdown";
 
 function formatToday(): string {
   return new Date().toLocaleDateString("en-US", {
@@ -104,6 +105,9 @@ export function Header() {
         >
           <RefreshCw size={14} className={syncing ? "animate-spin text-accent" : ""} />
         </button>
+
+        {/* Apps launcher */}
+        <AppsDropdown />
 
         {/* Theme picker */}
         <div className="relative">
