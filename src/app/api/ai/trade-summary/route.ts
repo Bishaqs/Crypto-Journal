@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { TradeSummarySchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
+import { getProvider, resolveModel } from "@/lib/ai";
 
 const SYSTEM_PROMPT = `You are Stargate AI — a trading psychology coach analyzing a single trade.
 
@@ -37,15 +37,17 @@ export async function POST(req: NextRequest) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { trade } = parsed.data;
+  const { trade, provider: providerId, model: modelId } = parsed.data;
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  const provider = getProvider(providerId);
+  if (!provider.isConfigured()) {
     return NextResponse.json(
       { error: "AI service not configured. Contact the administrator." },
       { status: 500 }
     );
   }
+
+  const model = resolveModel(provider.id, modelId);
 
   const pnl = trade.pnl != null ? `$${Number(trade.pnl).toFixed(2)}` : "OPEN";
   const duration = trade.close_timestamp && trade.open_timestamp
@@ -66,20 +68,13 @@ export async function POST(req: NextRequest) {
 - **Notes**: ${trade.notes || "None"}
 - **Tags**: ${trade.tags?.length ? trade.tags.join(", ") : "None"}`;
 
-  const client = new Anthropic({ apiKey });
-
   try {
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 512,
+    const text = await provider.chat({
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: `Analyze this trade:\n\n${tradeContext}` }],
+      userMessage: `Analyze this trade:\n\n${tradeContext}`,
+      maxTokens: 512,
+      model,
     });
-
-    const text = response.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("");
 
     return NextResponse.json({ summary: text });
   } catch (err) {

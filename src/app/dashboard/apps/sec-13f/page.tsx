@@ -46,19 +46,24 @@ export default function Sec13fPage() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [holdingsSearch, setHoldingsSearch] = useState("");
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!query.trim()) return;
+  async function doSearch(term: string) {
+    if (!term.trim()) return;
     setSearching(true);
     setError(null);
     setSelectedFund(null);
     setHoldings([]);
     try {
-      const res = await fetch(`/api/market/sec-13f?search=${encodeURIComponent(query.trim())}`);
+      const res = await fetch(`/api/market/sec-13f?search=${encodeURIComponent(term.trim())}`);
       if (!res.ok) throw new Error("Search failed");
       const json = await res.json();
-      setSearchResults(json.funds ?? []);
-      if ((json.funds ?? []).length === 0) {
+      const funds = (json.results ?? []).map((r: any) => ({
+        cik: r.cik,
+        name: r.name,
+        filingDate: r.filingDate ?? "",
+        totalValue: 0,
+      }));
+      setSearchResults(funds);
+      if (funds.length === 0) {
         setError("No funds found matching your search.");
       }
     } catch {
@@ -66,6 +71,11 @@ export default function Sec13fPage() {
     } finally {
       setSearching(false);
     }
+  }
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    doSearch(query);
   }
 
   async function selectFund(fund: FundResult) {
@@ -76,7 +86,14 @@ export default function Sec13fPage() {
       const res = await fetch(`/api/market/sec-13f?cik=${encodeURIComponent(fund.cik)}`);
       if (!res.ok) throw new Error("Failed to fetch holdings");
       const json = await res.json();
-      setHoldings(json.holdings ?? []);
+      const mapped = (json.holdings ?? []).map((h: any) => ({
+        issuer: h.nameOfIssuer ?? h.issuer ?? "",
+        title: h.titleOfClass ?? h.title ?? "",
+        value: h.value ?? 0,
+        shares: h.shares ?? 0,
+        type: h.type ?? "",
+      }));
+      setHoldings(mapped);
     } catch {
       setError("Failed to load fund holdings.");
     } finally {
@@ -208,13 +225,14 @@ export default function Sec13fPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold">Portfolio Value</p>
-                  <p className="text-sm font-bold text-foreground">{formatLargeNumber(fund.totalValue)}</p>
+                  <p className="text-[10px] text-accent font-semibold uppercase tracking-wider">View Holdings &rarr;</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold">Filing Date</p>
-                  <p className="text-sm text-muted">{fund.filingDate}</p>
-                </div>
+                {fund.filingDate && (
+                  <div className="text-right">
+                    <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold">Filing Date</p>
+                    <p className="text-sm text-muted">{fund.filingDate}</p>
+                  </div>
+                )}
               </div>
             </button>
           ))}
@@ -348,9 +366,20 @@ export default function Sec13fPage() {
         >
           <FileSearch size={48} className="text-accent/30 mb-4" />
           <h3 className="text-lg font-bold text-foreground mb-2">Search Institutional Holdings</h3>
-          <p className="text-sm text-muted max-w-xs">
+          <p className="text-sm text-muted max-w-xs mb-6">
             Look up what the biggest hedge funds and institutions are holding. Search by fund name to explore their latest 13F filing.
           </p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {["Berkshire", "ARK", "Bridgewater", "Citadel", "Renaissance"].map((name) => (
+              <button
+                key={name}
+                onClick={() => { setQuery(name); doSearch(name); }}
+                className="px-4 py-2 rounded-xl bg-surface border border-border/50 text-xs font-semibold text-muted hover:text-accent hover:border-accent/30 transition-all"
+              >
+                {name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

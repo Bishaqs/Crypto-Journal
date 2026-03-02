@@ -26,7 +26,7 @@ import { PageInfoButton } from "@/components/ui/page-info-button";
 
 function StatBlock({ label, value, icon: Icon, color = "text-foreground" }: { label: string; value: string; icon: React.ElementType; color?: string }) {
   return (
-    <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className="glass rounded-xl border border-border/50 p-4 hover:border-accent/20 transition-all duration-300" style={{ boxShadow: "var(--shadow-card)" }}>
       <div className="flex items-center gap-2 mb-1">
         <Icon size={14} className="text-muted/60" />
         <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold">{label}</p>

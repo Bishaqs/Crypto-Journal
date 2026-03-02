@@ -29,6 +29,7 @@ import {
   Target,
   Activity,
   TrendingDown,
+  Loader2,
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { useTheme } from "@/lib/theme-context";
@@ -132,7 +133,7 @@ export default function MultiSimulatorPage() {
   if (!hasAccess("monte-carlo")) return <UpgradePrompt feature="monte-carlo" requiredTier="max" />;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-muted text-sm">Loading...</div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 size={24} className="animate-spin text-accent" /></div>;
   }
 
   return (

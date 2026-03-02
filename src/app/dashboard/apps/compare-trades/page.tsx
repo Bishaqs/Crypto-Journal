@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { calculateTradePnl } from "@/lib/calculations";
-import { ArrowLeftRight, Search, X, TrendingUp, TrendingDown, Clock, Tag } from "lucide-react";
+import { ArrowLeftRight, Search, X, TrendingUp, TrendingDown, Clock, Tag, Loader2 } from "lucide-react";
 import { Header } from "@/components/header";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
@@ -64,7 +64,7 @@ export default function CompareTradesPage() {
   if (!hasAccess("advanced-analytics")) return <UpgradePrompt feature="advanced-analytics" requiredTier="pro" />;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-muted text-sm">Loading...</div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 size={24} className="animate-spin text-accent" /></div>;
   }
 
   return (

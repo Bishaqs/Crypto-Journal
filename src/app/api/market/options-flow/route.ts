@@ -6,21 +6,24 @@ import { createClient } from "@/lib/supabase/server";
 // or Tradier API when a subscription/API key is available.
 
 const SYMBOLS = [
-  "SPY", "AAPL", "TSLA", "NVDA", "AMZN",
-  "META", "QQQ", "IWM", "AMD", "MSFT",
+  "SPY", "QQQ", "IWM", "DIA", "XLF",
+  "AAPL", "MSFT", "AMZN", "GOOGL", "META",
+  "TSLA", "NVDA", "AMD", "COIN", "PLTR",
+  "SMCI", "ARM", "AVGO", "MU", "INTC",
 ];
 
 const APPROXIMATE_PRICES: Record<string, number> = {
-  SPY: 520,
-  AAPL: 195,
-  TSLA: 245,
-  NVDA: 880,
-  AMZN: 185,
-  META: 510,
-  QQQ: 445,
-  IWM: 210,
-  AMD: 165,
-  MSFT: 415,
+  SPY: 520, QQQ: 445, IWM: 210, DIA: 395, XLF: 42,
+  AAPL: 195, MSFT: 415, AMZN: 185, GOOGL: 175, META: 510,
+  TSLA: 245, NVDA: 880, AMD: 165, COIN: 220, PLTR: 25,
+  SMCI: 750, ARM: 140, AVGO: 1350, MU: 95, INTC: 28,
+};
+
+const SECTOR_MAP: Record<string, string> = {
+  SPY: "ETF", QQQ: "ETF", IWM: "ETF", DIA: "ETF", XLF: "ETF",
+  AAPL: "Technology", MSFT: "Technology", AMZN: "Consumer", GOOGL: "Technology", META: "Technology",
+  TSLA: "Auto/EV", NVDA: "Semiconductor", AMD: "Semiconductor", COIN: "Crypto", PLTR: "Technology",
+  SMCI: "Technology", ARM: "Semiconductor", AVGO: "Semiconductor", MU: "Semiconductor", INTC: "Semiconductor",
 };
 
 type OptionsFlowEntry = {
@@ -33,6 +36,7 @@ type OptionsFlowEntry = {
   premium: number;
   sentiment: "bullish" | "bearish" | "neutral";
   timestamp: string;
+  sector: string;
 };
 
 // Seeded pseudo-random number generator for deterministic output per minute
@@ -58,12 +62,12 @@ function generateMockFlows(count: number): OptionsFlowEntry[] {
 
     // Strike near current price: +/- 10%
     const strikeOffset = (rand() - 0.5) * 0.2 * basePrice;
-    const strike = Math.round((basePrice + strikeOffset) / 5) * 5; // Round to nearest $5
+    const roundTo = basePrice > 500 ? 10 : basePrice > 100 ? 5 : 1;
+    const strike = Math.round((basePrice + strikeOffset) / roundTo) * roundTo;
 
     // Random expiry 1-60 days out, on a Friday
     const daysOut = Math.floor(rand() * 60) + 1;
     const expiryDate = new Date(now + daysOut * 86400000);
-    // Shift to next Friday
     const dayOfWeek = expiryDate.getDay();
     const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
     expiryDate.setDate(expiryDate.getDate() + daysUntilFriday);
@@ -71,15 +75,14 @@ function generateMockFlows(count: number): OptionsFlowEntry[] {
 
     const type: "CALL" | "PUT" = rand() > 0.45 ? "CALL" : "PUT";
 
-    // Volume and OI: realistic ranges
     const volume = Math.floor(rand() * 15000) + 100;
     const oi = Math.floor(rand() * 50000) + 500;
 
-    // Premium: between $10K and $5M (larger = more notable)
+    // Premium: between $10K and $5M
     const premiumBase = Math.floor(rand() * 5000000) + 10000;
     const premium = Math.round(premiumBase / 100) * 100;
 
-    // Sentiment derived from call/put + premium size + volume/OI ratio
+    // Sentiment derived from call/put + volume/OI ratio
     let sentiment: "bullish" | "bearish" | "neutral";
     const volumeOiRatio = volume / oi;
     if (type === "CALL" && volumeOiRatio > 0.5) {
@@ -105,12 +108,11 @@ function generateMockFlows(count: number): OptionsFlowEntry[] {
       premium,
       sentiment,
       timestamp: ts.toISOString(),
+      sector: SECTOR_MAP[symbol] ?? "Other",
     });
   }
 
-  // Sort by premium descending (biggest trades first)
   flows.sort((a, b) => b.premium - a.premium);
-
   return flows;
 }
 
@@ -122,7 +124,7 @@ export async function GET() {
   }
 
   try {
-    const flows = generateMockFlows(50);
+    const flows = generateMockFlows(150);
 
     const sentimentSummary = {
       bullish: flows.filter((f) => f.sentiment === "bullish").length,
@@ -131,12 +133,12 @@ export async function GET() {
     };
 
     const totalPremium = flows.reduce((sum, f) => sum + f.premium, 0);
-    const callVolume = flows
-      .filter((f) => f.type === "CALL")
-      .reduce((sum, f) => sum + f.volume, 0);
-    const putVolume = flows
-      .filter((f) => f.type === "PUT")
-      .reduce((sum, f) => sum + f.volume, 0);
+    const callFlows = flows.filter((f) => f.type === "CALL");
+    const putFlows = flows.filter((f) => f.type === "PUT");
+    const callVolume = callFlows.reduce((sum, f) => sum + f.volume, 0);
+    const putVolume = putFlows.reduce((sum, f) => sum + f.volume, 0);
+    const callPremium = callFlows.reduce((sum, f) => sum + f.premium, 0);
+    const putPremium = putFlows.reduce((sum, f) => sum + f.premium, 0);
 
     const response = NextResponse.json({
       flows,
@@ -145,32 +147,21 @@ export async function GET() {
         totalPremium,
         callVolume,
         putVolume,
-        putCallRatio:
-          callVolume > 0
-            ? Math.round((putVolume / callVolume) * 100) / 100
-            : 0,
+        callPremium,
+        putPremium,
+        putCallRatio: callVolume > 0 ? Math.round((putVolume / callVolume) * 100) / 100 : 0,
         sentiment: sentimentSummary,
       },
       // NOTE: This endpoint serves mock/simulated data. Replace with a real
-      // options flow data source (Unusual Whales, CBOE DataShop, Tradier)
-      // when an API key or subscription becomes available.
+      // options flow data source when an API key or subscription becomes available.
       isMockData: true,
       timestamp: Date.now(),
     });
 
-    response.headers.set(
-      "Cache-Control",
-      "s-maxage=60, stale-while-revalidate=120"
-    );
+    response.headers.set("Cache-Control", "s-maxage=60, stale-while-revalidate=120");
     return response;
   } catch (err) {
-    console.error(
-      "[market/options-flow]",
-      err instanceof Error ? err.message : err
-    );
-    return NextResponse.json(
-      { error: "Failed to generate options flow data" },
-      { status: 500 }
-    );
+    console.error("[market/options-flow]", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "Failed to generate options flow data" }, { status: 500 });
   }
 }

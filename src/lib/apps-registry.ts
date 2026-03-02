@@ -15,6 +15,9 @@ import {
   BookOpen,
   ArrowUpDown,
   BarChart3,
+  HelpCircle,
+  CandlestickChart,
+  Grid2X2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -32,7 +35,8 @@ export interface AppEntry {
 
 export const APPS_REGISTRY: AppEntry[] = [
   // === Apps ===
-  { id: "trading-simulator", label: "Trading Simulator", href: "/dashboard/simulations", icon: Dices, category: "apps", exists: true },
+  { id: "paper-trading", label: "Paper Trading", href: "/simulator", icon: CandlestickChart, category: "apps", exists: true },
+  { id: "multi-chart-trading", label: "Multi-Chart Trading", href: "/simulator/multi", icon: Grid2X2, category: "apps", exists: true },
   { id: "multi-simulator", label: "Multi Simulator", href: "/dashboard/apps/multi-simulator", icon: Layers, category: "apps", exists: true },
   { id: "options-simulator", label: "Options Simulator", href: "/dashboard/apps/options-simulator", icon: GitBranch, category: "apps", exists: true },
   { id: "seasonality-charts", label: "Seasonality Charts", href: "/dashboard/apps/seasonality", icon: CalendarDays, category: "apps", exists: true },
@@ -50,4 +54,5 @@ export const APPS_REGISTRY: AppEntry[] = [
   { id: "blog-guides", label: "Blog & Guides", href: "https://blog.stargate-journal.com", icon: BookOpen, category: "links", isExternal: true, exists: true },
   { id: "import-export", label: "Import & Export", href: "/dashboard/settings", icon: ArrowUpDown, category: "links", exists: true },
   { id: "stock-screener", label: "Stock Screener", href: "/dashboard/apps/stock-screener", icon: BarChart3, category: "links", exists: true },
+  { id: "help-center", label: "Help Center", href: "/dashboard/help", icon: HelpCircle, category: "links", exists: true },
 ];

@@ -30,6 +30,7 @@ import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CSVImportModal } from "@/components/csv-import-modal";
 import { GettingStartedCard } from "@/components/getting-started";
+import { useI18n } from "@/lib/i18n";
 
 export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -40,6 +41,7 @@ export default function DashboardPage() {
   const [showImport, setShowImport] = useState(false);
   const { filterTrades } = useDateRange();
   const { viewMode } = useTheme();
+  const { t } = useI18n();
   const supabase = createClient();
 
   const fetchTrades = useCallback(async () => {
@@ -126,7 +128,7 @@ export default function DashboardPage() {
       {/* Welcome greeting */}
       <div className="glass rounded-2xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
         <p className="text-xs text-muted/60 uppercase tracking-widest font-semibold mb-1">
-          gm, <span className="text-foreground">{getDisplayName()}</span>
+          {t("dashboard.gm")}, <span className="text-foreground">{getDisplayName()}</span>
         </p>
         <p className="text-base md:text-lg font-medium text-accent italic">
           &ldquo;{getDailyGreeting()}&rdquo;
@@ -144,16 +146,16 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight">
-            Overview
+            {t("dashboard.overview")}
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? (
               <span className="flex items-center gap-1.5">
                 <Sparkles size={12} className="text-accent" />
-                Sample data — log a trade to begin
+                {t("dashboard.sampleData")}
               </span>
             ) : (
-              `${filteredTrades.length} positions in range`
+              t("dashboard.positionsInRange", { count: filteredTrades.length })
             )}
           </p>
         </div>
@@ -163,14 +165,14 @@ export default function DashboardPage() {
             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
           >
             <Upload size={14} />
-            Import
+            {t("common.import")}
           </button>
           <button
             onClick={exportCSV}
             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
           >
             <Download size={14} />
-            Export
+            {t("common.export")}
           </button>
           <button id="tour-log-trade"
             onClick={() => {
@@ -180,7 +182,7 @@ export default function DashboardPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300 animate-[cosmic-pulse_3s_ease-in-out_infinite]"
           >
             <Plus size={18} />
-            Log Trade
+            {t("dashboard.logTrade")}
           </button>
         </div>
       </div>
@@ -198,7 +200,7 @@ export default function DashboardPage() {
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-2">
               <Activity size={14} className="text-accent" />
-              <span className="text-[10px] text-muted font-semibold uppercase tracking-widest">Advanced Metrics</span>
+              <span className="text-[10px] text-muted font-semibold uppercase tracking-widest">{t("dashboard.advancedMetrics")}</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -238,8 +240,8 @@ export default function DashboardPage() {
                 <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
                   <div className="flex items-center gap-2 mb-3">
                     <Calculator size={14} className="text-accent" />
-                    <span className="text-xs font-semibold text-foreground">Position Sizing</span>
-                    <span className="text-[9px] text-muted/50 ml-auto">Based on Kelly Criterion</span>
+                    <span className="text-xs font-semibold text-foreground">{t("dashboard.positionSizing")}</span>
+                    <span className="text-[9px] text-muted/50 ml-auto">{t("dashboard.basedOnKelly")}</span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="text-center">
@@ -270,11 +272,36 @@ export default function DashboardPage() {
                     className="mt-3 flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs font-medium hover:bg-accent/15 transition-all"
                   >
                     <Dices size={12} />
-                    Stress-test in Monte Carlo
+                    {t("dashboard.stressTest")}
                   </Link>
                 </div>
               );
             })()}
+
+            {/* Quick Insight + Simulations & Tax links */}
+            <div id="tour-ai-summary">
+              <AISummaryWidget trades={filteredTrades} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Dices size={14} className="text-accent" />
+                  <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
+                </div>
+                <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
+              </Link>
+              {taxReport && (
+                <Link href="/dashboard/taxes" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Receipt size={14} className="text-accent" />
+                    <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">Tax {new Date().getFullYear()}</span>
+                  </div>
+                  <p className={`text-sm font-bold ${taxReport.netGainLoss >= 0 ? "text-win" : "text-loss"}`}>
+                    {taxReport.netGainLoss >= 0 ? "+" : "-"}${Math.abs(taxReport.netGainLoss).toFixed(2)}
+                  </p>
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -305,28 +332,6 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <div id="tour-streak"><StreakWidget /></div>
           <div id="tour-heatmap-mini"><CalendarHeatmap dailyPnl={dailyPnl} /></div>
-          <div id="tour-ai-summary"><AISummaryWidget trades={filteredTrades} /></div>
-          {/* Advanced mode links — in sidebar, visible immediately */}
-          {viewMode === "full" && taxReport && (
-            <div className="space-y-3">
-              <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Dices size={14} className="text-accent" />
-                  <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">Simulations</span>
-                </div>
-                <p className="text-[10px] text-muted">Stress-test your edge</p>
-              </Link>
-              <Link href="/dashboard/taxes" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Receipt size={14} className="text-accent" />
-                  <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">Tax {new Date().getFullYear()}</span>
-                </div>
-                <p className={`text-sm font-bold ${taxReport.netGainLoss >= 0 ? "text-win" : "text-loss"}`}>
-                  {taxReport.netGainLoss >= 0 ? "+" : "-"}${Math.abs(taxReport.netGainLoss).toFixed(2)}
-                </p>
-              </Link>
-            </div>
-          )}
         </div>
       </div>
 

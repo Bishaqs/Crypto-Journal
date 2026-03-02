@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme, THEMES, isProTheme } from "@/lib/theme-context";
 import { useSubscriptionContext } from "@/lib/subscription-context";
 import { useDateRange, DATE_RANGES } from "@/lib/date-range-context";
@@ -9,6 +10,7 @@ import {
   User,
   Calendar,
   RefreshCw,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { AppsDropdown } from "@/components/apps-dropdown";
@@ -23,21 +25,45 @@ function formatToday(): string {
 }
 
 export function Header() {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { tier } = useSubscriptionContext();
   const [syncing, setSyncing] = useState(false);
   const { dateRange, setDateRange } = useDateRange();
   const [showRanges, setShowRanges] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
+  const [helpSearch, setHelpSearch] = useState("");
 
   const currentLabel = DATE_RANGES.find((r) => r.value === dateRange)?.label ?? "All";
   const currentTheme = THEMES.find((t) => t.value === theme);
 
   return (
     <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center gap-2 text-sm text-muted">
-        <Calendar size={14} />
-        <span>{formatToday()}</span>
+      <div className="flex items-center gap-3 text-sm text-muted">
+        <div className="flex items-center gap-2">
+          <Calendar size={14} />
+          <span>{formatToday()}</span>
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (helpSearch.trim()) {
+              router.push("/dashboard/help?q=" + encodeURIComponent(helpSearch.trim()));
+              setHelpSearch("");
+            }
+          }}
+          className="relative hidden sm:block"
+        >
+          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted/40" />
+          <input
+            type="text"
+            value={helpSearch}
+            onChange={(e) => setHelpSearch(e.target.value)}
+            placeholder="Search help..."
+            className="w-[180px] bg-surface border border-border rounded-xl pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted/30 focus:outline-none focus:border-accent/50 transition-all"
+            style={{ boxShadow: "var(--shadow-card)" }}
+          />
+        </form>
       </div>
 
       <div className="flex items-center gap-2">

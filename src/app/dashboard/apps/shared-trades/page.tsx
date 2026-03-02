@@ -15,7 +15,7 @@ import { calculateTradePnl } from "@/lib/calculations";
 
 function StatBlock({ label, value, color = "text-foreground" }: { label: string; value: string; color?: string }) {
   return (
-    <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className="glass rounded-xl border border-border/50 p-4 hover:border-accent/20 transition-all duration-300" style={{ boxShadow: "var(--shadow-card)" }}>
       <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">{label}</p>
       <p className={`text-lg font-bold ${color}`}>{value}</p>
     </div>

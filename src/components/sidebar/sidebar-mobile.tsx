@@ -1,0 +1,365 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  TrendingUp,
+  BarChart3,
+  Lock,
+  LogOut,
+  Shield,
+  MoreHorizontal,
+} from "lucide-react";
+import { StargateLogo } from "../stargate-logo";
+import { QuickActionMenu } from "../quick-action-fab";
+import {
+  type NavItem,
+  type NavSection,
+  NAV_SECTIONS,
+  LABEL_KEY,
+  SECTION_KEY,
+  bottomItems,
+  isActivePath,
+  resolveItems,
+  getResolvedCoreItems,
+} from "./sidebar-data";
+import { useI18n } from "@/lib/i18n";
+import { hasStockAccess } from "@/lib/addons";
+import type { ViewMode } from "@/lib/theme-context";
+
+interface SidebarMobileProps {
+  mobileOpen: boolean;
+  setMobileOpen: (open: boolean) => void;
+  assetContext: "crypto" | "stocks";
+  onAssetToggle: (ctx: "crypto" | "stocks") => void;
+  showStockUpgrade: boolean;
+  sectionState: Record<string, boolean>;
+  onToggleSection: (key: string) => void;
+  viewMode: ViewMode;
+  setViewModeTo: (mode: ViewMode) => void;
+  isOwner: boolean;
+  onLogout: () => void;
+}
+
+export function SidebarMobile({
+  mobileOpen,
+  setMobileOpen,
+  assetContext,
+  onAssetToggle,
+  showStockUpgrade,
+  sectionState,
+  onToggleSection,
+  viewMode,
+  setViewModeTo,
+  isOwner,
+  onLogout,
+}: SidebarMobileProps) {
+  const pathname = usePathname();
+  const { t } = useI18n();
+  const isSimple = viewMode === "simple";
+  const isSectionOpen = (key: string) => sectionState[key] ?? true;
+  const resolvedCoreItems = getResolvedCoreItems(assetContext);
+
+  function getResolvedItems(items: NavItem[]): NavItem[] {
+    return resolveItems(items, assetContext);
+  }
+
+  /* ── NavLink ─────────────────────────────────── */
+  function NavLink({ item, indent }: { item: NavItem; indent?: boolean }) {
+    const active = isActivePath(pathname, item.href);
+    const label = LABEL_KEY[item.label] ? t(LABEL_KEY[item.label]) : item.label;
+    return (
+      <Link
+        href={item.href}
+        className={`flex items-center gap-3 ${indent ? "px-3 pl-7" : "px-3"} py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+          active
+            ? "text-accent bg-accent/10 shadow-[0_0_12px_rgba(0,180,216,0.15)]"
+            : "text-muted hover:text-foreground hover:bg-surface-hover"
+        }`}
+      >
+        <item.icon size={18} />
+        <span className="truncate">{label}</span>
+      </Link>
+    );
+  }
+
+  /* ── Section header ──────────────────────────── */
+  function SectionHeader({ section, count }: { section: NavSection; count: number }) {
+    const open = isSectionOpen(section.key);
+    const displayLabel = SECTION_KEY[section.label] ? t(SECTION_KEY[section.label]) : section.label;
+    return (
+      <button
+        onClick={() => onToggleSection(section.key)}
+        className="w-full flex items-center justify-between px-3 py-1.5 group"
+      >
+        <div className="flex items-center gap-1.5 text-muted/60">
+          <section.icon size={12} />
+          <span className="text-[10px] uppercase tracking-wider font-semibold group-hover:text-muted transition-colors">
+            {displayLabel}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] text-muted/40">{count}</span>
+          <ChevronDown
+            size={12}
+            className={`text-muted/40 transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+          />
+        </div>
+      </button>
+    );
+  }
+
+  /* ── Sub-section header ──────────────────────── */
+  function SubSectionHeader({ sectionKey, label }: { sectionKey: string; label: string }) {
+    const open = isSectionOpen(sectionKey);
+    const displayLabel = SECTION_KEY[label] ? t(SECTION_KEY[label]) : label;
+    return (
+      <button
+        onClick={() => onToggleSection(sectionKey)}
+        className="w-full flex items-center justify-between px-3 pl-5 py-1 group"
+      >
+        <span className="text-[10px] uppercase tracking-wider text-muted/50 font-semibold group-hover:text-muted/70 transition-colors">
+          {displayLabel}
+        </span>
+        <ChevronDown
+          size={10}
+          className={`text-muted/30 transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+        />
+      </button>
+    );
+  }
+
+  /* ── Render section ──────────────────────────── */
+  function renderSection(section: NavSection) {
+    if (isSimple && !section.visibleInSimple) return null;
+
+    const items = isSimple && section.simpleItems
+      ? getResolvedItems(section.simpleItems)
+      : getResolvedItems(section.items);
+
+    if (items.length === 0 && !section.subSections?.length) return null;
+
+    const totalCount = items.length + (section.subSections?.reduce((s, sub) => s + getResolvedItems(sub.items).length, 0) ?? 0);
+    const open = isSectionOpen(section.key);
+
+    return (
+      <div key={section.key}>
+        <div className="h-px bg-border/50 mx-2 my-3" />
+        <SectionHeader section={section} count={totalCount} />
+        {open && (
+          <div className="space-y-0.5">
+            {items.map(item => (
+              <NavLink key={item.href} item={item} />
+            ))}
+            {!isSimple && section.subSections?.map(sub => {
+              const subItems = getResolvedItems(sub.items);
+              if (subItems.length === 0) return null;
+              const subOpen = isSectionOpen(sub.key);
+              return (
+                <div key={sub.key}>
+                  <SubSectionHeader sectionKey={sub.key} label={sub.label} />
+                  {subOpen && (
+                    <div className="space-y-0.5">
+                      {subItems.map(item => (
+                        <NavLink key={item.href} item={item} indent />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ── "Other" section for simple mode ───────────── */
+  function renderOtherSection() {
+    if (!isSimple) return null;
+
+    const otherItems: NavItem[] = [];
+    for (const section of NAV_SECTIONS) {
+      if (!section.visibleInSimple) {
+        otherItems.push(...getResolvedItems(section.items));
+        section.subSections?.forEach(sub => {
+          otherItems.push(...getResolvedItems(sub.items));
+        });
+      } else if (section.simpleItems) {
+        const simpleHrefs = new Set(section.simpleItems.map(i => i.href));
+        const extras = section.items.filter(i => !simpleHrefs.has(i.href));
+        otherItems.push(...getResolvedItems(extras));
+      }
+    }
+
+    if (otherItems.length === 0) return null;
+
+    const open = isSectionOpen("other");
+
+    return (
+      <div>
+        <div className="h-px bg-border/50 mx-2 my-3" />
+        <button
+          onClick={() => onToggleSection("other")}
+          className="w-full flex items-center justify-between px-3 py-1.5 group"
+        >
+          <div className="flex items-center gap-1.5 text-muted/60">
+            <MoreHorizontal size={12} />
+            <span className="text-[10px] uppercase tracking-wider font-semibold group-hover:text-muted transition-colors">
+              Other
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-muted/40">{otherItems.length}</span>
+            <ChevronDown
+              size={12}
+              className={`text-muted/40 transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+            />
+          </div>
+        </button>
+        {open && (
+          <div className="space-y-0.5">
+            {otherItems.map(item => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Hamburger button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-surface border border-border text-muted hover:text-foreground transition-all"
+        style={{ boxShadow: "var(--shadow-card)" }}
+      >
+        <Menu size={20} />
+      </button>
+
+      {/* Overlay */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside
+        className={`md:hidden fixed inset-y-0 left-0 z-[70] w-72 glass border-r border-border/50 flex flex-col transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{ boxShadow: "var(--shadow-card)" }}
+      >
+        {/* Logo + close */}
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2.5 overflow-visible">
+            <StargateLogo size={32} collapsed={false} />
+            <h1 className="text-lg font-bold tracking-tight whitespace-nowrap bg-gradient-to-r from-accent via-[#48CAE4] to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
+              Stargate
+            </h1>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <QuickActionMenu />
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="p-1.5 rounded-lg hover:bg-surface-hover text-muted hover:text-foreground transition-all"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Asset toggle */}
+        <div className="px-3 pt-3">
+          <div className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
+            <button
+              onClick={() => onAssetToggle("crypto")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                assetContext === "crypto"
+                  ? "bg-accent/15 text-accent border border-accent/30"
+                  : "text-muted hover:text-foreground border border-transparent"
+              }`}
+            >
+              <TrendingUp size={12} />
+              {t("sidebar.cryptoLabel")}
+            </button>
+            <button
+              onClick={() => onAssetToggle("stocks")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                assetContext === "stocks"
+                  ? "bg-accent/15 text-accent border border-accent/30"
+                  : "text-muted hover:text-foreground border border-transparent"
+              }`}
+            >
+              {hasStockAccess() ? <BarChart3 size={12} /> : <Lock size={10} />}
+              {t("sidebar.stocksLabel")}
+            </button>
+          </div>
+          {showStockUpgrade && (
+            <div className="mt-2 p-2.5 rounded-lg bg-accent/5 border border-accent/20 text-center">
+              <p className="text-[10px] text-muted mb-1.5">{t("sidebar.stockUpgradeMsg")}</p>
+              <a href="/dashboard/settings" className="text-[10px] font-semibold text-accent hover:text-accent-hover transition-colors">
+                {t("sidebar.upgradeNow")} &rarr;
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-3 px-2">
+          <div className="space-y-0.5">
+            {resolvedCoreItems.map(item => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </div>
+          {NAV_SECTIONS.map(section => renderSection(section))}
+          {renderOtherSection()}
+        </nav>
+
+        {/* Bottom */}
+        <div className="border-t border-border py-2 px-2">
+          {/* Mode pill */}
+          <div className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full mb-1">
+            {(["simple", "full"] as ViewMode[]).map(mode => (
+              <button
+                key={mode}
+                onClick={() => setViewModeTo(mode)}
+                className={`flex-1 flex items-center justify-center px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                  viewMode === mode
+                    ? "bg-accent/15 text-accent border border-accent/30"
+                    : "text-muted hover:text-foreground border border-transparent"
+                }`}
+              >
+                {mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
+              </button>
+            ))}
+          </div>
+
+          {isOwner && (
+            <NavLink item={{ href: "/dashboard/admin", label: "Admin", icon: Shield }} />
+          )}
+          {bottomItems.map(item => (
+            <NavLink key={item.href} item={item} />
+          ))}
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted hover:text-loss hover:bg-loss/10 transition-all duration-200"
+          >
+            <LogOut size={18} />
+            <span>{t("common.logOut")}</span>
+          </button>
+          <p className="text-[10px] text-muted/40 text-center mt-2 pb-1">
+            {t("common.version")}
+          </p>
+        </div>
+      </aside>
+    </>
+  );
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Activity, Search, RefreshCw, Loader2, Filter } from "lucide-react";
+import { Activity, Search, RefreshCw, Loader2, Filter, X } from "lucide-react";
 import { Header } from "@/components/header";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -9,42 +9,34 @@ import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { usePageTour } from "@/lib/use-page-tour";
 import { PageInfoButton } from "@/components/ui/page-info-button";
-
-interface OptionsFlowRow {
-  symbol: string;
-  expiry: string;
-  strike: number;
-  type: "C" | "P";
-  volume: number;
-  openInterest: number;
-  premium: number;
-  sentiment: "bullish" | "bearish" | "neutral";
-  time: string;
-}
-
-type SentimentFilter = "all" | "bullish" | "bearish";
-type TypeFilter = "all" | "call" | "put";
+import FlowTableTab from "@/components/options-flow/flow-table-tab";
+import MarketSummaryTab from "@/components/options-flow/market-summary-tab";
+import SymbolSummaryTab from "@/components/options-flow/symbol-summary-tab";
+import {
+  type OptionsFlowRow,
+  type OptionsFlowTab,
+  type SentimentFilter,
+  type TypeFilter,
+  type PremiumFilter,
+  type SortKey,
+  type SortDir,
+  TAB_OPTIONS,
+  SYMBOL_GROUPS,
+} from "@/components/options-flow/options-flow-types";
+import {
+  mapApiEntry,
+  computeFlowSummary,
+  computeSymbolSummaries,
+  filterByPremium,
+  formatPremium,
+} from "@/components/options-flow/options-flow-utils";
 
 function StatBlock({ label, value, color = "text-foreground" }: { label: string; value: string; color?: string }) {
   return (
-    <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className="glass rounded-xl border border-border/50 p-4 hover:border-accent/20 transition-all duration-300" style={{ boxShadow: "var(--shadow-card)" }}>
       <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">{label}</p>
       <p className={`text-lg font-bold ${color}`}>{value}</p>
     </div>
-  );
-}
-
-function SentimentBadge({ sentiment }: { sentiment: string }) {
-  const config: Record<string, { bg: string; text: string }> = {
-    bullish: { bg: "bg-win/10", text: "text-win" },
-    bearish: { bg: "bg-loss/10", text: "text-loss" },
-    neutral: { bg: "bg-muted/10", text: "text-muted" },
-  };
-  const { bg, text } = config[sentiment] ?? config.neutral;
-  return (
-    <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider ${bg} ${text}`}>
-      {sentiment}
-    </span>
   );
 }
 
@@ -54,20 +46,37 @@ export default function OptionsFlowPage() {
   const { theme } = useTheme();
   const colors = getChartColors(theme);
 
+  // Data state
   const [flows, setFlows] = useState<OptionsFlowRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMockData, setIsMockData] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<OptionsFlowTab>("table");
+
+  // Filter state
   const [search, setSearch] = useState("");
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [premiumFilter, setPremiumFilter] = useState<PremiumFilter>("all");
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+
+  // Table state
+  const [sortKey, setSortKey] = useState<SortKey>("premium");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [visibleCount, setVisibleCount] = useState(50);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const fetchFlow = useCallback(async () => {
     try {
       const res = await fetch("/api/market/options-flow");
       if (!res.ok) throw new Error("Failed to fetch");
       const json = await res.json();
-      setFlows(json.flow ?? []);
+      const mapped = ((json.flows ?? []) as Record<string, unknown>[]).map(mapApiEntry);
+      setFlows(mapped);
+      setIsMockData(!!json.isMockData);
       setLastUpdated(new Date());
       setError(null);
     } catch {
@@ -77,48 +86,72 @@ export default function OptionsFlowPage() {
     }
   }, []);
 
-  // Initial fetch and auto-refresh every 60 seconds
+  // Initial fetch
   useEffect(() => {
     fetchFlow();
-    const interval = setInterval(fetchFlow, 60_000);
-    return () => clearInterval(interval);
   }, [fetchFlow]);
 
+  // Auto-refresh
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(fetchFlow, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchFlow, autoRefresh]);
+
+  // Filtered + sorted flows
   const filteredFlows = useMemo(() => {
     let result = [...flows];
-
+    if (selectedSymbol) result = result.filter((f) => f.symbol === selectedSymbol);
     if (search) {
       const q = search.toUpperCase();
       result = result.filter((f) => f.symbol.includes(q));
     }
+    if (sentimentFilter !== "all") result = result.filter((f) => f.sentiment === sentimentFilter);
+    if (typeFilter !== "all") result = result.filter((f) => (typeFilter === "call" ? f.type === "C" : f.type === "P"));
+    result = filterByPremium(result, premiumFilter);
 
-    if (sentimentFilter !== "all") {
-      result = result.filter((f) => f.sentiment === sentimentFilter);
-    }
-
-    if (typeFilter !== "all") {
-      result = result.filter((f) =>
-        typeFilter === "call" ? f.type === "C" : f.type === "P"
-      );
-    }
+    // Sort
+    result.sort((a, b) => {
+      const va = a[sortKey as keyof OptionsFlowRow];
+      const vb = b[sortKey as keyof OptionsFlowRow];
+      if (sortKey === "time") {
+        return sortDir === "asc" ? a.rawTimestamp - b.rawTimestamp : b.rawTimestamp - a.rawTimestamp;
+      }
+      if (typeof va === "string" && typeof vb === "string") {
+        return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+      }
+      return sortDir === "asc" ? Number(va) - Number(vb) : Number(vb) - Number(va);
+    });
 
     return result;
-  }, [flows, search, sentimentFilter, typeFilter]);
+  }, [flows, search, sentimentFilter, typeFilter, premiumFilter, selectedSymbol, sortKey, sortDir]);
 
-  const totalPremium = flows.reduce((sum, f) => sum + f.premium, 0);
-  const bullishCount = flows.filter((f) => f.sentiment === "bullish").length;
-  const bearishCount = flows.filter((f) => f.sentiment === "bearish").length;
-  const callPutRatio = flows.length > 0
-    ? (flows.filter((f) => f.type === "C").length / Math.max(flows.filter((f) => f.type === "P").length, 1)).toFixed(2)
-    : "0";
+  const summary = useMemo(() => computeFlowSummary(filteredFlows), [filteredFlows]);
+  const symbolSummaries = useMemo(() => computeSymbolSummaries(flows), [flows]);
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  }
+
+  function handleSymbolClick(sym: string) {
+    setSelectedSymbol(sym);
+    setActiveTab("table");
+    setVisibleCount(50);
+  }
 
   if (subLoading) return null;
   if (!hasAccess("advanced-analytics")) return <UpgradePrompt feature="advanced-analytics" requiredTier="max" />;
 
   return (
-    <div className="space-y-6 mx-auto max-w-[1600px]">
+    <div className="space-y-5 mx-auto max-w-[1600px]">
       <Header />
 
+      {/* Title row */}
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
@@ -137,6 +170,16 @@ export default function OptionsFlowPage() {
             </span>
           )}
           <button
+            onClick={() => setAutoRefresh((v) => !v)}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all border ${
+              autoRefresh
+                ? "border-win/20 bg-win/5 text-win"
+                : "border-border/50 bg-surface text-muted"
+            }`}
+          >
+            {autoRefresh ? "Auto" : "Paused"}
+          </button>
+          <button
             onClick={fetchFlow}
             className="p-2 rounded-xl hover:bg-surface-hover text-muted hover:text-foreground transition-all"
           >
@@ -145,43 +188,96 @@ export default function OptionsFlowPage() {
         </div>
       </div>
 
+      {/* Demo banner */}
+      {isMockData && (
+        <div className="rounded-xl border border-accent/20 bg-accent/5 px-4 py-3 flex items-center gap-3">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-bold uppercase tracking-wider">Demo</span>
+          <p className="text-xs text-muted">
+            Showing simulated options flow data. Live data will be available when market APIs are connected.
+          </p>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatBlock label="Total Premium" value={`$${(totalPremium / 1e6).toFixed(1)}M`} color="text-accent" />
-        <StatBlock label="Bullish Flows" value={String(bullishCount)} color="text-win" />
-        <StatBlock label="Bearish Flows" value={String(bearishCount)} color="text-loss" />
-        <StatBlock label="Call/Put Ratio" value={callPutRatio} />
+        <StatBlock label="Total Premium" value={formatPremium(summary.totalPremium)} color="text-accent" />
+        <StatBlock label="Bullish Flows" value={String(summary.sentiment.bullish)} color="text-win" />
+        <StatBlock label="Bearish Flows" value={String(summary.sentiment.bearish)} color="text-loss" />
+        <StatBlock
+          label="Call/Put Ratio"
+          value={summary.putCallRatio > 0 ? (1 / summary.putCallRatio).toFixed(2) : "0"}
+        />
+      </div>
+
+      {/* Symbol Groups */}
+      <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
+        {selectedSymbol && (
+          <button
+            onClick={() => setSelectedSymbol(null)}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-accent/15 text-accent border border-accent/30 mr-1"
+          >
+            {selectedSymbol} <X size={10} />
+          </button>
+        )}
+        {Object.entries(SYMBOL_GROUPS).map(([groupName, symbols], gi) => (
+          <div key={groupName} className="flex items-center gap-1">
+            <span className="text-[9px] text-muted/40 uppercase tracking-wider font-semibold whitespace-nowrap mr-0.5">
+              {groupName}
+            </span>
+            {symbols.map((sym) => (
+              <button
+                key={sym}
+                onClick={() => {
+                  if (selectedSymbol === sym) {
+                    setSelectedSymbol(null);
+                  } else {
+                    setSelectedSymbol(sym);
+                    setActiveTab("table");
+                  }
+                }}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
+                  selectedSymbol === sym
+                    ? "bg-accent/15 text-accent border border-accent/30"
+                    : "bg-surface border border-border/50 text-muted hover:text-foreground hover:border-accent/20"
+                }`}
+              >
+                {sym}
+              </button>
+            ))}
+            {gi < Object.keys(SYMBOL_GROUPS).length - 1 && (
+              <div className="w-px h-4 bg-border/30 mx-1" />
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
+        <div className="relative max-w-[160px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter by symbol..."
+            placeholder="Symbol..."
             className="w-full bg-surface border border-border rounded-xl pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted/30 focus:outline-none focus:border-accent/50 transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Filter size={12} className="text-muted/40" />
 
-          {/* Sentiment filter */}
-          <div className="flex gap-1 rounded-lg border border-border/50 p-0.5">
-            {(["all", "bullish", "bearish"] as const).map((s) => (
+          {/* Sentiment */}
+          <div className="flex gap-0.5 rounded-lg border border-border/50 p-0.5">
+            {(["all", "bullish", "bearish", "neutral"] as SentimentFilter[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setSentimentFilter(s)}
-                className={`px-3 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all ${
+                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all ${
                   sentimentFilter === s
-                    ? s === "bullish"
-                      ? "bg-win/10 text-win"
-                      : s === "bearish"
-                      ? "bg-loss/10 text-loss"
-                      : "bg-accent/10 text-accent"
+                    ? s === "bullish" ? "bg-win/10 text-win"
+                    : s === "bearish" ? "bg-loss/10 text-loss"
+                    : "bg-accent/10 text-accent"
                     : "text-muted hover:text-foreground"
                 }`}
               >
@@ -190,34 +286,71 @@ export default function OptionsFlowPage() {
             ))}
           </div>
 
-          {/* Type filter */}
-          <div className="flex gap-1 rounded-lg border border-border/50 p-0.5">
-            {(["all", "call", "put"] as const).map((t) => (
+          {/* Type */}
+          <div className="flex gap-0.5 rounded-lg border border-border/50 p-0.5">
+            {(["all", "call", "put"] as TypeFilter[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                className={`px-3 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all ${
-                  typeFilter === t
-                    ? "bg-accent/10 text-accent"
-                    : "text-muted hover:text-foreground"
+                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all ${
+                  typeFilter === t ? "bg-accent/10 text-accent" : "text-muted hover:text-foreground"
                 }`}
               >
                 {t === "all" ? "All" : t === "call" ? "Calls" : "Puts"}
               </button>
             ))}
           </div>
+
+          {/* Premium */}
+          <div className="flex gap-0.5 rounded-lg border border-border/50 p-0.5">
+            {([
+              { key: "all" as const, label: "All" },
+              { key: "large" as const, label: ">$1M" },
+              { key: "medium" as const, label: "$100K+" },
+              { key: "small" as const, label: "<$100K" },
+            ]).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setPremiumFilter(key)}
+                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wider transition-all ${
+                  premiumFilter === key ? "bg-accent/10 text-accent" : "text-muted hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* Tab bar */}
+      <div className="flex gap-1 rounded-xl border border-border/50 p-1 glass w-fit">
+        {TAB_OPTIONS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setActiveTab(tab.value)}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === tab.value
+                ? "bg-accent/10 text-accent shadow-sm"
+                : "text-muted hover:text-foreground hover:bg-surface-hover"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Error */}
       {error && (
         <div className="rounded-xl border border-loss/20 bg-loss/5 p-3 text-sm text-loss">{error}</div>
       )}
 
+      {/* Loading */}
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <Loader2 size={24} className="animate-spin text-accent" />
         </div>
-      ) : filteredFlows.length === 0 ? (
+      ) : filteredFlows.length === 0 && activeTab === "table" ? (
         <div
           className="glass rounded-2xl border border-border/50 p-12 flex flex-col items-center justify-center text-center"
           style={{ boxShadow: "var(--shadow-card)" }}
@@ -225,82 +358,47 @@ export default function OptionsFlowPage() {
           <Activity size={48} className="text-accent/30 mb-4" />
           <h3 className="text-lg font-bold text-foreground mb-2">No Options Flow Data</h3>
           <p className="text-sm text-muted max-w-xs">
-            {search || sentimentFilter !== "all" || typeFilter !== "all"
+            {search || sentimentFilter !== "all" || typeFilter !== "all" || premiumFilter !== "all" || selectedSymbol
               ? "No results match your current filters. Try broadening your search."
-              : "Options flow data is not available at this time. Data auto-refreshes every 60 seconds."}
+              : "Options flow data is not available at this time."}
           </p>
         </div>
       ) : (
-        <div
-          className="bg-surface rounded-2xl border border-border overflow-hidden"
-          style={{ boxShadow: "var(--shadow-card)" }}
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50">
-                  {["Time", "Symbol", "Expiry", "Strike", "Type", "Volume", "OI", "Premium", "Sentiment"].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-muted/60 font-semibold whitespace-nowrap"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredFlows.map((flow, idx) => (
-                  <tr
-                    key={`${flow.symbol}-${flow.strike}-${flow.expiry}-${idx}`}
-                    className="border-b border-border/30 hover:bg-surface-hover/50 transition-colors"
-                  >
-                    <td className="px-4 py-3 text-[10px] text-muted tabular-nums">{flow.time}</td>
-                    <td className="px-4 py-3 text-xs font-bold text-accent">{flow.symbol}</td>
-                    <td className="px-4 py-3 text-xs text-muted tabular-nums">{flow.expiry}</td>
-                    <td className="px-4 py-3 text-xs font-semibold text-foreground tabular-nums">
-                      ${flow.strike.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                          flow.type === "C"
-                            ? "bg-win/10 text-win"
-                            : "bg-loss/10 text-loss"
-                        }`}
-                      >
-                        {flow.type === "C" ? "CALL" : "PUT"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground tabular-nums font-medium">
-                      {flow.volume.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted tabular-nums">
-                      {flow.openInterest.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-xs font-semibold text-foreground tabular-nums">
-                      ${flow.premium >= 1e6
-                        ? `${(flow.premium / 1e6).toFixed(1)}M`
-                        : flow.premium >= 1e3
-                        ? `${(flow.premium / 1e3).toFixed(0)}K`
-                        : flow.premium.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <SentimentBadge sentiment={flow.sentiment} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <>
+          {activeTab === "table" && (
+            <FlowTableTab
+              flows={filteredFlows}
+              onSymbolClick={handleSymbolClick}
+              visibleCount={visibleCount}
+              onLoadMore={() => setVisibleCount((v) => v + 50)}
+              hasMore={visibleCount < filteredFlows.length}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSort={handleSort}
+            />
+          )}
+          {activeTab === "market-summary" && (
+            <MarketSummaryTab flows={filteredFlows} summary={summary} colors={colors} />
+          )}
+          {activeTab === "symbol-summary" && (
+            <SymbolSummaryTab
+              summaries={symbolSummaries}
+              onSymbolClick={handleSymbolClick}
+              selectedSymbol={selectedSymbol}
+            />
+          )}
+        </>
       )}
 
+      {/* Footer */}
       <div className="flex items-center justify-between text-xs text-muted/40">
-        <span>Showing {filteredFlows.length} of {flows.length} entries</span>
+        <span>
+          {filteredFlows.length} entries
+          {selectedSymbol ? ` (filtered: ${selectedSymbol})` : ""}
+        </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-win animate-pulse" />
-          Auto-refreshes every 60s
+          <span className={`w-2 h-2 rounded-full ${autoRefresh ? "bg-win animate-pulse" : "bg-muted/30"}`} />
+          {autoRefresh ? "Auto-refreshes every 60s" : "Auto-refresh paused"}
         </span>
       </div>
     </div>

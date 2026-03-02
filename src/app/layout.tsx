@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme-context";
 import { DateRangeProvider } from "@/lib/date-range-context";
+import { I18nProvider } from "@/lib/i18n";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,9 +30,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-foreground`}
       >
-        <ThemeProvider>
-          <DateRangeProvider>{children}</DateRangeProvider>
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider>
+            <DateRangeProvider>{children}</DateRangeProvider>
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { StargateLogo } from "@/components/stargate-logo";
 import { PricingSection } from "@/components/landing/pricing-section";
+import { PricingPreview } from "@/components/pricing/pricing-preview";
 import { CandleBackground } from "@/components/candle-background";
 import { ArrowLeft, Shield, Zap, Clock } from "lucide-react";
 
@@ -34,7 +35,7 @@ export default function PricingPage() {
       </nav>
 
       {/* Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-8 pb-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-8 pb-20">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
@@ -45,8 +46,18 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Pricing cards (reused from landing) */}
-        <PricingSection />
+        {/* Two-column layout: pricing left, preview right */}
+        <div className="flex gap-10 items-start">
+          {/* Pricing cards */}
+          <div className="flex-1 min-w-0">
+            <PricingSection />
+          </div>
+
+          {/* Animated preview (desktop only) */}
+          <div className="hidden lg:block w-[400px] shrink-0 sticky top-8">
+            <PricingPreview />
+          </div>
+        </div>
 
         {/* Trust signals */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
