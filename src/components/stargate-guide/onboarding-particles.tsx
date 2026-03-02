@@ -17,11 +17,9 @@ export function OnboardingParticles() {
   const particlesRef = useRef<Particle[]>([]);
   const rafRef = useRef<number>(0);
 
-  const count =
-    typeof window !== "undefined" && window.innerWidth < 768 ? 40 : 80;
-
   const initParticles = useCallback(
     (w: number, h: number) => {
+      const count = window.innerWidth < 768 ? 40 : 80;
       particlesRef.current = Array.from({ length: count }).map(() => ({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -33,7 +31,7 @@ export function OnboardingParticles() {
           (Math.random() > 0.5 ? 1 : -1) * (0.003 + Math.random() * 0.005),
       }));
     },
-    [count],
+    [],
   );
 
   useEffect(() => {

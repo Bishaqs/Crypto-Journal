@@ -139,9 +139,11 @@ function TypewriterText({
   const [started, setStarted] = useState(false);
 
   useEffect(() => {
+    setDisplayed("");
+    setStarted(false);
     const timer = setTimeout(() => setStarted(true), delay);
     return () => clearTimeout(timer);
-  }, [delay]);
+  }, [text, delay]);
 
   useEffect(() => {
     if (!started) return;
@@ -151,14 +153,6 @@ function TypewriterText({
     }, speed);
     return () => clearTimeout(timer);
   }, [displayed, started, text, speed]);
-
-  // Reset when text changes
-  useEffect(() => {
-    setDisplayed("");
-    setStarted(false);
-    const timer = setTimeout(() => setStarted(true), delay);
-    return () => clearTimeout(timer);
-  }, [text, delay]);
 
   return (
     <span className={className}>
@@ -247,15 +241,17 @@ function AnimatedPortalOpening({ phase }: { phase: IntroPhase }) {
         const rad = (angle * Math.PI) / 180;
         const finalX = 20 + 18 * Math.cos(rad);
         const finalY = 20 + 18 * Math.sin(rad);
-        const startX = 20 + 80 * Math.cos(rad);
-        const startY = 20 + 80 * Math.sin(rad);
+        const offsetX = 62 * Math.cos(rad); // start 80 units out, offset = (80-18)*cos
+        const offsetY = 62 * Math.sin(rad);
         return (
           <motion.circle
             key={angle}
+            cx={finalX}
+            cy={finalY}
             r="1.5"
             fill="var(--accent)"
-            initial={{ cx: startX, cy: startY, opacity: 0 }}
-            animate={isOpening ? { cx: finalX, cy: finalY, opacity: 0.8 } : {}}
+            initial={{ x: offsetX, y: offsetY, opacity: 0 }}
+            animate={isOpening ? { x: 0, y: 0, opacity: 0.8 } : {}}
             transition={{
               type: "spring" as const,
               damping: 15,
