@@ -1014,29 +1014,57 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                   Step {step + 1} of {TOTAL_STEPS}
                 </motion.p>
 
-                {/* Guide character — glow pulses on step change */}
+                {/* Guide character — lively layered animations */}
                 <div className="flex justify-center mb-4">
+                  {/* Breathing glow pulse */}
                   <motion.div
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "easeInOut" as const,
+                    animate={{
+                      boxShadow: [
+                        "0 0 20px var(--accent-glow)",
+                        "0 0 36px var(--accent-glow), 0 0 64px var(--accent-glow)",
+                        "0 0 20px var(--accent-glow)",
+                      ],
                     }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" as const }}
+                    className="rounded-full"
                   >
+                    {/* Scale breathing */}
                     <motion.div
-                      key={`glow-${step}`}
-                      animate={{
-                        boxShadow: [
-                          "0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow)",
-                          "0 0 40px var(--accent-glow), 0 0 80px var(--accent-glow)",
-                          "0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow)",
-                        ],
-                      }}
-                      transition={{ duration: 1.5, times: [0, 0.3, 1] }}
-                      className="rounded-full"
+                      animate={{ scale: [1, 1.12, 1] }}
+                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" as const }}
                     >
-                      <StargateLogo size={72} />
+                      {/* Vertical float */}
+                      <motion.div
+                        animate={{ y: [0, -12, 0] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" as const }}
+                      >
+                        {/* Rotation wobble */}
+                        <motion.div
+                          animate={{ rotate: [0, 6, -4, 0] }}
+                          transition={{
+                            duration: 5,
+                            repeat: Infinity,
+                            ease: "easeInOut" as const,
+                            times: [0, 0.3, 0.7, 1],
+                          }}
+                        >
+                          {/* Step-change glow burst */}
+                          <motion.div
+                            key={`glow-${step}`}
+                            animate={{
+                              boxShadow: [
+                                "0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow)",
+                                "0 0 48px var(--accent-glow), 0 0 96px var(--accent-glow)",
+                                "0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow)",
+                              ],
+                            }}
+                            transition={{ duration: 1.2, times: [0, 0.3, 1] }}
+                            className="rounded-full"
+                          >
+                            <StargateLogo size={72} />
+                          </motion.div>
+                        </motion.div>
+                      </motion.div>
                     </motion.div>
                   </motion.div>
                 </div>

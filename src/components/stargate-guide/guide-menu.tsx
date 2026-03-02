@@ -118,9 +118,17 @@ export function GuideMenu() {
     window.location.reload();
   }
 
-  const canReplayTour = (() => {
+  function replayWelcomeTour() {
+    localStorage.removeItem("stargate-tour-welcome");
+    closeMenu();
+    window.location.reload();
+  }
+
+  const isDashboard = pathname === "/dashboard" || pathname.endsWith("/dashboard");
+  const canReplayWelcome = isTourComplete("welcome");
+  const canReplayPageTour = (() => {
     const page = pathname.split("/").pop() || "dashboard";
-    return isTourComplete(`${page}-page`) || isTourComplete("welcome");
+    return isTourComplete(`${page}-page`);
   })();
 
   if (!state.menuOpen) return null;
@@ -193,7 +201,23 @@ export function GuideMenu() {
               </div>
             </button>
 
-            {canReplayTour && (
+            {isDashboard && canReplayWelcome && (
+              <button
+                onClick={replayWelcomeTour}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left hover:bg-accent/10 transition-all group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                  <RotateCcw size={16} className="text-accent" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground group-hover:text-accent transition-colors">
+                    Replay Welcome Tour
+                  </p>
+                  <p className="text-[10px] text-muted">Full dashboard walkthrough</p>
+                </div>
+              </button>
+            )}
+            {canReplayPageTour && (
               <button
                 onClick={replayPageTour}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left hover:bg-accent/10 transition-all group"
@@ -203,7 +227,7 @@ export function GuideMenu() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground group-hover:text-accent transition-colors">
-                    Replay Tour
+                    Replay Page Tour
                   </p>
                   <p className="text-[10px] text-muted">Re-learn this page</p>
                 </div>

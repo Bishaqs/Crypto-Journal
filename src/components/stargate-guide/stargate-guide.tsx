@@ -149,68 +149,82 @@ export function StargateGuideCharacter() {
           }
         }}
       >
-        {/* Outer glow ring */}
+        {/* Outer glow ring — pulses between dim and bright */}
         <motion.div
           className="rounded-full"
-          animate={{ boxShadow: glow }}
-          transition={{ duration: 0.5 }}
+          animate={
+            isFlying
+              ? { boxShadow: glow }
+              : {
+                  boxShadow: [
+                    "0 0 16px var(--accent-glow)",
+                    "0 0 28px var(--accent-glow), 0 0 56px var(--accent-glow)",
+                    "0 0 16px var(--accent-glow)",
+                  ],
+                }
+          }
+          transition={
+            isFlying
+              ? { duration: 0.5 }
+              : { duration: 3, repeat: Infinity, ease: "easeInOut" as const }
+          }
         >
-          {/* Breathing scale pulse — 4s cycle */}
+          {/* Breathing scale pulse — 3.5s cycle */}
           <motion.div
-            animate={isFlying ? { scale: 1 } : { scale: [1, 1.06, 1] }}
+            animate={isFlying ? { scale: 1 } : { scale: [1, 1.15, 1] }}
             transition={
               isFlying
                 ? { duration: 0.3 }
                 : {
-                    duration: 4,
+                    duration: 3.5,
                     repeat: Infinity,
                     ease: "easeInOut" as const,
                   }
             }
           >
-            {/* Vertical float — 3s cycle */}
+            {/* Vertical float — 2.5s cycle */}
             <motion.div
-              animate={isFlying ? { y: 0 } : { y: [0, -8, 0] }}
+              animate={isFlying ? { y: 0 } : { y: [0, -12, 0] }}
               transition={
                 isFlying
                   ? { duration: 0.3 }
                   : {
-                      duration: 3,
+                      duration: 2.5,
                       repeat: Infinity,
                       ease: "easeInOut" as const,
                     }
               }
             >
-              {/* Rotation tilt — 6s cycle */}
+              {/* Rotation tilt — 5s cycle */}
               <motion.div
                 animate={
                   isFlying
                     ? { rotate: 0 }
-                    : { rotate: [0, 4, -3, 0] }
+                    : { rotate: [0, 8, -6, 0] }
                 }
                 transition={
                   isFlying
                     ? { duration: 0.3 }
                     : {
-                        duration: 6,
+                        duration: 5,
                         repeat: Infinity,
                         ease: "easeInOut" as const,
                         times: [0, 0.3, 0.7, 1],
                       }
                 }
               >
-                {/* Horizontal curiosity sway — 8s cycle */}
+                {/* Horizontal curiosity sway — 7s cycle */}
                 <motion.div
                   animate={
                     isFlying
                       ? { x: 0 }
-                      : { x: [0, 4, -3, 0] }
+                      : { x: [0, 8, -5, 0] }
                   }
                   transition={
                     isFlying
                       ? { duration: 0.3 }
                       : {
-                          duration: 8,
+                          duration: 7,
                           repeat: Infinity,
                           ease: "easeInOut" as const,
                           times: [0, 0.25, 0.6, 1],
