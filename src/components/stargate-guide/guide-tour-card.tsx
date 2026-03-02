@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motion } from "framer-motion";
 import type { CardComponentProps } from "nextstepjs";
 import { ArrowRight, ArrowLeft, X, CheckCircle2 } from "lucide-react";
-import { StargateLogo } from "@/components/stargate-logo";
 
 export function GuideTourCard({
   step,
@@ -76,28 +74,8 @@ export function GuideTourCard({
 
       {/* Guide character + speech area */}
       <div className="p-4 pb-3">
-        {/* Guide avatar + progress */}
+        {/* Progress bar — guide character flies to this card externally */}
         <div className="flex items-center gap-3 mb-3">
-          <motion.div
-            animate={{ y: [0, -4, 0] }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: "easeInOut" as const,
-            }}
-            className="shrink-0"
-          >
-            <div
-              className="rounded-full"
-              style={{
-                boxShadow:
-                  "0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow)",
-              }}
-            >
-              <StargateLogo size={32} />
-            </div>
-          </motion.div>
-          {/* Progress bar */}
           <div className="flex-1">
             <div className="h-1 rounded-full bg-surface overflow-hidden">
               <div
