@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useI18n, LOCALES } from "@/lib/i18n";
 import { StargateLogo } from "@/components/stargate-logo";
-// SpeechBubble not used — centered layout renders content directly
+import { OnboardingParticles } from "./onboarding-particles";
 
 /* ── Types ───────────────────────────────────────── */
 type OnboardingData = {
@@ -40,6 +40,8 @@ type OnboardingData = {
   preferredAnalytics: string[];
   referral: string;
 };
+
+type IntroPhase = "dark" | "portal-opening" | "eye-arriving" | "greeting" | "ready";
 
 /* ── Constants (reused from original onboarding) ── */
 const BROKERS: Record<string, string[]> = {
@@ -121,20 +123,167 @@ function TikTokIcon({ size = 20 }: { size?: number }) {
   );
 }
 
-/* ── Animation variants ─────────────────────────── */
+/* ── Typewriter Text Component ────────────────────── */
+function TypewriterText({
+  text,
+  speed = 30,
+  delay = 0,
+  className = "",
+}: {
+  text: string;
+  speed?: number;
+  delay?: number;
+  className?: string;
+}) {
+  const [displayed, setDisplayed] = useState("");
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  useEffect(() => {
+    if (!started) return;
+    if (displayed.length >= text.length) return;
+    const timer = setTimeout(() => {
+      setDisplayed(text.slice(0, displayed.length + 1));
+    }, speed);
+    return () => clearTimeout(timer);
+  }, [displayed, started, text, speed]);
+
+  // Reset when text changes
+  useEffect(() => {
+    setDisplayed("");
+    setStarted(false);
+    const timer = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(timer);
+  }, [text, delay]);
+
+  return (
+    <span className={className}>
+      {displayed}
+      {displayed.length < text.length && started && (
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+          className="inline-block w-[2px] h-[0.9em] bg-accent ml-0.5 align-middle"
+        />
+      )}
+    </span>
+  );
+}
+
+/* ── Animated Portal Opening SVG ──────────────────── */
+const CHEVRON_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
+
+function AnimatedPortalOpening({ phase }: { phase: IntroPhase }) {
+  const isOpening = phase !== "dark";
+  const showCenter = phase === "eye-arriving" || phase === "greeting" || phase === "ready";
+
+  return (
+    <svg width={160} height={160} viewBox="0 0 40 40" fill="none" className="overflow-visible">
+      <defs>
+        <radialGradient id="introPortalGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="var(--accent-hover)" stopOpacity="0.8" />
+          <stop offset="50%" stopColor="var(--accent)" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* Outer dashed ring */}
+      <motion.circle
+        cx="20" cy="20" r="18"
+        stroke="var(--accent)"
+        strokeWidth="1.5"
+        strokeDasharray="3 2"
+        fill="none"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={isOpening ? { scale: 1, opacity: 1, rotate: 360 } : {}}
+        transition={{
+          scale: { duration: 0.8, type: "spring" as const, damping: 20 },
+          opacity: { duration: 0.4 },
+          rotate: { duration: 30, repeat: Infinity, ease: "linear" as const },
+        }}
+        style={{ transformOrigin: "20px 20px" }}
+      />
+
+      {/* Middle ring */}
+      <motion.circle
+        cx="20" cy="20" r="13"
+        stroke="var(--accent)"
+        strokeWidth="1"
+        fill="none"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={isOpening ? { scale: 1, opacity: 0.6 } : {}}
+        transition={{ duration: 0.7, delay: 0.2, type: "spring" as const, damping: 20 }}
+        style={{ transformOrigin: "20px 20px" }}
+      />
+
+      {/* Inner ring */}
+      <motion.circle
+        cx="20" cy="20" r="8"
+        stroke="var(--accent)"
+        strokeWidth="0.8"
+        fill="none"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={isOpening ? { scale: 1, opacity: 0.4 } : {}}
+        transition={{ duration: 0.6, delay: 0.4, type: "spring" as const, damping: 20 }}
+        style={{ transformOrigin: "20px 20px" }}
+      />
+
+      {/* Portal glow center */}
+      <motion.circle
+        cx="20" cy="20" r="5"
+        fill="url(#introPortalGlow)"
+        initial={{ scale: 0 }}
+        animate={showCenter ? { scale: [0, 1.5, 1] } : isOpening ? { scale: [0, 0.5] } : {}}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        style={{ transformOrigin: "20px 20px" }}
+      />
+
+      {/* 8 chevron dots fly in from edges */}
+      {CHEVRON_ANGLES.map((angle, i) => {
+        const rad = (angle * Math.PI) / 180;
+        const finalX = 20 + 18 * Math.cos(rad);
+        const finalY = 20 + 18 * Math.sin(rad);
+        const startX = 20 + 80 * Math.cos(rad);
+        const startY = 20 + 80 * Math.sin(rad);
+        return (
+          <motion.circle
+            key={angle}
+            r="1.5"
+            fill="var(--accent)"
+            initial={{ cx: startX, cy: startY, opacity: 0 }}
+            animate={isOpening ? { cx: finalX, cy: finalY, opacity: 0.8 } : {}}
+            transition={{
+              type: "spring" as const,
+              damping: 15,
+              stiffness: 80,
+              delay: 0.3 + i * 0.08,
+            }}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ── Enhanced Animation Variants ──────────────────── */
 const staggerContainer = {
   center: {
-    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.07, delayChildren: 0.15 },
   },
 };
 
 const staggerItem = {
-  enter: { opacity: 0, y: 12, scale: 0.95 },
+  enter: { opacity: 0, y: 18, scale: 0.9, filter: "blur(4px)" },
   center: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring" as const, stiffness: 300, damping: 24 },
+    filter: "blur(0px)",
+    transition: { type: "spring" as const, stiffness: 260, damping: 20 },
   },
 };
 
@@ -166,6 +315,7 @@ const GUIDE_SPEECH = [
 export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [introPhase, setIntroPhase] = useState<IntroPhase>("dark");
   const [data, setData] = useState<OnboardingData>({
     displayName: "",
     experienceLevel: "",
@@ -184,6 +334,19 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
   const currentLocale = LOCALES.find((l) => l.code === locale) ?? LOCALES[0];
   const TOTAL_STEPS = 8;
   const isLast = step === TOTAL_STEPS - 1;
+
+  // Intro phase sequencer
+  useEffect(() => {
+    const t1 = setTimeout(() => setIntroPhase("portal-opening"), 500);
+    const t2 = setTimeout(() => setIntroPhase("eye-arriving"), 2000);
+    const t3 = setTimeout(() => setIntroPhase("greeting"), 3500);
+    const t4 = setTimeout(() => setIntroPhase("ready"), 5500);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+  }, []);
+
+  const skipIntro = useCallback(() => {
+    setIntroPhase("ready");
+  }, []);
 
   function toggleChip(arr: string[], value: string): string[] {
     return arr.includes(value)
@@ -227,6 +390,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
       saveData();
       localStorage.setItem("stargate-onboarded", "true");
       localStorage.setItem("stargate-onboarding-version", "3");
+      window.dispatchEvent(new CustomEvent("stargate-onboarding-complete"));
       onComplete();
     } else {
       setDirection(1);
@@ -347,13 +511,14 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                     <motion.button
                       key={opt.value}
                       variants={staggerItem}
-                      whileTap={{ scale: 0.97 }}
+                      whileTap={{ scale: 0.93 }}
+                      whileHover={{ scale: 1.03, boxShadow: "0 0 16px var(--accent-glow)" }}
                       onClick={() =>
                         setData({ ...data, experienceLevel: opt.value })
                       }
                       className={`p-3 rounded-xl border text-left transition-all ${
                         data.experienceLevel === opt.value
-                          ? "border-accent bg-accent/10"
+                          ? "border-accent bg-accent/10 shadow-[0_0_12px_var(--accent-glow)]"
                           : "border-border bg-surface hover:border-accent/30"
                       }`}
                     >
@@ -394,11 +559,12 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
               <motion.button
                 key={opt.value}
                 variants={staggerItem}
-                whileTap={{ scale: 0.97 }}
+                whileTap={{ scale: 0.93 }}
+                whileHover={{ scale: 1.02, boxShadow: "0 0 16px var(--accent-glow)" }}
                 onClick={() => setData({ ...data, accountType: opt.value })}
                 className={`p-3 rounded-xl border text-left transition-all flex items-center gap-3 ${
                   data.accountType === opt.value
-                    ? "border-accent bg-accent/10"
+                    ? "border-accent bg-accent/10 shadow-[0_0_12px_var(--accent-glow)]"
                     : "border-border bg-surface hover:border-accent/30"
                 }`}
               >
@@ -492,6 +658,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                 key={inst}
                 variants={staggerItem}
                 whileTap={{ scale: 0.93 }}
+                whileHover={{ scale: 1.05, boxShadow: "0 0 12px var(--accent-glow)" }}
                 onClick={() =>
                   setData({
                     ...data,
@@ -500,7 +667,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                 }
                 className={`px-4 py-2 rounded-xl border text-xs font-medium transition-all ${
                   data.instruments.includes(inst)
-                    ? "border-accent bg-accent/10 text-accent"
+                    ? "border-accent bg-accent/10 text-accent shadow-[0_0_10px_var(--accent-glow)]"
                     : "border-border bg-surface text-foreground hover:border-accent/30"
                 }`}
               >
@@ -528,7 +695,8 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
               <motion.button
                 key={opt.value}
                 variants={staggerItem}
-                whileTap={{ scale: 0.97 }}
+                whileTap={{ scale: 0.93 }}
+                whileHover={{ scale: 1.03, boxShadow: "0 0 16px var(--accent-glow)" }}
                 onClick={() =>
                   setData({
                     ...data,
@@ -537,7 +705,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                 }
                 className={`p-3 rounded-xl border text-left transition-all ${
                   data.goals.includes(opt.value)
-                    ? "border-accent bg-accent/10"
+                    ? "border-accent bg-accent/10 shadow-[0_0_12px_var(--accent-glow)]"
                     : "border-border bg-surface hover:border-accent/30"
                 }`}
               >
@@ -577,13 +745,14 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                   <motion.button
                     key={opt.value}
                     variants={staggerItem}
-                    whileTap={{ scale: 0.97 }}
+                    whileTap={{ scale: 0.93 }}
+                    whileHover={{ scale: 1.03, boxShadow: "0 0 16px var(--accent-glow)" }}
                     onClick={() =>
                       setData({ ...data, riskTolerance: opt.value })
                     }
                     className={`p-3 rounded-xl border text-center transition-all ${
                       data.riskTolerance === opt.value
-                        ? "border-accent bg-accent/10"
+                        ? "border-accent bg-accent/10 shadow-[0_0_12px_var(--accent-glow)]"
                         : "border-border bg-surface hover:border-accent/30"
                     }`}
                   >
@@ -617,6 +786,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                     key={opt}
                     variants={staggerItem}
                     whileTap={{ scale: 0.93 }}
+                    whileHover={{ scale: 1.05 }}
                     onClick={() =>
                       setData({
                         ...data,
@@ -628,7 +798,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                     }
                     className={`px-2.5 py-1.5 rounded-lg border text-[10px] font-medium transition-all ${
                       data.preferredAnalytics.includes(opt)
-                        ? "border-accent bg-accent/10 text-accent"
+                        ? "border-accent bg-accent/10 text-accent shadow-[0_0_8px_var(--accent-glow)]"
                         : "border-border bg-surface text-muted hover:border-accent/30"
                     }`}
                   >
@@ -656,10 +826,11 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                   key={src.value}
                   variants={staggerItem}
                   whileTap={{ scale: 0.93 }}
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 12px var(--accent-glow)" }}
                   onClick={() => setData({ ...data, referral: src.value })}
                   className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border text-center transition-all ${
                     selected
-                      ? "border-accent bg-accent/10"
+                      ? "border-accent bg-accent/10 shadow-[0_0_10px_var(--accent-glow)]"
                       : "border-border bg-surface hover:border-accent/30"
                   }`}
                 >
@@ -688,137 +859,281 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
     }
   }
 
+  /* ── Slide variants with blur + zoom ─────────── */
   const slideVariants = {
-    enter: (dir: number) => ({ x: dir > 0 ? 100 : -100, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? -100 : 100, opacity: 0 }),
+    enter: (dir: number) => ({
+      x: dir > 0 ? 60 : -60,
+      opacity: 0,
+      scale: 0.92,
+      filter: "blur(8px)",
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      filter: "blur(0px)",
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -60 : 60,
+      opacity: 0,
+      scale: 0.92,
+      filter: "blur(8px)",
+    }),
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background flex items-center justify-center p-6">
-      <div className="w-full max-w-xl">
-        {/* Progress bar */}
-        <div className="flex items-center gap-1.5 mb-8">
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <div key={i} className="h-1 flex-1 rounded-full bg-border overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-background overflow-hidden">
+      {/* Particle canvas background */}
+      <OnboardingParticles />
+
+      {/* Radial glow behind everything */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: introPhase !== "dark" ? 0.15 : 0 }}
+        transition={{ duration: 1.5 }}
+        style={{
+          background: "radial-gradient(circle at 50% 40%, var(--accent-glow) 0%, transparent 50%)",
+        }}
+      />
+
+      {/* Main content */}
+      <div className="relative z-10 flex items-center justify-center h-full p-6">
+        <div className="w-full max-w-xl">
+          <AnimatePresence mode="wait">
+            {introPhase !== "ready" ? (
+              /* ── Cinematic Intro Sequence ───────────── */
               <motion.div
-                className="h-full bg-accent rounded-full"
-                initial={false}
-                animate={{ width: i <= step ? "100%" : "0%" }}
-                transition={{ duration: 0.4, ease: "easeInOut" as const }}
-              />
-            </div>
-          ))}
-        </div>
+                key="intro"
+                className="flex flex-col items-center justify-center min-h-[400px] cursor-pointer"
+                exit={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
+                transition={{ duration: 0.4 }}
+                onClick={skipIntro}
+              >
+                {/* Portal opening SVG */}
+                <motion.div
+                  initial={{ scale: 0.3, opacity: 0 }}
+                  animate={
+                    introPhase === "eye-arriving" || introPhase === "greeting"
+                      ? { scale: 1, opacity: 1 }
+                      : introPhase === "portal-opening"
+                        ? { scale: 0.6, opacity: 0.8 }
+                        : { scale: 0.3, opacity: 0 }
+                  }
+                  transition={{
+                    type: "spring" as const,
+                    stiffness: 120,
+                    damping: 12,
+                  }}
+                >
+                  <AnimatedPortalOpening phase={introPhase} />
+                </motion.div>
 
-        {/* Step indicator */}
-        <p className="text-[10px] text-muted/50 text-center mb-4 uppercase tracking-wider font-semibold">
-          Step {step + 1} of {TOTAL_STEPS}
-        </p>
+                {/* Expansion wave pulse during eye-arriving */}
+                {introPhase === "eye-arriving" && (
+                  <motion.div
+                    className="absolute w-32 h-32 rounded-full border border-accent/30"
+                    initial={{ scale: 0.5, opacity: 0.8 }}
+                    animate={{ scale: 4, opacity: 0 }}
+                    transition={{ duration: 1.2, ease: "easeOut" as const }}
+                  />
+                )}
 
-        {/* Guide character (centered, floating) */}
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            type: "spring" as const,
-            stiffness: 200,
-            damping: 20,
-            delay: 0.1,
-          }}
-          className="flex justify-center mb-4"
-        >
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut" as const,
-            }}
-          >
-            <div
-              className="rounded-full"
-              style={{
-                boxShadow:
-                  "0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow)",
-              }}
-            >
-              <StargateLogo size={72} />
-            </div>
-          </motion.div>
-        </motion.div>
+                {/* Glow trails during eye-arriving */}
+                {introPhase === "eye-arriving" && (
+                  <>
+                    {[0, 1, 2].map((i) => (
+                      <motion.div
+                        key={`trail-${i}`}
+                        className="absolute rounded-full"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          background: "radial-gradient(circle, var(--accent-glow), transparent)",
+                        }}
+                        initial={{ scale: 2 - i * 0.3, opacity: 0.4 - i * 0.1 }}
+                        animate={{ scale: 0, opacity: 0 }}
+                        transition={{ duration: 0.8, delay: i * 0.15 }}
+                      />
+                    ))}
+                  </>
+                )}
 
-        {/* Guide speech text */}
-        <p className="text-lg text-foreground font-medium text-center mb-6 leading-relaxed">
-          {getSpeech()}
-        </p>
+                {/* Greeting typewriter text */}
+                {introPhase === "greeting" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    className="mt-8"
+                  >
+                    <TypewriterText
+                      text="Welcome to Stargate"
+                      speed={50}
+                      className="text-2xl font-bold text-foreground text-center block"
+                    />
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 0.5 }}
+                      transition={{ delay: 1.5 }}
+                      className="text-xs text-muted text-center mt-3"
+                    >
+                      tap to skip
+                    </motion.p>
+                  </motion.div>
+                )}
+              </motion.div>
+            ) : (
+              /* ── Step Flow ─────────────────────────── */
+              <motion.div
+                key="steps"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {/* Progress bar with glow */}
+                <div className="flex items-center gap-1.5 mb-8">
+                  {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                    <div key={i} className="h-1 flex-1 rounded-full bg-border overflow-hidden">
+                      <motion.div
+                        className="h-full bg-accent rounded-full"
+                        initial={false}
+                        animate={{
+                          width: i <= step ? "100%" : "0%",
+                          boxShadow: i === step ? "0 0 8px var(--accent-glow)" : "none",
+                        }}
+                        transition={{ duration: 0.4, ease: "easeInOut" as const }}
+                      />
+                    </div>
+                  ))}
+                </div>
 
-        {/* Step content (animated) */}
-        <div className="min-h-[200px]">
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={step}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.2, ease: "easeInOut" as const }}
-            >
-              {renderStepContent()}
-            </motion.div>
+                {/* Step indicator */}
+                <motion.p
+                  key={`step-${step}`}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-[10px] text-muted/50 text-center mb-4 uppercase tracking-wider font-semibold"
+                >
+                  Step {step + 1} of {TOTAL_STEPS}
+                </motion.p>
+
+                {/* Guide character — glow pulses on step change */}
+                <div className="flex justify-center mb-4">
+                  <motion.div
+                    animate={{ y: [0, -8, 0] }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut" as const,
+                    }}
+                  >
+                    <motion.div
+                      key={`glow-${step}`}
+                      animate={{
+                        boxShadow: [
+                          "0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow)",
+                          "0 0 40px var(--accent-glow), 0 0 80px var(--accent-glow)",
+                          "0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow)",
+                        ],
+                      }}
+                      transition={{ duration: 1.5, times: [0, 0.3, 1] }}
+                      className="rounded-full"
+                    >
+                      <StargateLogo size={72} />
+                    </motion.div>
+                  </motion.div>
+                </div>
+
+                {/* Guide speech text — typewriter */}
+                <div className="text-lg text-foreground font-medium text-center mb-6 leading-relaxed min-h-[2em]">
+                  <TypewriterText
+                    text={getSpeech()}
+                    speed={25}
+                    className=""
+                  />
+                </div>
+
+                {/* Step content (animated with blur + zoom) */}
+                <div className="min-h-[200px]">
+                  <AnimatePresence mode="wait" custom={direction}>
+                    <motion.div
+                      key={step}
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      style={{ willChange: "transform, opacity, filter" }}
+                    >
+                      {renderStepContent()}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                {/* Navigation */}
+                <div className="flex items-center justify-between mt-8">
+                  {step > 0 ? (
+                    <motion.button
+                      onClick={handleBack}
+                      whileHover={{ x: -3 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center gap-2 text-sm text-muted hover:text-foreground transition-colors"
+                    >
+                      <ArrowLeft size={16} />
+                      Back
+                    </motion.button>
+                  ) : (
+                    <div />
+                  )}
+
+                  <motion.button
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{
+                      scale: 1.04,
+                      boxShadow: "0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow)",
+                    }}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {isLast ? (
+                      <>
+                        <CheckCircle2 size={16} />
+                        Let&apos;s Go!
+                      </>
+                    ) : (
+                      <>
+                        {step === 0 ? "Let's Go" : "Continue"}
+                        <ArrowRight size={16} />
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+
+                {/* Skip */}
+                {!isLast && step > 0 && (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    onClick={() => {
+                      saveData();
+                      localStorage.setItem("stargate-onboarded", "true");
+                      localStorage.setItem("stargate-onboarding-version", "3");
+                      window.dispatchEvent(new CustomEvent("stargate-onboarding-complete"));
+                      onComplete();
+                    }}
+                    className="block mx-auto mt-6 text-xs text-muted/60 hover:text-muted transition-colors"
+                  >
+                    {t("onboarding.skipOnboarding")}
+                  </motion.button>
+                )}
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-8">
-          {step > 0 ? (
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-muted hover:text-foreground transition-colors"
-            >
-              <ArrowLeft size={16} />
-              Back
-            </button>
-          ) : (
-            <div />
-          )}
-
-          <motion.button
-            onClick={handleNext}
-            disabled={!canProceed()}
-            whileTap={{ scale: 0.97 }}
-            whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(0,180,216,0.3)] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {isLast ? (
-              <>
-                <CheckCircle2 size={16} />
-                Let&apos;s Go!
-              </>
-            ) : (
-              <>
-                {step === 0 ? "Let's Go" : "Continue"}
-                <ArrowRight size={16} />
-              </>
-            )}
-          </motion.button>
-        </div>
-
-        {/* Skip */}
-        {!isLast && step > 0 && (
-          <button
-            onClick={() => {
-              saveData();
-              localStorage.setItem("stargate-onboarded", "true");
-              localStorage.setItem("stargate-onboarding-version", "3");
-              onComplete();
-            }}
-            className="block mx-auto mt-6 text-xs text-muted/60 hover:text-muted transition-colors"
-          >
-            {t("onboarding.skipOnboarding")}
-          </button>
-        )}
       </div>
     </div>
   );

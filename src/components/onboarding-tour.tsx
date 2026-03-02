@@ -38,13 +38,29 @@ function TourStateManager() {
       sessionStorage.removeItem(TOUR_STATE_KEY);
     }
     // No saved state — start welcome tour if needed
-    if (!isTourComplete("welcome")) {
+    // Guard: only auto-start if onboarding is already complete (prevents starting under overlay)
+    const onboarded = localStorage.getItem("stargate-onboarded");
+    if (!isTourComplete("welcome") && onboarded === "true") {
       const timer = setTimeout(() => {
         startNextStep("welcome");
         requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
       }, 1000);
       return () => clearTimeout(timer);
     }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Listen for onboarding completion to start welcome tour
+  useEffect(() => {
+    function handleOnboardingComplete() {
+      if (!isTourComplete("welcome")) {
+        setTimeout(() => {
+          startNextStep("welcome");
+          requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+        }, 1500);
+      }
+    }
+    window.addEventListener("stargate-onboarding-complete", handleOnboardingComplete);
+    return () => window.removeEventListener("stargate-onboarding-complete", handleOnboardingComplete);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist state on step changes
