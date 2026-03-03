@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const SEC_SUBMISSIONS_BASE = "https://data.sec.gov/submissions";
 const SEC_SEARCH_BASE = "https://efts.sec.gov/LATEST/search-index";
@@ -14,8 +15,10 @@ type SecHolding = {
 };
 
 // Pad CIK to 10 digits with leading zeros (SEC requirement)
-function padCik(cik: string): string {
+// Returns null if input is not numeric (prevents SSRF via URL injection)
+function padCik(cik: string): string | null {
   const cleaned = cik.replace(/^0+/, "");
+  if (!/^\d{1,10}$/.test(cleaned)) return null;
   return cleaned.padStart(10, "0");
 }
 
@@ -24,6 +27,14 @@ export async function GET(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rl = rateLimit(`market:${user.id}`, 60, 60_000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+    );
   }
 
   const { searchParams } = new URL(request.url);
@@ -94,6 +105,12 @@ export async function GET(request: Request) {
 
     // CIK mode: fetch the filer's submissions and parse 13-F holdings
     const paddedCik = padCik(cik!);
+    if (!paddedCik) {
+      return NextResponse.json(
+        { error: "CIK must be a numeric value (1-10 digits)" },
+        { status: 400 }
+      );
+    }
 
     const submissionsRes = await fetch(
       `${SEC_SUBMISSIONS_BASE}/CIK${paddedCik}.json`,

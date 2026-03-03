@@ -57,13 +57,15 @@ export function Sidebar() {
 
   useEffect(() => {
     function handleTourSidebar(e: Event) {
-      const { expand } = (e as CustomEvent).detail;
+      const { expand, category } = (e as CustomEvent).detail;
       if (expand) {
         if (tourSavedCategory.current === null) {
-          tourSavedCategory.current = activeCategory;
+          // Save original state — use "" sentinel for "no drawer open"
+          // so null remains the "not yet saved" indicator
+          tourSavedCategory.current = activeCategory ?? "";
         }
         // Open the relevant category drawer for the tour
-        setActiveCategory("journal");
+        setActiveCategory(category || "journal");
       } else if (tourSavedCategory.current !== null) {
         setActiveCategory(tourSavedCategory.current === "" ? null : tourSavedCategory.current);
         tourSavedCategory.current = null;

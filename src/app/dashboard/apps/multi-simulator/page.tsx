@@ -36,8 +36,7 @@ import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface SimSlot {
   id: number;
@@ -55,7 +54,6 @@ function createSlot(overrides?: Partial<SimSlot>): SimSlot {
 }
 
 export default function MultiSimulatorPage() {
-  usePageTour("multi-simulator-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -144,7 +142,7 @@ export default function MultiSimulatorPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Layers size={24} className="text-accent" />
           Multi Simulator
-          <PageInfoButton tourName="multi-simulator-page" />
+          <InfoTooltip text="Run multiple Monte Carlo simulations to compare different risk and position sizing scenarios side by side." size={14} />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Compare multiple Monte Carlo scenarios side by side

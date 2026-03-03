@@ -7,8 +7,7 @@ import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import MonthlyReturnsTab from "@/components/seasonality/monthly-returns-tab";
 import DayOfWeekTab from "@/components/seasonality/day-of-week-tab";
 import HeatmapTab from "@/components/seasonality/heatmap-tab";
@@ -21,10 +20,9 @@ import {
   SYMBOL_GROUPS,
   TAB_OPTIONS,
 } from "@/components/seasonality/seasonality-types";
-import { mapApiResponse } from "@/components/seasonality/seasonality-utils";
+import { mapApiResponse, fetchSeasonalityDirect } from "@/components/seasonality/seasonality-utils";
 
 export default function SeasonalityPage() {
-  usePageTour("seasonality-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -42,15 +40,23 @@ export default function SeasonalityPage() {
     setLoading(true);
     setError(null);
     try {
+      // Try API route first (server-side, has CoinGecko API key)
       const res = await fetch(
         `/api/market/seasonality?symbol=${encodeURIComponent(sym)}&days=${days}`
       );
-      if (!res.ok) throw new Error("Failed to fetch seasonality data");
+      if (!res.ok) throw new Error("API route failed");
       const json = await res.json();
       setData(mapApiResponse(json));
     } catch {
-      setError("Could not load seasonality data. Try a different symbol.");
-      setData(null);
+      // Fallback: direct CoinGecko fetch from browser
+      try {
+        const directData = await fetchSeasonalityDirect(sym, days);
+        setData(directData);
+      } catch (err) {
+        console.error("[seasonality]", err);
+        setError("Could not load seasonality data. Try a different symbol.");
+        setData(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -85,7 +91,7 @@ export default function SeasonalityPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <CalendarDays size={24} className="text-accent" />
           Seasonality Analysis
-          <PageInfoButton tourName="seasonality-page" />
+          <InfoTooltip text="Explore historical return patterns by month, day of week, and year. Identify seasonal trends to inform your timing decisions." size={14} />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Historical return patterns by month, weekday, and year

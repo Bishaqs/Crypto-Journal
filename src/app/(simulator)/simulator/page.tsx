@@ -3,6 +3,7 @@
 import { useReducer, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, RotateCcw, Maximize2, PanelRight } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import ChartContainer from "@/components/simulator/chart-container";
 import PlaybackControls from "@/components/simulator/playback-controls";
 import OrderPanel from "@/components/simulator/order-panel";
@@ -536,7 +537,7 @@ export default function PaperTradingPage() {
           <span>Back</span>
         </Link>
 
-        <h1 className="text-sm font-semibold text-white">Paper Trading</h1>
+        <h1 className="text-sm font-semibold text-white flex items-center gap-1.5">Paper Trading <InfoTooltip text="Practice trading with simulated money on real historical price data. Place market, limit, stop, and bracket orders to sharpen your execution." size={14} position="below" /></h1>
 
         <div className="ml-4">
           <SymbolSelector

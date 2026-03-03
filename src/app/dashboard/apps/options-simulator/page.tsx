@@ -5,8 +5,7 @@ import { Header } from "@/components/header";
 import { useTheme } from "@/lib/theme-context";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import ChainGrid from "@/components/options/chain-grid";
 import OrderList from "@/components/options/order-list";
 import PositionSummary from "@/components/options/position-summary";
@@ -27,7 +26,6 @@ const RISK_FREE_RATE = 0.05;
 export default function OptionsSimulatorPage() {
   const { theme } = useTheme();
   const { hasAccess } = useSubscription();
-  usePageTour("options-simulator");
 
   // Settings
   const [symbol, setSymbol] = useState<OptionSymbol>("AAPL");
@@ -232,7 +230,7 @@ export default function OptionsSimulatorPage() {
             />
           </div>
 
-          <PageInfoButton tourName="options-simulator" />
+          <InfoTooltip text="Build and manage options positions using a simulated order book. Practice calls, puts, and spreads risk-free." size={14} />
         </div>
 
         {/* Chain header labels */}

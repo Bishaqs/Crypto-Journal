@@ -21,8 +21,7 @@ import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 function StatBlock({ label, value, icon: Icon, color = "text-foreground" }: { label: string; value: string; icon: React.ElementType; color?: string }) {
   return (
@@ -37,7 +36,6 @@ function StatBlock({ label, value, icon: Icon, color = "text-foreground" }: { la
 }
 
 export default function TargetSimulatorPage() {
-  usePageTour("target-simulator-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -103,7 +101,7 @@ export default function TargetSimulatorPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Target size={24} className="text-accent" />
           Target Simulator
-          <PageInfoButton tourName="target-simulator-page" />
+          <InfoTooltip text="Project how many trades you need to reach your equity target based on your actual win rate, average win, and risk per trade." size={14} />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Project how many trades to reach your equity target based on your stats

@@ -92,6 +92,7 @@ export function SidebarDrawer({
     const label = LABEL_KEY[item.label] ? t(LABEL_KEY[item.label]) : item.label;
     return (
       <Link
+        id={item.tourId}
         href={item.href}
         className={`flex items-center gap-3 ${indent ? "px-3 pl-7" : "px-3"} py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
           active
@@ -325,7 +326,7 @@ export function SidebarDrawer({
         {/* Mode toggle (for categories with sections) */}
         {hasSections && (
           <div className="px-3 pt-2">
-            <div className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
+            <div id="tour-view-toggle" className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
               {(["simple", "full"] as ViewMode[]).map(mode => (
                 <button
                   key={mode}

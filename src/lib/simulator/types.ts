@@ -59,12 +59,4 @@ export type PlaybackState = {
 
 export type SimInterval = "1m" | "5m";
 
-export const SUPPORTED_SYMBOLS = [
-  { value: "BTCUSDT", label: "BTC / USDT" },
-  { value: "ETHUSDT", label: "ETH / USDT" },
-  { value: "SOLUSDT", label: "SOL / USDT" },
-  { value: "BNBUSDT", label: "BNB / USDT" },
-  { value: "XRPUSDT", label: "XRP / USDT" },
-] as const;
-
-export type SupportedSymbol = (typeof SUPPORTED_SYMBOLS)[number]["value"];
+export { SUPPORTED_BINANCE_SYMBOLS as SUPPORTED_SYMBOLS, type SupportedSymbol } from "@/lib/coin-registry";

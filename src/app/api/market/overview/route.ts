@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 const FNG_URL = "https://api.alternative.me/fng/?limit=1";
@@ -11,15 +12,25 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = rateLimit(`market:${user.id}`, 60, 60_000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+    );
+  }
+
+  const cgHeaders = { "x-cg-demo-api-key": process.env.CG_DEMO_API_KEY ?? "" };
+
   try {
     const [coinsRes, globalRes, fngRes, trendingRes] = await Promise.allSettled([
       fetch(
         `${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=25&sparkline=true&price_change_percentage=1h%2C24h%2C7d`,
-        { next: { revalidate: 300 } }
+        { headers: cgHeaders, next: { revalidate: 300 } }
       ),
-      fetch(`${COINGECKO_BASE}/global`, { next: { revalidate: 300 } }),
+      fetch(`${COINGECKO_BASE}/global`, { headers: cgHeaders, next: { revalidate: 300 } }),
       fetch(FNG_URL, { next: { revalidate: 300 } }),
-      fetch(`${COINGECKO_BASE}/search/trending`, { next: { revalidate: 300 } }),
+      fetch(`${COINGECKO_BASE}/search/trending`, { headers: cgHeaders, next: { revalidate: 300 } }),
     ]);
 
     const coins =

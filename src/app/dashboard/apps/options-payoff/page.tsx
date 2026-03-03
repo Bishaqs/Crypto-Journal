@@ -25,8 +25,7 @@ import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import {
   type OptionLeg,
   type OptionType,
@@ -49,7 +48,6 @@ function StatBlock({ label, value, color = "text-foreground" }: { label: string;
 const DEFAULT_LEG: OptionLeg = { type: "call", strike: 100, premium: 5, quantity: 1 };
 
 export default function OptionsPayoffPage() {
-  usePageTour("options-payoff-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -119,7 +117,7 @@ export default function OptionsPayoffPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <LineChartIcon size={24} className="text-accent" />
           Options Payoff Diagram
-          <PageInfoButton tourName="options-payoff-page" />
+          <InfoTooltip text="Visualize the profit/loss diagram for any multi-leg options strategy at expiration. Add calls and puts to see combined payoff." size={14} />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Visualize profit/loss at expiration for any options strategy

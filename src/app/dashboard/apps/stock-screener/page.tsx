@@ -7,8 +7,7 @@ import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { formatLargeNumber } from "@/lib/format";
 
 interface StockRow {
@@ -31,7 +30,6 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function StockScreenerPage() {
-  usePageTour("stock-screener-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -122,7 +120,7 @@ export default function StockScreenerPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <BarChart3 size={24} className="text-accent" />
             Stock Screener
-            <PageInfoButton tourName="stock-screener-page" />
+            <InfoTooltip text="Discover the most active stocks, top gainers, and biggest losers across US markets." size={14} />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Most active stocks, top gainers, and biggest losers

@@ -1,4 +1,4 @@
-import type { Tour } from "nextstepjs";
+import type { TourDef as Tour } from "../tour-context";
 
 const STEP_DEFAULTS = {
   showControls: true,

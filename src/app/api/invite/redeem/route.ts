@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
   }
 
   const code = typeof body.code === "string" ? body.code.trim().toUpperCase() : "";
-  if (!code) {
-    return NextResponse.json({ success: false, error: "Code is required" }, { status: 400 });
+  if (!code || code.length > 50) {
+    return NextResponse.json({ success: false, error: "Invalid code" }, { status: 400 });
   }
 
   // Use admin client to bypass RLS entirely

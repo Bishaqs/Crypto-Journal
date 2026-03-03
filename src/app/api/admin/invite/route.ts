@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { z } from "zod";
+
+const CreateInviteSchema = z.object({
+  tier: z.enum(["pro", "max"]).default("max"),
+  description: z.string().max(200).optional(),
+  maxUses: z.number().int().positive().nullable().optional(),
+});
+
+const InviteIdSchema = z.object({
+  id: z.string().uuid("Invalid code ID format"),
+});
 
 async function verifyOwner(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser();
@@ -29,14 +40,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { tier?: string; description?: string; maxUses?: number | null };
+  let parsed;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    parsed = CreateInviteSchema.parse(await req.json());
+  } catch (err) {
+    const msg = err instanceof z.ZodError ? err.issues[0]?.message ?? "Invalid request" : "Invalid request";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  const tier = body.tier === "pro" ? "pro" : "max";
+  const tier = parsed.tier;
   const code = `STARGATE-${tier.toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
   let admin;
@@ -50,8 +62,8 @@ export async function POST(req: NextRequest) {
   const { data, error } = await admin.from("invite_codes").insert({
     code,
     grants_tier: tier,
-    description: body.description || null,
-    max_uses: body.maxUses ?? null,
+    description: parsed.description || null,
+    max_uses: parsed.maxUses ?? null,
     created_by: user.id,
   }).select().single();
 
@@ -71,15 +83,12 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { id?: string };
+  let patchParsed;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  }
-
-  if (!body.id) {
-    return NextResponse.json({ error: "Code ID required" }, { status: 400 });
+    patchParsed = InviteIdSchema.parse(await req.json());
+  } catch (err) {
+    const msg = err instanceof z.ZodError ? err.issues[0]?.message ?? "Invalid request" : "Invalid request";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 
   let admin;
@@ -93,7 +102,7 @@ export async function PATCH(req: NextRequest) {
   const { error } = await admin
     .from("invite_codes")
     .update({ is_active: false })
-    .eq("id", body.id);
+    .eq("id", patchParsed.id);
 
   if (error) {
     console.error("[admin/invite] deactivate failed:", error.message);
@@ -111,15 +120,12 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { id?: string };
+  let delParsed;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  }
-
-  if (!body.id) {
-    return NextResponse.json({ error: "Code ID required" }, { status: 400 });
+    delParsed = InviteIdSchema.parse(await req.json());
+  } catch (err) {
+    const msg = err instanceof z.ZodError ? err.issues[0]?.message ?? "Invalid request" : "Invalid request";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 
   let admin;
@@ -131,8 +137,8 @@ export async function DELETE(req: NextRequest) {
   }
 
   // Delete redemptions first (FK constraint), then the code
-  await admin.from("invite_code_redemptions").delete().eq("invite_code_id", body.id);
-  const { error } = await admin.from("invite_codes").delete().eq("id", body.id);
+  await admin.from("invite_code_redemptions").delete().eq("invite_code_id", delParsed.id);
+  const { error } = await admin.from("invite_codes").delete().eq("id", delParsed.id);
 
   if (error) {
     console.error("[admin/invite] delete failed:", error.message);

@@ -3,6 +3,7 @@
 import { useReducer, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, RotateCcw } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import SimulatorPanel from "@/components/simulator/simulator-panel";
 import PlaybackControls from "@/components/simulator/playback-controls";
 import MultiSessionSummary from "@/components/simulator/multi-session-summary";
@@ -221,8 +222,9 @@ export default function MultiChartPage() {
           <span>Back</span>
         </Link>
 
-        <h1 className="text-sm font-semibold text-white">
+        <h1 className="text-sm font-semibold text-white flex items-center gap-1.5">
           Multi-Chart Trading
+          <InfoTooltip text="Trade up to 4 crypto pairs simultaneously on synced historical charts. Press 1-4 to switch active panel, B/S for quick buy/sell." size={14} position="below" />
         </h1>
 
         {/* Date picker */}

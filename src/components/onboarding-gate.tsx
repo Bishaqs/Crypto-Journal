@@ -37,6 +37,14 @@ export function OnboardingGate({ userId }: { userId?: string }) {
       const prevUser = localStorage.getItem("stargate-current-user");
       if (prevUser !== userId) {
         ONBOARDING_KEYS.forEach((k) => localStorage.removeItem(k));
+        // Clear all page tour completion keys (prefix-based, so new tours are auto-covered)
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("stargate-tour-")) {
+            localStorage.removeItem(key);
+          }
+        }
+        sessionStorage.removeItem("stargate-tour-active");
       }
       localStorage.setItem("stargate-current-user", userId);
     }

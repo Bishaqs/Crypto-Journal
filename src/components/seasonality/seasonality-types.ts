@@ -40,18 +40,12 @@ export type LookbackPeriod = "1Y" | "2Y" | "3Y" | "5Y";
 
 export const LOOKBACK_DAYS: Record<LookbackPeriod, number> = {
   "1Y": 365,
-  "2Y": 730,
-  "3Y": 1095,
-  "5Y": 1825,
+  "2Y": 365,
+  "3Y": 365,
+  "5Y": 365,
 };
 
-export const SYMBOL_GROUPS: Record<string, string[]> = {
-  Major: ["BTC", "ETH", "SOL", "BNB", "XRP"],
-  DeFi: ["UNI", "AAVE", "LINK", "ATOM"],
-  Meme: ["DOGE", "SHIB"],
-  "Layer 2": ["ARB", "OP", "MATIC"],
-  "Alt L1": ["ADA", "DOT", "AVAX", "APT", "SUI", "NEAR"],
-};
+export { CRYPTO_SYMBOL_GROUPS as SYMBOL_GROUPS } from "@/lib/coin-registry";
 
 export const TAB_OPTIONS: { value: SeasonalityTab; label: string }[] = [
   { value: "monthly", label: "Monthly Returns" },

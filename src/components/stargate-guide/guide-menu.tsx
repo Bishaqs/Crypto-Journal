@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { EMOTION_CONFIG } from "@/components/psychology-inputs";
-import { isTourComplete } from "@/lib/onboarding";
+import { isTourComplete, TOUR_KEY_PREFIX } from "@/lib/onboarding";
 import { useGuide } from "./guide-context";
+import { useTour } from "@/lib/tour-context";
 import { useI18n } from "@/lib/i18n";
 
 const EMOTIONS = Object.keys(EMOTION_CONFIG);
@@ -28,6 +29,7 @@ const TRAFFIC_LIGHTS = [
 
 export function GuideMenu() {
   const { state, closeMenu, setMenuPanel } = useGuide();
+  const { startTour } = useTour();
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useI18n();
@@ -112,16 +114,16 @@ export function GuideMenu() {
 
   function replayPageTour() {
     const page = pathname.split("/").pop() || "dashboard";
-    const tourKey = `stargate-tour-${page}-page`;
+    const tourKey = TOUR_KEY_PREFIX + `${page}-page`;
     localStorage.removeItem(tourKey);
     closeMenu();
-    window.location.reload();
+    setTimeout(() => startTour(`${page}-page`), 100);
   }
 
   function replayWelcomeTour() {
-    localStorage.removeItem("stargate-tour-welcome");
+    localStorage.removeItem(TOUR_KEY_PREFIX + "welcome");
     closeMenu();
-    window.location.reload();
+    setTimeout(() => startTour("welcome"), 100);
   }
 
   const isDashboard = pathname === "/dashboard" || pathname.endsWith("/dashboard");

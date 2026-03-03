@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const YAHOO_SPARK =
   "https://query1.finance.yahoo.com/v8/finance/spark?symbols=%5EGSPC,%5EIXIC,%5EDJI,%5EVIX,DX-Y.NYB&range=5d&interval=1d";
@@ -11,6 +12,14 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rl = rateLimit(`market:${user.id}`, 60, 60_000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+    );
   }
 
   try {

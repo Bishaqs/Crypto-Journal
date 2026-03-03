@@ -7,8 +7,7 @@ import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import FlowTableTab from "@/components/options-flow/flow-table-tab";
 import MarketSummaryTab from "@/components/options-flow/market-summary-tab";
 import SymbolSummaryTab from "@/components/options-flow/symbol-summary-tab";
@@ -41,7 +40,6 @@ function StatBlock({ label, value, color = "text-foreground" }: { label: string;
 }
 
 export default function OptionsFlowPage() {
-  usePageTour("options-flow-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -157,7 +155,7 @@ export default function OptionsFlowPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Activity size={24} className="text-accent" />
             Options Flow
-            <PageInfoButton tourName="options-flow-page" />
+            <InfoTooltip text="Track unusual options activity and large block trades in real-time. Spot institutional sentiment before the move." size={14} />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Real-time unusual options activity and sentiment signals

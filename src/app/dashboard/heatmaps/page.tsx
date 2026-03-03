@@ -31,7 +31,7 @@ interface DemoTrade {
 
 // ─── Demo Data Generation ────────────────────────────────────────────────────
 
-const SYMBOLS = ["BTC", "ETH", "SOL", "DOGE", "ADA", "AVAX", "LINK", "DOT", "MATIC", "XRP"];
+const SYMBOLS = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "SHIB", "PEPE", "ADA", "DOT", "AVAX", "APT", "SUI", "NEAR", "LINK", "UNI", "AAVE", "ARB", "OP", "MATIC"];
 
 function seededRandom(seed: number): () => number {
   let s = seed;

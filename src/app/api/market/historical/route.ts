@@ -1,22 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
+import { resolveCoinGeckoId } from "@/lib/coin-registry";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
-
-const SYMBOL_MAP: Record<string, string> = {
-  BTC: "bitcoin",
-  ETH: "ethereum",
-  SOL: "solana",
-  BNB: "binancecoin",
-  XRP: "ripple",
-  ADA: "cardano",
-  DOGE: "dogecoin",
-  DOT: "polkadot",
-  AVAX: "avalanche-2",
-  MATIC: "matic-network",
-  LINK: "chainlink",
-  ATOM: "cosmos",
-};
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -27,16 +14,27 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = rateLimit(`market:${user.id}`, 60, 60_000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const symbol = (searchParams.get("symbol") ?? "BTC").toUpperCase();
   const days = Math.min(Number(searchParams.get("days") ?? "365"), 1825);
 
-  const coinId = SYMBOL_MAP[symbol] ?? symbol.toLowerCase();
+  const coinId = resolveCoinGeckoId(symbol);
 
   try {
     const res = await fetch(
       `${COINGECKO_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`,
-      { next: { revalidate: 3600 } }
+      {
+        headers: { "x-cg-demo-api-key": process.env.CG_DEMO_API_KEY ?? "" },
+        next: { revalidate: 3600 },
+      }
     );
 
     if (!res.ok) {

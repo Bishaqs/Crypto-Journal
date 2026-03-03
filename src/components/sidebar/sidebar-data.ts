@@ -87,8 +87,8 @@ export interface RailCategory {
 export const coreItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tourId: "tour-home" },
   { href: "/dashboard/trades", label: "Trade Log", icon: Table2, tourId: "tour-trades" },
-  { href: "/dashboard/journal", label: "Journal", icon: BookOpen },
-  { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/dashboard/journal", label: "Journal", icon: BookOpen, tourId: "tour-journal" },
+  { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays, tourId: "tour-calendar" },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, tourId: "tour-analytics" },
   { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList, tourId: "tour-plans" },
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
@@ -143,8 +143,8 @@ const dateViewItems: NavItem[] = [
 ];
 
 const intelligenceItems: NavItem[] = [
-  { href: "/dashboard/insights", label: "Insights", icon: Brain },
-  { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles },
+  { href: "/dashboard/insights", label: "Insights", icon: Brain, tourId: "tour-insights" },
+  { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles, tourId: "tour-ai" },
   { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
 ];
 

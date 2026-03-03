@@ -18,6 +18,7 @@ import {
   HelpCircle,
   CandlestickChart,
   Grid2X2,
+  Filter,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,7 +44,9 @@ export const APPS_REGISTRY: AppEntry[] = [
   { id: "options-flow", label: "Options Flow", href: "/dashboard/apps/options-flow", icon: Activity, category: "apps", exists: true },
   { id: "fundamental-data", label: "Fundamental Data", href: "/dashboard/apps/sec-13f", icon: FileSearch, category: "apps", exists: true },
   { id: "strategy-backtester", label: "Strategy Backtester", href: "/dashboard/apps/backtester", icon: FlaskConical, category: "apps", exists: true },
-  { id: "compare-trades", label: "Compare Trades", href: "/dashboard/apps/compare-trades", icon: ArrowLeftRight, category: "apps", exists: true },
+  { id: "trade-filters", label: "Trade Filters", href: "/dashboard/apps/filters", icon: Filter, category: "apps", exists: true },
+  { id: "compare-trades", label: "Filter Groups", href: "/dashboard/apps/compare-trades", icon: ArrowLeftRight, category: "apps", exists: true },
+  { id: "pnl-charts", label: "P&L Charts", href: "/dashboard/apps/pnl-charts", icon: BarChart3, category: "apps", exists: true },
   { id: "options-backtest", label: "Options Backtest", href: "/dashboard/apps/options-backtest", icon: History, category: "apps", exists: true },
   { id: "options-payoff", label: "Options Payoff", href: "/dashboard/apps/options-payoff", icon: LineChart, category: "apps", exists: true },
   { id: "daily-screener", label: "Daily Screener", href: "/dashboard/screener", icon: Search, category: "apps", exists: true },

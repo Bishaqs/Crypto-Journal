@@ -1,32 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
+import { resolveCoinGeckoId } from "@/lib/coin-registry";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
-
-const SYMBOL_TO_ID: Record<string, string> = {
-  BTC: "bitcoin",
-  ETH: "ethereum",
-  SOL: "solana",
-  ADA: "cardano",
-  DOT: "polkadot",
-  AVAX: "avalanche-2",
-  MATIC: "matic-network",
-  LINK: "chainlink",
-  ATOM: "cosmos",
-  UNI: "uniswap",
-  DOGE: "dogecoin",
-  SHIB: "shiba-inu",
-  XRP: "ripple",
-  BNB: "binancecoin",
-  LTC: "litecoin",
-  ARB: "arbitrum",
-  OP: "optimism",
-  APT: "aptos",
-  SUI: "sui",
-  NEAR: "near",
-  AAVE: "aave",
-  PEPE: "pepe",
-};
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -51,22 +27,28 @@ function round3(n: number): number {
 }
 
 export async function GET(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
+  const rl = rateLimit(`seasonality:${ip}`, 60, 60_000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+    );
   }
 
   const { searchParams } = new URL(request.url);
   const symbol = (searchParams.get("symbol") ?? "BTC").toUpperCase();
-  const days = Math.min(Math.max(Number(searchParams.get("days") ?? 365), 30), 1825);
+  const days = Math.min(Math.max(Number(searchParams.get("days") ?? 365), 30), 365);
 
-  const coinId = SYMBOL_TO_ID[symbol] ?? symbol.toLowerCase();
+  const coinId = resolveCoinGeckoId(symbol);
 
   try {
     const res = await fetch(
       `${COINGECKO_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`,
-      { next: { revalidate: 3600 } }
+      {
+        headers: { "x-cg-demo-api-key": process.env.CG_DEMO_API_KEY ?? "" },
+        next: { revalidate: 3600 },
+      }
     );
 
     if (!res.ok) {
