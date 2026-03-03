@@ -27,7 +27,7 @@ export const welcomeTour: Tour = {
       icon: "🚀",
       title: "Ready for Liftoff?",
       content:
-        "Come with me. I'll show you everything you need to become a profitable trader.",
+        "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
       presentation: "centered",
       transitionEffect: "star-warp",
       showControls: true,
@@ -38,7 +38,7 @@ export const welcomeTour: Tour = {
       icon: "🚀",
       title: "Welcome to Stargate!",
       content:
-        "Hey! I'm your trading companion. Let me show you around. This takes about 2 minutes, and you can skip anytime.",
+        "Hey! I'm Nova, your trading companion. Let me show you around. This takes about 2 minutes, and you can skip anytime.",
       presentation: "centered",
       logoSize: 96,
       showControls: true,
@@ -100,6 +100,17 @@ export const welcomeTour: Tour = {
       showSkip: true,
     },
     {
+      icon: "🏆",
+      title: "Achievements",
+      content:
+        "Earn badges for your trading milestones — journal streaks, win rates, risk management. Track your growth as a trader.",
+      selector: "#tour-achievements",
+      presentation: "attached",
+      side: "right",
+      showControls: true,
+      showSkip: true,
+    },
+    {
       icon: "📈",
       title: "Analytics",
       content:
@@ -125,7 +136,7 @@ export const welcomeTour: Tour = {
       icon: "🤖",
       title: "AI Coach",
       content:
-        "Ask it anything. 'What's my biggest leak?' or 'When should I stop trading?' It reads your trading patterns.",
+        "Ask it anything about your trading. For a personal AI coach, connect your own API key in Settings — your data stays secure and private.",
       selector: "#tour-ai",
       presentation: "attached",
       side: "right",
@@ -150,7 +161,7 @@ export const welcomeTour: Tour = {
       content:
         "Win rate, P&L, profit factor, max drawdown. These four numbers tell the whole story. They update as you trade.",
       selector: "#tour-stats",
-      side: "bottom",
+      side: "top",
       presentation: "attached",
       viewportID: "dashboard-viewport",
       showControls: true,
@@ -191,6 +202,7 @@ export const welcomeTour: Tour = {
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
+      pointerPadding: 12,
     },
     {
       icon: "🔥",
@@ -220,7 +232,7 @@ export const welcomeTour: Tour = {
       icon: "🤖",
       title: "AI Insights",
       content:
-        "The AI reads your recent patterns and surfaces things you might miss. No need to ask. It watches automatically.",
+        "Nova summarizes your recent trading patterns — streaks, emotional tendencies, and hidden leaks. Check here for quick insights without asking.",
       selector: "#tour-ai-summary",
       side: "top",
       presentation: "attached",
@@ -233,7 +245,7 @@ export const welcomeTour: Tour = {
       icon: "✅",
       title: "You're All Set!",
       content:
-        "Hit Log Trade to record your first one. Every page has its own tour on first visit. Now go trade!",
+        "Hit Log Trade to record your first one. Every page has its own mini-tour on first visit. I'm Nova — click me anytime you need help. Now go trade!",
       presentation: "centered",
       showControls: true,
       showSkip: false,
@@ -296,7 +308,7 @@ export const journalPageTour: Tour = {
       icon: "📓",
       title: "Your Trading Journal",
       content:
-        "The journal is your accountability partner. Write daily reflections on your trading mindset, what went well, and what you'd do differently. Over time, you'll spot recurring patterns in your thinking.",
+        "The journal is your accountability partner. Write daily reflections on your trading mindset, what went well, and what you'd do differently.",
       selector: "#journal-header",
       side: "bottom",
       viewportID: "dashboard-viewport",
@@ -306,12 +318,25 @@ export const journalPageTour: Tour = {
       pointerRadius: 12,
     },
     {
-      icon: "✍️",
-      title: "Rich Text Editor",
+      icon: "✏️",
+      title: "Create a Note",
       content:
-        "Write with full formatting — bold, lists, headings, and more. Use templates to structure your entries consistently. The best journals are honest, not perfect.",
-      selector: "#journal-editor",
-      side: "top",
+        "Click here to start a new entry. Pick a template — Pre-trade, Post-trade, Loss Review, or Win Analysis — or write freestyle. Consistency beats perfection.",
+      selector: "#tour-new-note",
+      side: "bottom",
+      viewportID: "dashboard-viewport",
+      showControls: true,
+      showSkip: true,
+      pointerPadding: 8,
+      pointerRadius: 12,
+    },
+    {
+      icon: "🏷️",
+      title: "Tags & Search",
+      content:
+        "Tag your entries by emotion, setup, or lesson. Use search and filters to find patterns. Over time you'll spot recurring themes in your thinking.",
+      selector: "#journal-header",
+      side: "bottom",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: false,

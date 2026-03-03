@@ -107,6 +107,7 @@ const TOUR_ID_TO_CATEGORY: Record<string, string> = {
   "tour-journal": "journal",
   "tour-calendar": "journal",
   "tour-plans": "journal",
+  "tour-achievements": "journal",
   "tour-analytics": "analytics",
   "tour-insights": "analytics",
   "tour-ai": "analytics",
@@ -125,6 +126,13 @@ function expandSidebar(category?: string) {
 function restoreSidebar() {
   window.dispatchEvent(
     new CustomEvent("tour-sidebar", { detail: { expand: false } }),
+  );
+  window.dispatchEvent(new CustomEvent("tour-sections-restore"));
+}
+
+function forceCloseSidebar() {
+  window.dispatchEvent(
+    new CustomEvent("tour-sidebar", { detail: { expand: false, force: true } }),
   );
   window.dispatchEvent(new CustomEvent("tour-sections-restore"));
 }
@@ -157,7 +165,7 @@ function executeStep(step: TourStep, stepIndex: number, tourName: string) {
         }, 380);
       } else {
         // Close sidebar first, then wait for drawer close animation before highlighting
-        restoreSidebar();
+        forceCloseSidebar();
 
         setTimeout(() => {
           document
@@ -226,8 +234,8 @@ function executeStep(step: TourStep, stepIndex: number, tourName: string) {
     return;
   }
 
-  // Non-sidebar target
-  restoreSidebar();
+  // Non-sidebar target — force close sidebar so content is fully visible
+  forceCloseSidebar();
   const targetEl = document.querySelector(step.selector);
   if (!targetEl) return;
 

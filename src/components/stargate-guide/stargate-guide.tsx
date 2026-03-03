@@ -307,6 +307,7 @@ export function StargateGuideCharacter() {
   const [showBubble, setShowBubble] = useState(false);
   const [isCentered, setIsCentered] = useState(false);
   const [showStarWarp, setShowStarWarp] = useState(false);
+  const wasCenteredRef = useRef(false);
 
   const [spotlightRect, setSpotlightRect] = useState<{
     left: number;
@@ -348,6 +349,7 @@ export function StargateGuideCharacter() {
         setFlyOffset({ x: 0, y: 0 });
         setSpotlightRect(null);
         setIsCentered(true);
+        wasCenteredRef.current = true;
         setTimeout(() => setShowBubble(true), 200);
         return;
       }
@@ -386,6 +388,14 @@ export function StargateGuideCharacter() {
     window.addEventListener("tour-guide-fly", handleFly);
     return () => window.removeEventListener("tour-guide-fly", handleFly);
   }, []);
+
+  // Reset wasCentered ref after the guide remounts from centered→attached
+  useEffect(() => {
+    if (!isCentered && wasCenteredRef.current) {
+      // Reset after the initial prop is consumed on mount
+      requestAnimationFrame(() => { wasCenteredRef.current = false; });
+    }
+  }, [isCentered]);
 
   // Listen for star warp trigger
   useEffect(() => {
@@ -588,6 +598,14 @@ export function StargateGuideCharacter() {
           ref={guideRef}
           className={`fixed ${isTourMode ? "z-[999]" : "z-50"} ${isClickable ? "cursor-pointer" : ""}`}
           style={{ bottom: "24px", right: "24px" }}
+          initial={
+            wasCenteredRef.current
+              ? {
+                  x: (typeof window !== "undefined" ? window.innerWidth / 2 - GUIDE_SIZE / 2 : 0) - homeX,
+                  y: (typeof window !== "undefined" ? window.innerHeight / 2 - GUIDE_SIZE / 2 : 0) - homeY,
+                }
+              : false
+          }
           animate={
             isFlying
               ? { x: flyOffset.x, y: flyOffset.y }

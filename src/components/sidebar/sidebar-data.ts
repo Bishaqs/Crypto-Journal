@@ -91,7 +91,7 @@ export const coreItems: NavItem[] = [
   { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays, tourId: "tour-calendar" },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, tourId: "tour-analytics" },
   { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList, tourId: "tour-plans" },
-  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
+  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy, tourId: "tour-achievements" },
 ];
 
 const analysisTopItems: NavItem[] = [

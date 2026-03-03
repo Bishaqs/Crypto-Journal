@@ -60,7 +60,10 @@ export function OnboardingGate({ userId }: { userId?: string }) {
     }
   }, [userId]);
 
-  if (step === "loading" || step === "done") return null;
+  if (step === "loading") {
+    return <div className="fixed inset-0 z-[9999] bg-black" />;
+  }
+  if (step === "done") return null;
 
   if (step === "onboarding") {
     return <GuideOnboarding onComplete={() => setStep("done")} />;
