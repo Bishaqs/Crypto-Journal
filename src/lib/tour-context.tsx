@@ -304,7 +304,16 @@ export function TourProvider({ children }: { children: ReactNode }) {
       const tour = allTours.find((t) => t.tour === name);
       if (!tour || tour.steps.length === 0) return;
       dispatch({ type: "START", tourName: name, totalSteps: tour.steps.length });
-      // Execute first step after a frame
+
+      const firstStep = tour.steps[0];
+      if (firstStep.transitionEffect === "star-warp") {
+        // Auto-trigger warp — no bubble for this step
+        requestAnimationFrame(() => {
+          window.dispatchEvent(new CustomEvent("tour-star-warp"));
+        });
+        return;
+      }
+
       requestAnimationFrame(() => {
         executeStep(tour.steps[0], 0, name);
       });

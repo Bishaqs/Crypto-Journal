@@ -69,7 +69,7 @@ export function OnboardingGate({ userId }: { userId?: string }) {
     }
 
     window.addEventListener("stargate-tour-started", handleTourStarted);
-    const timer = setTimeout(() => setStep("done"), 3000);
+    const timer = setTimeout(() => setStep("done"), 5000);
 
     return () => {
       window.removeEventListener("stargate-tour-started", handleTourStarted);

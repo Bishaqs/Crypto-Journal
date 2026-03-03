@@ -213,35 +213,7 @@ function GuideCharacterAnimated({
   arrivalKey: number;
 }) {
   return (
-    <motion.div
-      className="rounded-full overflow-visible"
-      animate={
-        isFlying
-          ? { boxShadow: glow }
-          : isTalking
-            ? {
-                boxShadow: [
-                  "0 0 20px var(--accent-glow)",
-                  "0 0 36px var(--accent-glow), 0 0 64px var(--accent-glow)",
-                  "0 0 20px var(--accent-glow)",
-                ],
-              }
-            : {
-                boxShadow: [
-                  "0 0 16px var(--accent-glow)",
-                  "0 0 28px var(--accent-glow), 0 0 56px var(--accent-glow)",
-                  "0 0 16px var(--accent-glow)",
-                ],
-              }
-      }
-      transition={
-        isFlying
-          ? { duration: 0.5 }
-          : isTalking
-            ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" as const }
-            : { duration: 3, repeat: Infinity, ease: "easeInOut" as const }
-      }
-    >
+    <motion.div className="rounded-full overflow-visible">
       {/* Talking pulse or breathing */}
       <motion.div
         animate={
@@ -259,9 +231,30 @@ function GuideCharacterAnimated({
               : { duration: 3.5, repeat: Infinity, ease: "easeInOut" as const }
         }
       >
-        {/* Float */}
+        {/* Float + glow (glow follows the bob so shadow isn't detached) */}
         <motion.div
-          animate={isFlying ? { y: 0 } : { y: [0, -8, 0] }}
+          className="rounded-full"
+          animate={
+            isFlying
+              ? { y: 0, boxShadow: glow }
+              : isTalking
+                ? {
+                    y: [0, -8, 0],
+                    boxShadow: [
+                      "0 0 20px var(--accent-glow)",
+                      "0 0 36px var(--accent-glow), 0 0 64px var(--accent-glow)",
+                      "0 0 20px var(--accent-glow)",
+                    ],
+                  }
+                : {
+                    y: [0, -8, 0],
+                    boxShadow: [
+                      "0 0 16px var(--accent-glow)",
+                      "0 0 28px var(--accent-glow), 0 0 56px var(--accent-glow)",
+                      "0 0 16px var(--accent-glow)",
+                    ],
+                  }
+          }
           transition={
             isFlying
               ? { duration: 0.3 }

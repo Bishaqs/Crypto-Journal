@@ -37,10 +37,10 @@ function TourStateManager() {
       if (!isTourComplete("welcome")) {
         setTimeout(() => {
           startTour("welcome");
-          // Delay event so tour's centered overlay renders before gate overlay disappears
+          // Warp takes 2.5s — delay tour-started until after warp + step 1 render
           setTimeout(() => {
             window.dispatchEvent(new Event("stargate-tour-started"));
-          }, 200);
+          }, 3000);
         }, 500);
       }
     }
