@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { GuideOnboarding } from "./stargate-guide/guide-onboarding";
 
-type GateStep = "loading" | "onboarding" | "done";
+type GateStep = "loading" | "onboarding" | "transitioning" | "done";
 
 // Bump this when onboarding steps change to re-trigger for existing users
 const ONBOARDING_VERSION = "3";
@@ -60,13 +60,30 @@ export function OnboardingGate({ userId }: { userId?: string }) {
     }
   }, [userId]);
 
-  if (step === "loading") {
+  // When transitioning, keep black overlay until welcome tour starts
+  useEffect(() => {
+    if (step !== "transitioning") return;
+
+    function handleTourStarted() {
+      setStep("done");
+    }
+
+    window.addEventListener("stargate-tour-started", handleTourStarted);
+    const timer = setTimeout(() => setStep("done"), 3000);
+
+    return () => {
+      window.removeEventListener("stargate-tour-started", handleTourStarted);
+      clearTimeout(timer);
+    };
+  }, [step]);
+
+  if (step === "loading" || step === "transitioning") {
     return <div className="fixed inset-0 z-[9999] bg-black" />;
   }
   if (step === "done") return null;
 
   if (step === "onboarding") {
-    return <GuideOnboarding onComplete={() => setStep("done")} />;
+    return <GuideOnboarding onComplete={() => setStep("transitioning")} />;
   }
 
   return null;

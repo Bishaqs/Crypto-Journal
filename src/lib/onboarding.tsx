@@ -50,9 +50,12 @@ export const welcomeTour: Tour = {
       title: "Dashboard",
       content:
         "This is home base. Your P&L, win rate, and equity curve all update live as you log trades.",
+      selector: "#dashboard-viewport",
       presentation: "centered",
       showControls: true,
       showSkip: true,
+      pointerPadding: 0,
+      pointerRadius: 16,
     },
     // ── Steps 3-10: Sidebar items (attached mode, guide flies to each) ──
     {

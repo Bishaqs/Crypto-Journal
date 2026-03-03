@@ -73,7 +73,7 @@ export default function DashboardPage() {
   const equityData = useMemo(() => buildEquityCurve(dailyPnl), [dailyPnl]);
   const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades), [filteredTrades]);
   const adv = useMemo(() => viewMode === "full" ? calculateAdvancedStats(filteredTrades) : null, [viewMode, filteredTrades]);
-  const taxReport = useMemo(() => viewMode === "full" ? calculateTaxReport(trades, new Date().getFullYear()) : null, [viewMode, trades]);
+  const taxReport = useMemo(() => calculateTaxReport(trades, new Date().getFullYear()), [trades]);
 
   // Save sentiment for light theme candle background
   useEffect(() => {
@@ -278,31 +278,32 @@ export default function DashboardPage() {
               );
             })()}
 
-            {/* Quick Insight + Simulations & Tax links */}
-            <div id="tour-ai-summary">
-              <AISummaryWidget trades={filteredTrades} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Dices size={14} className="text-accent" />
-                  <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
-                </div>
-                <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
-              </Link>
-              {taxReport && (
-                <Link href="/dashboard/taxes" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Receipt size={14} className="text-accent" />
-                    <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">Tax {new Date().getFullYear()}</span>
-                  </div>
-                  <p className={`text-sm font-bold ${taxReport.netGainLoss >= 0 ? "text-win" : "text-loss"}`}>
-                    {taxReport.netGainLoss >= 0 ? "+" : "-"}${Math.abs(taxReport.netGainLoss).toFixed(2)}
-                  </p>
-                </Link>
-              )}
-            </div>
           </div>
+        )}
+      </div>
+
+      {/* Quick Insight + Simulations & Tax links — always visible */}
+      <div id="tour-ai-summary">
+        <AISummaryWidget trades={filteredTrades} />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="flex items-center gap-2 mb-1">
+            <Dices size={14} className="text-accent" />
+            <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
+          </div>
+          <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
+        </Link>
+        {taxReport && (
+          <Link href="/dashboard/taxes" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="flex items-center gap-2 mb-1">
+              <Receipt size={14} className="text-accent" />
+              <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">Tax {new Date().getFullYear()}</span>
+            </div>
+            <p className={`text-sm font-bold ${taxReport.netGainLoss >= 0 ? "text-win" : "text-loss"}`}>
+              {taxReport.netGainLoss >= 0 ? "+" : "-"}${Math.abs(taxReport.netGainLoss).toFixed(2)}
+            </p>
+          </Link>
         )}
       </div>
 

@@ -37,7 +37,8 @@ function TourStateManager() {
       if (!isTourComplete("welcome")) {
         setTimeout(() => {
           startTour("welcome");
-        }, 1500);
+          window.dispatchEvent(new Event("stargate-tour-started"));
+        }, 500);
       }
     }
     window.addEventListener(
