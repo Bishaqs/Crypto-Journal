@@ -128,7 +128,7 @@ export function StarWarpTransition({ onComplete }: StarWarpProps) {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-[1000] bg-black"
+      className="fixed inset-0 z-[10000] bg-black"
       style={{ width: "100vw", height: "100vh" }}
     />
   );
