@@ -297,7 +297,7 @@ const REFERRAL_SOURCES = [
 
 /* ── Guide speech lines per step ────────────────── */
 const GUIDE_SPEECH = [
-  "Welcome to Stargate! I'm Nova — your trading companion. Let's get you set up.",
+  "Welcome to Stargate! I'm Nova, your trading companion. Let's get you set up.",
   "", // dynamic — uses name
   "How do you trade?",
   "Where do you execute your trades?",

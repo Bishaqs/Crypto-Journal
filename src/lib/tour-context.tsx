@@ -159,7 +159,7 @@ function executeStep(step: TourStep, stepIndex: number, tourName: string) {
           const targetEl = document.querySelector(step.selector!);
           if (targetEl) {
             targetEl.classList.add("tour-highlight");
-            targetEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            targetEl.scrollIntoView({ behavior: "instant", block: "nearest" });
           }
           dispatchGuideFly({ centered: true, step: stepIndex, tourName });
         }, 380);
@@ -176,7 +176,7 @@ function executeStep(step: TourStep, stepIndex: number, tourName: string) {
             targetEl.classList.add("tour-highlight");
             const viewport = document.getElementById(step.viewportID || "dashboard-viewport");
             if (viewport?.contains(targetEl)) {
-              targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+              targetEl.scrollIntoView({ behavior: "instant", block: "center" });
             }
           }
           dispatchGuideFly({ centered: true, step: stepIndex, tourName });
@@ -248,7 +248,7 @@ function executeStep(step: TourStep, stepIndex: number, tourName: string) {
     step.viewportID || "dashboard-viewport",
   );
   if (viewport?.contains(targetEl)) {
-    targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    targetEl.scrollIntoView({ behavior: "instant", block: "center" });
   }
 
   setTimeout(() => {

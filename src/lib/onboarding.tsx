@@ -235,7 +235,7 @@ export const welcomeTour: Tour = {
       icon: "🤖",
       title: "AI Insights",
       content:
-        "Nova summarizes your recent trading patterns — streaks, emotional tendencies, and hidden leaks. Check here for quick insights without asking.",
+        "Nova summarizes your recent trading patterns: streaks, emotional tendencies, and hidden leaks. Check here for quick insights without asking.",
       selector: "#tour-ai-summary",
       side: "top",
       presentation: "attached",
@@ -248,7 +248,7 @@ export const welcomeTour: Tour = {
       icon: "✅",
       title: "You're All Set!",
       content:
-        "Hit Log Trade to record your first one. Every page has its own mini-tour on first visit. I'm Nova — click me anytime you need help. Now go trade!",
+        "Hit Log Trade to record your first one. Every page has its own mini-tour on first visit. I'm Nova, click me anytime you need help. Now go trade!",
       presentation: "centered",
       showControls: true,
       showSkip: false,

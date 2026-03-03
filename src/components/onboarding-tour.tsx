@@ -37,7 +37,10 @@ function TourStateManager() {
       if (!isTourComplete("welcome")) {
         setTimeout(() => {
           startTour("welcome");
-          window.dispatchEvent(new Event("stargate-tour-started"));
+          // Delay event so tour's centered overlay renders before gate overlay disappears
+          setTimeout(() => {
+            window.dispatchEvent(new Event("stargate-tour-started"));
+          }, 200);
         }, 500);
       }
     }
