@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Rate limit: 30 requests per minute per user
-  const rl = rateLimit(`ai-summary:${user.id}`, 30, 60_000);
+  const rl = await rateLimit(`ai-summary:${user.id}`, 30, 60_000);
   if (!rl.success) {
     return NextResponse.json(
       { error: "Too many requests. Please wait before trying again." },

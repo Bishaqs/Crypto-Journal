@@ -52,12 +52,12 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     const resp = NextResponse.redirect(url);
-    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
+    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true });
     return resp;
   }
 
   if (isOwner) {
-    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
+    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true });
   } else {
     supabaseResponse.cookies.delete("stargate-owner");
   }
@@ -76,5 +76,6 @@ export const config = {
     "/api/trades/:path*",
     "/api/invite/:path*",
     "/api/admin/:path*",
+    "/api/auth/signup",
   ],
 };

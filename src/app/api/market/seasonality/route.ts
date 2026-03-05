@@ -28,7 +28,7 @@ function round3(n: number): number {
 
 export async function GET(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
-  const rl = rateLimit(`seasonality:${ip}`, 60, 60_000);
+  const rl = await rateLimit(`seasonality:${ip}`, 60, 60_000);
   if (!rl.success) {
     return NextResponse.json(
       { error: "Too many requests. Please wait." },

@@ -39,8 +39,7 @@ export function Sidebar() {
   /* ── Owner detection: context → cookie → client-side auth ── */
   useEffect(() => {
     if (isOwnerFromContext) { setIsOwner(true); return; }
-    if (document.cookie.includes("stargate-owner=1")) { setIsOwner(true); return; }
-    // Triple-fallback: client-side Supabase auth check
+    // Fallback: client-side Supabase auth check
     const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
     if (!ownerEmail) return;
     const supabase = createClient();

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Rate limit: 20 requests per minute per user
-  const rl = rateLimit(`ai-chat:${user.id}`, 20, 60_000);
+  const rl = await rateLimit(`ai-chat:${user.id}`, 20, 60_000);
   if (!rl.success) {
     return NextResponse.json(
       { error: "Too many requests. Please wait before trying again." },
