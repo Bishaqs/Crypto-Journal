@@ -1,4 +1,4 @@
-import type { Tour } from "nextstepjs";
+import type { TourDef as Tour } from "../tour-context";
 
 const STEP_DEFAULTS = {
   showControls: true,
@@ -126,7 +126,7 @@ export const aiCoachPageTour: Tour = {
     {
       icon: "💡",
       title: "Start a Conversation",
-      content: "Start with a suggested question or type your own. The AI analyzes your actual trades — not generic advice, but insights specific to YOUR data.",
+      content: "Start with a suggested question or type your own. For a personal AI coach, connect your own API key in Settings → AI Provider. Your data stays private and secure.",
       selector: "#tour-ai-suggestions",
       side: "top",
       ...STEP_DEFAULTS,

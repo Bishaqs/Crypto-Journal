@@ -12,7 +12,10 @@ const ALLOWED_ATTR = [
 ];
 
 export function sanitizeHtml(dirty: string): string {
-  if (typeof window === "undefined") return dirty;
+  if (typeof window === "undefined") {
+    // Server-side: strip all HTML tags as a safe fallback
+    return dirty.replace(/<[^>]*>/g, "");
+  }
   return DOMPurify.sanitize(dirty, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,

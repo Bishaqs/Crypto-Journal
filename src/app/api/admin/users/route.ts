@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit } from "@/lib/rate-limit";
+import { z } from "zod";
+
+const DeleteUserSchema = z.object({
+  userId: z.string().uuid("Invalid user ID format"),
+});
 
 async function verifyOwner(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser();
@@ -28,19 +34,26 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { userId?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  const rl = await rateLimit(`admin:${owner.id}`, 30, 60_000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } },
+    );
   }
 
-  if (!body.userId) {
-    return NextResponse.json({ error: "User ID required" }, { status: 400 });
+  let parsed;
+  try {
+    parsed = DeleteUserSchema.parse(await req.json());
+  } catch (err) {
+    const msg = err instanceof z.ZodError ? err.issues[0]?.message ?? "Invalid request" : "Invalid request";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
+
+  const { userId } = parsed;
 
   // Prevent deleting yourself (the owner)
-  if (body.userId === owner.id) {
+  if (userId === owner.id) {
     return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
   }
 
@@ -73,21 +86,21 @@ export async function DELETE(req: NextRequest) {
   ];
 
   for (const { table, column } of tables) {
-    const { error: delErr } = await admin.from(table).delete().eq(column, body.userId);
+    const { error: delErr } = await admin.from(table).delete().eq(column, userId);
     if (delErr) {
       console.error(`[admin/users] delete from ${table} failed:`, delErr.message);
     }
   }
 
   // Nullify created_by on invite codes (don't delete the codes themselves)
-  await admin.from("invite_codes").update({ created_by: null }).eq("created_by", body.userId);
+  await admin.from("invite_codes").update({ created_by: null }).eq("created_by", userId);
 
   // Delete the auth user
-  const { error } = await admin.auth.admin.deleteUser(body.userId);
+  const { error } = await admin.auth.admin.deleteUser(userId);
 
   if (error) {
     console.error("[admin/users] delete failed:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

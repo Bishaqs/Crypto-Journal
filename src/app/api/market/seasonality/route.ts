@@ -1,30 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
+import { resolveCoinGeckoId } from "@/lib/coin-registry";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
-
-const SYMBOL_TO_ID: Record<string, string> = {
-  BTC: "bitcoin",
-  ETH: "ethereum",
-  SOL: "solana",
-  ADA: "cardano",
-  DOT: "polkadot",
-  AVAX: "avalanche-2",
-  MATIC: "matic-network",
-  LINK: "chainlink",
-  ATOM: "cosmos",
-  UNI: "uniswap",
-  DOGE: "dogecoin",
-  SHIB: "shiba-inu",
-  XRP: "ripple",
-  BNB: "binancecoin",
-  LTC: "litecoin",
-  ARB: "arbitrum",
-  OP: "optimism",
-  APT: "aptos",
-  SUI: "sui",
-  NEAR: "near",
-};
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -33,23 +11,44 @@ const MONTH_NAMES = [
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+function avg(arr: number[]): number {
+  return arr.length > 0 ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
+}
+
+function median(arr: number[]): number {
+  if (arr.length === 0) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+function round3(n: number): number {
+  return Math.round(n * 1000) / 1000;
+}
+
 export async function GET(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
+  const rl = await rateLimit(`seasonality:${ip}`, 60, 60_000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+    );
   }
 
   const { searchParams } = new URL(request.url);
   const symbol = (searchParams.get("symbol") ?? "BTC").toUpperCase();
-  const days = Math.min(Math.max(Number(searchParams.get("days") ?? 365), 30), 1825);
+  const days = Math.min(Math.max(Number(searchParams.get("days") ?? 365), 30), 365);
 
-  const coinId = SYMBOL_TO_ID[symbol] ?? symbol.toLowerCase();
+  const coinId = resolveCoinGeckoId(symbol);
 
   try {
     const res = await fetch(
       `${COINGECKO_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`,
-      { next: { revalidate: 3600 } }
+      {
+        headers: { "x-cg-demo-api-key": process.env.CG_DEMO_API_KEY ?? "" },
+        next: { revalidate: 3600 },
+      }
     );
 
     if (!res.ok) {
@@ -90,13 +89,9 @@ export async function GET(request: Request) {
 
     const monthly = MONTH_NAMES.map((month, i) => {
       const bucket = monthlyBuckets[i];
-      const avgReturn =
-        bucket.length > 0
-          ? bucket.reduce((sum, r) => sum + r, 0) / bucket.length
-          : 0;
       return {
         month,
-        avgReturn: Math.round(avgReturn * 1000) / 1000,
+        avgReturn: round3(avg(bucket)),
         sampleSize: bucket.length,
       };
     });
@@ -111,16 +106,90 @@ export async function GET(request: Request) {
 
     const weekday = DAY_NAMES.map((day, i) => {
       const bucket = weekdayBuckets[i];
-      const avgReturn =
-        bucket.length > 0
-          ? bucket.reduce((sum, r) => sum + r, 0) / bucket.length
-          : 0;
       return {
         day,
-        avgReturn: Math.round(avgReturn * 1000) / 1000,
+        avgReturn: round3(avg(bucket)),
         sampleSize: bucket.length,
       };
     });
+
+    // --- Enhanced: Monthly returns per year (for heatmap) ---
+    const yearMonthBuckets: Record<string, number[]> = {};
+    for (const { date, returnPct } of dailyReturns) {
+      const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+      (yearMonthBuckets[key] ??= []).push(returnPct);
+    }
+
+    const yearsSet = new Set(dailyReturns.map((d) => d.date.getUTCFullYear()));
+    const years = Array.from(yearsSet).sort();
+
+    const monthlyByYear = years.map((year) => ({
+      year,
+      months: MONTH_NAMES.map((month, i) => {
+        const bucket = yearMonthBuckets[`${year}-${i}`] ?? [];
+        const returnPct = bucket.reduce((s, r) => s + r, 0);
+        return { month, returnPct: round3(returnPct), sampleSize: bucket.length };
+      }),
+    }));
+
+    // --- Enhanced: Detailed monthly stats ---
+    const monthlyDetailed = MONTH_NAMES.map((month, i) => {
+      const bucket = monthlyBuckets[i];
+      const yearlyReturns = monthlyByYear
+        .map((y) => y.months[i])
+        .filter((m) => m.sampleSize > 0)
+        .map((m) => m.returnPct);
+      return {
+        month,
+        avgReturn: round3(avg(bucket)),
+        medianReturn: round3(median(bucket)),
+        winRate: bucket.length > 0
+          ? Math.round((bucket.filter((r) => r > 0).length / bucket.length) * 1000) / 10
+          : 0,
+        sampleSize: bucket.length,
+        maxReturn: yearlyReturns.length > 0 ? round3(Math.max(...yearlyReturns)) : 0,
+        minReturn: yearlyReturns.length > 0 ? round3(Math.min(...yearlyReturns)) : 0,
+      };
+    });
+
+    // --- Enhanced: Detailed weekday stats ---
+    const weekdayDetailed = DAY_NAMES.map((day, i) => {
+      const bucket = weekdayBuckets[i];
+      return {
+        day,
+        avgReturn: round3(avg(bucket)),
+        medianReturn: round3(median(bucket)),
+        winRate: bucket.length > 0
+          ? Math.round((bucket.filter((r) => r > 0).length / bucket.length) * 1000) / 10
+          : 0,
+        sampleSize: bucket.length,
+      };
+    });
+
+    // --- Enhanced: Yearly price normalized to 100 ---
+    const pricesByYear: Record<number, [number, number][]> = {};
+    for (const [ts, price] of prices) {
+      const year = new Date(ts).getUTCFullYear();
+      (pricesByYear[year] ??= []).push([ts, price]);
+    }
+
+    const yearlyPriceNormalized = Object.entries(pricesByYear)
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([yearStr, yearPrices]) => {
+        const year = Number(yearStr);
+        const firstPrice = yearPrices[0][1];
+        const startOfYear = Date.UTC(year, 0, 1);
+        return {
+          year,
+          data: yearPrices.map(([ts, price]) => ({
+            dayOfYear: Math.floor((ts - startOfYear) / 86400000) + 1,
+            normalizedPrice: Math.round((price / firstPrice) * 10000) / 100,
+          })),
+          ytdReturn: Math.round(
+            ((yearPrices[yearPrices.length - 1][1] - firstPrice) / firstPrice) * 10000
+          ) / 100,
+        };
+      });
 
     const response = NextResponse.json({
       symbol,
@@ -128,6 +197,10 @@ export async function GET(request: Request) {
       days,
       monthly,
       weekday,
+      monthlyByYear,
+      monthlyDetailed,
+      weekdayDetailed,
+      yearlyPriceNormalized,
       totalDataPoints: dailyReturns.length,
       timestamp: Date.now(),
     });

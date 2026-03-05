@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Search, TrendingUp, TrendingDown, BarChart3, RefreshCw } from "lucide-react";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { formatLargeNumber, formatPrice } from "@/lib/format";
 
 interface CoinData {
@@ -30,7 +29,6 @@ const TABS: { key: Tab; label: string; icon: React.ComponentType<{ size?: number
 
 
 export default function TokenScreenerPage() {
-  usePageTour("screener-page");
   const [coins, setCoins] = useState<CoinData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +101,7 @@ export default function TokenScreenerPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Search size={24} className="text-accent" />
             Token Screener
-            <PageInfoButton tourName="screener-page" />
+            <InfoTooltip text="Browse top crypto gainers, losers, and volume leaders in real-time. Quickly search for any token by name or symbol." size={14} />
           </h2>
           <p className="text-sm text-muted mt-0.5">Top movers, volume leaders, and market cap rankings</p>
         </div>

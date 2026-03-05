@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Rate limit: 5 redemption attempts per minute per user
-  const rl = rateLimit(`invite-redeem:${user.id}`, 5, 60_000);
+  const rl = await rateLimit(`invite-redeem:${user.id}`, 5, 60_000);
   if (!rl.success) {
     return NextResponse.json(
       { success: false, error: "Too many attempts. Please wait." },
@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
   }
 
   const code = typeof body.code === "string" ? body.code.trim().toUpperCase() : "";
-  if (!code) {
-    return NextResponse.json({ success: false, error: "Code is required" }, { status: 400 });
+  if (!code || code.length > 50) {
+    return NextResponse.json({ success: false, error: "Invalid code" }, { status: 400 });
   }
 
   // Use admin client to bypass RLS entirely

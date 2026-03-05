@@ -123,8 +123,18 @@ export default function AIPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [aiProvider, setAiProvider] = useState<string | undefined>();
+  const [aiModel, setAiModel] = useState<string | undefined>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  // Load AI provider preference from localStorage
+  useEffect(() => {
+    const savedProvider = localStorage.getItem("stargate-ai-provider");
+    const savedModel = localStorage.getItem("stargate-ai-model");
+    if (savedProvider) setAiProvider(savedProvider);
+    if (savedModel) setAiModel(savedModel);
+  }, []);
 
   const fetchTrades = useCallback(async () => {
     const { data } = await supabase
@@ -159,6 +169,8 @@ export default function AIPage() {
         body: JSON.stringify({
           message: msg,
           trades: trades.slice(0, 50),
+          provider: aiProvider,
+          model: aiModel,
         }),
       });
 
@@ -295,7 +307,7 @@ export default function AIPage() {
               Your AI Trading Coach
             </h2>
             <p className="text-sm text-muted max-w-md mb-8">
-              Powered by Claude. Ask about your patterns, psychology, risk management,
+              Ask about your patterns, psychology, risk management,
               or anything about your trading data. The AI has access to your trade history,
               emotions, process scores, and more.
             </p>

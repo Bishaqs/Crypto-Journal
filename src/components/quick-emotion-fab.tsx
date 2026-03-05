@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Heart, X, Send } from "lucide-react";
 import { EMOTION_CONFIG } from "@/components/psychology-inputs";
+import { useI18n } from "@/lib/i18n";
 
 const EMOTIONS = Object.keys(EMOTION_CONFIG);
 
@@ -14,6 +15,7 @@ const TRAFFIC_LIGHTS = [
 ];
 
 export function QuickEmotionFab() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [emotion, setEmotion] = useState<string | null>(null);
   const [intensity, setIntensity] = useState(3);
@@ -78,7 +80,7 @@ export function QuickEmotionFab() {
         {lastEmotion ? (
           <span className="text-xs">{EMOTION_CONFIG[lastEmotion]?.emoji} {lastEmotion}</span>
         ) : (
-          <span className="text-xs">Log Feeling</span>
+          <span className="text-xs">{t("emotion.logFeeling")}</span>
         )}
         {todayCount > 0 && (
           <span className="ml-1 w-5 h-5 rounded-full bg-background/20 flex items-center justify-center text-[10px] font-bold">
@@ -91,7 +93,7 @@ export function QuickEmotionFab() {
       {open && (
         <div className="fixed bottom-20 right-6 z-50 w-80 glass rounded-2xl border border-border/50 p-5 shadow-2xl animate-in slide-in-from-bottom-4 duration-200" style={{ boxShadow: "var(--shadow-cosmic)" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Quick Emotion Log</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t("emotion.title")}</h3>
             <button onClick={() => setOpen(false)} className="p-1 rounded-lg text-muted hover:text-foreground transition-colors">
               <X size={14} />
             </button>
@@ -122,7 +124,7 @@ export function QuickEmotionFab() {
           {/* Intensity slider */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[10px] text-muted uppercase tracking-wider font-semibold">Intensity</label>
+              <label className="text-[10px] text-muted uppercase tracking-wider font-semibold">{t("emotion.intensity")}</label>
               <span className="text-xs font-bold text-accent">{intensity}/5</span>
             </div>
             <input
@@ -157,7 +159,7 @@ export function QuickEmotionFab() {
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Quick note (optional)..."
+            placeholder={t("emotion.quickNote")}
             rows={2}
             className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground text-xs focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 resize-none mb-3"
           />
@@ -169,7 +171,7 @@ export function QuickEmotionFab() {
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-accent text-background text-sm font-semibold hover:bg-accent-hover transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Send size={14} />
-            {saving ? "Saving..." : "Log Feeling"}
+            {saving ? t("common.saving") : t("emotion.logFeeling")}
           </button>
         </div>
       )}

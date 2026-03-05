@@ -40,8 +40,8 @@ export async function middleware(request: NextRequest) {
   const ownerEmail = process.env.OWNER_EMAIL || process.env.NEXT_PUBLIC_OWNER_EMAIL;
   const isOwner = !!(user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
 
-  // If not logged in and trying to access dashboard, redirect to login
-  if (!user && pathname.startsWith("/dashboard")) {
+  // If not logged in and trying to access protected routes, redirect to login
+  if (!user && (pathname.startsWith("/dashboard") || pathname.startsWith("/simulator"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -52,12 +52,12 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     const resp = NextResponse.redirect(url);
-    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
+    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true });
     return resp;
   }
 
   if (isOwner) {
-    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
+    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true });
   } else {
     supabaseResponse.cookies.delete("stargate-owner");
   }
@@ -66,5 +66,16 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/api/subscription", "/api/market/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/simulator",
+    "/login",
+    "/api/subscription",
+    "/api/market/:path*",
+    "/api/ai/:path*",
+    "/api/trades/:path*",
+    "/api/invite/:path*",
+    "/api/admin/:path*",
+    "/api/auth/signup",
+  ],
 };

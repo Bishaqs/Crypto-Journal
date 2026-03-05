@@ -16,8 +16,7 @@ import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { blackScholes, STRATEGY_PRESETS } from "@/lib/options-math";
 
 const RISK_FREE_RATE = 0.05;
@@ -42,7 +41,7 @@ interface BacktestResult {
 
 function StatBlock({ label, value, color = "text-foreground" }: { label: string; value: string; color?: string }) {
   return (
-    <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className="glass rounded-xl border border-border/50 p-4 hover:border-accent/20 transition-all duration-300" style={{ boxShadow: "var(--shadow-card)" }}>
       <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">{label}</p>
       <p className={`text-lg font-bold ${color}`}>{value}</p>
     </div>
@@ -144,7 +143,6 @@ function runOptionsBacktest(
 }
 
 export default function OptionsBacktestPage() {
-  usePageTour("options-backtest-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -211,7 +209,7 @@ export default function OptionsBacktestPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <History size={24} className="text-accent" />
           Options Backtester
-          <PageInfoButton tourName="options-backtest-page" />
+          <InfoTooltip text="Backtest options strategies using Black-Scholes synthetic pricing. Compare covered calls, spreads, straddles, and iron condors." size={14} />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Backtest options strategies using Black-Scholes synthetic pricing on historical data

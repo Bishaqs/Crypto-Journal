@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { JournalNote } from "@/lib/types";
 import { DEMO_JOURNAL_NOTES } from "@/lib/demo-data";
@@ -23,6 +24,7 @@ import { usePageTour } from "@/lib/use-page-tour";
 
 export default function JournalPage() {
   usePageTour("journal-page");
+  const searchParams = useSearchParams();
   const [notes, setNotes] = useState<JournalNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -65,6 +67,13 @@ export default function JournalPage() {
     fetchTrades();
   }, [fetchNotes, fetchTrades]);
 
+  // Auto-open editor when navigated with ?new=true (e.g. from Quick Action FAB)
+  useEffect(() => {
+    if (searchParams.get("new") === "true" && !loading) {
+      setShowEditor(true);
+    }
+  }, [searchParams, loading]);
+
   const allTags = Array.from(new Set(notes.flatMap((n) => n.tags)));
 
   const filtered = notes.filter((n) => {
@@ -106,6 +115,7 @@ export default function JournalPage() {
           </p>
         </div>
         <button
+          id="tour-new-note"
           onClick={() => openEditor()}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(0,180,216,0.3)] transition-all duration-300"
         >

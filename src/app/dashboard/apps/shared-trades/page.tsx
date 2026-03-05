@@ -7,15 +7,14 @@ import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { calculateTradePnl } from "@/lib/calculations";
 
 function StatBlock({ label, value, color = "text-foreground" }: { label: string; value: string; color?: string }) {
   return (
-    <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className="glass rounded-xl border border-border/50 p-4 hover:border-accent/20 transition-all duration-300" style={{ boxShadow: "var(--shadow-card)" }}>
       <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">{label}</p>
       <p className={`text-lg font-bold ${color}`}>{value}</p>
     </div>
@@ -30,7 +29,6 @@ function generateShareUrl(tradeId: string): string {
 }
 
 export default function SharedTradesPage() {
-  usePageTour("shared-trades-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
@@ -241,7 +239,7 @@ export default function SharedTradesPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Share2 size={24} className="text-accent" />
           Shared Trades
-          <PageInfoButton tourName="shared-trades-page" />
+          <InfoTooltip text="Generate shareable links for your closed trades. Recipients can view your trade details without needing an account." size={14} />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Share your closed trades with a unique link

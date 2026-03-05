@@ -32,9 +32,13 @@ export const AiChatSchema = z.object({
   context: z.object({
     weeklyReport: z.string().optional(),
   }).passthrough().optional().default({}),
+  provider: z.string().optional(),
+  model: z.string().optional(),
 });
 
 // Trade summary request body (used by /api/ai/trade-summary)
 export const TradeSummarySchema = z.object({
   trade: TradeSchema.refine((t) => t.symbol, { message: "Trade must have a symbol" }),
+  provider: z.string().optional(),
+  model: z.string().optional(),
 });

@@ -22,6 +22,9 @@ import {
   Zap,
   CalendarDays,
   FileBarChart,
+  Star,
+  ChevronDown,
+  Quote,
 } from "lucide-react";
 
 const features = [
@@ -82,6 +85,72 @@ const features = [
 ];
 
 
+const testimonials = [
+  {
+    quote: "I finally stopped revenge trading. Seeing my tilt patterns in data changed everything.",
+    name: "Alex M.",
+    role: "Crypto Day Trader",
+    tag: "Psychology",
+  },
+  {
+    quote: "The AI coach told me FOMO trades cost me $3,200 last month. That was the wake-up call.",
+    name: "Sarah K.",
+    role: "Swing Trader",
+    tag: "AI Coach",
+  },
+  {
+    quote: "30 seconds to log a trade. No excuses. My journaling streak is at 47 days.",
+    name: "Marcus R.",
+    role: "Futures Trader",
+    tag: "Consistency",
+  },
+  {
+    quote: "Best trading journal I've used. The psychology tracking is what makes it different.",
+    name: "David L.",
+    role: "Options Trader",
+    tag: "Analytics",
+  },
+  {
+    quote: "Went from 42% to 61% win rate in 3 months just by following my own rules.",
+    name: "Priya N.",
+    role: "Stock Trader",
+    tag: "Process",
+  },
+  {
+    quote: "The pre-trade checklist alone saved me from my worst habits.",
+    name: "Jake T.",
+    role: "Crypto Trader",
+    tag: "Discipline",
+  },
+];
+
+const faqItems = [
+  {
+    q: "Is my trading data secure?",
+    a: "Your data is encrypted and stored securely. We never share or sell your information. You can export or delete everything at any time.",
+  },
+  {
+    q: "Which exchanges and brokers are supported?",
+    a: "We support CSV imports from all major crypto exchanges (Binance, Coinbase, Kraken, Bybit, etc.) and stock brokers. Manual entry is always available.",
+  },
+  {
+    q: "What's the difference between Free and Pro?",
+    a: "Free gives you 2 trades per week with basic analytics. Pro unlocks unlimited logging, 50+ advanced metrics, psychology engine, tilt detection, and weekly reports.",
+  },
+  {
+    q: "How does the AI Trading Coach work?",
+    a: "The AI analyzes your trade history, emotions, and patterns. Ask it anything — \"What's my worst habit?\" or \"How do I perform on Mondays?\" It gives personalized, data-backed answers.",
+  },
+  {
+    q: "Can I use it for both crypto and stocks?",
+    a: "Yes. Pick your primary asset when signing up. Add the other as an add-on ($29/year) or get both included with the Max plan.",
+  },
+  {
+    q: "Is there a mobile app?",
+    a: "The web app is fully responsive and works great on mobile browsers. A native app is on the roadmap.",
+  },
+];
+
 const THEME_TO_COLOR: Record<string, "purple" | "orange" | "blue" | "green" | "neutral"> = {
   dark: "purple",
   volcano: "orange",
@@ -112,6 +181,11 @@ export default function LandingPage() {
             <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-[#8B5CF6] via-[#A78BFA] to-[#8B5CF6] bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
               Stargate
             </span>
+          </div>
+          <div className="hidden md:flex items-center gap-6">
+            <a href="#features" className="text-sm text-muted hover:text-foreground transition-colors">Features</a>
+            <a href="#pricing" className="text-sm text-muted hover:text-foreground transition-colors">Pricing</a>
+            <a href="#faq" className="text-sm text-muted hover:text-foreground transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -147,7 +221,7 @@ export default function LandingPage() {
         </div>
 
         {/* Black hole — realistic accretion disk with gravitational lensing */}
-        <RealisticBlackHole size="large" color={bhColor} />
+        <RealisticBlackHole size="medium" color={bhColor} opacity={theme === "light" ? 0.25 : 0.7} />
 
         {/* Hero ambient glow */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none" style={{
@@ -320,6 +394,57 @@ export default function LandingPage() {
       {/* Gradient divider */}
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
 
+      {/* Testimonials */}
+      <section className="py-20 relative z-10">
+        <div className="max-w-6xl mx-auto px-6">
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <p className="text-xs uppercase tracking-wider text-accent font-semibold mb-3">Testimonials</p>
+              <h2 className="text-3xl font-bold text-foreground heading-glow">
+                What traders are saying
+              </h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {testimonials.map((t, i) => (
+              <ScrollReveal key={t.name} delay={i * 80}>
+                <div className="glass rounded-2xl border border-border/50 p-6 h-full flex flex-col feature-card">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} size={12} className="text-accent fill-accent" />
+                      ))}
+                    </div>
+                    <span className="text-[10px] font-medium text-muted px-2 py-0.5 rounded-full border border-border/50">
+                      {t.tag}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <Quote size={16} className="text-accent/30 mb-2" />
+                    <p className="text-sm text-foreground/90 leading-relaxed italic">
+                      &ldquo;{t.quote}&rdquo;
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border/30">
+                    <div className="w-8 h-8 rounded-full bg-accent/15 flex items-center justify-center text-xs font-bold text-accent">
+                      {t.name[0]}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">{t.name}</p>
+                      <p className="text-[10px] text-muted">{t.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Gradient divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+
       {/* Pricing */}
       <section id="pricing" className="py-20 relative z-10">
         <div className="max-w-6xl mx-auto px-6">
@@ -335,6 +460,39 @@ export default function LandingPage() {
           </ScrollReveal>
 
           <PricingSection />
+        </div>
+      </section>
+
+      {/* Gradient divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 relative z-10">
+        <div className="max-w-3xl mx-auto px-6">
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <p className="text-xs uppercase tracking-wider text-accent font-semibold mb-3">FAQ</p>
+              <h2 className="text-3xl font-bold text-foreground heading-glow">
+                Common Questions
+              </h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="space-y-3">
+            {faqItems.map((item, i) => (
+              <ScrollReveal key={i} delay={i * 60}>
+                <details className="group glass rounded-2xl border border-border/50 faq-details">
+                  <summary className="flex items-center justify-between cursor-pointer px-6 py-5 text-sm font-semibold text-foreground list-none [&::-webkit-details-marker]:hidden">
+                    {item.q}
+                    <ChevronDown size={16} className="text-muted shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" />
+                  </summary>
+                  <div className="px-6 pb-5 text-sm text-muted leading-relaxed">
+                    {item.a}
+                  </div>
+                </details>
+              </ScrollReveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -368,15 +526,66 @@ export default function LandingPage() {
       </ScrollReveal>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-8 relative z-10">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <StargateLogo size={20} />
-            <span className="text-sm font-semibold text-muted">Stargate</span>
+      <footer className="border-t border-border/50 relative z-10">
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+            {/* Brand */}
+            <div className="col-span-2 md:col-span-1">
+              <div className="flex items-center gap-2.5 mb-3">
+                <StargateLogo size={24} />
+                <span className="text-base font-bold text-foreground">Stargate</span>
+              </div>
+              <p className="text-xs text-muted leading-relaxed">
+                The trading journal that tracks your psychology, enforces your rules, and helps you trade better.
+              </p>
+            </div>
+
+            {/* Product */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-4">Product</h4>
+              <ul className="space-y-2.5">
+                <li><a href="#features" className="text-xs text-muted hover:text-foreground transition-colors">Features</a></li>
+                <li><a href="#pricing" className="text-xs text-muted hover:text-foreground transition-colors">Pricing</a></li>
+                <li><a href="#faq" className="text-xs text-muted hover:text-foreground transition-colors">FAQ</a></li>
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-4">Resources</h4>
+              <ul className="space-y-2.5">
+                <li><span className="text-xs text-muted/40">Blog (coming soon)</span></li>
+                <li><span className="text-xs text-muted/40">Docs (coming soon)</span></li>
+                <li><span className="text-xs text-muted/40">Changelog (coming soon)</span></li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-4">Legal</h4>
+              <ul className="space-y-2.5">
+                <li><span className="text-xs text-muted/40">Privacy Policy</span></li>
+                <li><span className="text-xs text-muted/40">Terms of Service</span></li>
+              </ul>
+            </div>
           </div>
-          <p className="text-xs text-muted/50">
-            Built for crypto &amp; stock traders who want to improve.
-          </p>
+
+          {/* Bottom bar */}
+          <div className="border-t border-border/30 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[11px] text-muted/50">
+              &copy; {new Date().getFullYear()} Stargate. All rights reserved.
+            </p>
+            <div className="flex items-center gap-4">
+              {/* Twitter/X */}
+              <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-muted/40 hover:text-foreground transition-colors" aria-label="Twitter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </a>
+              {/* Discord */}
+              <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" className="text-muted/40 hover:text-foreground transition-colors" aria-label="Discord">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z"/></svg>
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

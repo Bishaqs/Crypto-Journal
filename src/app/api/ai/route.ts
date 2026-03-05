@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext } from "@/lib/ai-context";
+import { getProvider, resolveModel } from "@/lib/ai";
 
 export async function POST(req: NextRequest) {
   // Auth check — only authenticated users can use AI Coach
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Rate limit: 20 requests per minute per user
-  const rl = rateLimit(`ai-chat:${user.id}`, 20, 60_000);
+  const rl = await rateLimit(`ai-chat:${user.id}`, 20, 60_000);
   if (!rl.success) {
     return NextResponse.json(
       { error: "Too many requests. Please wait before trying again." },
@@ -28,36 +28,26 @@ export async function POST(req: NextRequest) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { message, trades, context } = parsed.data;
+  const { message, trades, context, provider: providerId, model: modelId } = parsed.data;
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  const provider = getProvider(providerId);
+  if (!provider.isConfigured()) {
     return NextResponse.json(
       { error: "AI service not configured. Contact the administrator." },
       { status: 500 }
     );
   }
 
+  const model = resolveModel(provider.id, modelId);
   const tradeContext = buildTradeContext(trades, context);
-  const client = new Anthropic({ apiKey });
 
   try {
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 1024,
+    const text = await provider.chat({
       system: AI_CHAT_SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Here is my trading data:\n\n${tradeContext}\n\nMy question: ${message}`,
-        },
-      ],
+      userMessage: `Here is my trading data:\n\n${tradeContext}\n\nMy question: ${message}`,
+      maxTokens: 1024,
+      model,
     });
-
-    const text = response.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("");
 
     return NextResponse.json({ response: text });
   } catch (err) {

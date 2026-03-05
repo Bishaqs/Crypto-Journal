@@ -1,6 +1,6 @@
 "use client";
 
-import type { Tour } from "nextstepjs";
+import type { TourDef as Tour } from "./tour-context";
 
 export const TOUR_KEY_PREFIX = "stargate-tour-";
 
@@ -9,8 +9,6 @@ export const LEGACY_ONBOARDING_KEY = "stargate-onboarding-complete";
 
 export function isTourComplete(tourName: string): boolean {
   if (typeof window === "undefined") return true;
-  // Legacy users skip all tours
-  if (localStorage.getItem(LEGACY_ONBOARDING_KEY)) return true;
   return localStorage.getItem(TOUR_KEY_PREFIX + tourName) === "true";
 }
 
@@ -24,237 +22,236 @@ export function markTourComplete(tourName: string): void {
 export const welcomeTour: Tour = {
   tour: "welcome",
   steps: [
+    // ── Step 0: Pre-warp intro ──
+    {
+      icon: "🚀",
+      title: "Ready for Liftoff?",
+      content:
+        "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
+      presentation: "centered",
+      transitionEffect: "star-warp",
+      showControls: true,
+      showSkip: true,
+    },
+    // ── Step 1: Welcome (big logo) ──
     {
       icon: "🚀",
       title: "Welcome to Stargate!",
       content:
-        "Your trading command center. Let's take a quick tour — it takes less than 2 minutes. You can skip anytime.",
-      side: "right",
-      viewportID: "dashboard-viewport",
+        "Hey! I'm Nova, your trading companion. Let me show you around. This takes about 2 minutes, and you can skip anytime.",
+      presentation: "centered",
+      logoSize: 96,
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
+    // ── Step 2: Dashboard overview (highlight viewport) ──
     {
       icon: "🏠",
       title: "Dashboard",
       content:
-        "Your home base. See your P&L, win rate, equity curve, and recent trades at a glance. Everything updates in real-time as you log trades.",
-      selector: "#tour-home",
-      side: "right",
-      viewportID: "dashboard-viewport",
+        "This is home base. Your P&L, win rate, and equity curve all update live as you log trades.",
+      selector: "#dashboard-viewport",
+      presentation: "centered",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
+      pointerPadding: 0,
+      pointerRadius: 16,
     },
+    // ── Steps 3-10: Sidebar items (attached mode, guide flies to each) ──
     {
       icon: "📊",
       title: "Trade Log",
       content:
-        "All your trades in one place. Filter by emotion, date, source (CEX/DEX), and more. Click any trade to expand full details including notes and tags.",
+        "Every trade lands here. You can filter by date, emotion, or coin. Click any row to see the full picture.",
       selector: "#tour-trades",
+      presentation: "attached",
       side: "right",
-      viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
     {
       icon: "📓",
       title: "Journal",
       content:
-        "Write daily reflections on your trading. Use templates, tag emotions, and track your mindset over time. Consistent journaling is what separates pros from gamblers.",
+        "Write daily reflections. What went well, what went sideways. Over time you'll spot patterns in your own thinking.",
       selector: "#tour-journal",
+      presentation: "attached",
       side: "right",
-      viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
     {
       icon: "📅",
       title: "Calendar",
       content:
-        "See your trading days at a glance. Green = profit, red = loss. Spot patterns in your performance — are Mondays your best day? Do you overtrade on Fridays?",
+        "Green day, red day, at a glance. You'll quickly see if Mondays are good or Fridays are bad.",
       selector: "#tour-calendar",
+      presentation: "attached",
       side: "right",
-      viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
-    },
-    {
-      icon: "📈",
-      title: "Analytics",
-      content:
-        "Deep dive into 50+ metrics. P&L by hour, by day, by setup type. Find your edge and eliminate weak spots with data, not guesswork.",
-      selector: "#tour-analytics",
-      side: "right",
-      viewportID: "dashboard-viewport",
-      showControls: true,
-      showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
     {
       icon: "📋",
       title: "Trade Plans",
       content:
-        "Plan trades before executing. Set your entry, target, and stop-loss. After closing, rate your execution. This builds discipline over time.",
+        "Plan before you trade. Set your entry, target, and stop. After the trade, rate how well you followed the plan.",
       selector: "#tour-plans",
+      presentation: "attached",
       side: "right",
-      viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
+    },
+    {
+      icon: "🏆",
+      title: "Achievements",
+      content:
+        "Earn badges for your trading milestones — journal streaks, win rates, risk management. Track your growth as a trader.",
+      selector: "#tour-achievements",
+      presentation: "attached",
+      side: "right",
+      showControls: true,
+      showSkip: true,
+    },
+    {
+      icon: "📈",
+      title: "Analytics",
+      content:
+        "50+ metrics. P&L by hour, by setup, by pair. Stop guessing and start knowing where your edge is.",
+      selector: "#tour-analytics",
+      presentation: "attached",
+      side: "right",
+      showControls: true,
+      showSkip: true,
     },
     {
       icon: "🧠",
       title: "Insights",
       content:
-        "Discover how your emotions affect your P&L. See which emotional states lead to your best — and worst — trades. Data-driven self-awareness.",
+        "How do your emotions affect your P&L? Which moods lead to your best trades? This page has the answers.",
       selector: "#tour-insights",
+      presentation: "attached",
       side: "right",
-      viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
     {
       icon: "🤖",
       title: "AI Coach",
       content:
-        "Chat with an AI that reads your trading patterns. Ask questions like 'What's my biggest leak?' or 'How can I improve my entries?' and get personalized answers.",
+        "Ask it anything about your trading. For a personal AI coach, connect your own API key in Settings — your data stays secure and private.",
       selector: "#tour-ai",
+      presentation: "attached",
       side: "right",
-      viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
     {
       icon: "⚡",
       title: "Simple & Advanced Mode",
       content:
-        "You're in Simple mode with 6 core tools. Toggle to Advanced to unlock 12+ pro tools: Prop Firm Tracker, Monte Carlo Simulations, Heat Maps, Risk Analysis, Tax Reports, and more.",
+        "You're in Simple mode with 6 core tools. Switch to Advanced for prop firm tracking, Monte Carlo sims, heat maps, and more.",
       selector: "#tour-view-toggle",
+      presentation: "attached",
       side: "right",
-      viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
+    // ── Steps 11-17: Dashboard content (attached, guide flies to each element) ──
     {
       icon: "📊",
       title: "Your Key Metrics",
       content:
-        "Win rate, total P&L, profit factor, and max drawdown — the four numbers that define your trading performance. These update automatically as you log trades.",
+        "Win rate, P&L, profit factor, max drawdown. These four numbers tell the whole story. They update as you trade.",
       selector: "#tour-stats",
-      side: "bottom",
+      side: "top",
+      presentation: "attached",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 10,
-      pointerRadius: 16,
     },
     {
       icon: "📈",
       title: "Equity Curve",
       content:
-        "Your cumulative P&L over time. A rising curve = consistent edge. Sharp drops reveal drawdown periods. This is the single most important chart for any trader.",
+        "Your cumulative P&L over time. A rising line means you have an edge. Sharp drops show your drawdowns.",
       selector: "#tour-equity",
       side: "top",
+      presentation: "attached",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 10,
-      pointerRadius: 16,
     },
     {
       icon: "📊",
       title: "Daily P&L",
       content:
-        "Each bar = one trading day's profit or loss. Green bars above zero = profitable days. Look for consistency — small steady gains beat big volatile swings.",
+        "Each bar is one day. Green above zero means profit. Small steady bars beat big volatile ones every time.",
       selector: "#tour-pnl-chart",
       side: "top",
+      presentation: "attached",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 10,
-      pointerRadius: 16,
     },
     {
       icon: "📋",
       title: "Recent Trades",
       content:
-        "Your latest trades with P&L, emotion tags, and process scores. Click any row to see full details. Use this to spot patterns — are you more profitable when calm?",
+        "Your latest trades with P&L and emotion tags. Click any row and notice the difference between calm and anxious trades.",
       selector: "#tour-trades-table",
       side: "top",
+      presentation: "attached",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 10,
-      pointerRadius: 16,
+      pointerPadding: 12,
     },
     {
       icon: "🔥",
       title: "Journaling Streak",
       content:
-        "Like Duolingo, but for trading. Journal every day to keep your streak alive. Consistency compounds — the data you log today powers tomorrow's insights.",
+        "Like a Duolingo streak, but for trading. Journal every day and watch the data compound.",
       selector: "#tour-streak",
       side: "top",
+      presentation: "attached",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
     {
       icon: "🗓️",
       title: "Calendar Heatmap",
       content:
-        "A quick visual of your recent trading days. Green = profit, red = loss, gray = no trades. At a glance, you can see if you're in a hot streak or cold spell.",
+        "Green means profit, red means loss, gray means no trades. You can spot hot streaks at a glance.",
       selector: "#tour-heatmap-mini",
       side: "top",
+      presentation: "attached",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
     {
       icon: "🤖",
       title: "AI Insights",
       content:
-        "AI-powered analysis of your recent trading patterns, updated automatically. No need to ask — it watches for patterns and surfaces actionable insights.",
+        "Nova summarizes your recent trading patterns: streaks, emotional tendencies, and hidden leaks. Check here for quick insights without asking.",
       selector: "#tour-ai-summary",
       side: "top",
+      presentation: "attached",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: true,
-      pointerPadding: 8,
-      pointerRadius: 12,
     },
+    // ── Step 18: Floating outro ──
     {
       icon: "✅",
       title: "You're All Set!",
       content:
-        "Hit the Log Trade button to record your first trade. The more data you add, the smarter Stargate gets. Each page has its own quick tour when you visit it for the first time. Happy trading!",
-      side: "bottom",
-      viewportID: "dashboard-viewport",
+        "Hit Log Trade to record your first one. Every page has its own mini-tour on first visit. I'm Nova, click me anytime you need help. Now go trade!",
+      presentation: "centered",
       showControls: true,
       showSkip: false,
-      pointerPadding: 10,
-      pointerRadius: 16,
     },
   ],
 };
@@ -314,7 +311,7 @@ export const journalPageTour: Tour = {
       icon: "📓",
       title: "Your Trading Journal",
       content:
-        "The journal is your accountability partner. Write daily reflections on your trading mindset, what went well, and what you'd do differently. Over time, you'll spot recurring patterns in your thinking.",
+        "The journal is your accountability partner. Write daily reflections on your trading mindset, what went well, and what you'd do differently.",
       selector: "#journal-header",
       side: "bottom",
       viewportID: "dashboard-viewport",
@@ -324,12 +321,25 @@ export const journalPageTour: Tour = {
       pointerRadius: 12,
     },
     {
-      icon: "✍️",
-      title: "Rich Text Editor",
+      icon: "✏️",
+      title: "Create a Note",
       content:
-        "Write with full formatting — bold, lists, headings, and more. Use templates to structure your entries consistently. The best journals are honest, not perfect.",
-      selector: "#journal-editor",
-      side: "top",
+        "Click here to start a new entry. Pick a template — Pre-trade, Post-trade, Loss Review, or Win Analysis — or write freestyle. Consistency beats perfection.",
+      selector: "#tour-new-note",
+      side: "bottom",
+      viewportID: "dashboard-viewport",
+      showControls: true,
+      showSkip: true,
+      pointerPadding: 8,
+      pointerRadius: 12,
+    },
+    {
+      icon: "🏷️",
+      title: "Tags & Search",
+      content:
+        "Tag your entries by emotion, setup, or lesson. Use search and filters to find patterns. Over time you'll spot recurring themes in your thinking.",
+      selector: "#journal-header",
+      side: "bottom",
       viewportID: "dashboard-viewport",
       showControls: true,
       showSkip: false,

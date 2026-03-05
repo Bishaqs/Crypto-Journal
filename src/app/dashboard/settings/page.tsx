@@ -28,12 +28,15 @@ import {
   X,
   Info,
   TrendingUp,
+  Brain,
 } from "lucide-react";
 import type { Chain, Wallet as WalletType } from "@/lib/types";
 import { CHAINS } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/lib/use-subscription";
 import { useReferral } from "@/lib/use-referral";
 import { RedeemCodeSection } from "@/components/settings/redeem-code-section";
+import { useI18n, LOCALES } from "@/lib/i18n";
 
 /* ================================================================
    TYPES
@@ -256,6 +259,15 @@ function SettingsContent() {
   const [showSecret, setShowSecret] = useState(false);
   const [displayName, setDisplayName] = useState("Trader");
   const [profileSaved, setProfileSaved] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+
+  // Fetch user email on mount
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) setUserEmail(user.email);
+    });
+  }, []);
 
   // Trading accounts state
   const [accounts, setAccounts] = useState<TradingAccount[]>([]);
@@ -272,6 +284,15 @@ function SettingsContent() {
   // Subscription state
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
 
+  // Language
+  const { locale, setLocale } = useI18n();
+
+  // AI provider state
+  const [aiProvider, setAiProvider] = useState("anthropic");
+  const [aiModel, setAiModel] = useState("");
+  const [aiProviders, setAiProviders] = useState<{ id: string; name: string; models: { id: string; label: string }[]; defaultModel: string }[]>([]);
+  const [allAiProviders, setAllAiProviders] = useState<{ id: string; name: string; models: { id: string; label: string }[]; defaultModel: string }[]>([]);
+
   // Wallet state
   const [wallets, setWallets] = useState<WalletType[]>([]);
   const [newWallet, setNewWallet] = useState({ address: "", chain: "ethereum" as Chain, label: "" });
@@ -287,6 +308,21 @@ function SettingsContent() {
     if (global) setGlobalSettings(JSON.parse(global));
     const storedWallets = localStorage.getItem("stargate-wallets");
     if (storedWallets) setWallets(JSON.parse(storedWallets));
+
+    // Load AI provider preference
+    const savedProvider = localStorage.getItem("stargate-ai-provider");
+    const savedModel = localStorage.getItem("stargate-ai-model");
+    if (savedProvider) setAiProvider(savedProvider);
+    if (savedModel) setAiModel(savedModel);
+
+    // Fetch available AI providers
+    fetch("/api/ai/providers")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.providers) setAiProviders(data.providers);
+        if (data.allProviders) setAllAiProviders(data.allProviders);
+      })
+      .catch(() => {});
   }, []);
 
   function saveConfig() {
@@ -393,7 +429,7 @@ function SettingsContent() {
         <div className="space-y-6">
           <SectionCard icon={User} title="Profile" description="Your account details.">
             <InputField label="Display Name" value={displayName} onChange={(v) => setDisplayName(v)} placeholder="Your name" />
-            <InputField label="Email" value="" onChange={() => {}} placeholder="you@example.com" type="email" />
+            <InputField label="Email" value={userEmail} onChange={() => {}} placeholder="you@example.com" type="email" />
             <button
               onClick={() => {
                 localStorage.setItem("stargate-display-name", displayName);
@@ -691,6 +727,52 @@ function SettingsContent() {
                 { value: "all", label: "All time" },
               ]}
             />
+            <SelectField
+              label="Language"
+              value={locale}
+              onChange={(v) => setLocale(v as typeof locale)}
+              options={LOCALES.map((l) => ({ value: l.code, label: `${l.flag} ${l.label}` }))}
+            />
+          </SectionCard>
+
+          <SectionCard icon={Brain} title="AI Coach" description="Choose your AI provider and model for the trading coach.">
+            <SelectField
+              label="AI Provider"
+              value={aiProvider}
+              onChange={(v) => {
+                setAiProvider(v);
+                localStorage.setItem("stargate-ai-provider", v);
+                // Reset model to provider's default
+                const prov = allAiProviders.find((p) => p.id === v);
+                const defaultModel = prov?.defaultModel ?? "";
+                setAiModel(defaultModel);
+                localStorage.setItem("stargate-ai-model", defaultModel);
+              }}
+              options={allAiProviders.map((p) => {
+                const available = aiProviders.some((ap) => ap.id === p.id);
+                return { value: p.id, label: `${p.name}${available ? "" : " (not configured)"}` };
+              })}
+            />
+            <SelectField
+              label="Model"
+              value={aiModel || (allAiProviders.find((p) => p.id === aiProvider)?.defaultModel ?? "")}
+              onChange={(v) => {
+                setAiModel(v);
+                localStorage.setItem("stargate-ai-model", v);
+              }}
+              options={(allAiProviders.find((p) => p.id === aiProvider)?.models ?? []).map((m) => ({
+                value: m.id,
+                label: m.label,
+              }))}
+            />
+            {!aiProviders.some((p) => p.id === aiProvider) && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                <Info size={14} className="text-amber-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-muted leading-relaxed">
+                  This provider is not configured on the server. Ask the administrator to add the API key.
+                </p>
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard icon={FileText} title="Tax & Accounting" description="Set your cost basis calculation method.">
