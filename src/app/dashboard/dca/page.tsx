@@ -4,8 +4,7 @@ import { useState, useMemo } from "react";
 import { Coins, DollarSign, TrendingUp, Percent } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import {
   AreaChart,
   Area,
@@ -75,7 +74,6 @@ function calculateDCA(
 }
 
 export default function DCACalculatorPage() {
-  usePageTour("dca-page");
   const { theme } = useTheme();
   const colors = getChartColors(theme);
 
@@ -115,7 +113,7 @@ export default function DCACalculatorPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Coins size={24} className="text-accent" />
           DCA Calculator
-          <PageInfoButton tourName="dca-page" />
+          <InfoTooltip text="Calculate optimal dollar-cost averaging schedules for any crypto asset" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Project your dollar-cost averaging returns over time

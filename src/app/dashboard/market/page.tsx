@@ -5,12 +5,11 @@ import { Globe, TrendingUp, TrendingDown, RefreshCw, Activity } from "lucide-rea
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { formatLargeNumber, formatPrice } from "@/lib/format";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import {
   Sparklines,
   SparklinesLine,
 } from "react-sparklines";
-import { usePageTour } from "@/lib/use-page-tour";
 
 interface CoinData {
   id: string;
@@ -80,7 +79,6 @@ function FearGreedGauge({ value, label }: { value: number; label: string }) {
 }
 
 export default function MarketOverviewPage() {
-  usePageTour("market-page");
   const { theme } = useTheme();
   const colors = getChartColors(theme);
   const [data, setData] = useState<MarketData | null>(null);
@@ -125,7 +123,7 @@ export default function MarketOverviewPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Globe size={24} className="text-accent" />
             Market Overview
-            <PageInfoButton tourName="market-page" />
+            <InfoTooltip text="Live crypto market overview — prices, volume, and 24h changes" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Live crypto market data</p>
         </div>

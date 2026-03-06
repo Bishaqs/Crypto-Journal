@@ -37,8 +37,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Header } from "@/components/header";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const TABS = [
   { id: "overview", label: "Overview", icon: TrendingUp },
@@ -52,7 +51,6 @@ type TabId = (typeof TABS)[number]["id"];
 
 
 export default function AnalyticsPage() {
-  usePageTour("analytics-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabId>("overview");
@@ -250,7 +248,7 @@ export default function AnalyticsPage() {
         <h2 id="tour-analytics-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Analytics
-          <PageInfoButton tourName="analytics-page" />
+          <InfoTooltip text="Visual breakdown of your trading performance — win rates, P&L distribution, and trends" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           {usingDemo ? "Sample data" : `${filtered.length} trades in range`}

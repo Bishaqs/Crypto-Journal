@@ -55,12 +55,11 @@ import { Header } from "@/components/header";
 import { BehavioralLogbook } from "@/components/dashboard/behavioral-logbook";
 import { EMOTION_CONFIG } from "@/components/psychology-inputs";
 import { Plus, X } from "lucide-react";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { InsightUnlockCard } from "@/components/dashboard/insight-unlock-card";
 
 
 export default function InsightsPage() {
-  usePageTour("insights-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -538,6 +537,11 @@ export default function InsightsPage() {
   const hasConfidenceData = confidenceData.length >= 3;
   const hasProcessData = processData.length >= 3;
 
+  // Counts for unlock cards
+  const closedCount = filtered.filter((t) => t.close_timestamp).length;
+  const closedWithEmotionCount = filtered.filter((t) => t.close_timestamp && t.emotion).length;
+  const closedWithChecklistCount = filtered.filter((t) => t.close_timestamp && t.checklist && Object.keys(t.checklist).length > 0).length;
+
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
@@ -546,7 +550,7 @@ export default function InsightsPage() {
           <h2 id="tour-insights-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Brain size={24} className="text-accent" />
             Behavioral Insights
-            <PageInfoButton tourName="insights-page" />
+            <InfoTooltip text="AI-powered behavioral analysis of your trading patterns and emotional triggers" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? "Sample data" : "How your psychology impacts your trading performance"}
@@ -578,6 +582,15 @@ export default function InsightsPage() {
       )}
 
       {/* C2: Dollar Cost of Emotions — the #1 headline feature */}
+      {!emotionDollarCost && closedWithEmotionCount < 3 && (
+        <InsightUnlockCard
+          title="Dollar Cost of Emotions"
+          description="Discover which emotions are costing you real money — and which ones are making you money."
+          current={closedWithEmotionCount}
+          required={3}
+          unit="trades with emotions"
+        />
+      )}
       {emotionDollarCost && (
         <div id="tour-insights-emotion" className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {emotionDollarCost.worstEmotion && emotionDollarCost.worstEmotion[1] < 0 && (
@@ -628,6 +641,14 @@ export default function InsightsPage() {
       )}
 
       {/* C4: Cognitive Bias Detection */}
+      {cognitiveBiases.length === 0 && closedCount < 10 && (
+        <InsightUnlockCard
+          title="Cognitive Bias Detection"
+          description="AI-detected biases in your trading — confirmation bias, recency bias, sunk cost fallacy, and more."
+          current={closedCount}
+          required={10}
+        />
+      )}
       {cognitiveBiases.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="flex items-center gap-2 mb-4">
@@ -679,6 +700,14 @@ export default function InsightsPage() {
       )}
 
       {/* Trading DNA summary */}
+      {!tradingDna && closedCount < 5 && (
+        <InsightUnlockCard
+          title="Your Trading DNA"
+          description="Your personal trading fingerprint — best emotion, best time of day, best setup, biggest leak, and discipline score."
+          current={closedCount}
+          required={5}
+        />
+      )}
       {tradingDna && (
         <div id="tour-insights-discipline" className="bg-surface rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-glow)" }}>
           <div className="flex items-center gap-2 mb-4">
@@ -875,6 +904,14 @@ export default function InsightsPage() {
       </div>
 
       {/* Win/Loss Streaks Timeline */}
+      {streakData.length === 0 && closedCount < 3 && (
+        <InsightUnlockCard
+          title="Win/Loss Streaks"
+          description="Visualize your winning and losing streaks with emotional context — see patterns in your runs."
+          current={closedCount}
+          required={3}
+        />
+      )}
       {streakData.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="flex items-center gap-2 mb-4">
@@ -968,6 +1005,15 @@ export default function InsightsPage() {
       )}
 
       {/* Checklist Compliance Impact */}
+      {!checklistImpact && closedWithChecklistCount < 4 && (
+        <InsightUnlockCard
+          title="Checklist Compliance Impact"
+          description="See how following your pre-trade rules impacts your win rate and P&L — the data doesn't lie."
+          current={closedWithChecklistCount}
+          required={4}
+          unit="trades with checklists"
+        />
+      )}
       {checklistImpact && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="flex items-center gap-2 mb-4">

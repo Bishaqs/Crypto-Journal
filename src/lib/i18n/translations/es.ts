@@ -75,6 +75,7 @@ const es = {
     watchlist: "Lista de seguimiento",
     settings: "Configuración",
     admin: "Administración",
+    leaderboard: "Clasificación",
     performanceAnalysis: "Rendimiento y análisis",
     intelligence: "Inteligencia",
     marketTools: "Mercado y herramientas",

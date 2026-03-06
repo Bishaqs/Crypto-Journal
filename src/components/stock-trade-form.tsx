@@ -198,6 +198,17 @@ export function StockTradeForm({
       return;
     }
 
+    // Award XP for new stock trades
+    if (!editTrade) {
+      try {
+        const { awardXP } = await import("@/lib/xp/engine");
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await awardXP(supabase, user.id, payload.notes ? "trade_with_notes" : "trade_logged");
+        }
+      } catch { /* XP tables may not exist yet */ }
+    }
+
     onSaved();
     onClose();
   }

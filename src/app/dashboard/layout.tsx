@@ -1,16 +1,28 @@
+import dynamic from "next/dynamic";
 import { Sidebar } from "@/components/sidebar";
-import { DailyCheckin } from "@/components/daily-checkin";
-import { InviteRedeemer } from "@/components/invite-redeemer";
 import { Starfield } from "@/components/starfield";
 import { OnboardingTour } from "@/components/onboarding-tour";
 import { OnboardingGate } from "@/components/onboarding-gate";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { SubscriptionProvider } from "@/lib/subscription-context";
 import { AchievementProvider } from "@/lib/achievements";
-import { AchievementToast } from "@/components/dashboard/achievement-toast";
-import { GuideProvider, StargateGuideCharacter, GuideHelp, GuideMenu } from "@/components/stargate-guide";
+import { LevelProvider } from "@/lib/xp";
+import { CosmeticProvider } from "@/lib/cosmetics";
+import { ChallengeProvider } from "@/lib/challenges";
+import { CoinsProvider } from "@/lib/coins";
+import { GuideProvider } from "@/components/stargate-guide";
 import { createClient } from "@/lib/supabase/server";
 import type { SubscriptionTier } from "@/lib/use-subscription";
+
+// Lazy-load non-critical floating components (not visible on initial paint)
+const DailyCheckin = dynamic(() => import("@/components/daily-checkin").then(m => ({ default: m.DailyCheckin })));
+const InviteRedeemer = dynamic(() => import("@/components/invite-redeemer").then(m => ({ default: m.InviteRedeemer })));
+const AchievementToast = dynamic(() => import("@/components/dashboard/achievement-toast").then(m => ({ default: m.AchievementToast })));
+const LevelUpToast = dynamic(() => import("@/components/dashboard/level-up-toast").then(m => ({ default: m.LevelUpToast })));
+const CelebrationOverlay = dynamic(() => import("@/components/dashboard/celebration-overlay").then(m => ({ default: m.CelebrationOverlay })));
+const StargateGuideCharacter = dynamic(() => import("@/components/stargate-guide/stargate-guide").then(m => ({ default: m.StargateGuideCharacter })));
+const GuideMenu = dynamic(() => import("@/components/stargate-guide/guide-menu").then(m => ({ default: m.GuideMenu })));
+const GuideHelp = dynamic(() => import("@/components/stargate-guide/guide-help").then(m => ({ default: m.GuideHelp })));
 
 export default async function DashboardLayout({
   children,
@@ -53,27 +65,37 @@ export default async function DashboardLayout({
 
   return (
     <SubscriptionProvider tier={tier} isOwner={isOwner} isTrial={isTrial}>
-      <AchievementProvider>
-        <GuideProvider>
-          <OnboardingGate userId={user?.id} />
-          <OnboardingTour>
-            <div className="flex h-screen overflow-hidden relative">
-              <Starfield />
-              <Sidebar />
-              <main id="dashboard-viewport" className="flex-1 overflow-y-auto px-4 md:px-8 py-6 pt-16 md:pt-6 transition-all duration-300 relative z-10">
-                <ErrorBoundary>
-                  {children}
-                </ErrorBoundary>
-              </main>
-              <DailyCheckin />
-              <InviteRedeemer />
-              <AchievementToast />
-              <StargateGuideCharacter />
-              <GuideMenu />
-              <GuideHelp />
-            </div>
-          </OnboardingTour>
-        </GuideProvider>
+      <AchievementProvider userId={user?.id}>
+        <LevelProvider userId={user?.id}>
+          <CosmeticProvider userId={user?.id}>
+            <ChallengeProvider userId={user?.id}>
+            <CoinsProvider userId={user?.id}>
+            <GuideProvider>
+              <OnboardingGate userId={user?.id} />
+              <OnboardingTour>
+                <div className="flex h-screen overflow-hidden relative">
+                  <Starfield />
+                  <Sidebar />
+                  <main id="dashboard-viewport" className="flex-1 overflow-y-auto px-4 md:px-8 py-6 pt-16 md:pt-6 transition-all duration-300 relative z-10">
+                    <ErrorBoundary>
+                      {children}
+                    </ErrorBoundary>
+                  </main>
+                  <DailyCheckin />
+                  <InviteRedeemer />
+                  <AchievementToast />
+                  <LevelUpToast />
+                  <CelebrationOverlay />
+                  <StargateGuideCharacter />
+                  <GuideMenu />
+                  <GuideHelp />
+                </div>
+              </OnboardingTour>
+            </GuideProvider>
+            </CoinsProvider>
+            </ChallengeProvider>
+          </CosmeticProvider>
+        </LevelProvider>
       </AchievementProvider>
     </SubscriptionProvider>
   );

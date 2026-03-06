@@ -1,9 +1,12 @@
 "use client";
 
 import { useTheme } from "@/lib/theme-context";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { CandleBackground } from "./candle-background";
 import { RealisticBlackHole } from "./realistic-black-hole";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 /* ================================================================
    MATRIX — Dense binary rain covering the entire screen
@@ -73,159 +76,551 @@ function MatrixRain() {
 }
 
 /* ================================================================
-   VOLCANO — Fiery eruption with embers, lava glow, dark charcoal
+   VOLCANO — Cinematic volcanic mountains matching reference image:
+   Multi-peak silhouette, branching lava veins to base, thick right
+   river, thin left lightning veins, crater glows, smoke, embers
    ================================================================ */
 
-const EMBER_COUNT = 55;
-const ERUPTION_PARTICLE_COUNT = 28;
-const SMOKE_WISP_COUNT = 5;
+/*
+  Mountain silhouette — matches reference: left smaller peak, prominent
+  center-left peak, saddle, prominent right peak, slopes to edges.
+  viewBox 0 0 1600 700 — fills bottom ~50% of screen.
+*/
+const MOUNTAIN_PATH =
+  // Start bottom-left, climb left foothills
+  "M0,700 L0,520 L50,510 L100,490 L140,470 L180,440 L210,410 " +
+  // Small far-left peak
+  "L240,380 L265,355 L280,340 L290,330 L300,335 L315,350 " +
+  // Valley between far-left and main left peak
+  "L340,370 L360,365 L380,350 L395,330 " +
+  // Rise to main left peak — jagged sub-ridges for clustered peaks feel
+  "L420,290 L438,258 L448,265 L458,240 L468,222 L478,198 " +
+  "L488,168 L496,150 L502,140 L508,128 L510,125 " +
+  "L513,128 L516,138 L520,145 L524,152 L530,155 " +
+  // Descend from left peak into saddle
+  "L545,180 L565,210 L590,240 L620,268 L655,290 " +
+  "L690,305 L720,312 L745,310 L768,302 " +
+  // Rise to right peak — steeper cone shape
+  "L790,285 L815,255 L838,225 L858,195 " +
+  "L876,165 L890,142 L900,128 L906,115 L910,112 " +
+  "L914,115 L920,130 L930,148 " +
+  // Descend from right peak — steeper
+  "L942,172 L958,205 L976,240 L998,278 " +
+  "L1022,315 L1050,350 L1085,385 L1125,415 " +
+  // Slope to right edge — steepened so mountain extends further
+  "L1175,445 L1240,472 L1320,498 L1420,518 " +
+  "L1510,530 L1600,535 L1600,700 Z";
+
+/*
+  Lava veins — always visible (static strokes), glow pulses via GSAP.
+  Left peak: many thin branching veins like lightning/cracks.
+  Right peak: one dominant thick river + a couple branches.
+  ALL veins reach the mountain base (y=700).
+*/
+/*
+  Main right-peak lava river — rendered separately with 4 layers
+  (xxl-bloom, lg-glow, md-core, sm-hotcore) for the white-hot center effect.
+*/
+/*
+  Main right-peak lava river — TAPERED filled polygon.
+  Left edge traces from crater (narrow) to base (wide).
+  Right edge traces back up. Fill gives natural width tapering.
+  Centerline is a thin stroked path on top for white-hot core.
+*/
+const MAIN_LAVA_RIVER_FILL =
+  // Narrower taper: ~4px at crater, ~28px at base
+  "M908,112 " +
+  "C910,145 914,190 920,240 " +
+  "C924,275 926,310 927,350 " +
+  "C928,395 925,440 922,490 " +
+  "C919,535 920,580 926,630 " +
+  "C933,665 944,690 955,700 " +
+  "L983,700 " +
+  "C975,690 966,665 961,630 " +
+  "C956,580 954,535 957,490 " +
+  "C960,440 963,395 962,350 " +
+  "C961,310 959,275 955,240 " +
+  "C949,190 944,145 912,112 " +
+  "Z";
+
+const MAIN_LAVA_RIVER_CENTER =
+  "M910,112 C913,145 920,190 928,240 C930,275 932,310 932,350 C933,395 930,440 927,490 C924,535 926,580 934,630 C940,665 952,690 968,700";
+
+const LAVA_VEINS = [
+  // ===== LEFT PEAK — dense terrain-following crack network (13 veins) =====
+  // L1: Ridge crack — traces actual peak-to-saddle descent path
+  { d: "M510,125 C515,140 520,155 530,175 C545,205 570,238 600,265 C630,288 660,300 700,310 L720,312", w: 1.2, color: "#FF8800", opacity: 0.70 },
+  // L2: Left slope crack — follows left face contour toward far-left valley
+  { d: "M510,125 C502,142 490,165 478,195 C462,232 440,268 420,295 C402,322 388,345 368,368", w: 1.0, color: "#FF9500", opacity: 0.62 },
+  // L3: Branch from L2 at y≈232 — continues down left slope to base
+  { d: "M462,232 C448,268 432,305 415,345 C395,392 370,440 340,495 L305,565 L270,700", w: 0.8, color: "#FFAA00", opacity: 0.50 },
+  // L4: Branch from L1 at saddle — drops from saddle floor to base
+  { d: "M660,300 C658,338 654,380 648,428 C640,485 635,548 630,620 L628,700", w: 0.6, color: "#FF7700", opacity: 0.38 },
+  // L5: Sub-ridge crack — traces the jagged (438,258) notch on ascent
+  { d: "M478,195 C468,218 454,245 438,258 L420,290", w: 0.7, color: "#FFCC33", opacity: 0.50 },
+  // L6: From L2 terminus through far-left peak area to base
+  { d: "M368,368 C345,388 318,400 295,335 C285,355 268,380 250,415 C230,455 215,505 200,570 L185,700", w: 0.6, color: "#FFAA00", opacity: 0.35 },
+  // L7: Short rightward crack near summit
+  { d: "M510,125 C518,135 528,150 540,172 C555,198 572,228 590,255", w: 0.8, color: "#FFBB00", opacity: 0.55 },
+  // L8: Second branch from L2 at y≈268 — between L3 and L6
+  { d: "M440,268 C425,298 408,332 388,370 C368,412 345,462 318,520 L288,600 L260,700", w: 0.6, color: "#FF9500", opacity: 0.40 },
+  // L9: Far-left sub-peak crack from (290,330) to base
+  { d: "M290,330 C280,358 268,388 255,420 C238,462 220,510 200,565 L178,640 L165,700", w: 0.5, color: "#FFAA00", opacity: 0.32 },
+  // L10: Cross-slope connector L1↔L2 at mid-height
+  { d: "M530,175 C518,195 505,218 490,240 C475,265 458,288 440,310", w: 0.5, color: "#FFBB00", opacity: 0.38 },
+  // L11: Thin capillary branching left from L3 at y≈305
+  { d: "M432,305 C415,330 395,358 372,392 C348,430 322,475 295,530 L268,600 L245,700", w: 0.4, color: "#FFAA00", opacity: 0.30 },
+  // L12: Branch from L1 at (600,265) down through saddle area
+  { d: "M600,265 C595,305 588,350 580,400 C572,455 565,520 558,595 L552,700", w: 0.5, color: "#FF8800", opacity: 0.35 },
+  // L13: Near-peak short crack going left from summit
+  { d: "M510,125 C500,138 488,155 475,175 C460,200 445,228 428,260", w: 0.6, color: "#FFCC33", opacity: 0.42 },
+
+  // ===== SADDLE VEINS (between peaks) =====
+  { d: "M598,500 C628,535 658,568 688,600 C718,640 742,672 758,700", w: 0.6, color: "#FF6600", opacity: 0.34 },
+  { d: "M830,400 C815,432 798,468 778,505 C758,545 738,592 722,700", w: 0.6, color: "#FF5500", opacity: 0.32 },
+  { d: "M720,312 C718,348 714,395 708,448 C702,508 698,580 695,700", w: 0.5, color: "#FF7700", opacity: 0.30 },
+
+  // ===== RIGHT PEAK (910,112) — secondary branches =====
+  // Secondary right branch — organic winding
+  { d: "M910,112 C916,145 928,185 938,228 C950,278 960,325 972,378 C985,435 1000,498 1018,568 C1035,635 1055,678 1080,700", w: 1.8, color: "#FF4500", opacity: 0.65 },
+  // Left branch from right peak — irregular
+  { d: "M910,112 C906,142 898,178 888,218 C876,265 862,312 845,365 C828,418 810,478 790,545 C772,615 758,665 748,700", w: 1.3, color: "#FF5500", opacity: 0.55 },
+  // Thin capillary off right river
+  { d: "M938,228 C950,272 965,318 982,370 C1000,428 1020,492 1042,562 L1068,700", w: 0.7, color: "#FF6B00", opacity: 0.42 },
+  // Short crack near right peak
+  { d: "M910,112 C918,138 928,162 936,192", w: 0.8, color: "#FFBB00", opacity: 0.52 },
+  // Extra crack on right flank
+  { d: "M942,172 C955,215 972,265 992,322 C1015,385 1042,458 1072,540 L1098,700", w: 0.6, color: "#FF7700", opacity: 0.40 },
+  // New: Right slope capillary branching from secondary
+  { d: "M972,378 C988,425 1008,478 1030,538 C1052,598 1072,655 1095,700", w: 0.5, color: "#FF6600", opacity: 0.35 },
+  // New: Left-side crack from right peak mid-slope
+  { d: "M888,218 C872,258 855,302 835,352 C815,408 798,472 782,545 L768,700", w: 0.5, color: "#FF6600", opacity: 0.32 },
+];
+
+type VolcanoParticle = {
+  x: number;
+  y: number;
+  vy: number;
+  vx: number;
+  vxPhase: number;
+  vxAmp: number;
+  size: number;
+  opacity: number;
+  maxOpacity: number;
+  hue: number;
+  life: number;
+  lifeSpeed: number;
+  kind: "ember" | "smoke";
+};
 
 function VolcanoBackground() {
-  type Ember = { left: number; bottom: number; duration: number; delay: number; size: number; hue: number; brightness: number };
-  type EruptionParticle = { left: number; size: number; hue: number; duration: number; delay: number; xDrift: number };
-  type SmokeWisp = { left: number; size: number; duration: number; delay: number; opacity: number };
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particlesRef = useRef<VolcanoParticle[]>([]);
+  const rafRef = useRef<number>(0);
+  const pausedRef = useRef(false);
 
-  const [embers, setEmbers] = useState<Ember[]>([]);
-  const [eruptionParticles, setEruptionParticles] = useState<EruptionParticle[]>([]);
-  const [smokeWisps, setSmokeWisps] = useState<SmokeWisp[]>([]);
+  // GSAP: gentle glow pulse on veins + crater glow breathing
+  useGSAP(
+    () => {
+      if (!containerRef.current) return;
 
-  useEffect(() => {
-    setEmbers(
-      Array.from({ length: EMBER_COUNT }).map(() => ({
-        left: 5 + Math.random() * 90,
-        bottom: Math.random() * 30,
-        duration: 5 + Math.random() * 8,
-        delay: Math.random() * -12,
-        size: 1.5 + Math.random() * 4,
+      // Gentle glow pulse on vein outer glow layer
+      gsap.utils.toArray<SVGPathElement>(".lava-glow-layer").forEach((el, i) => {
+        gsap.to(el, {
+          strokeOpacity: Number(el.getAttribute("stroke-opacity") || 0.3) * 1.3,
+          duration: 3 + (i % 4),
+          yoyo: true,
+          repeat: -1,
+          ease: "sine.inOut",
+          delay: i * 0.3,
+        });
+      });
+
+      // River fill glow pulse
+      gsap.utils.toArray<SVGPathElement>(".lava-river-glow").forEach((el) => {
+        gsap.to(el, {
+          attr: { "fill-opacity": 0.30 },
+          duration: 4,
+          yoyo: true,
+          repeat: -1,
+          ease: "sine.inOut",
+        });
+      });
+
+      // Crater glow pulse — gentle breathing
+      gsap.utils.toArray<HTMLElement>(".crater-glow").forEach((el, i) => {
+        gsap.to(el, {
+          scale: 1.15 + i * 0.05,
+          opacity: 0.9,
+          duration: 3.0 + i * 0.5,
+          yoyo: true,
+          repeat: -1,
+          ease: "sine.inOut",
+        });
+      });
+    },
+    { scope: containerRef },
+  );
+
+  // Canvas particles: embers + smoke
+  const initParticles = useCallback((w: number, h: number) => {
+    const isMobile = window.innerWidth < 768;
+    const emberCount = isMobile ? 70 : 130;
+    const smokeCount = isMobile ? 20 : 35;
+
+    // Peak positions mapped from SVG coords (1600 wide) to screen
+    const leftPeakX = w * (510 / 1600);
+    const rightPeakX = w * (910 / 1600);
+    const peakY = h * 0.52;
+
+    const embers: VolcanoParticle[] = Array.from({ length: emberCount }).map(() => {
+      const fromRight = Math.random() > 0.35;
+      const isSkyEmber = Math.random() < 0.20; // 20% spawn across full sky
+      const spawnX = isSkyEmber
+        ? w * (0.1 + Math.random() * 0.8)
+        : fromRight
+          ? rightPeakX + (Math.random() - 0.5) * w * 0.50
+          : leftPeakX + (Math.random() - 0.5) * w * 0.50;
+      return {
+        x: spawnX,
+        y: isSkyEmber
+          ? h * (0.15 + Math.random() * 0.35)
+          : peakY + (Math.random() - 0.3) * h * 0.12,
+        vy: -(0.15 + Math.random() * 0.45),
+        vx: (Math.random() - 0.5) * 0.3,
+        vxPhase: Math.random() * Math.PI * 2,
+        vxAmp: 0.1 + Math.random() * 0.4,
+        size: isSkyEmber ? 0.3 + Math.random() * 1.0 : 0.4 + Math.random() * 1.8,
+        opacity: 0,
+        maxOpacity: isSkyEmber ? 0.5 + Math.random() * 0.4 : 0.6 + Math.random() * 0.4,
         hue: 15 + Math.random() * 30,
-        brightness: 0.75 + Math.random() * 0.25,
-      }))
-    );
-    setEruptionParticles(
-      Array.from({ length: ERUPTION_PARTICLE_COUNT }).map(() => ({
-        left: 42 + Math.random() * 16,
-        size: 2 + Math.random() * 5,
-        hue: 20 + Math.random() * 35,
-        duration: 1.5 + Math.random() * 2,
-        delay: Math.random() * 1.2,
-        xDrift: -30 + Math.random() * 60,
-      }))
-    );
-    setSmokeWisps(
-      Array.from({ length: SMOKE_WISP_COUNT }).map((_, i) => ({
-        left: 43 + i * 3.5,
-        size: 30 + Math.random() * 40,
-        duration: 8 + Math.random() * 6,
-        delay: -(Math.random() * 10),
-        opacity: 0.06 + Math.random() * 0.06,
-      }))
-    );
+        life: Math.random(),
+        lifeSpeed: isSkyEmber ? 0.0005 + Math.random() * 0.0012 : 0.0008 + Math.random() * 0.0018,
+        kind: "ember" as const,
+      };
+    });
+
+    const smoke: VolcanoParticle[] = Array.from({ length: smokeCount }).map(() => {
+      const fromRight = Math.random() > 0.45;
+      const spawnX = fromRight
+        ? rightPeakX + (Math.random() - 0.4) * w * 0.10
+        : leftPeakX + (Math.random() - 0.6) * w * 0.10;
+      return {
+        x: spawnX,
+        y: peakY - Math.random() * h * 0.04,
+        vy: -(0.12 + Math.random() * 0.20),
+        vx: fromRight ? 0.05 + Math.random() * 0.14 : -(0.05 + Math.random() * 0.14),
+        vxPhase: Math.random() * Math.PI * 2,
+        vxAmp: 0.15 + Math.random() * 0.45,
+        size: 70 + Math.random() * 110,
+        opacity: 0,
+        maxOpacity: 0.12 + Math.random() * 0.16,
+        hue: 28,
+        life: Math.random(),
+        lifeSpeed: 0.0003 + Math.random() * 0.0006,
+        kind: "smoke" as const,
+      };
+    });
+
+    particlesRef.current = [...smoke, ...embers]; // smoke first (behind embers)
   }, []);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const peakPos = { leftX: 0, rightX: 0, y: 0 };
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      peakPos.leftX = canvas.width * (510 / 1600);
+      peakPos.rightX = canvas.width * (910 / 1600);
+      peakPos.y = canvas.height * 0.52;
+      if (particlesRef.current.length === 0) {
+        initParticles(canvas.width, canvas.height);
+      }
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const onVisibility = () => {
+      pausedRef.current = document.hidden;
+      if (!document.hidden) rafRef.current = requestAnimationFrame(draw);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    let lastFrame = 0;
+    const TARGET_INTERVAL = 1000 / 30; // 30fps for decorative background
+
+    function draw(now = 0) {
+      if (pausedRef.current || !ctx || !canvas) return;
+
+      rafRef.current = requestAnimationFrame(draw);
+      if (now - lastFrame < TARGET_INTERVAL) return;
+      lastFrame = now;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const p of particlesRef.current) {
+        p.life += p.lifeSpeed;
+        if (p.life >= 1) {
+          p.life = 0;
+          const isSmoke = p.kind === "smoke";
+          const fromRight = isSmoke ? Math.random() > 0.45 : Math.random() > 0.35;
+          const isSkyEmber = !isSmoke && Math.random() < 0.20;
+          if (isSkyEmber) {
+            p.x = canvas.width * (0.1 + Math.random() * 0.8);
+            p.y = canvas.height * (0.15 + Math.random() * 0.35);
+            p.vy = -(0.15 + Math.random() * 0.45);
+            p.vx = (Math.random() - 0.5) * 0.3;
+            p.size = 0.3 + Math.random() * 1.0;
+            p.maxOpacity = 0.5 + Math.random() * 0.4;
+            p.lifeSpeed = 0.0005 + Math.random() * 0.0012;
+          } else if (fromRight) {
+            p.x = peakPos.rightX + (Math.random() - (isSmoke ? 0.4 : 0.5)) * canvas.width * (isSmoke ? 0.10 : 0.50);
+            if (isSmoke) p.vx = 0.05 + Math.random() * 0.12;
+          } else {
+            p.x = peakPos.leftX + (Math.random() - (isSmoke ? 0.6 : 0.5)) * canvas.width * (isSmoke ? 0.10 : 0.50);
+            if (isSmoke) p.vx = -(0.05 + Math.random() * 0.12);
+          }
+          if (!isSkyEmber) {
+            p.y = peakPos.y + (isSmoke ? -Math.random() * canvas.height * 0.04 : (Math.random() - 0.3) * canvas.height * 0.12);
+          }
+          if (!isSmoke && !isSkyEmber) {
+            p.vy = -(0.15 + Math.random() * 0.45);
+            p.vx = (Math.random() - 0.5) * 0.3;
+          }
+        }
+
+        p.y += p.vy;
+        p.x += p.vx + Math.sin(p.life * Math.PI * 2 + p.vxPhase) * p.vxAmp;
+        p.opacity = p.maxOpacity * Math.sin(p.life * Math.PI);
+
+        if (p.kind === "smoke") {
+          const currentSize = p.size * (1 + p.life * 2.2);
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, currentSize);
+          grad.addColorStop(0, `rgba(160,85,30,${p.opacity})`);
+          grad.addColorStop(0.3, `rgba(130,65,22,${p.opacity * 0.5})`);
+          grad.addColorStop(0.6, `rgba(90,45,15,${p.opacity * 0.15})`);
+          grad.addColorStop(1, `rgba(55,28,10,0)`);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        } else {
+          // Motion blur trail for larger embers
+          if (p.size > 1.5) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2);
+            ctx.strokeStyle = `hsla(${p.hue}, 90%, 55%, ${p.opacity * 0.3})`;
+            ctx.lineWidth = p.size * 0.4;
+            ctx.lineCap = "round";
+            ctx.stroke();
+          }
+          // Subtle glow halo — only for larger embers
+          if (p.size > 1.5) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${p.hue}, 90%, 50%, ${p.opacity * 0.12})`;
+            ctx.fill();
+          }
+          // Ember core — sharp pinpoint
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, ${p.opacity})`;
+          ctx.fill();
+        }
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [initParticles]);
+
   return (
-    <>
-      {/* Dark volcanic gradient */}
+    <div ref={containerRef} className="absolute inset-0">
+      {/* Layer 1: Dark sky gradient — pure black top, warm near mountains */}
       <div className="absolute inset-0" style={{
-        background: "linear-gradient(180deg, #0a0504 0%, #0e0706 30%, #120804 55%, #1a0c06 80%, #200e08 100%)",
+        background: "linear-gradient(180deg, #000000 0%, #020101 30%, #040302 50%, #060403 100%)",
       }} />
 
-      {/* Volcanic mountain silhouette at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-[40%]" style={{
-        background: `
-          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300'%3E%3Cpath d='M0,300 L0,250 L100,220 L200,200 L300,160 L400,120 L450,80 L500,50 L530,30 L550,20 L570,30 L600,50 L640,80 L680,120 L720,100 L760,80 L790,60 L810,50 L830,60 L860,90 L900,130 L950,170 L1000,200 L1100,230 L1200,250 L1200,300 Z' fill='%23080402'/%3E%3C/svg%3E") no-repeat bottom center / 100% auto`,
-        opacity: 0.9,
-      }} />
+      {/* Layer 2+3: Mountain silhouette + lava veins (single SVG) */}
+      <svg
+        className="absolute bottom-0 left-0 w-full h-[52%]"
+        viewBox="0 0 1600 700"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <filter id="v-glow-sm" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="1.5" />
+          </filter>
+          <filter id="v-glow-md" x="-15%" y="-15%" width="130%" height="130%">
+            <feGaussianBlur stdDeviation="3" />
+          </filter>
+          <filter id="v-glow-lg" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="4" />
+          </filter>
+          <filter id="v-glow-xl" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="8" />
+          </filter>
+          <filter id="v-glow-xxl" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="14" />
+          </filter>
+          <filter id="v-glow-ridge" x="-15%" y="-15%" width="130%" height="130%">
+            <feGaussianBlur stdDeviation="2.5" />
+          </filter>
+        </defs>
 
-      {/* Lava glow from crater — warm orange-red */}
-      <div className="lava-glow" style={{
-        bottom: "15%", left: "38%", width: "24%", height: "30%",
-        background: "radial-gradient(ellipse at 50% 80%, rgba(249,115,22,0.35) 0%, rgba(239,68,68,0.2) 40%, transparent 70%)",
-        "--lava-duration": "6s",
-        "--lava-delay": "0s",
-        filter: "blur(20px)",
-      } as React.CSSProperties} />
+        {/* Mountain fill — jet-black, defined by lava glow */}
+        <path d={MOUNTAIN_PATH} fill="#0c0a08" />
 
-      {/* Bottom lava glow — wide ambient heat */}
-      <div className="absolute inset-x-0 bottom-0 h-1/3" style={{
-        background: "radial-gradient(ellipse at 50% 100%, rgba(249,115,22,0.25) 0%, rgba(220,38,38,0.12) 30%, transparent 65%)",
-      }} />
+        {/* ==== RIDGE EDGE LIGHTING — warm rim light along mountain contours ==== */}
+        {/* Far-left foothills */}
+        <path d="M0,520 L50,510 L100,490 L140,470 L180,440" stroke="#FF6040" strokeOpacity={0.10} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
+        {/* Left foothills up to left peak */}
+        <path d="M180,440 L210,410 L240,380 L265,355 L280,340 L290,330 L300,335 L315,350 L340,370 L360,365 L380,350 L395,330 L420,290 L438,258 L448,265 L458,240 L468,222 L478,198 L488,168 L496,150 L502,140 L508,128 L510,125" stroke="#FF8040" strokeOpacity={0.18} strokeWidth={2.0} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
+        {/* Left peak to saddle */}
+        <path d="M510,125 L513,128 L516,138 L520,145 L524,152 L530,155 L545,180 L565,210 L590,240 L620,268 L655,290 L690,305 L720,312 L745,310 L768,302" stroke="#FF7030" strokeOpacity={0.14} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
+        {/* Saddle to right peak */}
+        <path d="M768,302 L790,285 L815,255 L838,225 L858,195 L876,165 L890,142 L900,128 L906,115 L910,112" stroke="#FF6030" strokeOpacity={0.22} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
+        {/* Right peak descent — brightest, near main lava river */}
+        <path d="M910,112 L914,115 L920,130 L930,148 L942,172 L958,205 L976,240 L998,278 L1022,315 L1050,350 L1085,385 L1125,415" stroke="#FF5020" strokeOpacity={0.25} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
+        {/* Right foothills */}
+        <path d="M1125,415 L1175,445 L1240,472 L1320,498 L1420,518 L1510,530" stroke="#FF6040" strokeOpacity={0.10} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
 
-      {/* Smoke/haze near top */}
-      <div className="absolute top-0 inset-x-0 h-1/4" style={{
-        background: "linear-gradient(180deg, rgba(30,15,10,0.55) 0%, transparent 100%)",
-      }} />
+        {/* ==== MAIN LAVA RIVER — Tapered filled polygon + centerline ==== */}
+        {/* Layer 1: Wide ambient heat bloom */}
+        <path d={MAIN_LAVA_RIVER_FILL} fill="#FF2200" fillOpacity={0.08} stroke="none" filter="url(#v-glow-xxl)" />
+        {/* Layer 2: Outer glow (animated) */}
+        <path className="lava-river-glow" d={MAIN_LAVA_RIVER_FILL} fill="#FF3300" fillOpacity={0.18} stroke="none" filter="url(#v-glow-lg)" />
+        {/* Layer 3: Bright body fill — slightly blurred edges */}
+        <path d={MAIN_LAVA_RIVER_FILL} fill="#FF4400" fillOpacity={0.45} stroke="none" filter="url(#v-glow-sm)" />
+        {/* Layer 4: Core fill — semi-transparent so layers show through */}
+        <path d={MAIN_LAVA_RIVER_FILL} fill="#FF5500" fillOpacity={0.40} stroke="none" />
+        {/* Layer 5: Yellow-orange centerline glow */}
+        <path d={MAIN_LAVA_RIVER_CENTER} stroke="#FF8800" strokeOpacity={0.70} strokeWidth={4.0} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-md)" />
+        {/* Layer 6: White-hot centerline */}
+        <path d={MAIN_LAVA_RIVER_CENTER} stroke="#FFDD66" strokeOpacity={0.85} strokeWidth={2.0} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-sm)" />
+        {/* Layer 7: Brightest inner pinpoint */}
+        <path d={MAIN_LAVA_RIVER_CENTER} stroke="#FFEEAA" strokeOpacity={0.55} strokeWidth={0.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
 
-      {/* Ember particles rising */}
-      {embers.map((e, i) => (
-        <div
-          key={i}
-          className="ember"
-          style={{
-            left: `${e.left}%`,
-            bottom: `${e.bottom}%`,
-            "--ember-duration": `${e.duration}s`,
-            "--ember-delay": `${e.delay}s`,
-            width: `${e.size}px`,
-            height: `${e.size}px`,
-            background: `hsla(${e.hue}, 95%, ${55 + e.brightness * 20}%, ${e.brightness})`,
-            boxShadow: `0 0 ${e.size * 3}px ${e.size * 1.5}px hsla(${e.hue}, 95%, 50%, 0.4)`,
-          } as React.CSSProperties}
-        />
-      ))}
+        {/* Wide bloom layer behind thicker veins for ambient heat */}
+        {LAVA_VEINS.filter((v) => v.w >= 1.0).map((v, i) => (
+          <path
+            key={`bloom-${i}`}
+            d={v.d}
+            stroke={v.color}
+            strokeOpacity={v.opacity * 0.15}
+            strokeWidth={v.w * 5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            filter="url(#v-glow-xl)"
+          />
+        ))}
 
-      {/* Smoke wisps rising from crater */}
-      {smokeWisps.map((s, i) => (
-        <div
-          key={`smoke-${i}`}
-          className="volcano-smoke"
-          style={{
-            left: `${s.left}%`,
-            bottom: "35%",
-            width: `${s.size}px`,
-            height: `${s.size * 2}px`,
-            "--smoke-duration": `${s.duration}s`,
-            "--smoke-delay": `${s.delay}s`,
-            "--smoke-opacity": s.opacity,
-          } as React.CSSProperties}
-        />
-      ))}
+        {/* Outer glow layer — softer, animated pulse */}
+        {LAVA_VEINS.map((v, i) => (
+          <path
+            key={`glow-${i}`}
+            className="lava-glow-layer"
+            d={v.d}
+            stroke={v.color}
+            strokeOpacity={v.opacity * 0.50}
+            strokeWidth={v.w * 2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            filter={v.w >= 1.0 ? "url(#v-glow-lg)" : "url(#v-glow-md)"}
+          />
+        ))}
 
-      {/* Periodic eruption burst — particles shoot from crater */}
-      {eruptionParticles.map((p, i) => (
-        <div
-          key={`eruption-${i}`}
-          className="eruption-particle"
-          style={{
-            left: `${p.left}%`,
-            bottom: "38%",
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            "--eruption-duration": `${p.duration}s`,
-            "--eruption-delay": `${p.delay}s`,
-            "--eruption-x": `${p.xDrift}px`,
-            background: `hsla(${p.hue}, 100%, 65%, 0.95)`,
-            boxShadow: `0 0 ${p.size * 4}px ${p.size * 2}px hsla(${p.hue}, 100%, 55%, 0.5)`,
-          } as React.CSSProperties}
-        />
-      ))}
+        {/* Bright core layer — sharp, always visible */}
+        {LAVA_VEINS.map((v, i) => (
+          <path
+            key={`core-${i}`}
+            d={v.d}
+            stroke={v.color}
+            strokeOpacity={v.opacity}
+            strokeWidth={v.w}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            filter="url(#v-glow-sm)"
+          />
+        ))}
+      </svg>
 
-      {/* Eruption glow pulse — intensifies during burst */}
-      <div className="eruption-glow" style={{
-        position: "absolute",
-        bottom: "30%",
-        left: "38%",
-        width: "24%",
-        height: "20%",
-        background: "radial-gradient(ellipse at 50% 80%, rgba(255,120,20,0.4) 0%, rgba(249,115,22,0.2) 30%, transparent 65%)",
-        filter: "blur(15px)",
-        pointerEvents: "none",
-      }} />
+      {/* Layer 4: Crater glows — focused at summit tips */}
+      {/* Left peak crater glow */}
+      <div
+        className="crater-glow absolute pointer-events-none"
+        style={{
+          left: "29.5%", bottom: "40.5%", width: "5%", height: "6%",
+          background: "radial-gradient(ellipse at 50% 60%, rgba(255,160,60,0.60) 0%, rgba(255,120,30,0.22) 40%, transparent 70%)",
+          filter: "blur(8px)",
+          transformOrigin: "center 60%",
+        }}
+      />
+      {/* Right peak crater glow */}
+      <div
+        className="crater-glow absolute pointer-events-none"
+        style={{
+          left: "54%", bottom: "41.5%", width: "6%", height: "8%",
+          background: "radial-gradient(ellipse at 50% 60%, rgba(255,100,10,0.80) 0%, rgba(255,80,0,0.30) 40%, transparent 70%)",
+          filter: "blur(10px)",
+          transformOrigin: "center 60%",
+        }}
+      />
+      {/* Right peak white-hot center */}
+      <div
+        className="crater-glow absolute pointer-events-none"
+        style={{
+          left: "55.8%", bottom: "42.5%", width: "2.5%", height: "3%",
+          background: "radial-gradient(ellipse at 50% 60%, rgba(255,230,100,0.60) 0%, rgba(255,180,40,0.20) 50%, transparent 80%)",
+          filter: "blur(5px)",
+          transformOrigin: "center 60%",
+        }}
+      />
 
-      {/* Subtle red ambient glow at very bottom */}
-      <div className="absolute inset-x-0 bottom-0 h-[15%]" style={{
-        background: "linear-gradient(to top, rgba(220,38,38,0.12), transparent)",
-      }} />
-    </>
+      {/* Layer 4b: Subtle warm haze at mountain base */}
+      <div
+        className="absolute bottom-0 left-0 w-full pointer-events-none"
+        style={{
+          height: "12%",
+          background: "linear-gradient(to top, rgba(40,15,5,0.15) 0%, rgba(30,10,3,0.06) 50%, transparent 100%)",
+        }}
+      />
+
+      {/* Layer 5: Canvas particles (embers + smoke) */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 pointer-events-none"
+        style={{ zIndex: 1 }}
+      />
+
+      {/* Layer 6: Noise overlay */}
+      <svg className="absolute w-0 h-0" aria-hidden="true">
+        <filter id="volcano-noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+        </filter>
+      </svg>
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ filter: "url(#volcano-noise)", opacity: 0.015, zIndex: 2 }}
+      />
+    </div>
   );
 }
 
@@ -233,9 +628,9 @@ function VolcanoBackground() {
    OCEAN — Deep underwater cave with bioluminescence
    ================================================================ */
 
-const BIO_DOT_COUNT = 75;
-const JELLYFISH_COUNT = 6;
-const SMALL_FISH_COUNT = 10;
+const BIO_DOT_COUNT = 30;
+const JELLYFISH_COUNT = 3;
+const SMALL_FISH_COUNT = 4;
 
 function OceanBackground() {
   type Fish = { top: number; size: number; duration: number; delay: number; goingRight: boolean; body: string; glow: string };
@@ -453,11 +848,233 @@ function OceanBackground() {
    ================================================================ */
 
 /* ================================================================
+   SATOSHI GOLD — Gold dust particle field
+   ================================================================ */
+
+type GoldParticle = {
+  x: number;
+  y: number;
+  vy: number;
+  vx: number;
+  size: number;
+  opacity: number;
+  maxOpacity: number;
+  hue: number;
+  life: number;
+  lifeSpeed: number;
+};
+
+function SatoshiGoldBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particlesRef = useRef<GoldParticle[]>([]);
+  const rafRef = useRef<number>(0);
+  const pausedRef = useRef(false);
+
+  const initParticles = useCallback((w: number, h: number) => {
+    const count = window.innerWidth < 768 ? 50 : 100;
+    particlesRef.current = Array.from({ length: count }).map(() => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vy: -(0.08 + Math.random() * 0.22),
+      vx: (Math.random() - 0.5) * 0.12,
+      size: 0.8 + Math.random() * 2.2,
+      opacity: 0,
+      maxOpacity: 0.3 + Math.random() * 0.5,
+      hue: 35 + Math.random() * 15, // gold range
+      life: Math.random(),
+      lifeSpeed: 0.001 + Math.random() * 0.002,
+    }));
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      if (particlesRef.current.length === 0) {
+        initParticles(canvas.width, canvas.height);
+      }
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const onVisibility = () => {
+      pausedRef.current = document.hidden;
+      // Restart loop when un-pausing (don't burn RAF while paused)
+      if (!document.hidden) rafRef.current = requestAnimationFrame(draw);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    let lastFrame = 0;
+    const TARGET_INTERVAL = 1000 / 30; // Cap at 30fps for decorative background
+
+    const draw = (now: number) => {
+      if (pausedRef.current) return; // Don't re-schedule when paused
+
+      rafRef.current = requestAnimationFrame(draw);
+
+      // Frame throttle — skip if less than ~33ms since last draw
+      if (now - lastFrame < TARGET_INTERVAL) return;
+      lastFrame = now;
+
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const particles = particlesRef.current;
+
+      // Spatial grid for constellation lines — O(n·k) instead of O(n²)
+      const CELL = 100;
+      const cols = Math.ceil(w / CELL);
+      const rows = Math.ceil(h / CELL);
+      const gridLen = cols * rows;
+      const grid: number[][] = new Array(gridLen);
+      for (let g = 0; g < gridLen; g++) grid[g] = [];
+
+      for (let i = 0; i < particles.length; i++) {
+        const a = particles[i];
+        if (a.opacity < 0.1) continue;
+        const cx = Math.floor(a.x / CELL);
+        const cy = Math.floor(a.y / CELL);
+        const idx = cy * cols + cx;
+        if (idx >= 0 && idx < gridLen) grid[idx].push(i);
+      }
+
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < particles.length; i++) {
+        const a = particles[i];
+        if (a.opacity < 0.1) continue;
+        const cx = Math.floor(a.x / CELL);
+        const cy = Math.floor(a.y / CELL);
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nx = cx + dx;
+            const ny = cy + dy;
+            if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) continue;
+            const nidx = ny * cols + nx;
+            for (const j of grid[nidx]) {
+              if (j <= i) continue;
+              const b = particles[j];
+              const ddx = a.x - b.x;
+              const ddy = a.y - b.y;
+              const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+              if (dist < 100) {
+                const proximity = 1 - dist / 100;
+                ctx.strokeStyle = `rgba(247, 147, 26, ${0.04 * proximity * Math.min(a.opacity, b.opacity)})`;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+      }
+
+      // Draw and update particles
+      for (const p of particles) {
+        p.life += p.lifeSpeed;
+        if (p.life > 1) {
+          // Respawn at bottom
+          p.life = 0;
+          p.x = Math.random() * w;
+          p.y = h + 10;
+          p.opacity = 0;
+        }
+
+        // Fade in/out lifecycle
+        if (p.life < 0.1) {
+          p.opacity = (p.life / 0.1) * p.maxOpacity;
+        } else if (p.life > 0.85) {
+          p.opacity = ((1 - p.life) / 0.15) * p.maxOpacity;
+        } else {
+          p.opacity = p.maxOpacity;
+        }
+
+        p.y += p.vy;
+        p.x += p.vx;
+
+        // Wrap horizontally
+        if (p.x < 0) p.x = w;
+        if (p.x > w) p.x = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 85%, 58%, ${p.opacity})`;
+        ctx.fill();
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [initParticles]);
+
+  return (
+    <div className="absolute inset-0">
+      {/* Base warm dark background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
+        }}
+      />
+      {/* Central gold glow from bottom */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 85%, rgba(247,147,26,0.06) 0%, rgba(191,120,10,0.03) 35%, transparent 65%)",
+        }}
+      />
+      {/* Canvas particles */}
+      <canvas ref={canvasRef} className="absolute inset-0" />
+    </div>
+  );
+}
+
+/* ================================================================
    MAIN STARFIELD COMPONENT
    ================================================================ */
 
 export function Starfield() {
   const { theme } = useTheme();
+  const reducedMotion = useReducedMotion();
+
+  // When OS "Reduce motion" is enabled, render only static backgrounds
+  if (reducedMotion) {
+    const bg: Record<string, string> = {
+      dark: "#080c14",
+      "dark-simple": "#121212",
+      matrix: "#000000",
+      volcano: "linear-gradient(180deg, #1a0a00 0%, #0d0500 40%, #0a0300 100%)",
+      ocean: "linear-gradient(180deg, #020a18 0%, #001020 50%, #020a18 100%)",
+      "satoshi-gold": "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
+    };
+    return (
+      <div
+        className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
+        style={{ background: bg[theme] ?? "var(--background)" }}
+      >
+        {/* Static star dots for dark theme */}
+        {theme === "dark" && (
+          <>
+            <div className="stars-small" />
+            <div className="stars-medium" />
+            <div className="stars-large" />
+          </>
+        )}
+      </div>
+    );
+  }
 
   // Space Purple mode — stars, violet shooting stars, purple nebula, floating space objects
   if (theme === "dark") {
@@ -469,10 +1086,7 @@ export function Starfield() {
         <div className="stars-large" />
         <div className="shooting-star" />
         <div className="shooting-star" />
-        <div className="shooting-star" />
-        <div className="shooting-star" />
         <div className="nebula-blob nebula-blob-1" />
-        <div className="nebula-blob nebula-blob-2" />
 
         {/* Floating space objects — only 1 visible at a time (staggered long delays) */}
         {/* Comet — tapered tail with ice particles and bright nucleus */}
@@ -508,75 +1122,6 @@ export function Starfield() {
           </svg>
         </div>
 
-        {/* Satellite — detailed body, antenna dish, solar panel grids */}
-        <div className="space-object space-object-2">
-          <svg width="34" height="20" viewBox="0 0 34 20" style={{ opacity: 0.55 }}>
-            {/* Solar panel left — with grid lines */}
-            <rect x="0" y="5" width="9" height="10" rx="0.5" fill="rgba(139,92,246,0.45)" stroke="rgba(167,139,250,0.5)" strokeWidth="0.4" />
-            <line x1="3" y1="5" x2="3" y2="15" stroke="rgba(221,214,254,0.2)" strokeWidth="0.3" />
-            <line x1="6" y1="5" x2="6" y2="15" stroke="rgba(221,214,254,0.2)" strokeWidth="0.3" />
-            <line x1="0" y1="8" x2="9" y2="8" stroke="rgba(221,214,254,0.15)" strokeWidth="0.3" />
-            <line x1="0" y1="12" x2="9" y2="12" stroke="rgba(221,214,254,0.15)" strokeWidth="0.3" />
-            {/* Connecting arm left */}
-            <rect x="9" y="9" width="2" height="2" fill="rgba(180,180,200,0.5)" />
-            {/* Central body — octagonal shape */}
-            <rect x="11" y="6" width="10" height="8" rx="1.5" fill="rgba(200,200,220,0.6)" stroke="rgba(221,214,254,0.3)" strokeWidth="0.4" />
-            {/* Body detail — panel line */}
-            <line x1="16" y1="6" x2="16" y2="14" stroke="rgba(139,92,246,0.25)" strokeWidth="0.3" />
-            {/* Status light */}
-            <circle cx="13.5" cy="10" r="0.6" fill="rgba(34,197,94,0.7)" />
-            {/* Connecting arm right */}
-            <rect x="21" y="9" width="2" height="2" fill="rgba(180,180,200,0.5)" />
-            {/* Solar panel right — with grid lines */}
-            <rect x="23" y="5" width="9" height="10" rx="0.5" fill="rgba(139,92,246,0.45)" stroke="rgba(167,139,250,0.5)" strokeWidth="0.4" />
-            <line x1="26" y1="5" x2="26" y2="15" stroke="rgba(221,214,254,0.2)" strokeWidth="0.3" />
-            <line x1="29" y1="5" x2="29" y2="15" stroke="rgba(221,214,254,0.2)" strokeWidth="0.3" />
-            <line x1="23" y1="8" x2="32" y2="8" stroke="rgba(221,214,254,0.15)" strokeWidth="0.3" />
-            <line x1="23" y1="12" x2="32" y2="12" stroke="rgba(221,214,254,0.15)" strokeWidth="0.3" />
-            {/* Antenna dish — top */}
-            <line x1="16" y1="6" x2="16" y2="1" stroke="rgba(200,200,220,0.5)" strokeWidth="0.4" />
-            <ellipse cx="16" cy="1" rx="2" ry="1" fill="none" stroke="rgba(221,214,254,0.4)" strokeWidth="0.4" />
-            <circle cx="16" cy="1" r="0.4" fill="rgba(221,214,254,0.5)" />
-          </svg>
-        </div>
-
-        {/* Astronaut — arms out, backpack, visor reflection, tether */}
-        <div className="space-object space-object-3">
-          <svg width="28" height="36" viewBox="0 0 28 36" style={{ opacity: 0.5 }}>
-            {/* Tether line trailing behind */}
-            <path d="M14,18 Q8,22 4,28 Q2,32 1,36" fill="none" stroke="rgba(200,200,220,0.2)" strokeWidth="0.4" strokeDasharray="1.5,1" />
-            {/* Backpack / life support */}
-            <rect x="9" y="11" width="10" height="12" rx="1.5" fill="rgba(140,140,160,0.35)" stroke="rgba(200,200,220,0.2)" strokeWidth="0.3" />
-            {/* Backpack detail lines */}
-            <line x1="11" y1="13" x2="11" y2="21" stroke="rgba(221,214,254,0.15)" strokeWidth="0.3" />
-            <rect x="15" y="14" width="2.5" height="4" rx="0.5" fill="rgba(100,100,120,0.3)" />
-            {/* Body / suit */}
-            <rect x="8" y="12" width="8" height="11" rx="2.5" fill="rgba(200,200,220,0.45)" stroke="rgba(221,214,254,0.15)" strokeWidth="0.3" />
-            {/* Left arm — reaching out */}
-            <path d="M8,14 Q4,13 2,10 Q1,8 1.5,7" fill="none" stroke="rgba(200,200,220,0.4)" strokeWidth="1.8" strokeLinecap="round" />
-            {/* Left glove */}
-            <circle cx="1.5" cy="6.5" r="1" fill="rgba(200,200,220,0.4)" />
-            {/* Right arm — slight bend */}
-            <path d="M16,14 Q20,15 23,13 Q25,11 25.5,9" fill="none" stroke="rgba(200,200,220,0.4)" strokeWidth="1.8" strokeLinecap="round" />
-            {/* Right glove */}
-            <circle cx="25.5" cy="8.5" r="1" fill="rgba(200,200,220,0.4)" />
-            {/* Helmet */}
-            <circle cx="12" cy="7" r="5" fill="rgba(200,200,220,0.5)" stroke="rgba(221,214,254,0.25)" strokeWidth="0.4" />
-            {/* Visor — dark reflective */}
-            <ellipse cx="12" cy="7.5" rx="3.5" ry="2.8" fill="rgba(40,20,80,0.6)" />
-            {/* Visor reflection highlight */}
-            <ellipse cx="10.5" cy="6.5" rx="1.5" ry="0.8" fill="rgba(139,92,246,0.3)" transform="rotate(-15,10.5,6.5)" />
-            <ellipse cx="13" cy="8" rx="0.8" ry="0.4" fill="rgba(221,214,254,0.15)" transform="rotate(10,13,8)" />
-            {/* Left leg */}
-            <path d="M10,23 Q9,27 8,31" fill="none" stroke="rgba(200,200,220,0.38)" strokeWidth="2" strokeLinecap="round" />
-            {/* Left boot */}
-            <ellipse cx="7.5" cy="31.5" rx="1.5" ry="1" fill="rgba(180,180,200,0.35)" />
-            {/* Right leg */}
-            <path d="M14,23 Q15,27 16,31" fill="none" stroke="rgba(200,200,220,0.38)" strokeWidth="2" strokeLinecap="round" />
-            {/* Right boot */}
-            <ellipse cx="16.5" cy="31.5" rx="1.5" ry="1" fill="rgba(180,180,200,0.35)" />
-          </svg>
-        </div>
       </div>
     );
   }
@@ -614,6 +1159,15 @@ export function Starfield() {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <OceanBackground />
+      </div>
+    );
+  }
+
+  // Satoshi Gold — gold dust particle field
+  if (theme === "satoshi-gold") {
+    return (
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <SatoshiGoldBackground />
       </div>
     );
   }

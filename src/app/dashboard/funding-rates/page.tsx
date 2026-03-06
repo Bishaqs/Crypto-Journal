@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { BarChart3, RefreshCw, Info, Search, Percent, Zap } from "lucide-react";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 // ── Types ──────────────────────────────────────────────
 
@@ -161,8 +160,6 @@ function saveEvents(events: LiquidationEvent[]) {
 // ── Component ──────────────────────────────────────────
 
 export default function DerivativesPage() {
-  usePageTour("funding-rates-page");
-
   // Tab
   const [tab, setTab] = useState<Tab>("funding");
 
@@ -472,7 +469,7 @@ export default function DerivativesPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <BarChart3 size={24} className="text-accent" />
             Derivatives
-            <PageInfoButton tourName="funding-rates-page" />
+            <InfoTooltip text="Real-time derivatives data — funding rates, open interest, and liquidations" />
           </h2>
           <p className="text-sm text-muted mt-0.5">{subtitles[tab]}</p>
         </div>

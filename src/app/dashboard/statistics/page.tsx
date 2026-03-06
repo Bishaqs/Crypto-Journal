@@ -160,6 +160,7 @@ export default function StatisticsPage() {
           sub={stats.profitFactor >= 1 ? "edge positive" : "negative edge"}
           icon={TrendingUp}
           color={stats.profitFactor >= 1 ? "text-win" : "text-loss"}
+          tooltip="Gross wins divided by gross losses. Above 1.0 = net positive edge."
         />
         <StatBlock
           label="Sharpe Ratio"

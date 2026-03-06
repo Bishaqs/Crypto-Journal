@@ -36,8 +36,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Header } from "@/components/header";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 type SortKey =
   | "symbol"
@@ -118,7 +117,6 @@ NOTE: This is for informational purposes only. Consult a qualified CPA for tax f
 }
 
 export default function TaxesPage() {
-  usePageTour("taxes-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -237,7 +235,7 @@ export default function TaxesPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Receipt size={24} className="text-accent" />
           Tax Reports
-          <PageInfoButton tourName="taxes-page" />
+          <InfoTooltip text="Automated tax reports — realized gains, wash sales, and cost basis calculations" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Capital gains & losses from closed trades {jurisdiction === "us" ? "— Form 8949 / Schedule D format" : `— ${currentJurisdiction?.name ?? "International"} tax rules`}

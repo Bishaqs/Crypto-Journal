@@ -145,10 +145,10 @@ export default function TokenScreenerPage() {
       </div>
 
       {/* Table */}
-      <div id="tour-screener-results" className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead>
+            <thead id="tour-screener-results">
               <tr className="border-b border-border/50">
                 {["#", "Coin", "Price", "24h Change", "7d Change", "Market Cap", "Volume (24h)"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-muted/60 font-semibold whitespace-nowrap">{h}</th>

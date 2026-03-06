@@ -48,8 +48,9 @@ export function usePageTour(tourName: string) {
       if (firstSelector && !document.querySelector(firstSelector)) {
         if (attemptRef.current < MAX_RETRIES) {
           retryTimer = setTimeout(tryStart, RETRY_DELAY);
-          return;
         }
+        // Don't start if selector never found — avoids stuck overlay
+        return;
       }
 
       startTour(tourName);

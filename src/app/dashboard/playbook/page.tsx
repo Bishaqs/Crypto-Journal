@@ -19,8 +19,7 @@ import {
 import { Header } from "@/components/header";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 type PlaybookEntry = {
   id: string;
@@ -101,7 +100,6 @@ type SetupStats = {
 };
 
 export default function PlaybookPage() {
-  usePageTour("playbook-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -186,7 +184,7 @@ export default function PlaybookPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <BookMarked size={24} className="text-accent" />
             Playbook
-            <PageInfoButton tourName="playbook-page" />
+            <InfoTooltip text="Document proven setups with entry/exit criteria, then track real performance against them" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Document your setups, track their performance

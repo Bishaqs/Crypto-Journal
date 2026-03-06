@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const DeleteUserSchema = z.object({
@@ -31,6 +32,11 @@ export async function DELETE(req: NextRequest) {
   const owner = await verifyOwner(supabase);
   if (!owner) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rl = await rateLimit(`admin:${owner.id}`, 30, 60_000);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   let parsed;
@@ -91,7 +97,7 @@ export async function DELETE(req: NextRequest) {
 
   if (error) {
     console.error("[admin/users] delete failed:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

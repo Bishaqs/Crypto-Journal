@@ -1,7 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle } from "lucide-react";
+import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText } from "lucide-react";
 import { AdminInviteManager } from "@/components/admin/invite-codes-manager";
 import { AdminUsersManager } from "@/components/admin/users-manager";
+import { AdminFeedbackManager, type FeedbackItem } from "@/components/admin/feedback-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,17 @@ export default async function AdminPage() {
     errors.push("Failed to load auth users");
   }
 
+  // Fetch feedback
+  const { data: feedbackRaw, error: feedbackErr } = await admin
+    .from("feedback")
+    .select("id, user_id, category, message, is_read, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (feedbackErr) {
+    console.error("[admin] feedback query failed:", feedbackErr.message);
+    errors.push("Failed to load feedback");
+  }
+
   // Build subscription lookup by user_id
   const subMap = new Map((subs ?? []).map((s) => [s.user_id, s as UserSub]));
   const inviteCodes: InviteCode[] = codes ?? [];
@@ -82,6 +94,18 @@ export default async function AdminPage() {
   }
   const trialCount = allUsers.filter((u) => u.sub?.is_trial).length;
   const activeInvites = inviteCodes.filter((c) => c.is_active).length;
+
+  // Map feedback user_id to email
+  const emailMap = new Map(authUsers.map((u) => [u.id, u.email ?? u.id.slice(0, 8) + "..."]));
+  const feedbackItems: FeedbackItem[] = (feedbackRaw ?? []).map((f) => ({
+    id: f.id,
+    user_email: emailMap.get(f.user_id) ?? f.user_id.slice(0, 8) + "...",
+    category: f.category as FeedbackItem["category"],
+    message: f.message,
+    is_read: f.is_read,
+    created_at: f.created_at,
+  }));
+  const unreadFeedback = feedbackItems.filter((f) => !f.is_read).length;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -110,11 +134,12 @@ export default async function AdminPage() {
       )}
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard icon={Users} label="Total Users" value={totalUsers} />
         <StatCard icon={CreditCard} label="Free / Pro / Max" value={`${tierCounts.free} / ${tierCounts.pro} / ${tierCounts.max}`} />
         <StatCard icon={TrendingUp} label="Active Trials" value={trialCount} />
         <StatCard icon={Ticket} label="Active Invite Codes" value={activeInvites} />
+        <StatCard icon={MessageSquareText} label="Unread Feedback" value={unreadFeedback} />
       </div>
 
       {/* User list */}
@@ -145,6 +170,17 @@ export default async function AdminPage() {
           <h2 className="text-lg font-semibold text-foreground">Invite Codes</h2>
         </div>
         <AdminInviteManager initialCodes={inviteCodes} />
+      </section>
+
+      {/* User feedback */}
+      <section className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="px-5 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <MessageSquareText size={18} className="text-accent" />
+            User Feedback ({feedbackItems.length})
+          </h2>
+        </div>
+        <AdminFeedbackManager initialFeedback={feedbackItems} />
       </section>
     </div>
   );

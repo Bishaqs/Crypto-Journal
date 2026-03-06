@@ -42,8 +42,6 @@ import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
 
 function StatBlock({
   label,
@@ -76,7 +74,6 @@ function StatBlock({
 }
 
 export default function SimulationsPage() {
-  usePageTour("simulations-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -199,7 +196,7 @@ export default function SimulationsPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Dices size={24} className="text-accent" />
             Monte Carlo Simulations
-            <PageInfoButton tourName="simulations-page" />
+            <InfoTooltip text="Project future equity using Monte Carlo simulations based on your real trading stats" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Bootstrap resampling of your trade history to project future equity curves

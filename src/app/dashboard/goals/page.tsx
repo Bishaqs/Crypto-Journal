@@ -8,8 +8,7 @@ import { DemoBanner } from "@/components/demo-banner";
 import { calculateStats, calculateAdvancedStats } from "@/lib/calculations";
 import { Target, Trophy, TrendingDown, Percent, Brain, Hash, Save, RotateCcw, Sparkles } from "lucide-react";
 import { Header } from "@/components/header";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 type Goal = {
   label: string;
@@ -49,7 +48,6 @@ function getMonthTrades(trades: Trade[]): Trade[] {
 type GoalValues = Record<string, number>;
 
 export default function GoalsPage() {
-  usePageTour("goals-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -166,7 +164,7 @@ export default function GoalsPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Target size={24} className="text-accent" />
             Monthly Goals
-            <PageInfoButton tourName="goals-page" />
+            <InfoTooltip text="Set monthly profit, trade count, and win rate targets — track progress visually" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? "Sample data" : `${getMonthLabel()} — Day ${currentDay} of ${daysInMonth}`}

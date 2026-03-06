@@ -148,6 +148,14 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
         .eq("id", editNote.id);
     } else {
       await supabase.from("journal_notes").insert(payload);
+      // Award XP for new journal entry
+      try {
+        const { awardXP } = await import("@/lib/xp/engine");
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await awardXP(supabase, user.id, "journal_entry");
+        }
+      } catch { /* XP tables may not exist yet */ }
     }
     onClose();
     onSaved();

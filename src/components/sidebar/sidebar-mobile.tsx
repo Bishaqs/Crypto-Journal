@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Menu,
   X,
@@ -58,6 +58,8 @@ export function SidebarMobile({
   onLogout,
 }: SidebarMobileProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const { t } = useI18n();
   const isSimple = viewMode === "simple";
   const isSectionOpen = (key: string) => sectionState[key] ?? true;
@@ -69,7 +71,7 @@ export function SidebarMobile({
 
   /* ── NavLink ─────────────────────────────────── */
   function NavLink({ item, indent }: { item: NavItem; indent?: boolean }) {
-    const active = isActivePath(pathname, item.href);
+    const active = isActivePath(pathname, item.href, search);
     const label = LABEL_KEY[item.label] ? t(LABEL_KEY[item.label]) : item.label;
     return (
       <Link
@@ -259,12 +261,12 @@ export function SidebarMobile({
       >
         {/* Logo + close */}
         <div className="p-4 border-b border-border flex items-center justify-between">
-          <div className="flex items-center gap-2.5 overflow-visible">
+          <Link href="/dashboard" className="flex items-center gap-2.5 overflow-visible" onClick={() => setMobileOpen(false)}>
             <StargateLogo size={32} collapsed={false} />
             <h1 className="text-lg font-bold tracking-tight whitespace-nowrap bg-gradient-to-r from-accent via-[#48CAE4] to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
               Stargate
             </h1>
-          </div>
+          </Link>
           <div className="flex items-center gap-1.5">
             <QuickActionMenu />
             <button

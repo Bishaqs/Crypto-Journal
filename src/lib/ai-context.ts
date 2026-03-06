@@ -15,6 +15,48 @@ Your role:
 
 Personality: Think of yourself as a calm, experienced trading mentor who's seen it all. You're supportive but honest. You don't sugarcoat, but you don't demoralize either.
 
+## Destructive Pattern Detection
+
+Use these criteria to identify patterns from the data — be specific, not vague:
+- **Revenge trading**: 2+ entries within 30 min of a realized loss, or increased position size immediately after a loss
+- **FOMO entry**: Entry with no setup type tagged, especially after a large green move in that symbol
+- **Overtrading**: >5 trades in a single day, or >3 trades in the same symbol on the same day
+- **Tilt cascade**: 3+ consecutive losses with declining process scores — the trader is spiraling
+- **Disposition effect**: Avg winner is much smaller than avg loser despite a high win rate — cutting winners early, holding losers too long
+
+## Cognitive Bias Coaching
+
+When you detect these biases, use the coaching response:
+- **Recency bias** (over-weighting last few trades): "Let's zoom out — what does your 30-trade sample say?"
+- **Anchoring** (fixating on entry price): "Forget your entry. Would you take this trade right now at this price?"
+- **Confirmation bias** (only seeing what confirms their view): "What would need to happen for you to be wrong here?"
+- **Sunk cost** (adding to losers): "If you had no position, would you enter this trade fresh right now?"
+
+## Process Score Interpretation
+
+- **8-10**: Excellent discipline. Reinforce this. Ask what routine or mindset produced it.
+- **5-7**: Partial adherence. Identify which specific rule was bent and why.
+- **1-4**: Process breakdown. Ignore P&L entirely — focus only on what went wrong in the decision process.
+- **Key rule**: High process score + loss = GOOD trade (unlucky, not undisciplined). Low process score + win = DANGEROUS trade (got lucky, will lose long-term). Coach accordingly.
+
+## Emotion-Performance Matrix
+
+Coach differently based on emotion tag + outcome:
+- Confident + Win → reinforce, but watch for overconfidence creep
+- Confident + Loss → healthy IF process score was high; flag if process was poor
+- Anxious + Win → was the position too small? Did they exit too early out of fear?
+- Revenge/FOMO + any outcome → immediate flag, pattern interrupt: "Stop. Step away. Review your rules."
+- Calm/Neutral → this is the ideal state. Celebrate it and ask what pre-trade routine produced it.
+
+## Statistical Guidance
+
+Avoid misleading conclusions:
+- <30 closed trades = not enough data to judge edge. Say so explicitly.
+- Win rate alone is meaningless — always pair with risk:reward ratio.
+- Win rate <40% with avg winner >2x avg loser = valid edge. Explain why this is fine.
+- Profit factor: >1.5 = solid, >2.0 = excellent, <1.0 = losing money. Frame accordingly.
+- Never give trade ideas or market predictions. You coach process and psychology, not entries.
+
 Format rules:
 - Use markdown for formatting
 - Keep responses focused and concise (200-400 words typically)
@@ -37,14 +79,35 @@ export function buildTradeContext(
   const losses = closed.filter((t) => (Number(t.pnl) || 0) <= 0);
   const winRate = closed.length > 0 ? ((wins.length / closed.length) * 100).toFixed(1) : "N/A";
 
-  const emotionCounts: Record<string, { count: number; pnl: number }> = {};
+  // Avg winner vs avg loser
+  const avgWin = wins.length > 0
+    ? (wins.reduce((s, t) => s + (Number(t.pnl) || 0), 0) / wins.length).toFixed(2)
+    : "N/A";
+  const avgLoss = losses.length > 0
+    ? (losses.reduce((s, t) => s + (Number(t.pnl) || 0), 0) / losses.length).toFixed(2)
+    : "N/A";
+
+  // Largest win / loss
+  const pnls = closed.map((t) => Number(t.pnl) || 0);
+  const largestWin = pnls.length > 0 ? Math.max(...pnls).toFixed(2) : "N/A";
+  const largestLoss = pnls.length > 0 ? Math.min(...pnls).toFixed(2) : "N/A";
+
+  // Profit factor
+  const grossProfit = wins.reduce((s, t) => s + (Number(t.pnl) || 0), 0);
+  const grossLoss = Math.abs(losses.reduce((s, t) => s + (Number(t.pnl) || 0), 0));
+  const profitFactor = grossLoss > 0 ? (grossProfit / grossLoss).toFixed(2) : "∞";
+
+  // Emotion breakdown with win rate
+  const emotionStats: Record<string, { count: number; pnl: number; wins: number }> = {};
   for (const t of closed) {
     const emotion = String(t.emotion || "Untagged");
-    if (!emotionCounts[emotion]) emotionCounts[emotion] = { count: 0, pnl: 0 };
-    emotionCounts[emotion].count++;
-    emotionCounts[emotion].pnl += Number(t.pnl) || 0;
+    if (!emotionStats[emotion]) emotionStats[emotion] = { count: 0, pnl: 0, wins: 0 };
+    emotionStats[emotion].count++;
+    emotionStats[emotion].pnl += Number(t.pnl) || 0;
+    if ((Number(t.pnl) || 0) > 0) emotionStats[emotion].wins++;
   }
 
+  // Process scores
   const processScores = closed
     .filter((t) => t.process_score != null)
     .map((t) => Number(t.process_score));
@@ -52,18 +115,123 @@ export function buildTradeContext(
     ? (processScores.reduce((a, b) => a + b, 0) / processScores.length).toFixed(1)
     : "N/A";
 
-  let summary = `## Trading Summary
-- **Total closed trades**: ${closed.length}
-- **Open positions**: ${open.length}
+  // Process score trend: last 10 vs overall
+  const recentProcessScores = processScores.slice(-10);
+  const recentAvgProcess = recentProcessScores.length > 0
+    ? (recentProcessScores.reduce((a, b) => a + b, 0) / recentProcessScores.length).toFixed(1)
+    : "N/A";
+
+  // Symbol performance
+  const symbolStats: Record<string, { count: number; pnl: number; wins: number }> = {};
+  for (const t of closed) {
+    const sym = String(t.symbol || "Unknown");
+    if (!symbolStats[sym]) symbolStats[sym] = { count: 0, pnl: 0, wins: 0 };
+    symbolStats[sym].count++;
+    symbolStats[sym].pnl += Number(t.pnl) || 0;
+    if ((Number(t.pnl) || 0) > 0) symbolStats[sym].wins++;
+  }
+  const symbolEntries = Object.entries(symbolStats).sort((a, b) => b[1].pnl - a[1].pnl);
+  const bestSymbols = symbolEntries.slice(0, 3);
+  const worstSymbols = symbolEntries.slice(-3).reverse();
+
+  // Setup type performance
+  const setupStats: Record<string, { count: number; pnl: number; wins: number }> = {};
+  for (const t of closed) {
+    const setup = String(t.setup_type || "No setup");
+    if (!setupStats[setup]) setupStats[setup] = { count: 0, pnl: 0, wins: 0 };
+    setupStats[setup].count++;
+    setupStats[setup].pnl += Number(t.pnl) || 0;
+    if ((Number(t.pnl) || 0) > 0) setupStats[setup].wins++;
+  }
+
+  // Streak detection
+  let currentStreak = 0;
+  let currentStreakType = "";
+  let maxWinStreak = 0;
+  let maxLossStreak = 0;
+  let tempWinStreak = 0;
+  let tempLossStreak = 0;
+  for (const t of closed) {
+    if ((Number(t.pnl) || 0) > 0) {
+      tempWinStreak++;
+      tempLossStreak = 0;
+      if (tempWinStreak > maxWinStreak) maxWinStreak = tempWinStreak;
+    } else {
+      tempLossStreak++;
+      tempWinStreak = 0;
+      if (tempLossStreak > maxLossStreak) maxLossStreak = tempLossStreak;
+    }
+  }
+  currentStreak = tempWinStreak > 0 ? tempWinStreak : -tempLossStreak;
+  currentStreakType = currentStreak > 0 ? "wins" : currentStreak < 0 ? "losses" : "neutral";
+
+  // Overtrading detection: days with >5 trades
+  const tradesPerDay: Record<string, number> = {};
+  for (const t of closed) {
+    const day = String(t.close_timestamp || t.open_timestamp || "").split("T")[0];
+    if (day) tradesPerDay[day] = (tradesPerDay[day] || 0) + 1;
+  }
+  const overtradingDays = Object.entries(tradesPerDay).filter(([, c]) => c > 5);
+
+  // Weekly P&L trend (last 4 weeks)
+  const now = new Date();
+  const weeklyPnl: { week: string; pnl: number; count: number }[] = [];
+  for (let i = 3; i >= 0; i--) {
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - (i + 1) * 7);
+    const weekEnd = new Date(now);
+    weekEnd.setDate(weekEnd.getDate() - i * 7);
+    const weekTrades = closed.filter((t) => {
+      const d = new Date(String(t.close_timestamp || ""));
+      return d >= weekStart && d < weekEnd;
+    });
+    const wPnl = weekTrades.reduce((s, t) => s + (Number(t.pnl) || 0), 0);
+    weeklyPnl.push({
+      week: `${weekStart.toISOString().split("T")[0]} → ${weekEnd.toISOString().split("T")[0]}`,
+      pnl: wPnl,
+      count: weekTrades.length,
+    });
+  }
+
+  // Build summary
+  let summary = `## Trading Summary (Full Journal: ${closed.length} closed trades)
 - **Total P&L**: $${totalPnl.toFixed(2)}
-- **Win rate**: ${winRate}%
-- **Wins**: ${wins.length} | **Losses**: ${losses.length}
-- **Avg process score**: ${avgProcess}/10
+- **Win rate**: ${winRate}% (${wins.length}W / ${losses.length}L)
+- **Avg winner**: $${avgWin} | **Avg loser**: $${avgLoss}
+- **Largest win**: $${largestWin} | **Largest loss**: $${largestLoss}
+- **Profit factor**: ${profitFactor}
+- **Open positions**: ${open.length}
+
+## Process Discipline
+- **Avg process score**: ${avgProcess}/10 (overall) | ${recentAvgProcess}/10 (last 10 trades)
+- **Trend**: ${avgProcess !== "N/A" && recentAvgProcess !== "N/A" ? (Number(recentAvgProcess) > Number(avgProcess) ? "Improving ↑" : Number(recentAvgProcess) < Number(avgProcess) ? "Declining ↓" : "Stable →") : "N/A"}
+
+## Streaks
+- **Current**: ${Math.abs(currentStreak)} ${currentStreakType}
+- **Max win streak**: ${maxWinStreak} | **Max loss streak**: ${maxLossStreak}
 
 ## Emotion Breakdown
-${Object.entries(emotionCounts)
-  .map(([e, d]) => `- ${e}: ${d.count} trades, total P&L $${d.pnl.toFixed(2)}`)
+${Object.entries(emotionStats)
+  .sort((a, b) => b[1].count - a[1].count)
+  .map(([e, d]) => `- ${e}: ${d.count} trades, WR ${d.count > 0 ? ((d.wins / d.count) * 100).toFixed(0) : 0}%, P&L $${d.pnl.toFixed(2)}`)
   .join("\n")}
+
+## Top Symbols (by P&L)
+${bestSymbols.map(([s, d]) => `- ${s}: ${d.count} trades, WR ${((d.wins / d.count) * 100).toFixed(0)}%, P&L $${d.pnl.toFixed(2)}`).join("\n")}
+
+## Worst Symbols (by P&L)
+${worstSymbols.map(([s, d]) => `- ${s}: ${d.count} trades, WR ${((d.wins / d.count) * 100).toFixed(0)}%, P&L $${d.pnl.toFixed(2)}`).join("\n")}
+
+## Setup Performance
+${Object.entries(setupStats)
+  .sort((a, b) => b[1].count - a[1].count)
+  .slice(0, 6)
+  .map(([s, d]) => `- ${s}: ${d.count} trades, WR ${((d.wins / d.count) * 100).toFixed(0)}%, P&L $${d.pnl.toFixed(2)}`)
+  .join("\n")}
+
+## Weekly Trend (last 4 weeks)
+${weeklyPnl.map((w) => `- ${w.week}: $${w.pnl.toFixed(2)} (${w.count} trades)`).join("\n")}
+${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.length} day(s) with >5 trades: ${overtradingDays.map(([d, c]) => `${d} (${c})`).join(", ")}` : ""}
 
 ## Recent Trades (last 20)
 `;

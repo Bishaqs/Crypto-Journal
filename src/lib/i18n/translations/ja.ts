@@ -75,6 +75,7 @@ const ja = {
     watchlist: "ウォッチリスト",
     settings: "設定",
     admin: "管理",
+    leaderboard: "リーダーボード",
     performanceAnalysis: "パフォーマンス＆分析",
     intelligence: "インテリジェンス",
     marketTools: "マーケット＆ツール",

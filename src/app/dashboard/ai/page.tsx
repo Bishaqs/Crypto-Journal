@@ -13,9 +13,10 @@ import {
   Loader2,
   MessageSquare,
   Trash2,
+  Settings,
 } from "lucide-react";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import Link from "next/link";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 type Message = {
   role: "user" | "assistant" | "error";
@@ -116,7 +117,6 @@ Based on your trading data, here are some observations:
 *AI Coach is currently in demo mode. Contact your administrator to enable live analysis.*`;
 
 export default function AIPage() {
-  usePageTour("ai-coach-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -125,6 +125,7 @@ export default function AIPage() {
   const [demoMode, setDemoMode] = useState(false);
   const [aiProvider, setAiProvider] = useState<string | undefined>();
   const [aiModel, setAiModel] = useState<string | undefined>();
+  const [aiApiKey, setAiApiKey] = useState<string | undefined>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -132,8 +133,10 @@ export default function AIPage() {
   useEffect(() => {
     const savedProvider = localStorage.getItem("stargate-ai-provider");
     const savedModel = localStorage.getItem("stargate-ai-model");
+    const savedApiKey = localStorage.getItem("stargate-ai-api-key");
     if (savedProvider) setAiProvider(savedProvider);
     if (savedModel) setAiModel(savedModel);
+    if (savedApiKey) setAiApiKey(savedApiKey);
   }, []);
 
   const fetchTrades = useCallback(async () => {
@@ -168,9 +171,10 @@ export default function AIPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: msg,
-          trades: trades.slice(0, 50),
+          trades,
           provider: aiProvider,
           model: aiModel,
+          ...(aiApiKey ? { apiKey: aiApiKey } : {}),
         }),
       });
 
@@ -270,7 +274,7 @@ export default function AIPage() {
           <h1 id="tour-ai-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Brain size={24} className="text-accent" />
             AI Trading Coach
-            <PageInfoButton tourName="ai-coach-page" />
+            <InfoTooltip text="AI-powered trade analysis and personalized coaching based on your performance data" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Ask questions about your trading patterns, psychology, and performance
@@ -282,15 +286,25 @@ export default function AIPage() {
             </span>
           )}
         </div>
-        {messages.length > 0 && (
-          <button
-            onClick={clearChat}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/settings?tab=ai"
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+            title="AI Coach settings — change provider or add your own API key"
           >
-            <Trash2 size={14} />
-            Clear
-          </button>
-        )}
+            <Settings size={14} />
+            Settings
+          </Link>
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+            >
+              <Trash2 size={14} />
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Chat area */}

@@ -22,8 +22,6 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -227,7 +225,6 @@ const SECTOR_COLORS = [
 // ---------------------------------------------------------------------------
 
 export default function StocksDashboardPage() {
-  usePageTour("stocks-dashboard-page");
   const [trades] = useState<StockTrade[]>(MOCK_STOCK_TRADES);
   const session = getCurrentSession();
 
@@ -308,7 +305,7 @@ export default function StocksDashboardPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Briefcase size={24} className="text-accent" />
             Stocks
-            <PageInfoButton tourName="stocks-dashboard-page" />
+            <InfoTooltip text="Stock trading dashboard — portfolio overview, sector breakdown, and session analysis" />
           </h2>
           <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
             <Clock size={12} />

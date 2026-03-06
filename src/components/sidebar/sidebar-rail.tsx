@@ -1,10 +1,11 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, HelpCircle, Shield } from "lucide-react";
+import { Settings, LogOut, HelpCircle, Shield, TrendingUp, BarChart3 } from "lucide-react";
 import { StargateLogo } from "../stargate-logo";
-import { QuickActionMenu } from "../quick-action-fab";
+import { LevelBadge } from "./level-badge";
 import { RAIL_CATEGORIES, getCategoryForPath } from "./sidebar-data";
 import { useI18n } from "@/lib/i18n";
 
@@ -20,6 +21,19 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onLo
   const pathname = usePathname();
   const currentCategory = getCategoryForPath(pathname);
   const { t } = useI18n();
+  const [homePopupOpen, setHomePopupOpen] = useState(false);
+  const homePopupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!homePopupOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (homePopupRef.current && !homePopupRef.current.contains(e.target as Node)) {
+        setHomePopupOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [homePopupOpen]);
 
   return (
     <div
@@ -28,13 +42,70 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onLo
     >
       {/* Logo */}
       <div className="p-3 flex items-center justify-center border-b border-border">
-        <StargateLogo size={28} collapsed />
+        <Link href="/dashboard">
+          <StargateLogo size={28} collapsed />
+        </Link>
+      </div>
+
+      {/* Level badge */}
+      <div className="py-2 flex justify-center border-b border-border/30">
+        <LevelBadge />
       </div>
 
       {/* Category icons */}
       <div className="flex-1 flex flex-col items-center gap-1 py-3">
         {RAIL_CATEGORIES.map(cat => {
           const isHighlighted = activeCategory === cat.key || (!activeCategory && currentCategory === cat.key);
+
+          if (cat.key === "home") {
+            return (
+              <div key={cat.key} className="relative" ref={homePopupRef}>
+                <button
+                  onClick={() => setHomePopupOpen(prev => !prev)}
+                  title={cat.label}
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                    isHighlighted
+                      ? "text-accent bg-accent/10 shadow-[0_0_12px_rgba(0,180,216,0.15)]"
+                      : "text-muted hover:text-foreground hover:bg-surface-hover"
+                  }`}
+                >
+                  <cat.icon size={20} />
+                </button>
+                {homePopupOpen && (
+                  <div
+                    className="absolute left-full top-0 ml-2 w-48 py-1.5 glass border border-border/50 rounded-xl z-50"
+                    style={{ boxShadow: "var(--shadow-card)" }}
+                  >
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setHomePopupOpen(false)}
+                      className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg mx-1.5 ${
+                        pathname === "/dashboard"
+                          ? "text-accent bg-accent/10"
+                          : "text-muted hover:text-foreground hover:bg-surface-hover"
+                      }`}
+                    >
+                      <TrendingUp size={16} />
+                      Crypto Dashboard
+                    </Link>
+                    <Link
+                      href="/dashboard/stocks"
+                      onClick={() => setHomePopupOpen(false)}
+                      className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg mx-1.5 ${
+                        pathname === "/dashboard/stocks"
+                          ? "text-accent bg-accent/10"
+                          : "text-muted hover:text-foreground hover:bg-surface-hover"
+                      }`}
+                    >
+                      <BarChart3 size={16} />
+                      Stocks Dashboard
+                    </Link>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
           return (
             <button
               key={cat.key}
@@ -60,7 +131,6 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onLo
 
       {/* Bottom icons */}
       <div className="flex flex-col items-center gap-1 py-3 border-t border-border">
-        <QuickActionMenu collapsed />
         {isOwner && (
           <Link
             href="/dashboard/admin"

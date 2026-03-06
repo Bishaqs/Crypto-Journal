@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme, THEMES, isProTheme } from "@/lib/theme-context";
+import { useTheme, THEMES, isProTheme, isCompletionistTheme } from "@/lib/theme-context";
+import { useCosmetics } from "@/lib/cosmetics";
 import { useSubscriptionContext } from "@/lib/subscription-context";
 import { useDateRange, DATE_RANGES } from "@/lib/date-range-context";
 import {
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AppsDropdown } from "@/components/apps-dropdown";
+import { QuickActionMenu } from "@/components/quick-action-fab";
 
 function formatToday(): string {
   return new Date().toLocaleDateString("en-US", {
@@ -27,7 +29,9 @@ function formatToday(): string {
 export function Header() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const { tier } = useSubscriptionContext();
+  const { tier, isOwner } = useSubscriptionContext();
+  const { isOwned: isCosmeticOwned } = useCosmetics();
+  const hasCompletionistTheme = isCosmeticOwned("title_completionist");
   const [syncing, setSyncing] = useState(false);
   const { dateRange, setDateRange } = useDateRange();
   const [showRanges, setShowRanges] = useState(false);
@@ -64,6 +68,7 @@ export function Header() {
             style={{ boxShadow: "var(--shadow-card)" }}
           />
         </form>
+        <QuickActionMenu />
       </div>
 
       <div className="flex items-center gap-2">
@@ -155,27 +160,34 @@ export function Header() {
                 className="absolute right-0 top-full mt-2 glass border border-border/50 rounded-xl z-50 py-1 min-w-[180px]"
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
-                {THEMES.map((t) => (
-                  <button
-                    key={t.value}
-                    onClick={() => {
-                      if (isProTheme(t.value) && tier === "free") return;
-                      setTheme(t.value);
-                      setShowThemes(false);
-                    }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-3 ${
-                      theme === t.value
-                        ? "text-accent bg-accent/10"
-                        : "text-muted hover:text-foreground hover:bg-surface-hover"
-                    }`}
-                  >
-                    <div
-                      className="w-3 h-3 rounded-full border border-border/50 shrink-0"
-                      style={{ background: t.dot, boxShadow: theme === t.value ? `0 0 8px ${t.dot}60` : "none" }}
-                    />
-                    {t.label}
-                  </button>
-                ))}
+                {THEMES.map((t) => {
+                  const isLocked = isCompletionistTheme(t.value) && !hasCompletionistTheme && !isOwner;
+                  const isProLocked = isProTheme(t.value) && tier === "free" && !isOwner;
+                  return (
+                    <button
+                      key={t.value}
+                      onClick={() => {
+                        if (isProLocked || isLocked) return;
+                        setTheme(t.value);
+                        setShowThemes(false);
+                      }}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-3 ${
+                        theme === t.value
+                          ? "text-accent bg-accent/10"
+                          : isLocked
+                            ? "text-muted/40 cursor-not-allowed"
+                            : "text-muted hover:text-foreground hover:bg-surface-hover"
+                      }`}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full border border-border/50 shrink-0"
+                        style={{ background: isLocked ? "#444" : t.dot, boxShadow: theme === t.value ? `0 0 8px ${t.dot}60` : "none" }}
+                      />
+                      {t.label}
+                      {isLocked && <span className="text-[10px] text-amber-400/60 ml-auto">🔒 100%</span>}
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}

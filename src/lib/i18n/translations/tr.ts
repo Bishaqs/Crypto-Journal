@@ -75,6 +75,7 @@ const tr = {
     watchlist: "İzleme Listesi",
     settings: "Ayarlar",
     admin: "Yönetici",
+    leaderboard: "Sıralama",
     performanceAnalysis: "Performans ve Analiz",
     intelligence: "İstihbarat",
     marketTools: "Piyasa ve Araçlar",

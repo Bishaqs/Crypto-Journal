@@ -1,7 +1,7 @@
 "use client";
 
 import type { SimInterval, SupportedSymbol } from "@/lib/simulator/types";
-import { SUPPORTED_SYMBOLS } from "@/lib/simulator/types";
+import SymbolSearch from "@/components/ui/symbol-search";
 
 interface SymbolSelectorProps {
   symbol: SupportedSymbol;
@@ -30,18 +30,14 @@ export default function SymbolSelector({
   return (
     <div className="flex items-center gap-3">
       {/* Symbol */}
-      <select
+      <SymbolSearch
+        mode="binance"
         value={symbol}
-        onChange={(e) => onSymbolChange(e.target.value as SupportedSymbol)}
-        disabled={loading}
-        className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 disabled:opacity-50"
-      >
-        {SUPPORTED_SYMBOLS.map((s) => (
-          <option key={s.value} value={s.value} className="bg-[#111118]">
-            {s.label}
-          </option>
-        ))}
-      </select>
+        onSelect={(sym) => onSymbolChange(sym as SupportedSymbol)}
+        compact
+        placeholder="Search pair..."
+        className="w-[160px]"
+      />
 
       {/* Date */}
       <input

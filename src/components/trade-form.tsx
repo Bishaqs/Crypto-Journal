@@ -22,10 +22,12 @@ export function TradeForm({
   onClose,
   onSaved,
   editTrade,
+  onTradeCompleted,
 }: {
   onClose: () => void;
   onSaved: () => void;
   editTrade?: Trade | null;
+  onTradeCompleted?: (trade: { id: string; symbol: string; pnl: number; emotion: string | null; process_score: number | null }) => void;
 }) {
   const supabase = createClient();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -209,7 +211,49 @@ export function TradeForm({
       return;
     }
 
+    // Award XP for new trades
+    if (!editTrade) {
+      try {
+        const { awardXP } = await import("@/lib/xp/engine");
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await awardXP(supabase, user.id, payload.notes ? "trade_with_notes" : "trade_logged");
+        }
+      } catch { /* XP tables may not exist yet */ }
+    }
+
     onSaved();
+
+    // For new closed trades without psychology data, trigger post-trade prompt
+    if (
+      !editTrade &&
+      onTradeCompleted &&
+      payload.exit_price !== null &&
+      payload.close_timestamp !== null &&
+      !payload.emotion &&
+      payload.process_score === null
+    ) {
+      // We need the inserted trade's ID — fetch the most recent trade
+      const { data: inserted } = await supabase
+        .from("trades")
+        .select("id")
+        .eq("symbol", payload.symbol)
+        .eq("entry_price", payload.entry_price)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (inserted && inserted.length > 0) {
+        onTradeCompleted({
+          id: inserted[0].id,
+          symbol: payload.symbol,
+          pnl: pnl ?? 0,
+          emotion: payload.emotion,
+          process_score: payload.process_score,
+        });
+        return; // Don't call onClose — the prompt will handle it
+      }
+    }
+
     onClose();
   }
 

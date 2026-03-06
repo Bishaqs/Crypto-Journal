@@ -1,157 +1,47 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { StargateLogo } from "@/components/stargate-logo";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { ThemeShowcase } from "@/components/landing/theme-showcase";
-import { PricingSection } from "@/components/landing/pricing-section";
-import { CandleBackground } from "@/components/candle-background";
 import { RealisticBlackHole } from "@/components/realistic-black-hole";
 import { useTheme, THEMES } from "@/lib/theme-context";
 import {
-  BarChart3,
-  Brain,
-  BookOpen,
-  Target,
-  Shield,
-  Sparkles,
-  TrendingUp,
   CheckCircle2,
   ArrowRight,
-  Zap,
-  CalendarDays,
-  FileBarChart,
-  Star,
-  ChevronDown,
-  Quote,
 } from "lucide-react";
 
-const features = [
+const psoBlocks = [
   {
-    icon: BarChart3,
-    title: "Advanced Analytics",
-    description:
-      "Win rate, profit factor, Sharpe ratio, max drawdown, expectancy — every metric that matters.",
+    problem: "You know you revenge trade. You just can\u2019t see it happening in real time.",
+    solution: "Stargate flags when you enter multiple trades after a loss, detects oversizing, and shows you the pattern before you blow your week.",
+    outcome: "You stop the bleed before it starts.",
   },
   {
-    icon: Brain,
-    title: "Psychology Engine",
-    description:
-      "Tag emotions, rate your process, track confidence. See how your mental state affects your P&L.",
+    problem: "You have rules. You just don\u2019t follow them when it matters.",
+    solution: "Every trade gets a process score. Did you follow your entry criteria? Your position sizing? Your stop loss? Stargate tracks it so you can\u2019t lie to yourself.",
+    outcome: "Your win rate goes up because you finally trade your own system.",
   },
   {
-    icon: Sparkles,
-    title: "AI Trading Coach",
-    description:
-      "Ask Claude about your patterns. Get insights like 'Your FOMO trades cost you $2,400 this month.'",
-  },
-  {
-    icon: Target,
-    title: "Pre-Trade Checklist",
-    description:
-      "Enforce your rules before every entry. Is it on plan? What's the stop? What makes this wrong?",
-  },
-  {
-    icon: Shield,
-    title: "Tilt Detection",
-    description:
-      "Automatic warnings when you're revenge trading — 3+ trades after a loss, oversizing, re-entries.",
-  },
-  {
-    icon: CalendarDays,
-    title: "Calendar View",
-    description:
-      "See your green and red days at a glance. Click any day to review trades and emotions.",
-  },
-  {
-    icon: BookOpen,
-    title: "Rich Journal",
-    description:
-      "Write daily notes, tag them, link them to trades. Build a searchable library of lessons.",
-  },
-  {
-    icon: FileBarChart,
-    title: "Weekly Reports",
-    description:
-      "Auto-generated performance reviews. Best trade, worst trade, discipline score, emotional patterns.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Streak System",
-    description:
-      "Duolingo-style journaling streaks. Gamify consistency, not profitability. Grace days included.",
+    problem: "You journal for three days, then stop. Every time.",
+    solution: "Logging a trade takes 30 seconds. Pick your emotion, rate your process, done. Stargate does the analysis. You just show up.",
+    outcome: "You actually stick with it because it\u2019s not another chore.",
   },
 ];
 
-
-const testimonials = [
-  {
-    quote: "I finally stopped revenge trading. Seeing my tilt patterns in data changed everything.",
-    name: "Alex M.",
-    role: "Crypto Day Trader",
-    tag: "Psychology",
-  },
-  {
-    quote: "The AI coach told me FOMO trades cost me $3,200 last month. That was the wake-up call.",
-    name: "Sarah K.",
-    role: "Swing Trader",
-    tag: "AI Coach",
-  },
-  {
-    quote: "30 seconds to log a trade. No excuses. My journaling streak is at 47 days.",
-    name: "Marcus R.",
-    role: "Futures Trader",
-    tag: "Consistency",
-  },
-  {
-    quote: "Best trading journal I've used. The psychology tracking is what makes it different.",
-    name: "David L.",
-    role: "Options Trader",
-    tag: "Analytics",
-  },
-  {
-    quote: "Went from 42% to 61% win rate in 3 months just by following my own rules.",
-    name: "Priya N.",
-    role: "Stock Trader",
-    tag: "Process",
-  },
-  {
-    quote: "The pre-trade checklist alone saved me from my worst habits.",
-    name: "Jake T.",
-    role: "Crypto Trader",
-    tag: "Discipline",
-  },
+const protocolTrades = [
+  { t: "09:41:22", pair: "BTC-PERP", side: "LONG" as const, size: "2.5", emotion: "Confident", process: "9/10", pnl: "+14.2%" },
+  { t: "10:15:04", pair: "ETH-PERP", side: "SHORT" as const, size: "15.0", emotion: "Revenge", process: "3/10", pnl: "-2.1%" },
+  { t: "11:30:45", pair: "SOL-PERP", side: "LONG" as const, size: "150", emotion: "FOMO", process: "5/10", pnl: "+8.4%" },
+  { t: "14:22:10", pair: "AVAX-PERP", side: "LONG" as const, size: "450", emotion: "Confident", process: "8/10", pnl: "+22.5%" },
+  { t: "15:45:33", pair: "BTC-PERP", side: "SHORT" as const, size: "1.2", emotion: "Anxious", process: "6/10", pnl: "+5.1%" },
 ];
 
-const faqItems = [
-  {
-    q: "Is my trading data secure?",
-    a: "Your data is encrypted and stored securely. We never share or sell your information. You can export or delete everything at any time.",
-  },
-  {
-    q: "Which exchanges and brokers are supported?",
-    a: "We support CSV imports from all major crypto exchanges (Binance, Coinbase, Kraken, Bybit, etc.) and stock brokers. Manual entry is always available.",
-  },
-  {
-    q: "What's the difference between Free and Pro?",
-    a: "Free gives you 2 trades per week with basic analytics. Pro unlocks unlimited logging, 50+ advanced metrics, psychology engine, tilt detection, and weekly reports.",
-  },
-  {
-    q: "How does the AI Trading Coach work?",
-    a: "The AI analyzes your trade history, emotions, and patterns. Ask it anything — \"What's my worst habit?\" or \"How do I perform on Mondays?\" It gives personalized, data-backed answers.",
-  },
-  {
-    q: "Can I use it for both crypto and stocks?",
-    a: "Yes. Pick your primary asset when signing up. Add the other as an add-on ($29/year) or get both included with the Max plan.",
-  },
-  {
-    q: "Is there a mobile app?",
-    a: "The web app is fully responsive and works great on mobile browsers. A native app is on the roadmap.",
-  },
-];
-
-const THEME_TO_COLOR: Record<string, "purple" | "orange" | "blue" | "green" | "neutral"> = {
+const THEME_TO_COLOR: Record<
+  string,
+  "purple" | "orange" | "blue" | "green" | "neutral"
+> = {
   dark: "purple",
   volcano: "orange",
   ocean: "blue",
@@ -163,116 +53,139 @@ const THEME_TO_COLOR: Record<string, "purple" | "orange" | "blue" | "green" | "n
 export default function LandingPage() {
   const { theme, setTheme } = useTheme();
   const bhColor = THEME_TO_COLOR[theme] ?? "purple";
+  const [navScrolled, setNavScrolled] = useState(false);
 
-  // Randomize theme on each landing page visit
+  // Lock landing page to purple (Space Purple) theme
   useEffect(() => {
-    const randomTheme = THEMES[Math.floor(Math.random() * THEMES.length)].value;
-    setTheme(randomTheme);
+    setTheme("dark");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Scroll detection for navbar
+  useEffect(() => {
+    const onScroll = () => setNavScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
-      {/* Nav */}
-      <nav className="border-b border-border/50 glass sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <StargateLogo size={32} />
-            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-[#8B5CF6] via-[#A78BFA] to-[#8B5CF6] bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
-              Stargate
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm text-muted hover:text-foreground transition-colors">Features</a>
-            <a href="#pricing" className="text-sm text-muted hover:text-foreground transition-colors">Pricing</a>
-            <a href="#faq" className="text-sm text-muted hover:text-foreground transition-colors">FAQ</a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm text-muted hover:text-foreground transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-xl bg-accent text-background text-sm font-semibold hover:bg-accent-hover transition-colors"
-            >
-              Get Started
-            </Link>
-          </div>
+    <div className="dark min-h-screen bg-background overflow-hidden">
+      {/* ─── Navbar — Floating Pill ─── */}
+      <nav
+        className={`fixed left-1/2 top-6 z-50 flex w-[92%] max-w-5xl -translate-x-1/2 items-center justify-between rounded-full px-6 py-3.5 transition-all duration-300 ease-out border border-transparent text-foreground ${
+          navScrolled ? "nav-scrolled" : "bg-transparent"
+        }`}
+      >
+        <div className="flex items-center gap-2.5">
+          <StargateLogo size={28} />
+          <span className="nav-logo-text text-lg font-bold tracking-tight bg-gradient-to-r from-accent via-accent/80 to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
+            Stargate
+          </span>
+        </div>
+        <div className="hidden md:flex items-center gap-8">
+          <a
+            href="#features"
+            className="text-sm font-medium opacity-70 hover:opacity-100 transition-opacity"
+          >
+            Features
+          </a>
+          <a
+            href="#protocol"
+            className="text-sm font-medium opacity-70 hover:opacity-100 transition-opacity"
+          >
+            Protocol
+          </a>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/login"
+            className="text-sm font-medium opacity-70 hover:opacity-100 transition-opacity hidden sm:block"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/login"
+            className="nav-cta px-4 py-2 text-sm rounded-full bg-accent text-white font-semibold hover:bg-accent-hover transition-colors"
+          >
+            Start free
+          </Link>
         </div>
       </nav>
 
-      {/* Hero with Black Hole */}
-      <section className="relative min-h-[90vh] flex items-center justify-center">
-        {/* Animated candle background — subtle behind everything */}
-        <div className="absolute inset-0 overflow-hidden opacity-60">
-          <CandleBackground sentiment="bullish" colorScheme="brand" />
-        </div>
-        {/* Starfield behind the black hole */}
+      {/* ─── Hero — Black hole RIGHT, text LEFT-bottom ─── */}
+      <section className="relative min-h-screen flex items-end pb-24 px-6 md:px-16 overflow-hidden">
+        {/* Black hole — offset right */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="stars-small" />
-          <div className="stars-medium" />
-          {/* Purple shooting stars */}
-          <div className="shooting-star" style={{ top: "12%", left: "20%" }} />
-          <div className="shooting-star" style={{ top: "30%", left: "60%", animationDelay: "4s" }} />
-          <div className="shooting-star" style={{ top: "65%", left: "35%", animationDelay: "7s" }} />
+          <div className="absolute inset-0 lg:left-[20%] opacity-60">
+            <RealisticBlackHole
+              size="large"
+              color={bhColor}
+              opacity={theme === "light" ? 0.3 : 0.7}
+            />
+          </div>
         </div>
 
-        {/* Black hole — realistic accretion disk with gravitational lensing */}
-        <RealisticBlackHole size="medium" color={bhColor} opacity={theme === "light" ? 0.25 : 0.7} />
+        {/* Gradient overlays for text readability */}
+        <div
+          className="absolute inset-0 z-[1]"
+          style={{
+            background:
+              "linear-gradient(to top, var(--background), rgba(8,12,20,0.6), transparent)",
+          }}
+        />
+        <div
+          className="absolute inset-0 z-[1]"
+          style={{
+            background:
+              "linear-gradient(to right, var(--background), rgba(8,12,20,0.4), transparent)",
+          }}
+        />
 
-        {/* Hero ambient glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none" style={{
-          background: "radial-gradient(ellipse, rgba(139,92,246,0.12) 0%, transparent 70%)",
-          filter: "blur(80px)",
-        }} />
-
-        {/* Content overlay */}
-        <div className="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-28 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-accent/20 glass text-accent text-xs font-medium mb-8">
-            <Zap size={12} />
-            The trading journal that knows your psychology
-          </div>
-
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight tracking-tight max-w-4xl mx-auto drop-shadow-[0_0_30px_rgba(139,92,246,0.15)]">
-            Your edge starts with{" "}
-            <span className="text-accent">knowing yourself</span>
+        {/* Hero content — bottom-left */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-start gap-6 pb-12">
+          <h1 className="flex flex-col gap-2">
+            <span className="text-lg md:text-2xl font-bold uppercase tracking-widest text-foreground/70">
+              See exactly which emotions cost you money.
+            </span>
+            <span className="text-5xl md:text-6xl leading-tight text-accent tracking-tighter font-bold pr-4">
+              Then stop repeating them.
+            </span>
           </h1>
-
-          <p className="text-lg md:text-xl text-foreground/80 mt-6 max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-            The trading journal for crypto &amp; stocks that tracks your psychology, enforces your rules, and uses AI to reveal the patterns costing you money.
+          <p
+            className="max-w-lg text-lg text-foreground/50 mt-4 leading-relaxed"
+            style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+          >
+            Log any trade in 30 seconds. Stargate tracks your emotional state
+            alongside every entry and shows you the behavioral patterns that are
+            bleeding your account.
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+          <div className="mt-8 flex gap-4 flex-wrap">
             <Link
               href="/login"
-              className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-accent text-background font-semibold text-base hover:bg-accent-hover hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-all duration-300 animate-[cosmic-pulse_3s_ease-in-out_infinite]"
+              className="px-10 py-5 text-lg font-medium rounded-full bg-accent text-white relative overflow-hidden hover:scale-105 transition-transform"
+              style={{
+                boxShadow: `0 0 40px rgba(var(--accent-rgb), 0.4)`,
+              }}
             >
-              Start Free <ArrowRight size={18} />
+              Start journaling free
             </Link>
             <a
               href="#features"
-              className="px-8 py-3.5 rounded-xl glass border border-border/50 text-muted font-medium text-base hover:text-foreground hover:border-accent/30 transition-all"
+              className="px-10 py-5 text-lg font-medium rounded-full text-foreground/70 hover:bg-foreground/10 transition-colors"
             >
-              See Features
+              See how it works
             </a>
           </div>
-
-          <p className="text-xs text-muted/60 mt-4">
-            No credit card required. Free plan available.
-          </p>
         </div>
       </section>
 
-      {/* Social proof bar */}
+      {/* ─── Social Proof Bar ─── */}
       <ScrollReveal>
         <section className="glass border-y border-border/50 py-8 relative z-10">
           <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center gap-8 md:gap-16 text-center">
             <div>
-              <p className="text-2xl font-bold text-foreground">Process</p>
-              <p className="text-xs text-muted mt-0.5">over outcome</p>
+              <p className="text-2xl font-bold text-foreground">P&L + Psychology</p>
+              <p className="text-xs text-muted mt-0.5">connected in every trade</p>
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
             <div>
@@ -281,19 +194,21 @@ export default function LandingPage() {
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
             <div>
-              <p className="text-2xl font-bold text-foreground">AI-Powered</p>
-              <p className="text-xs text-muted mt-0.5">behavioral insights</p>
+              <p className="text-2xl font-bold text-foreground">Data-driven</p>
+              <p className="text-xs text-muted mt-0.5">pattern detection</p>
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
             <div>
-              <p className="text-2xl font-bold text-accent">Crypto-Native</p>
-              <p className="text-xs text-muted mt-0.5">built for serious traders</p>
+              <p className="text-2xl font-bold text-accent">Automatic</p>
+              <p className="text-xs text-muted mt-0.5">
+                patterns detected for you
+              </p>
             </div>
           </div>
         </section>
       </ScrollReveal>
 
-      {/* Theme Showcase */}
+      {/* ─── Theme Showcase ─── */}
       <ScrollReveal>
         <section className="py-20 relative z-10">
           <div className="max-w-5xl mx-auto px-6">
@@ -313,37 +228,125 @@ export default function LandingPage() {
       {/* Gradient divider */}
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
 
-      {/* Problem → Solution */}
+      {/* ─── Philosophy — Contrast Word Reveal ─── */}
+      <ScrollReveal>
+        <section className="relative py-32 md:py-40 px-6 md:px-16 overflow-hidden min-h-[70vh] flex items-center">
+          {/* Subtle background overlay */}
+          <div
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse at 30% 50%, rgba(var(--accent-rgb), 0.04) 0%, transparent 60%)",
+            }}
+          />
+          <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col gap-12">
+            <h2 className="text-xl md:text-3xl text-muted tracking-tight leading-relaxed max-w-2xl">
+              Most traders: check P&L obsessively, revenge trade after a loss, size up when emotional, skip their own rules, journal for two days then quit.
+            </h2>
+            <h2 className="text-4xl md:text-6xl lg:text-[5.5rem] tracking-tight leading-[1.1] font-bold max-w-5xl text-foreground/90">
+              Stargate connects your{" "}
+              <span className="text-accent">emotional state</span> to your{" "}
+              <span className="text-accent">P&L</span> so you see the{" "}
+              <span className="text-accent">pattern,</span> not just the loss.
+            </h2>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* Gradient divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+
+      {/* ─── Features — 3 Problem-Solution-Outcome Blocks ─── */}
+      <section
+        id="features"
+        className="py-24 md:py-32 relative z-10"
+      >
+        <div className="max-w-5xl mx-auto px-6">
+          <ScrollReveal>
+            <div className="mb-16">
+              <h2
+                className="text-4xl md:text-5xl font-bold tracking-tight text-foreground"
+              >
+                Three problems. Three solutions.
+              </h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="flex flex-col gap-6">
+            {psoBlocks.map((block, i) => (
+              <ScrollReveal key={i} delay={i * 100}>
+                <div
+                  className="rounded-[2rem] border border-white/10 p-8 md:p-10"
+                  style={{ background: "rgba(10,10,20,0.95)", color: "#e0eaf4" }}
+                >
+                  <p className="text-purple-400 text-sm font-semibold uppercase tracking-wider mb-3">
+                    The problem
+                  </p>
+                  <p className="text-xl md:text-2xl font-bold text-white/90 mb-6">
+                    {block.problem}
+                  </p>
+                  <p className="text-white/50 leading-relaxed mb-6">
+                    {block.solution}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <ArrowRight size={16} className="text-accent" />
+                    <p className="text-accent font-semibold">
+                      {block.outcome}
+                    </p>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Psychology ─── */}
       <ScrollReveal>
         <section className="py-20 max-w-6xl mx-auto px-6 relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-foreground mb-4 heading-glow">
-                Most traders know <span className="text-loss">what</span> went wrong.
-                <br />
-                Few understand <span className="text-accent">why</span>.
+                You already know what you&apos;re doing wrong.
               </h2>
               <p className="text-muted leading-relaxed">
-                You review your trades. You see the losses. But you keep making the same mistakes — because the problem isn&apos;t your strategy, it&apos;s your psychology.
+                You&apos;ve said it out loud. &ldquo;I knew I shouldn&apos;t have taken
+                that trade.&rdquo; The problem isn&apos;t knowledge. It&apos;s that you
+                can&apos;t see the pattern while you&apos;re inside it.
               </p>
               <p className="text-muted leading-relaxed mt-3">
-                Stargate connects the dots between your emotional state, your process discipline, and your results. When you can see that FOMO trades cost you $2,400 last month, you stop FOMOing.
+                Stargate shows you the data so your brain can&apos;t ignore it
+                anymore.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Track emotions", desc: "Tag every trade with your mental state" },
-                { label: "Rate your process", desc: "1-10 score: did you follow rules?" },
-                { label: "Spot patterns", desc: "See which emotions cost you money" },
-                { label: "Break the cycle", desc: "Data-driven behavioral change" },
+                {
+                  label: "Track emotions",
+                  desc: "Tag every trade with how you felt. Confident, anxious, revenge, FOMO. Takes one tap.",
+                },
+                {
+                  label: "Rate your process",
+                  desc: "Did you follow your rules? Yes or no. No essays. Just honesty.",
+                },
+                {
+                  label: "Spot patterns",
+                  desc: "Stargate shows you: \u2018You lose 73% of trades taken when anxious.\u2019 Hard to argue with a number.",
+                },
+                {
+                  label: "Break the cycle",
+                  desc: "Next time you feel anxious and reach for the buy button, you\u2019ll remember that number.",
+                },
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="glass rounded-2xl border border-border/50 p-5 hover:border-accent/20 hover:shadow-[0_0_20px_rgba(139,92,246,0.08)] transition-all duration-300"
+                  className="glass rounded-2xl border border-border/50 p-5 hover:border-accent/20 hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.08)] transition-all duration-300"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
                   <CheckCircle2 size={16} className="text-accent mb-2" />
-                  <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {item.label}
+                  </p>
                   <p className="text-xs text-muted mt-1">{item.desc}</p>
                 </div>
               ))}
@@ -355,237 +358,267 @@ export default function LandingPage() {
       {/* Gradient divider */}
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
 
-      {/* Features grid */}
-      <section id="features" className="py-20 relative z-10">
-        <div className="max-w-6xl mx-auto px-6">
+      {/* ─── Protocol — Trade Log ─── */}
+      <section id="protocol" className="py-24 md:py-32 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-6 md:px-16 mb-20 text-center relative z-10">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-foreground heading-glow">
-                Everything you need to trade better
-              </h2>
-              <p className="text-muted mt-3 max-w-lg mx-auto">
-                Not just another spreadsheet. A complete system for improving your trading through self-awareness.
-              </p>
-            </div>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
+              Your trade log
+            </h2>
+            <p
+              className="text-muted text-lg max-w-2xl mx-auto"
+              style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+            >
+              Every trade logged with your entry reason, emotional state, and
+              process score. One glance tells you if you traded your plan or
+              traded your feelings.
+            </p>
           </ScrollReveal>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((f, i) => (
-              <ScrollReveal key={f.title} delay={i * 80}>
-                <div
-                  className="feature-card glass rounded-2xl border border-border/50 p-6 hover:border-accent/20 transition-all duration-300 group h-full"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-                    <f.icon size={20} className="text-accent" />
-                  </div>
-                  <h3 className="text-sm font-bold text-foreground mb-2">
-                    {f.title}
-                  </h3>
-                  <p className="text-xs text-muted leading-relaxed">
-                    {f.description}
-                  </p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
         </div>
-      </section>
-
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-
-      {/* Testimonials */}
-      <section className="py-20 relative z-10">
-        <div className="max-w-6xl mx-auto px-6">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-xs uppercase tracking-wider text-accent font-semibold mb-3">Testimonials</p>
-              <h2 className="text-3xl font-bold text-foreground heading-glow">
-                What traders are saying
-              </h2>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {testimonials.map((t, i) => (
-              <ScrollReveal key={t.name} delay={i * 80}>
-                <div className="glass rounded-2xl border border-border/50 p-6 h-full flex flex-col feature-card">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, j) => (
-                        <Star key={j} size={12} className="text-accent fill-accent" />
-                      ))}
+        <ScrollReveal>
+          <div
+            className="max-w-6xl mx-auto px-6 relative z-10"
+            style={{ perspective: "1000px" }}
+          >
+            <div
+              className="relative w-full rounded-2xl border p-8 backdrop-blur-md"
+              style={{
+                borderColor: "rgba(var(--accent-rgb), 0.2)",
+                background: "rgba(10,10,20,0.8)",
+                boxShadow: `0 0 80px rgba(var(--accent-rgb), 0.1)`,
+                transform: "rotateX(15deg)",
+                transformStyle: "preserve-3d",
+              }}
+            >
+              {/* Scanline */}
+              <div
+                className="absolute top-0 left-0 w-full h-[2px] z-20 pointer-events-none"
+                style={{
+                  background: `rgba(var(--accent-rgb), 0.5)`,
+                  boxShadow: `0 0 20px 2px rgba(var(--accent-rgb), 0.8)`,
+                  animation: "scanline-move 3s linear infinite",
+                }}
+              />
+              {/* Headers */}
+              <div
+                className="grid grid-cols-7 gap-4 mb-6 border-b border-white/10 pb-4 text-xs uppercase tracking-[0.2em] text-accent font-bold"
+                style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+              >
+                <div>Timestamp</div>
+                <div>Asset</div>
+                <div>Direction</div>
+                <div>Size</div>
+                <div>Emotion</div>
+                <div>Process</div>
+                <div className="text-right">PnL</div>
+              </div>
+              {/* Rows */}
+              <div className="flex flex-col gap-3">
+                {protocolTrades.map((tr) => (
+                  <div
+                    key={tr.t}
+                    className="protocol-row grid grid-cols-7 gap-4 items-center p-4 rounded-lg bg-white/5 border border-white/5 text-sm relative overflow-hidden group"
+                    style={{
+                      fontFamily: "var(--font-geist-mono), monospace",
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"
+                      style={{
+                        background: `linear-gradient(to right, transparent, rgba(var(--accent-rgb), 0.05), transparent)`,
+                      }}
+                    />
+                    <div className="text-white/50 rounded px-2 py-1 w-fit">
+                      {tr.t}
                     </div>
-                    <span className="text-[10px] font-medium text-muted px-2 py-0.5 rounded-full border border-border/50">
-                      {t.tag}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <Quote size={16} className="text-accent/30 mb-2" />
-                    <p className="text-sm text-foreground/90 leading-relaxed italic">
-                      &ldquo;{t.quote}&rdquo;
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border/30">
-                    <div className="w-8 h-8 rounded-full bg-accent/15 flex items-center justify-center text-xs font-bold text-accent">
-                      {t.name[0]}
-                    </div>
+                    <div className="text-white font-bold">{tr.pair}</div>
                     <div>
-                      <p className="text-xs font-semibold text-foreground">{t.name}</p>
-                      <p className="text-[10px] text-muted">{t.role}</p>
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${
+                          tr.side === "LONG"
+                            ? "text-purple-300 border border-purple-300/20"
+                            : "text-purple-500 border border-purple-500/20"
+                        }`}
+                        style={{
+                          background:
+                            tr.side === "LONG"
+                              ? "rgba(139,92,246,0.15)"
+                              : "rgba(139,92,246,0.08)",
+                        }}
+                      >
+                        {tr.side}
+                      </span>
+                    </div>
+                    <div className="text-white/70">{tr.size}</div>
+                    <div className="text-purple-300/80">{tr.emotion}</div>
+                    <div className="text-white/60">{tr.process}</div>
+                    <div
+                      className={`text-right font-bold ${
+                        tr.pnl.startsWith("+")
+                          ? "text-purple-300"
+                          : "text-purple-500/70"
+                      }`}
+                    >
+                      {tr.pnl}
                     </div>
                   </div>
+                ))}
+              </div>
+              {/* Footer */}
+              <div
+                className="mt-8 flex justify-between items-center border-t border-white/10 pt-4 text-xs text-white/30"
+                style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                  Live sync
                 </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-
-      {/* Pricing */}
-      <section id="pricing" className="py-20 relative z-10">
-        <div className="max-w-6xl mx-auto px-6">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-foreground heading-glow">
-                Simple, honest pricing
-              </h2>
-              <p className="text-muted mt-3">
-                Start free. Upgrade when you&apos;re ready to get serious.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <PricingSection />
-        </div>
-      </section>
-
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-
-      {/* FAQ */}
-      <section id="faq" className="py-20 relative z-10">
-        <div className="max-w-3xl mx-auto px-6">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-xs uppercase tracking-wider text-accent font-semibold mb-3">FAQ</p>
-              <h2 className="text-3xl font-bold text-foreground heading-glow">
-                Common Questions
-              </h2>
-            </div>
-          </ScrollReveal>
-
-          <div className="space-y-3">
-            {faqItems.map((item, i) => (
-              <ScrollReveal key={i} delay={i * 60}>
-                <details className="group glass rounded-2xl border border-border/50 faq-details">
-                  <summary className="flex items-center justify-between cursor-pointer px-6 py-5 text-sm font-semibold text-foreground list-none [&::-webkit-details-marker]:hidden">
-                    {item.q}
-                    <ChevronDown size={16} className="text-muted shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" />
-                  </summary>
-                  <div className="px-6 pb-5 text-sm text-muted leading-relaxed">
-                    {item.a}
-                  </div>
-                </details>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-
-      {/* CTA */}
-      <ScrollReveal>
-        <section className="py-20 relative z-10">
-          <div className="max-w-6xl mx-auto px-6 text-center">
-            <div className="glass rounded-3xl border border-border/50 p-12 md:p-16 relative overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-              {/* Subtle glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-accent/5 rounded-full blur-3xl" />
-              <div className="relative">
-                <h2 className="text-3xl font-bold text-foreground">
-                  Stop guessing. Start journaling.
-                </h2>
-                <p className="text-muted mt-3 max-w-lg mx-auto">
-                  The best traders are the most self-aware. Stargate gives you the data to become one of them.
-                </p>
-                <Link
-                  href="/login"
-                  className="inline-flex items-center gap-2 mt-8 px-8 py-3.5 rounded-xl bg-accent text-background font-semibold text-base hover:bg-accent-hover hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-all duration-300 animate-[cosmic-pulse_3s_ease-in-out_infinite]"
-                >
-                  Create Free Account <ArrowRight size={18} />
-                </Link>
+                <div>All data encrypted</div>
               </div>
             </div>
+          </div>
+        </ScrollReveal>
+        {/* Ambient glow */}
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-4xl pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at center, rgba(var(--accent-rgb), 0.05) 0%, transparent 70%)`,
+          }}
+        />
+      </section>
+
+      {/* Gradient divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+
+      {/* ─── GetStarted CTA — Gemini style ─── */}
+      <ScrollReveal>
+        <section
+          className="py-32 px-6 md:px-16 relative overflow-hidden flex flex-col items-center justify-center text-center"
+        >
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
+            style={{
+              background: `rgba(var(--accent-rgb), 0.2)`,
+              filter: "blur(120px)",
+            }}
+          />
+          <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center gap-8">
+            <span
+              className="text-sm uppercase font-bold tracking-[0.2em] px-4 py-2 rounded-full"
+              style={{
+                color: "var(--accent)",
+                border: "1px solid rgba(var(--accent-rgb), 0.3)",
+                background: "rgba(var(--accent-rgb), 0.1)",
+                fontFamily: "var(--font-geist-mono), monospace",
+              }}
+            >
+              Early Access
+            </span>
+            <h2
+              className="text-5xl md:text-7xl font-bold tracking-tighter text-foreground"
+            >
+              Free while we build this with you.
+            </h2>
+            <p
+              className="text-xl max-w-2xl mt-4 mb-8 text-foreground/70"
+            >
+              We&apos;re looking for serious traders to shape the product. You
+              get full access to everything. We get your honest feedback. No
+              credit card. No catch.
+            </p>
+            <Link
+              href="/login"
+              className="px-12 py-6 text-xl rounded-full bg-accent text-white font-medium relative overflow-hidden hover:scale-105 transition-transform"
+              style={{
+                boxShadow: `0 0 40px rgba(var(--accent-rgb), 0.4)`,
+              }}
+            >
+              Get free access
+            </Link>
           </div>
         </section>
       </ScrollReveal>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 relative z-10">
-        <div className="max-w-6xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-            {/* Brand */}
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2.5 mb-3">
-                <StargateLogo size={24} />
-                <span className="text-base font-bold text-foreground">Stargate</span>
-              </div>
-              <p className="text-xs text-muted leading-relaxed">
-                The trading journal that tracks your psychology, enforces your rules, and helps you trade better.
-              </p>
+      {/* ─── Footer — Gemini style ─── */}
+      <footer className="rounded-t-[4rem] px-8 md:px-16 pt-24 pb-8 overflow-hidden relative border-t border-border/50">
+        <div
+          className="absolute inset-0 z-0"
+          style={{ background: "rgba(var(--accent-rgb), 0.03)" }}
+        />
+        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-border/30 pb-16">
+          <div className="col-span-1 md:col-span-2">
+            <div className="flex items-center gap-2.5 mb-4">
+              <StargateLogo size={28} />
+              <span className="text-2xl font-bold tracking-tight text-foreground">
+                STARGATE
+              </span>
             </div>
-
-            {/* Product */}
-            <div>
-              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-4">Product</h4>
-              <ul className="space-y-2.5">
-                <li><a href="#features" className="text-xs text-muted hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="#pricing" className="text-xs text-muted hover:text-foreground transition-colors">Pricing</a></li>
-                <li><a href="#faq" className="text-xs text-muted hover:text-foreground transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-4">Resources</h4>
-              <ul className="space-y-2.5">
-                <li><span className="text-xs text-muted/40">Blog (coming soon)</span></li>
-                <li><span className="text-xs text-muted/40">Docs (coming soon)</span></li>
-                <li><span className="text-xs text-muted/40">Changelog (coming soon)</span></li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-4">Legal</h4>
-              <ul className="space-y-2.5">
-                <li><span className="text-xs text-muted/40">Privacy Policy</span></li>
-                <li><span className="text-xs text-muted/40">Terms of Service</span></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom bar */}
-          <div className="border-t border-border/30 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-[11px] text-muted/50">
-              &copy; {new Date().getFullYear()} Stargate. All rights reserved.
+            <p
+              className="text-muted max-w-sm text-sm leading-relaxed"
+              style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+            >
+              The trading journal that connects your psychology to your P&L.
             </p>
-            <div className="flex items-center gap-4">
-              {/* Twitter/X */}
-              <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-muted/40 hover:text-foreground transition-colors" aria-label="Twitter">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              </a>
-              {/* Discord */}
-              <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" className="text-muted/40 hover:text-foreground transition-colors" aria-label="Discord">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z"/></svg>
-              </a>
-            </div>
           </div>
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-widest text-muted/40 mb-6">
+              Product
+            </h4>
+            <ul className="space-y-4 text-foreground/70">
+              <li>
+                <a
+                  href="#features"
+                  className="hover:text-accent transition-colors"
+                >
+                  Journal
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#protocol"
+                  className="hover:text-accent transition-colors"
+                >
+                  Analytics
+                </a>
+              </li>
+              <li>
+                <span className="text-muted/40">Simulator</span>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-widest text-muted/40 mb-6">
+              Company
+            </h4>
+            <ul className="space-y-4 text-foreground/70">
+              <li>
+                <span className="text-muted/40">About</span>
+              </li>
+              <li>
+                <span className="text-muted/40">Feedback</span>
+              </li>
+              <li>
+                <span className="text-muted/40">Twitter/X</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 bg-foreground/5 px-4 py-2 rounded-full border border-border/50">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500" />
+            </span>
+            <span
+              className="text-xs uppercase tracking-wider text-foreground/70"
+              style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+            >
+              Systems online
+            </span>
+          </div>
+          <p className="text-muted/50 text-sm">
+            &copy; {new Date().getFullYear()} Stargate. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>

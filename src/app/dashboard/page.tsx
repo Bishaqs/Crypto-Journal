@@ -30,7 +30,12 @@ import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CSVImportModal } from "@/components/csv-import-modal";
 import { GettingStartedCard } from "@/components/getting-started";
+import { WeeklySummaryCard } from "@/components/dashboard/weekly-summary-card";
+import { ProactiveInsightBar } from "@/components/dashboard/proactive-insight-bar";
+import { PostTradePrompt } from "@/components/post-trade-prompt";
 import { useI18n } from "@/lib/i18n";
+import { useCosmetics } from "@/lib/cosmetics";
+import type { CosmeticRarity, UnlockCondition } from "@/lib/cosmetics/types";
 
 export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -39,10 +44,20 @@ export default function DashboardPage() {
   const [editTrade, setEditTrade] = useState<Trade | null>(null);
   const [usingDemo, setUsingDemo] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [postTradeData, setPostTradeData] = useState<{ id: string; symbol: string; pnl: number } | null>(null);
   const { filterTrades } = useDateRange();
   const { viewMode } = useTheme();
   const { t } = useI18n();
+  const { equipped, definitions } = useCosmetics();
   const supabase = createClient();
+
+  // Resolve equipped title badge info
+  const equippedTitle = useMemo(() => {
+    if (!equipped.title_badge) return null;
+    const def = definitions.find((d) => d.id === equipped.title_badge);
+    if (!def) return null;
+    return { name: def.name, rarity: def.rarity };
+  }, [equipped.title_badge, definitions]);
 
   const fetchTrades = useCallback(async () => {
     const { data } = await supabase
@@ -125,15 +140,31 @@ export default function DashboardPage() {
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
 
+      {!usingDemo && <ProactiveInsightBar trades={filteredTrades} tiltSignals={tiltSignals} />}
+
       {/* Welcome greeting */}
-      <div className="glass rounded-2xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-        <p className="text-xs text-muted/60 uppercase tracking-widest font-semibold mb-1">
-          {t("dashboard.gm")}, <span className="text-foreground">{getDisplayName()}</span>
-        </p>
-        <p className="text-base md:text-lg font-medium text-accent italic">
-          &ldquo;{getDailyGreeting()}&rdquo;
-        </p>
+      <div className="relative glass rounded-2xl border border-border/50 p-4 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+        {equipped.banner && (
+          <div className={`absolute inset-0 ${equipped.banner} opacity-20 pointer-events-none`} />
+        )}
+        <div className="relative z-10">
+          <p className="text-xs text-muted/60 uppercase tracking-widest font-semibold mb-1">
+            {t("dashboard.gm")}, <span className="text-foreground">{getDisplayName()}</span>
+            {equippedTitle && (
+              <span className={`ml-2 text-[10px] font-bold ${
+                ({ common: "text-gray-400", uncommon: "text-emerald-400", rare: "text-blue-400", epic: "text-purple-400", legendary: "text-amber-400" } as Record<CosmeticRarity, string>)[equippedTitle.rarity]
+              }`}>
+                {equippedTitle.name}
+              </span>
+            )}
+          </p>
+          <p className="text-base md:text-lg font-medium text-accent italic">
+            &ldquo;{getDailyGreeting()}&rdquo;
+          </p>
+        </div>
       </div>
+
+      {!usingDemo && <WeeklySummaryCard trades={trades} />}
 
       {usingDemo && (
         <GettingStartedCard
@@ -216,13 +247,13 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">Profit Factor</p>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Profit Factor <InfoTooltip text="Gross wins divided by gross losses. Above 1.0 = net positive edge." size={11} /></p>
                 <p className={`text-lg font-bold ${adv.profitFactor >= 1.5 ? "text-win" : adv.profitFactor >= 1 ? "text-foreground" : "text-loss"}`}>
                   {adv.profitFactor === Infinity ? "∞" : adv.profitFactor.toFixed(2)}
                 </p>
               </div>
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">Max Drawdown</p>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Max Drawdown <InfoTooltip text="Largest peak-to-trough decline in your equity curve. Lower is better." size={11} /></p>
                 <p className="text-lg font-bold text-loss">{adv.maxDrawdownPct.toFixed(1)}%</p>
               </div>
             </div>
@@ -344,6 +375,23 @@ export default function DashboardPage() {
           }}
           onSaved={fetchTrades}
           editTrade={editTrade}
+          onTradeCompleted={(trade) => {
+            setShowForm(false);
+            setEditTrade(null);
+            setPostTradeData({ id: trade.id, symbol: trade.symbol, pnl: trade.pnl });
+          }}
+        />
+      )}
+
+      {postTradeData && (
+        <PostTradePrompt
+          tradeId={postTradeData.id}
+          symbol={postTradeData.symbol}
+          pnl={postTradeData.pnl}
+          onClose={() => {
+            setPostTradeData(null);
+            fetchTrades(); // Refresh to show updated psychology data
+          }}
         />
       )}
 

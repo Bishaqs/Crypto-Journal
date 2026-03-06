@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
 import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Rate limit: 20 requests per minute per user
-  const rl = rateLimit(`ai-chat:${user.id}`, 20, 60_000);
+  const rl = await rateLimit(`ai-chat:${user.id}`, 20, 60_000);
   if (!rl.success) {
     return NextResponse.json(
       { error: "Too many requests. Please wait before trying again." },
@@ -22,18 +23,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Daily tier-based limit
+  const daily = await checkAiDailyLimit(user.id);
+  if (!daily.allowed) return daily.response;
+
   const body = await req.json();
   const parsed = AiChatSchema.safeParse(body);
   if (!parsed.success) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { message, trades, context, provider: providerId, model: modelId } = parsed.data;
+  const { message, trades, context, provider: providerId, model: modelId, apiKey } = parsed.data;
 
-  const provider = getProvider(providerId);
-  if (!provider.isConfigured()) {
+  const provider = getProvider(providerId, apiKey);
+  if (!provider.isConfigured(apiKey)) {
     return NextResponse.json(
-      { error: "AI service not configured. Contact the administrator." },
+      { error: "AI service not configured. Add your own API key in Settings → AI Coach, or contact the administrator." },
       { status: 500 }
     );
   }
@@ -47,6 +52,7 @@ export async function POST(req: NextRequest) {
       userMessage: `Here is my trading data:\n\n${tradeContext}\n\nMy question: ${message}`,
       maxTokens: 1024,
       model,
+      apiKey,
     });
 
     return NextResponse.json({ response: text });

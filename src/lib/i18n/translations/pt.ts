@@ -75,6 +75,7 @@ const pt = {
     watchlist: "Lista de observação",
     settings: "Configurações",
     admin: "Administração",
+    leaderboard: "Classificação",
     performanceAnalysis: "Performance e análise",
     intelligence: "Inteligência",
     marketTools: "Mercado e ferramentas",

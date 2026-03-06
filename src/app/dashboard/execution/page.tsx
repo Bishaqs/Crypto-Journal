@@ -18,8 +18,6 @@ import {
   Activity,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -146,7 +144,6 @@ function radarLabelPos(index: number, maxR: number, cx: number, cy: number, padd
 // ---------------------------------------------------------------------------
 
 export default function ExecutionScoringPage() {
-  usePageTour("execution-page");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -271,7 +268,6 @@ export default function ExecutionScoringPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Target size={24} className="text-accent" />
           Execution Scoring <InfoTooltip text="Rate 5 dimensions per trade: entry timing, stop placement, position sizing, exit execution, plan adherence." />
-          <PageInfoButton tourName="execution-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Separate strategy from execution — measure how well you follow your own rules

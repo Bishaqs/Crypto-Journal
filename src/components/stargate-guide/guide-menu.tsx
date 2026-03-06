@@ -103,6 +103,11 @@ export function GuideMenu() {
       biases: [],
     });
 
+    try {
+      const { awardXP } = await import("@/lib/xp/engine");
+      await awardXP(supabase, user.id, "behavioral_log");
+    } catch {}
+
     setEmotion(null);
     setIntensity(3);
     setNote("");

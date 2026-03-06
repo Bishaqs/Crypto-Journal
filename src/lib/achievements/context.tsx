@@ -16,7 +16,8 @@ import {
   type UnlockedAchievement,
   type NewUnlock,
 } from "./engine";
-import { ACHIEVEMENT_MAP, type AchievementTier } from "./definitions";
+import { ACHIEVEMENTS, ACHIEVEMENT_MAP, type AchievementTier } from "./definitions";
+import { awardAchievementXP } from "@/lib/xp/engine";
 
 type AchievementContextType = {
   /** All progress values */
@@ -50,8 +51,10 @@ const AchievementContext = createContext<AchievementContextType>({
 
 export function AchievementProvider({
   children,
+  userId: initialUserId,
 }: {
   children: React.ReactNode;
+  userId?: string;
 }) {
   const [progress, setProgress] = useState<AchievementProgress[]>([]);
   const [unlocked, setUnlocked] = useState<UnlockedAchievement[]>([]);
@@ -61,17 +64,18 @@ export function AchievementProvider({
     tier: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(initialUserId ?? null);
 
   const supabase = createClient();
 
-  // Get current user
+  // Get current user (skip if server already provided userId)
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    if (initialUserId) return;
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: { id: string } | null } }) => {
       if (user) setUserId(user.id);
       else setLoading(false);
     });
-  }, [supabase]);
+  }, [supabase, initialUserId]);
 
   const refresh = useCallback(async () => {
     if (!userId) return;
@@ -84,7 +88,7 @@ export function AchievementProvider({
         .eq("user_id", userId);
 
       const currentUnlocks: UnlockedAchievement[] = (existingUnlocks ?? []).map(
-        (u) => ({
+        (u: { achievement_id: string; tier: string | null; unlocked_at: string }) => ({
           achievement_id: u.achievement_id,
           tier: u.tier as AchievementTier | null,
           unlocked_at: u.unlocked_at,
@@ -97,17 +101,62 @@ export function AchievementProvider({
       // Check for new unlocks
       const newUnlocks = checkUnlocks(freshProgress, currentUnlocks);
 
-      // Save to database
-      await saveProgress(supabase, userId, freshProgress, newUnlocks);
-
-      setProgress(freshProgress);
-      setUnlocked([
+      // Compute completionist progress: check if all other achievements are maxed
+      const allUnlocksAfter = [
         ...currentUnlocks,
         ...newUnlocks.map((u) => ({
           ...u,
           unlocked_at: new Date().toISOString(),
         })),
-      ]);
+      ];
+      const completionistIdx = freshProgress.findIndex(
+        (p) => p.achievement_id === "completionist"
+      );
+      if (completionistIdx >= 0) {
+        const nonCompletionistAchievements = ACHIEVEMENTS.filter(
+          (a) => a.id !== "completionist"
+        );
+        const allMaxed = nonCompletionistAchievements.every((a) => {
+          if (a.tiers === null) {
+            return allUnlocksAfter.some(
+              (u) => u.achievement_id === a.id
+            );
+          }
+          const maxTier = a.tiers[a.tiers.length - 1].tier;
+          return allUnlocksAfter.some(
+            (u) => u.achievement_id === a.id && u.tier === maxTier
+          );
+        });
+        freshProgress[completionistIdx].current_value = allMaxed ? 1 : 0;
+        // Re-check completionist unlock
+        if (allMaxed) {
+          const compKey = "completionist:single";
+          const isAlreadyUnlocked = currentUnlocks.some(
+            (u) => u.achievement_id === "completionist"
+          );
+          const isInNewUnlocks = newUnlocks.some(
+            (u) => u.achievement_id === "completionist"
+          );
+          if (!isAlreadyUnlocked && !isInNewUnlocks) {
+            newUnlocks.push({ achievement_id: "completionist", tier: null });
+          }
+        }
+      }
+
+      // Save to database
+      await saveProgress(supabase, userId, freshProgress, newUnlocks);
+
+      // Award XP for each new unlock
+      for (const unlock of newUnlocks) {
+        try {
+          await awardAchievementXP(supabase, userId, unlock.achievement_id, unlock.tier);
+        } catch {
+          // XP tables may not exist yet
+        }
+      }
+
+      setProgress(freshProgress);
+      setUnlocked(allUnlocksAfter);
 
       if (newUnlocks.length > 0) {
         setRecentUnlocks((prev) => [...prev, ...newUnlocks]);
@@ -194,7 +243,7 @@ export function getHighestTier(
   achievementId: string,
   unlocked: UnlockedAchievement[]
 ): AchievementTier | null {
-  const tiers: AchievementTier[] = ["diamond", "gold", "silver", "bronze"];
+  const tiers: AchievementTier[] = ["legendary", "diamond", "gold", "silver", "bronze"];
   for (const tier of tiers) {
     if (
       unlocked.some(

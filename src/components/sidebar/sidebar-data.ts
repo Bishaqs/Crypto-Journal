@@ -41,7 +41,10 @@ import {
   CalendarCheck,
   Clock,
   Trophy,
+  Users,
   HelpCircle,
+  UserCircle,
+  MessageSquareText,
 } from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -91,7 +94,9 @@ export const coreItems: NavItem[] = [
   { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays, tourId: "tour-calendar" },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, tourId: "tour-analytics" },
   { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList, tourId: "tour-plans" },
+  { href: "/dashboard/challenges", label: "Challenges", icon: Target },
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy, tourId: "tour-achievements" },
+  { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users },
 ];
 
 const analysisTopItems: NavItem[] = [
@@ -181,7 +186,9 @@ const reportItems: NavItem[] = [
 ];
 
 export const bottomItems: NavItem[] = [
+  { href: "/dashboard/feedback", label: "Feedback", icon: MessageSquareText },
   { href: "/dashboard/help", label: "Help Center", icon: HelpCircle },
+  { href: "/dashboard/profile", label: "Profile", icon: UserCircle },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -251,7 +258,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     key: "journal",
     label: "Journal",
     icon: BookOpen,
-    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5], coreItems[6]],
+    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5], coreItems[6], coreItems[7], coreItems[8]],
   },
   {
     key: "analytics",
@@ -277,7 +284,7 @@ export const LABEL_KEY: Record<string, string> = {
   Dashboard: "sidebar.dashboard", "Trade Log": "sidebar.tradeLog", Journal: "sidebar.journal",
   Calendar: "sidebar.calendar", Analytics: "sidebar.analytics", "Trade Plans": "sidebar.tradePlans",
   Positions: "sidebar.positions", Watchlist: "sidebar.watchlist", Settings: "sidebar.settings",
-  Admin: "sidebar.admin", Achievements: "sidebar.achievements",
+  Admin: "sidebar.admin", Challenges: "sidebar.challenges", Achievements: "sidebar.achievements", Leaderboard: "sidebar.leaderboard",
   "Running PnL Analysis": "sidebar.runningPnl", "Trade Count": "sidebar.tradeCount",
   Volume: "sidebar.volume", "Commissions/Fees": "sidebar.commissionsFees",
   "Trade Expectancy": "sidebar.tradeExpectancy", "R-Value": "sidebar.rValue",
@@ -304,6 +311,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Rule Tracker": "sidebar.ruleTracker", Execution: "sidebar.execution",
   "Risk Analysis": "sidebar.riskAnalysis", "Prop Firm": "sidebar.propFirm",
   "Tax Reports": "sidebar.taxReports", Simulations: "sidebar.simulations",
+  Feedback: "sidebar.feedback",
   "Help Center": "sidebar.helpCenter",
 };
 
@@ -364,16 +372,20 @@ export function getResolvedCoreItems(assetContext: "crypto" | "stocks"): NavItem
 /*  Path → category mapping                                           */
 /* ────────────────────────────────────────────────────────────────── */
 
-export function isActivePath(pathname: string, href: string): boolean {
+export function isActivePath(pathname: string, href: string, search?: string): boolean {
   if (href === "/dashboard") return pathname === "/dashboard";
   if (href === "/dashboard/stocks") return pathname === "/dashboard/stocks";
-  return pathname.startsWith(href.split("?")[0]);
+  const [hrefPath, hrefQuery] = href.split("?");
+  if (!pathname.startsWith(hrefPath)) return false;
+  // If href has query params, require them to match
+  if (hrefQuery) return search === `?${hrefQuery}`;
+  return true;
 }
 
 export function getCategoryForPath(pathname: string): string | null {
   if (pathname === "/dashboard" || pathname === "/dashboard/stocks") return "home";
 
-  const journalPrefixes = ["/dashboard/trades", "/dashboard/journal", "/dashboard/calendar", "/dashboard/plans", "/dashboard/achievements", "/dashboard/stocks/trades", "/dashboard/stocks/plans"];
+  const journalPrefixes = ["/dashboard/trades", "/dashboard/journal", "/dashboard/calendar", "/dashboard/plans", "/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard", "/dashboard/stocks/trades", "/dashboard/stocks/plans"];
   if (journalPrefixes.some(p => pathname.startsWith(p))) return "journal";
 
   const analyticsPrefixes = ["/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/insights", "/dashboard/ai", "/dashboard/reports"];

@@ -13,8 +13,7 @@ import {
   Filter,
 } from "lucide-react";
 import { Header } from "@/components/header";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -155,7 +154,6 @@ type SortDir = "asc" | "desc";
 // ---------------------------------------------------------------------------
 
 export default function StockTradesPage() {
-  usePageTour("stocks-trades-page");
   const router = useRouter();
   const [trades] = useState<StockTrade[]>(MOCK_STOCK_TRADES);
   const [search, setSearch] = useState("");
@@ -240,7 +238,7 @@ export default function StockTradesPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Table2 size={24} className="text-accent" />
             Stock Trade Log
-            <PageInfoButton tourName="stocks-trades-page" />
+            <InfoTooltip text="Complete log of your stock trades — filter, sort, and review" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {filtered.length} of {trades.length} trades

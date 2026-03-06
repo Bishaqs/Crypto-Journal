@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     if (!error) {
       const isOwner = await provisionOwner(supabase);
       if (isOwner) {
-        response.cookies.set("stargate-owner", "1", { path: "/", httpOnly: false });
+        response.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true });
       }
       return response;
     }

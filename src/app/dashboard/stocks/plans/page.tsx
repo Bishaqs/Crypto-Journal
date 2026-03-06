@@ -18,8 +18,7 @@ import {
 import { Header } from "@/components/header";
 import { STOCK_SECTORS } from "@/lib/types";
 import { useTheme } from "@/lib/theme-context";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -140,7 +139,6 @@ function TradingViewTickerTape({ colorTheme }: { colorTheme: "dark" | "light" })
 // ---------------------------------------------------------------------------
 
 export default function StockWatchlistPage() {
-  usePageTour("stocks-watchlist-page");
   const { theme } = useTheme();
   const tvColorTheme = theme === "light" ? "light" : "dark";
   const [items, setItems] = useState<WatchlistItem[]>(loadWatchlist);
@@ -238,7 +236,7 @@ export default function StockWatchlistPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Eye size={24} className="text-accent" />
             Watchlist
-            <PageInfoButton tourName="stocks-watchlist-page" />
+            <InfoTooltip text="Build and manage stock watchlists with price targets and notes" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Stocks you&apos;re watching — set targets and track opportunities

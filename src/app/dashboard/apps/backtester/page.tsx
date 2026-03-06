@@ -18,8 +18,8 @@ import {
   type BacktestResult,
   TIMEFRAME_OPTIONS,
   FORMULA_PRESETS,
-  SYMBOL_GROUPS,
 } from "@/components/backtester/backtester-types";
+import SymbolSearch from "@/components/ui/symbol-search";
 import {
   runBacktest,
   generateDemoOHLC,
@@ -148,7 +148,7 @@ export default function BacktesterPage() {
     }
   }
 
-  function handleSymbolClick(sym: string) {
+  function handleSymbolSelect(sym: string) {
     setSymbol(sym);
   }
 
@@ -237,32 +237,13 @@ export default function BacktesterPage() {
         )}
       </div>
 
-      {/* Symbol Groups */}
-      <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
-        {Object.entries(SYMBOL_GROUPS).map(([groupName, symbols], gi) => (
-          <div key={groupName} className="flex items-center gap-1">
-            <span className="text-[9px] text-muted/40 uppercase tracking-wider font-semibold whitespace-nowrap mr-0.5">
-              {groupName}
-            </span>
-            {symbols.map((sym) => (
-              <button
-                key={sym}
-                onClick={() => handleSymbolClick(sym)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
-                  symbol === sym
-                    ? "bg-accent/15 text-accent border border-accent/30"
-                    : "bg-surface border border-border/50 text-muted hover:text-foreground hover:border-accent/20"
-                }`}
-              >
-                {sym}
-              </button>
-            ))}
-            {gi < Object.keys(SYMBOL_GROUPS).length - 1 && (
-              <div className="w-px h-4 bg-border/30 mx-1" />
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Symbol Search */}
+      <SymbolSearch
+        mode="crypto"
+        value={symbol}
+        onSelect={handleSymbolSelect}
+        placeholder="Search any crypto..."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* LEFT: Controls */}
@@ -280,12 +261,9 @@ export default function BacktesterPage() {
               <label className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 block">
                 Symbol
               </label>
-              <input
-                type="text"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs font-semibold focus:outline-none focus:border-accent/50 transition-all uppercase"
-              />
+              <div className="w-full px-3 py-2.5 rounded-xl bg-accent/5 border border-accent/20 text-accent text-xs font-bold uppercase">
+                {symbol}
+              </div>
             </div>
             <div>
               <label className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 block">

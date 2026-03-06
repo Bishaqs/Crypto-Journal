@@ -75,6 +75,7 @@ const hi = {
     watchlist: "वॉचलिस्ट",
     settings: "सेटिंग्स",
     admin: "एडमिन",
+    leaderboard: "लीडरबोर्ड",
     performanceAnalysis: "प्रदर्शन और विश्लेषण",
     intelligence: "इंटेलिजेंस",
     marketTools: "बाज़ार और टूल्स",
