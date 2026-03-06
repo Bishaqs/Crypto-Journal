@@ -75,6 +75,7 @@ const ru = {
     watchlist: "Список наблюдения",
     settings: "Настройки",
     admin: "Администратор",
+    leaderboard: "Таблица лидеров",
     performanceAnalysis: "Производительность и анализ",
     intelligence: "Аналитика",
     marketTools: "Рынок и инструменты",

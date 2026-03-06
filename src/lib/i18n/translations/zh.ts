@@ -75,6 +75,7 @@ const zh = {
     watchlist: "自选列表",
     settings: "设置",
     admin: "管理",
+    leaderboard: "排行榜",
     performanceAnalysis: "绩效与分析",
     intelligence: "智能",
     marketTools: "市场与工具",

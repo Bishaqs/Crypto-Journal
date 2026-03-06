@@ -75,6 +75,7 @@ const ko = {
     watchlist: "관심 목록",
     settings: "설정",
     admin: "관리자",
+    leaderboard: "리더보드",
     performanceAnalysis: "성과 및 분석",
     intelligence: "인텔리전스",
     marketTools: "마켓 및 도구",

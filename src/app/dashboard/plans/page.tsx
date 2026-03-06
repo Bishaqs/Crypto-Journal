@@ -16,11 +16,9 @@ import {
   ChevronRight,
   Trash2,
 } from "lucide-react";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function PlansPage() {
-  usePageTour("plans-page");
   const [plan, setPlan] = useState<DailyPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,6 +91,14 @@ export default function PlansPage() {
         .eq("id", plan.id);
     } else {
       await supabase.from("daily_plans").insert(planData);
+      // Award XP for new trade plan
+      try {
+        const { awardXP } = await import("@/lib/xp/engine");
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await awardXP(supabase, user.id, "trade_plan");
+        }
+      } catch { /* XP tables may not exist yet */ }
     }
 
     await fetchPlan();
@@ -133,7 +139,7 @@ export default function PlansPage() {
         <div>
           <h1 id="tour-plans-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             Trade / Day Plans
-            <PageInfoButton tourName="plans-page" />
+            <InfoTooltip text="Pre-market planning for individual trades and daily sessions" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Plan before trading. Review after.

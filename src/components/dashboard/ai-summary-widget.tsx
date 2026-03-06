@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Trade } from "@/lib/types";
 import { calculateTradePnl } from "@/lib/calculations";
 import { Brain, Sparkles } from "lucide-react";
+import { useAiEnhancedInsights, fetchAiInsight } from "@/lib/ai-insights";
 
 type QuickInsight = {
   text: string;
@@ -84,6 +86,62 @@ function generateQuickInsights(trades: Trade[]): QuickInsight[] {
   return insights.slice(0, 2);
 }
 
+function generateEarlyInsights(trades: Trade[]): QuickInsight[] {
+  const closed = trades.filter((t) => t.close_timestamp !== null);
+  const insights: QuickInsight[] = [];
+
+  if (closed.length === 0) return insights;
+
+  if (closed.length === 1) {
+    const t = closed[0];
+    const pnl = t.pnl ?? calculateTradePnl(t) ?? 0;
+    insights.push({
+      text: `First trade: ${t.symbol} ${t.position} — ${pnl >= 0 ? "+" : ""}$${pnl.toFixed(0)}`,
+      sentiment: pnl >= 0 ? "positive" : "negative",
+    });
+    if (t.emotion) {
+      insights.push({
+        text: `You logged "${t.emotion}" — tracking emotions is step 1 to consistency`,
+        sentiment: "positive",
+      });
+    }
+    if (t.process_score !== null) {
+      insights.push({
+        text: `Process score: ${t.process_score}/10 — track this over time to see your discipline trend`,
+        sentiment: "neutral",
+      });
+    }
+    return insights.slice(0, 2);
+  }
+
+  // 2 trades
+  const sorted = [...closed].sort((a, b) => a.close_timestamp!.localeCompare(b.close_timestamp!));
+  const first = sorted[0];
+  const second = sorted[1];
+  const firstPnl = first.pnl ?? calculateTradePnl(first) ?? 0;
+  const secondPnl = second.pnl ?? calculateTradePnl(second) ?? 0;
+
+  if (first.symbol === second.symbol) {
+    insights.push({
+      text: `Two ${first.symbol} trades — building conviction in your thesis`,
+      sentiment: "neutral",
+    });
+  } else {
+    insights.push({
+      text: `Diversifying: ${first.symbol} + ${second.symbol}`,
+      sentiment: "neutral",
+    });
+  }
+
+  const totalPnl = firstPnl + secondPnl;
+  insights.push({
+    text: `Running P&L: ${totalPnl >= 0 ? "+" : ""}$${totalPnl.toFixed(0)} across 2 trades`,
+    sentiment: totalPnl >= 0 ? "positive" : "negative",
+  });
+
+  return insights.slice(0, 2);
+}
+
 function getBehavioralInsight(): QuickInsight | null {
   if (typeof window === "undefined") return null;
   try {
@@ -114,11 +172,43 @@ function getBehavioralInsight(): QuickInsight | null {
 }
 
 export function AISummaryWidget({ trades }: { trades: Trade[] }) {
+  const closed = trades.filter((t) => t.close_timestamp !== null);
   const tradeInsights = generateQuickInsights(trades);
+  const earlyInsights = tradeInsights.length === 0 ? generateEarlyInsights(trades) : [];
   const behavioralInsight = getBehavioralInsight();
-  const insights = behavioralInsight
-    ? [...tradeInsights.slice(0, 2), behavioralInsight].slice(0, 3)
-    : tradeInsights;
+
+  const allInsights = tradeInsights.length > 0
+    ? (behavioralInsight ? [...tradeInsights.slice(0, 2), behavioralInsight].slice(0, 3) : tradeInsights)
+    : (behavioralInsight ? [...earlyInsights, behavioralInsight].slice(0, 3) : earlyInsights);
+
+  // Progress to pattern detection (3 closed trades needed)
+  const progressTo3 = Math.min(closed.length, 3);
+
+  // AI enhancement
+  const [aiInsight, setAiInsight] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const { isEnabled, apiKey, provider } = useAiEnhancedInsights();
+
+  useEffect(() => {
+    if (!isEnabled || !apiKey || closed.length === 0) return;
+    setAiLoading(true);
+    const recentTrades = closed.slice(0, 20).map((t) => ({
+      symbol: t.symbol,
+      position: t.position,
+      pnl: t.pnl,
+      emotion: t.emotion,
+    }));
+    fetchAiInsight(
+      recentTrades,
+      `Quick insights widget showing ${closed.length} closed trades. Local insights: ${allInsights.map((i) => i.text).join("; ")}`,
+      apiKey,
+      provider,
+    ).then((result) => {
+      setAiInsight(result);
+      setAiLoading(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEnabled, apiKey, provider, closed.length]);
 
   return (
     <div
@@ -130,9 +220,9 @@ export function AISummaryWidget({ trades }: { trades: Trade[] }) {
         <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Quick Insights</h3>
       </div>
 
-      {insights.length > 0 ? (
+      {allInsights.length > 0 ? (
         <div className="space-y-1.5">
-          {insights.map((insight, i) => (
+          {allInsights.map((insight, i) => (
             <div
               key={i}
               className={`flex items-center gap-2 text-[11px] leading-snug px-2.5 py-1.5 rounded-lg ${
@@ -149,11 +239,41 @@ export function AISummaryWidget({ trades }: { trades: Trade[] }) {
               <span>{insight.text}</span>
             </div>
           ))}
+          {/* Progress to more insights */}
+          {closed.length > 0 && closed.length < 3 && (
+            <div className="mt-2 pt-2 border-t border-border/30">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-1 rounded-full bg-border overflow-hidden">
+                  <div className="h-full rounded-full bg-accent/50 transition-all" style={{ width: `${(progressTo3 / 3) * 100}%` }} />
+                </div>
+                <span className="text-[9px] text-muted">{3 - progressTo3} more for pattern detection</span>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-2">
           <Sparkles size={16} className="text-accent/40 mx-auto mb-1" />
-          <p className="text-[11px] text-muted">Log trades with emotions to unlock insights</p>
+          <p className="text-[11px] text-muted">Log your first trade to get started</p>
+          <div className="mt-2 flex items-center gap-2 justify-center">
+            <div className="flex-1 max-w-[120px] h-1 rounded-full bg-border overflow-hidden">
+              <div className="h-full rounded-full bg-accent/50" style={{ width: "0%" }} />
+            </div>
+            <span className="text-[9px] text-muted">0/3 trades for insights</span>
+          </div>
+        </div>
+      )}
+
+      {/* AI-enhanced insight */}
+      {aiLoading && (
+        <div className="mt-2 pt-2 border-t border-border/30">
+          <div className="h-4 rounded bg-accent/10 animate-pulse" />
+        </div>
+      )}
+      {aiInsight && (
+        <div className="mt-2 pt-2 border-t border-border/30 flex items-start gap-1.5">
+          <Sparkles size={10} className="text-accent shrink-0 mt-0.5" />
+          <p className="text-[11px] text-foreground/70 leading-snug">{aiInsight}</p>
         </div>
       )}
     </div>

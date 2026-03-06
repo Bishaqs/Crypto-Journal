@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import type { Locale } from "./index";
-import { DEFAULT_LOCALE, LOCALES } from "./index";
+import type { Locale } from "./constants";
+import { DEFAULT_LOCALE, LOCALES } from "./constants";
 import en from "./translations/en";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

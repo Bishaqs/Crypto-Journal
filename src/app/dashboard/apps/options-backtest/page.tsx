@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { History, Play, Loader2 } from "lucide-react";
+import SymbolSearch from "@/components/ui/symbol-search";
 import { Header } from "@/components/header";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -216,6 +217,15 @@ export default function OptionsBacktestPage() {
         </p>
       </div>
 
+      {/* Symbol Search */}
+      <SymbolSearch
+        mode="stock"
+        value={symbol}
+        onSelect={(sym) => { if (sym !== symbol) setSymbol(sym); }}
+        popularKey="options-backtest"
+        placeholder="Search any stock..."
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Controls */}
         <div className="glass rounded-2xl border border-border/50 p-6 space-y-5" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -224,12 +234,9 @@ export default function OptionsBacktestPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 block">Underlying Symbol</label>
-              <input
-                type="text"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm font-medium focus:outline-none focus:border-accent/50 transition-all"
-              />
+              <div className="w-full px-4 py-3 rounded-xl bg-accent/5 border border-accent/20 text-accent text-sm font-bold uppercase">
+                {symbol}
+              </div>
             </div>
             <div>
               <label className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 block">Date Range</label>

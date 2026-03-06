@@ -29,7 +29,13 @@ import {
   Info,
   TrendingUp,
   Brain,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  Sparkles,
+  Zap,
 } from "lucide-react";
+import { useTheme } from "@/lib/theme-context";
 import type { Chain, Wallet as WalletType } from "@/lib/types";
 import { CHAINS } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
@@ -92,6 +98,7 @@ type SettingsTab =
   | "connections"
   | "trading-accounts"
   | "global"
+  | "ai"
   | "subscription"
   | "referrals"
   | "export";
@@ -101,6 +108,7 @@ const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerO
   { value: "connections", label: "Connected Accounts", icon: Link2 },
   { value: "trading-accounts", label: "Trading Accounts", icon: Wallet },
   { value: "global", label: "Global Settings", icon: Globe },
+  { value: "ai", label: "AI Coach", icon: Brain },
   { value: "subscription", label: "Subscription", icon: CreditCard },
   { value: "referrals", label: "Referrals", icon: Gift },
   { value: "export", label: "Export Data", icon: Download },
@@ -126,6 +134,35 @@ const TIMEZONES = [
 /* ================================================================
    SHARED COMPONENTS
    ================================================================ */
+
+function PerformanceSection() {
+  const { reducedMotion, setReducedMotion } = useTheme();
+  return (
+    <SectionCard icon={Zap} title="Performance" description="Control visual effects and animations.">
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">Reduce animations</p>
+          <p className="text-xs text-muted leading-relaxed">
+            Turns off background effects like the black hole, shooting stars, particles, and floating elements. Improves performance on older devices and reduces battery usage.
+          </p>
+        </div>
+        <button
+          onClick={() => setReducedMotion(!reducedMotion)}
+          className={`relative shrink-0 w-12 h-6 rounded-full transition-colors duration-200 ${
+            reducedMotion ? "bg-accent" : "bg-border"
+          }`}
+          aria-label="Toggle reduced animations"
+        >
+          <div
+            className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-200 ${
+              reducedMotion ? "left-6" : "left-0.5"
+            }`}
+          />
+        </button>
+      </div>
+    </SectionCard>
+  );
+}
 
 function SectionCard({
   icon: Icon,
@@ -235,7 +272,7 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
    MAIN SETTINGS PAGE
    ================================================================ */
 
-const VALID_TABS = new Set<SettingsTab>(["account", "connections", "trading-accounts", "global", "subscription", "referrals", "export"]);
+const VALID_TABS = new Set<SettingsTab>(["account", "connections", "trading-accounts", "global", "ai", "subscription", "referrals", "export"]);
 
 export default function SettingsPage() {
   return (
@@ -264,7 +301,7 @@ function SettingsContent() {
   // Fetch user email on mount
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: { email?: string } | null } }) => {
       if (user?.email) setUserEmail(user.email);
     });
   }, []);
@@ -288,10 +325,13 @@ function SettingsContent() {
   const { locale, setLocale } = useI18n();
 
   // AI provider state
-  const [aiProvider, setAiProvider] = useState("anthropic");
+  const [aiProvider, setAiProvider] = useState("google");
   const [aiModel, setAiModel] = useState("");
   const [aiProviders, setAiProviders] = useState<{ id: string; name: string; models: { id: string; label: string }[]; defaultModel: string }[]>([]);
   const [allAiProviders, setAllAiProviders] = useState<{ id: string; name: string; models: { id: string; label: string }[]; defaultModel: string }[]>([]);
+  const [aiApiKey, setAiApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [aiEnhancedInsights, setAiEnhancedInsights] = useState(false);
 
   // Wallet state
   const [wallets, setWallets] = useState<WalletType[]>([]);
@@ -312,8 +352,12 @@ function SettingsContent() {
     // Load AI provider preference
     const savedProvider = localStorage.getItem("stargate-ai-provider");
     const savedModel = localStorage.getItem("stargate-ai-model");
+    const savedApiKey = localStorage.getItem("stargate-ai-api-key");
     if (savedProvider) setAiProvider(savedProvider);
     if (savedModel) setAiModel(savedModel);
+    if (savedApiKey) setAiApiKey(savedApiKey);
+    const aiInsightsEnabled = localStorage.getItem("stargate-ai-enhanced-insights");
+    if (aiInsightsEnabled === "true") setAiEnhancedInsights(true);
 
     // Fetch available AI providers
     fetch("/api/ai/providers")
@@ -735,46 +779,6 @@ function SettingsContent() {
             />
           </SectionCard>
 
-          <SectionCard icon={Brain} title="AI Coach" description="Choose your AI provider and model for the trading coach.">
-            <SelectField
-              label="AI Provider"
-              value={aiProvider}
-              onChange={(v) => {
-                setAiProvider(v);
-                localStorage.setItem("stargate-ai-provider", v);
-                // Reset model to provider's default
-                const prov = allAiProviders.find((p) => p.id === v);
-                const defaultModel = prov?.defaultModel ?? "";
-                setAiModel(defaultModel);
-                localStorage.setItem("stargate-ai-model", defaultModel);
-              }}
-              options={allAiProviders.map((p) => {
-                const available = aiProviders.some((ap) => ap.id === p.id);
-                return { value: p.id, label: `${p.name}${available ? "" : " (not configured)"}` };
-              })}
-            />
-            <SelectField
-              label="Model"
-              value={aiModel || (allAiProviders.find((p) => p.id === aiProvider)?.defaultModel ?? "")}
-              onChange={(v) => {
-                setAiModel(v);
-                localStorage.setItem("stargate-ai-model", v);
-              }}
-              options={(allAiProviders.find((p) => p.id === aiProvider)?.models ?? []).map((m) => ({
-                value: m.id,
-                label: m.label,
-              }))}
-            />
-            {!aiProviders.some((p) => p.id === aiProvider) && (
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
-                <Info size={14} className="text-amber-500 mt-0.5 shrink-0" />
-                <p className="text-xs text-muted leading-relaxed">
-                  This provider is not configured on the server. Ask the administrator to add the API key.
-                </p>
-              </div>
-            )}
-          </SectionCard>
-
           <SectionCard icon={FileText} title="Tax & Accounting" description="Set your cost basis calculation method.">
             <SelectField
               label="Cost Basis Method"
@@ -818,7 +822,151 @@ function SettingsContent() {
             />
           </SectionCard>
 
+          <PerformanceSection />
+
           <SaveButton saved={globalSaved} onClick={saveGlobal} label="Save Global Settings" />
+        </div>
+      )}
+
+      {/* ============ AI COACH TAB ============ */}
+      {tab === "ai" && (
+        <div className="space-y-6">
+          <SectionCard icon={Brain} title="AI Coach" description="Choose your AI provider and model for the trading coach.">
+            <SelectField
+              label="AI Provider"
+              value={aiProvider}
+              onChange={(v) => {
+                setAiProvider(v);
+                localStorage.setItem("stargate-ai-provider", v);
+                const prov = allAiProviders.find((p) => p.id === v);
+                const defaultModel = prov?.defaultModel ?? "";
+                setAiModel(defaultModel);
+                localStorage.setItem("stargate-ai-model", defaultModel);
+              }}
+              options={allAiProviders.map((p) => {
+                const available = aiProviders.some((ap) => ap.id === p.id);
+                return { value: p.id, label: `${p.name}${available ? " (built-in)" : ""}` };
+              })}
+            />
+            <SelectField
+              label="Model"
+              value={aiModel || (allAiProviders.find((p) => p.id === aiProvider)?.defaultModel ?? "")}
+              onChange={(v) => {
+                setAiModel(v);
+                localStorage.setItem("stargate-ai-model", v);
+              }}
+              options={(allAiProviders.find((p) => p.id === aiProvider)?.models ?? []).map((m) => ({
+                value: m.id,
+                label: m.label,
+              }))}
+            />
+            {aiProviders.some((p) => p.id === aiProvider) && !aiApiKey && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-win/5 border border-win/10">
+                <CheckCircle2 size={14} className="text-win mt-0.5 shrink-0" />
+                <p className="text-xs text-muted leading-relaxed">
+                  Built-in AI is active — no API key needed.
+                </p>
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard icon={Key} title="Your API Key" description="Bring your own API key to use a different provider or unlock higher-quality models.">
+            <div className="relative">
+              <input
+                type={showApiKey ? "text" : "password"}
+                value={aiApiKey}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setAiApiKey(v);
+                  if (v) {
+                    localStorage.setItem("stargate-ai-api-key", v);
+                  } else {
+                    localStorage.removeItem("stargate-ai-api-key");
+                  }
+                }}
+                placeholder={aiProvider === "anthropic" ? "sk-ant-..." : aiProvider === "openai" ? "sk-..." : "AIza..."}
+                className="w-full px-4 py-3 pr-10 rounded-xl bg-background border border-border text-foreground text-sm font-mono focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+              >
+                {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {aiApiKey ? (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-accent/5 border border-accent/10">
+                <CheckCircle2 size={14} className="text-accent mt-0.5 shrink-0" />
+                <p className="text-xs text-muted leading-relaxed">
+                  Using your personal API key for <strong className="text-foreground">{allAiProviders.find((p) => p.id === aiProvider)?.name ?? aiProvider}</strong>. Your key is stored locally in your browser only — it is never saved on our servers.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted leading-relaxed">
+                  Paste your API key above to use your own account. Keys are stored in your browser only.
+                </p>
+                <div className="text-[11px] text-muted/60 space-y-1">
+                  <p><strong className="text-muted">Claude (Anthropic)</strong> — get a key at console.anthropic.com</p>
+                  <p><strong className="text-muted">ChatGPT (OpenAI)</strong> — get a key at platform.openai.com</p>
+                  <p><strong className="text-muted">Gemini (Google)</strong> — get a key at aistudio.google.com (free)</p>
+                </div>
+              </div>
+            )}
+          </SectionCard>
+
+          {/* AI-Enhanced Dashboard Insights */}
+          <SectionCard icon={Sparkles} title="AI-Enhanced Dashboard Insights" description="Get richer, AI-generated insights on your dashboard using your API key.">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-foreground font-medium">Enable AI-Enhanced Insights</p>
+                <p className="text-[11px] text-muted mt-0.5">
+                  {aiApiKey
+                    ? "Appends AI-generated insights below your dashboard widgets"
+                    : "Add your API key above to enable this feature"}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  if (!aiApiKey) return;
+                  const next = !aiEnhancedInsights;
+                  setAiEnhancedInsights(next);
+                  if (next) {
+                    localStorage.setItem("stargate-ai-enhanced-insights", "true");
+                  } else {
+                    localStorage.removeItem("stargate-ai-enhanced-insights");
+                  }
+                }}
+                disabled={!aiApiKey}
+                className={`relative w-11 h-6 rounded-full transition-all shrink-0 ${
+                  aiEnhancedInsights && aiApiKey ? "bg-accent" : "bg-border"
+                } ${!aiApiKey ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
+              >
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                  aiEnhancedInsights && aiApiKey ? "left-6" : "left-1"
+                }`} />
+              </button>
+            </div>
+
+            {aiEnhancedInsights && aiApiKey && (
+              <div className="mt-3 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                  <div className="text-[11px] text-muted leading-relaxed space-y-1">
+                    <p className="font-semibold text-amber-400">Cost Notice</p>
+                    <p>AI-Enhanced Insights uses your personal API key on each dashboard visit.</p>
+                    <ul className="list-disc list-inside space-y-0.5 ml-1">
+                      <li>~500–1,000 tokens per request (input + output)</li>
+                      <li>Estimated: $0.01–0.05/day with typical usage</li>
+                      <li>Counts toward your daily AI request limit</li>
+                      <li>Disable anytime — local insights always available</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+          </SectionCard>
         </div>
       )}
 

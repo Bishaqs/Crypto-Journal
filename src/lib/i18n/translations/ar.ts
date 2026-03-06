@@ -75,6 +75,7 @@ const ar = {
     watchlist: "قائمة المتابعة",
     settings: "الإعدادات",
     admin: "الإدارة",
+    leaderboard: "لوحة المتصدرين",
     performanceAnalysis: "الأداء والتحليل",
     intelligence: "الذكاء",
     marketTools: "السوق والأدوات",

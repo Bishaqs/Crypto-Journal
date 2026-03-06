@@ -6,12 +6,14 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { TradeForm } from "@/components/trade-form";
 import { CSVImportModal } from "@/components/csv-import-modal";
+import { QuickTradeForm } from "@/components/quick-trade-form";
 import {
-  Plus, Upload, Download, BookOpen, RefreshCw,
+  Plus, Upload, Download, BookOpen, RefreshCw, Zap,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 const ACTIONS = [
+  { key: "quickTrade", tKey: "quickAction.quickTrade", icon: Zap },
   { key: "trade", tKey: "quickAction.logTrade", icon: Plus },
   { key: "import", tKey: "quickAction.importCsv", icon: Upload },
   { key: "note", tKey: "quickAction.addNote", icon: BookOpen },
@@ -26,10 +28,11 @@ type ActionKey = (typeof ACTIONS)[number]["key"];
  * Renders a trigger button + popup grid + modals.
  * The trigger button and popup are positioned relative to the parent container.
  */
-export function QuickActionMenu({ collapsed }: { collapsed?: boolean }) {
+export function QuickActionMenu() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [showTradeForm, setShowTradeForm] = useState(false);
+  const [showQuickTrade, setShowQuickTrade] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -89,6 +92,9 @@ export function QuickActionMenu({ collapsed }: { collapsed?: boolean }) {
   function handleAction(key: ActionKey) {
     setOpen(false);
     switch (key) {
+      case "quickTrade":
+        setShowQuickTrade(true);
+        break;
       case "trade":
         setShowTradeForm(true);
         break;
@@ -110,31 +116,30 @@ export function QuickActionMenu({ collapsed }: { collapsed?: boolean }) {
   }
 
   return (
-    <>
+    <div className="relative">
       {/* Trigger button */}
       <button
         ref={buttonRef}
         onClick={() => setOpen(!open)}
         title="Quick Actions"
-        className={`flex items-center justify-center rounded-lg transition-all duration-200 ${
-          collapsed
-            ? "w-8 h-8 bg-accent/10 text-accent hover:bg-accent/20"
-            : "w-7 h-7 bg-accent/10 text-accent hover:bg-accent/20"
-        }`}
+        className="p-2 rounded-xl bg-surface border border-border text-muted hover:text-foreground hover:border-accent/30 transition-all"
+        style={{ boxShadow: "var(--shadow-card)" }}
       >
         <Plus
-          size={collapsed ? 16 : 14}
+          size={14}
           className={`transition-transform duration-200 ${open ? "rotate-45" : ""}`}
         />
       </button>
 
-      {/* Action grid popup — fixed position so it escapes sidebar overflow */}
+      {/* Action grid popup */}
       {open && (
-        <div
-          ref={popupRef}
-          className="fixed left-16 top-4 z-[80] w-56 glass rounded-2xl border border-border/50 p-3.5 shadow-2xl animate-in slide-in-from-left-2 duration-200"
-          style={{ boxShadow: "var(--shadow-cosmic)" }}
-        >
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            ref={popupRef}
+            className="absolute right-0 top-full mt-2 z-50 w-56 glass rounded-2xl border border-border/50 p-3.5 shadow-2xl"
+            style={{ boxShadow: "var(--shadow-cosmic)" }}
+          >
           <p className="text-[10px] text-muted/60 uppercase tracking-widest font-semibold mb-2.5">
             {t("quickAction.title")}
           </p>
@@ -157,9 +162,24 @@ export function QuickActionMenu({ collapsed }: { collapsed?: boolean }) {
             ))}
           </div>
         </div>
+        </>
       )}
 
       {/* Modals */}
+      {showQuickTrade && (
+        <QuickTradeForm
+          onClose={() => setShowQuickTrade(false)}
+          onSaved={() => {
+            setShowQuickTrade(false);
+            router.refresh();
+          }}
+          onSwitchToFull={() => {
+            setShowQuickTrade(false);
+            setShowTradeForm(true);
+          }}
+        />
+      )}
+
       {showTradeForm && (
         <TradeForm
           onClose={() => setShowTradeForm(false)}
@@ -179,6 +199,6 @@ export function QuickActionMenu({ collapsed }: { collapsed?: boolean }) {
           }}
         />
       )}
-    </>
+    </div>
   );
 }

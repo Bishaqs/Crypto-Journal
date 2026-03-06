@@ -17,6 +17,7 @@ import {
   Crown,
   Zap,
 } from "lucide-react";
+import { RealisticBlackHole } from "@/components/realistic-black-hole";
 
 type Step = 1 | 2 | 3;
 
@@ -266,65 +267,47 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Left side — branding (desktop only) */}
-      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-background to-background" />
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="stars-small" />
-          <div className="stars-medium" />
-          <div
-            className="shooting-star"
-            style={{ top: "15%", left: "25%" }}
-          />
-          <div
-            className="shooting-star"
-            style={{ top: "45%", left: "55%", animationDelay: "5s" }}
-          />
-        </div>
-        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-10 w-72 h-72 bg-accent/5 rounded-full blur-3xl" />
+      {/* Left — branding (desktop only) */}
+      <div className="hidden lg:flex lg:w-[450px] shrink-0 flex-col justify-center px-12">
+        <h1 className="text-4xl font-bold text-foreground mb-3">Stargate</h1>
+        <p className="text-lg text-muted mb-12">
+          Your edge starts with knowing yourself.
+        </p>
 
-        <div className="relative z-10 flex flex-col justify-center px-16">
-          <h1 className="text-4xl font-bold text-foreground mb-3">Stargate</h1>
-          <p className="text-lg text-muted mb-12">
-            Your edge starts with knowing yourself.
-          </p>
-
-          <div className="space-y-6">
-            {[
-              {
-                icon: BarChart3,
-                title: "Track Every Trade",
-                desc: "Win rate, profit factor, P&L curves — see where your money goes.",
-              },
-              {
-                icon: BookOpen,
-                title: "Journal Your Process",
-                desc: "Tag, search, and filter your notes. Build a library of lessons.",
-              },
-              {
-                icon: Brain,
-                title: "AI-Powered Insights",
-                desc: "Let AI find patterns you can't see. Know your strengths and blind spots.",
-              },
-            ].map((item) => (
-              <div key={item.title} className="flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-accent/10 shrink-0">
-                  <item.icon size={20} className="text-accent" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-foreground mb-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-muted">{item.desc}</p>
-                </div>
+        <div className="space-y-6">
+          {[
+            {
+              icon: BarChart3,
+              title: "Track Every Trade",
+              desc: "Win rate, profit factor, P&L curves — see where your money goes.",
+            },
+            {
+              icon: BookOpen,
+              title: "Journal Your Process",
+              desc: "Tag, search, and filter your notes. Build a library of lessons.",
+            },
+            {
+              icon: Brain,
+              title: "AI-Powered Insights",
+              desc: "Let AI find patterns you can't see. Know your strengths and blind spots.",
+            },
+          ].map((item) => (
+            <div key={item.title} className="flex items-start gap-4">
+              <div className="p-2.5 rounded-lg bg-accent/10 shrink-0">
+                <item.icon size={20} className="text-accent" />
               </div>
-            ))}
-          </div>
+              <div>
+                <h3 className="text-sm font-medium text-foreground mb-1">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-muted">{item.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Right side — step content */}
+      {/* Center — sign-in form */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           {/* Progress indicator */}
@@ -408,7 +391,7 @@ export default function LoginPage() {
                     setError("Google sign-in is not available yet. Please use email/password.");
                   }
                 }}
-                className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg bg-surface border border-border text-foreground font-medium hover:bg-surface-hover hover:border-accent/30 transition-all mb-6"
+                className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg bg-white/10 border border-white/15 text-foreground font-medium hover:bg-white/15 hover:border-accent/30 transition-all mb-6"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24">
                   <path
@@ -451,7 +434,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full px-3 py-2.5 rounded-lg bg-surface border border-border text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/15 text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -470,7 +453,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="w-full px-3 py-2.5 rounded-lg bg-surface border border-border text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/15 text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
                     placeholder="Min 6 characters"
                   />
                 </div>
@@ -502,7 +485,7 @@ export default function LoginPage() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="w-full px-3 py-2.5 rounded-lg bg-surface border border-border text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
+                      className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/15 text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
                       placeholder="Repeat your password"
                     />
                   </div>
@@ -878,6 +861,13 @@ export default function LoginPage() {
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Right — black hole (desktop only) */}
+      <div className="hidden lg:flex lg:w-[450px] shrink-0 items-center justify-center pointer-events-none">
+        <div className="relative w-[450px] h-[600px]">
+          <RealisticBlackHole size="large" opacity={0.35} />
         </div>
       </div>
     </div>

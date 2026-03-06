@@ -16,8 +16,6 @@ import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -127,7 +125,6 @@ const OVERTRADING_DATA = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function HeatMapsPage() {
-  usePageTour("heatmaps-page");
   const { hasAccess, loading: subLoading } = useSubscription();
   const [tab, setTab] = useState<TabId>("time-day");
   const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null);
@@ -214,7 +211,7 @@ export default function HeatMapsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Heat Maps
-          <PageInfoButton tourName="heatmaps-page" />
+          <InfoTooltip text="Visual trading pattern heatmaps — performance by hour, day, and session" />
         </h2>
         <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
           <Sparkles size={12} className="text-accent" />

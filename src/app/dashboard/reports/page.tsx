@@ -24,11 +24,9 @@ import {
   XCircle,
   Brain,
 } from "lucide-react";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function ReportsPage() {
-  usePageTour("reports-page");
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -107,7 +105,7 @@ export default function ReportsPage() {
           <h1 id="tour-reports-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <FileBarChart size={24} className="text-accent" />
             Weekly Report
-            <PageInfoButton tourName="reports-page" />
+            <InfoTooltip text="Auto-generated weekly performance summaries with key metrics and trade breakdowns" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Auto-generated performance review

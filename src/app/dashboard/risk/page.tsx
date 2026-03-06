@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { Calculator, DollarSign, Target, AlertTriangle, TrendingUp } from "lucide-react";
 import { Header } from "@/components/header";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function RiskCalculatorPage() {
-  usePageTour("risk-calc-page");
   const [accountSize, setAccountSize] = useState(10000);
   const [riskPercent, setRiskPercent] = useState(1);
   const [entryPrice, setEntryPrice] = useState(97000);
@@ -41,7 +39,7 @@ export default function RiskCalculatorPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Calculator size={24} className="text-accent" />
           Risk Calculator
-          <PageInfoButton tourName="risk-calc-page" />
+          <InfoTooltip text="Position size calculator — enter risk %, stop loss, and get exact position size" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Calculate position size, dollar risk, and R-multiple targets

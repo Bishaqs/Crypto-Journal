@@ -14,16 +14,16 @@ class AnthropicProvider implements AIProvider {
   id: ProviderId = "anthropic";
   name = "Claude (Anthropic)";
 
-  isConfigured(): boolean {
-    return !!process.env.ANTHROPIC_API_KEY;
+  isConfigured(apiKey?: string): boolean {
+    return !!(apiKey || process.env.ANTHROPIC_API_KEY);
   }
 
-  private getClient(): Anthropic {
-    return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+  private getClient(apiKey?: string): Anthropic {
+    return new Anthropic({ apiKey: apiKey || process.env.ANTHROPIC_API_KEY! });
   }
 
   async chat(opts: MessageOptions): Promise<string> {
-    const client = this.getClient();
+    const client = this.getClient(opts.apiKey);
     const response = await client.messages.create({
       model: opts.model,
       max_tokens: opts.maxTokens,
@@ -37,7 +37,7 @@ class AnthropicProvider implements AIProvider {
   }
 
   async *stream(opts: MessageOptions): AsyncIterable<string> {
-    const client = this.getClient();
+    const client = this.getClient(opts.apiKey);
     const stream = client.messages.stream({
       model: opts.model,
       max_tokens: opts.maxTokens,
@@ -62,16 +62,16 @@ class OpenAIProvider implements AIProvider {
   id: ProviderId = "openai";
   name = "ChatGPT (OpenAI)";
 
-  isConfigured(): boolean {
-    return !!process.env.OPENAI_API_KEY;
+  isConfigured(apiKey?: string): boolean {
+    return !!(apiKey || process.env.OPENAI_API_KEY);
   }
 
-  private getClient(): OpenAI {
-    return new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+  private getClient(apiKey?: string): OpenAI {
+    return new OpenAI({ apiKey: apiKey || process.env.OPENAI_API_KEY! });
   }
 
   async chat(opts: MessageOptions): Promise<string> {
-    const client = this.getClient();
+    const client = this.getClient(opts.apiKey);
     const response = await client.chat.completions.create({
       model: opts.model,
       max_tokens: opts.maxTokens,
@@ -84,7 +84,7 @@ class OpenAIProvider implements AIProvider {
   }
 
   async *stream(opts: MessageOptions): AsyncIterable<string> {
-    const client = this.getClient();
+    const client = this.getClient(opts.apiKey);
     const stream = await client.chat.completions.create({
       model: opts.model,
       max_tokens: opts.maxTokens,
@@ -108,16 +108,16 @@ class GoogleProvider implements AIProvider {
   id: ProviderId = "google";
   name = "Gemini (Google)";
 
-  isConfigured(): boolean {
-    return !!process.env.GOOGLE_AI_API_KEY;
+  isConfigured(apiKey?: string): boolean {
+    return !!(apiKey || process.env.GOOGLE_AI_API_KEY);
   }
 
-  private getClient(): GoogleGenerativeAI {
-    return new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+  private getClient(apiKey?: string): GoogleGenerativeAI {
+    return new GoogleGenerativeAI(apiKey || process.env.GOOGLE_AI_API_KEY!);
   }
 
   async chat(opts: MessageOptions): Promise<string> {
-    const genAI = this.getClient();
+    const genAI = this.getClient(opts.apiKey);
     const model = genAI.getGenerativeModel({
       model: opts.model,
       systemInstruction: opts.system,
@@ -127,7 +127,7 @@ class GoogleProvider implements AIProvider {
   }
 
   async *stream(opts: MessageOptions): AsyncIterable<string> {
-    const genAI = this.getClient();
+    const genAI = this.getClient(opts.apiKey);
     const model = genAI.getGenerativeModel({
       model: opts.model,
       systemInstruction: opts.system,
@@ -152,13 +152,14 @@ const providers: Record<ProviderId, AIProvider> = {
 /**
  * Get an AI provider by ID. Falls back to the default provider
  * if the requested one isn't configured.
+ * @param apiKey Optional BYOK key — if provided, the requested provider is considered configured.
  */
-export function getProvider(id?: ProviderId | string): AIProvider {
+export function getProvider(id?: ProviderId | string, apiKey?: string): AIProvider {
   const providerId = (id ?? DEFAULT_PROVIDER) as ProviderId;
   const provider = providers[providerId];
-  if (provider?.isConfigured()) return provider;
+  if (provider?.isConfigured(apiKey)) return provider;
 
-  // Fall back to any configured provider
+  // Fall back to any configured provider (server-side keys only)
   const fallback = Object.values(providers).find((p) => p.isConfigured());
   if (fallback) return fallback;
 

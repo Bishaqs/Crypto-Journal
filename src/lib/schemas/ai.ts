@@ -28,12 +28,13 @@ const TradeSchema = z.object({
 // AI chat request body (used by /api/ai and /api/ai/stream)
 export const AiChatSchema = z.object({
   message: z.string().min(1, "Message is required").max(5000, "Message must be under 5000 characters"),
-  trades: z.array(TradeSchema).max(200).optional().default([]),
+  trades: z.array(TradeSchema).max(2000).optional().default([]),
   context: z.object({
     weeklyReport: z.string().optional(),
   }).passthrough().optional().default({}),
   provider: z.string().optional(),
   model: z.string().optional(),
+  apiKey: z.string().max(256).optional(),
 });
 
 // Trade summary request body (used by /api/ai/trade-summary)
@@ -41,4 +42,15 @@ export const TradeSummarySchema = z.object({
   trade: TradeSchema.refine((t) => t.symbol, { message: "Trade must have a symbol" }),
   provider: z.string().optional(),
   model: z.string().optional(),
+  apiKey: z.string().max(256).optional(),
+});
+
+// Dashboard insight request body (used by /api/ai/trade-summary with mode: "dashboard-insight")
+export const DashboardInsightSchema = z.object({
+  mode: z.literal("dashboard-insight"),
+  context: z.string().max(2000),
+  trades: z.array(TradeSchema).max(20),
+  provider: z.string().optional(),
+  model: z.string().optional(),
+  apiKey: z.string().max(256).optional(),
 });

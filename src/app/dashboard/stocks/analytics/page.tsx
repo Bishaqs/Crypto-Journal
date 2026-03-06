@@ -22,8 +22,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Header } from "@/components/header";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 // ---------------------------------------------------------------------------
 // Mock data — Sector Rotation (monthly P&L by sector over 6 months)
@@ -90,7 +89,6 @@ const EQUITY_STATS = {
 // ---------------------------------------------------------------------------
 
 export default function StockAnalyticsPage() {
-  usePageTour("stocks-analytics-page");
   const [showCombined, setShowCombined] = useState(false);
 
   // Compute sector area keys from data
@@ -108,7 +106,7 @@ export default function StockAnalyticsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Stock Analytics
-          <PageInfoButton tourName="stocks-analytics-page" />
+          <InfoTooltip text="Visual analytics for your stock trading — win rates, P&L trends, and comparisons" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Performance breakdown across sectors, sessions, and instruments

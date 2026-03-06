@@ -21,8 +21,6 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { usePageTour } from "@/lib/use-page-tour";
-import { PageInfoButton } from "@/components/ui/page-info-button";
 
 type SortKey = "date" | "symbol" | "pnl" | "emotion" | "process_score";
 type SortDir = "asc" | "desc";
@@ -30,7 +28,6 @@ type SortDir = "asc" | "desc";
 const EMOTION_OPTIONS = ["All", "Calm", "Confident", "Excited", "Anxious", "FOMO", "Frustrated", "Revenge", "Bored"];
 
 export default function TradesPage() {
-  usePageTour("trades-page");
   const router = useRouter();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +135,6 @@ export default function TradesPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Table2 size={24} className="text-accent" />
           Trade Log <InfoTooltip text="All your trades in one place — filter, sort, and review" />
-          <PageInfoButton tourName="trades-page" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           {usingDemo ? "Sample data" : `${filtered.length} of ${trades.length} trades`}

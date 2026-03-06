@@ -39,11 +39,11 @@ export function Sidebar() {
   /* ── Owner detection: context → cookie → client-side auth ── */
   useEffect(() => {
     if (isOwnerFromContext) { setIsOwner(true); return; }
-    // Fallback: client-side Supabase auth check
+    // Cookie is httpOnly now — skip cookie check, go to client-side auth fallback
     const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
     if (!ownerEmail) return;
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: { email?: string } | null } }) => {
       if (user?.email?.toLowerCase() === ownerEmail.toLowerCase()) {
         setIsOwner(true);
       }

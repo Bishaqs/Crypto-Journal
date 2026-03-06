@@ -1,39 +1,24 @@
 "use client";
+import { useRef, useMemo, useEffect } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 type BlackHoleSize = "small" | "medium" | "large";
 type BlackHoleColor = "purple" | "orange" | "blue" | "green" | "neutral";
 
-const COLOR_PALETTES: Record<BlackHoleColor, { primary: string; bright: string; mid: string; glow: string; dark: string }> = {
-  purple: { primary: "139,92,246", bright: "221,214,254", mid: "167,139,250", glow: "196,181,253", dark: "91,33,182" },
-  orange: { primary: "249,115,22", bright: "254,215,170", mid: "251,146,60", glow: "253,186,116", dark: "194,65,12" },
-  blue: { primary: "14,165,233", bright: "186,230,253", mid: "56,189,248", glow: "125,211,252", dark: "3,105,161" },
-  green: { primary: "34,197,94", bright: "187,247,208", mid: "74,222,128", glow: "134,239,172", dark: "21,128,61" },
-  neutral: { primary: "161,161,170", bright: "228,228,231", mid: "212,212,216", glow: "244,244,245", dark: "82,82,91" },
+const COLOR_PALETTES: Record<
+  BlackHoleColor,
+  { primary: string; bright: string; mid: string; glow: string; dark: string; voidEdge: string }
+> = {
+  purple: { primary: "139,92,246", bright: "221,214,254", mid: "150,120,255", glow: "200,180,255", dark: "91,33,182", voidEdge: "#0a0515" },
+  orange: { primary: "249,115,22", bright: "254,215,170", mid: "251,146,60", glow: "253,186,116", dark: "194,65,12", voidEdge: "#150a05" },
+  blue: { primary: "14,165,233", bright: "186,230,253", mid: "56,189,248", glow: "125,211,252", dark: "3,105,161", voidEdge: "#050a15" },
+  green: { primary: "34,197,94", bright: "187,247,208", mid: "74,222,128", glow: "134,239,172", dark: "21,128,61", voidEdge: "#050f0a" },
+  neutral: { primary: "161,161,170", bright: "228,228,231", mid: "212,212,216", glow: "244,244,245", dark: "82,82,91", voidEdge: "#0a0a0f" },
 };
 
-const SIZE_MAP = {
-  small: {
-    horizon: 50,
-    diskW: 180, diskH: 28,
-    arcW: 90, arcTopH: 52, arcBottomH: 44,
-    photonRing: 1.5,
-    glowSpread: 15,
-  },
-  medium: {
-    horizon: 160,
-    diskW: 440, diskH: 60,
-    arcW: 220, arcTopH: 110, arcBottomH: 90,
-    photonRing: 2,
-    glowSpread: 30,
-  },
-  large: {
-    horizon: 200,
-    diskW: 520, diskH: 70,
-    arcW: 270, arcTopH: 130, arcBottomH: 105,
-    photonRing: 2.5,
-    glowSpread: 40,
-  },
-};
+const SCALE_MAP: Record<BlackHoleSize, number> = { small: 0.25, medium: 0.55, large: 1 };
 
 export function RealisticBlackHole({
   size = "large",
@@ -44,221 +29,232 @@ export function RealisticBlackHole({
   opacity?: number;
   color?: BlackHoleColor;
 }) {
-  const s = SIZE_MAP[size];
+  const container = useRef<HTMLDivElement>(null);
+  const tweensRef = useRef<gsap.core.Tween[]>([]);
+  const reducedMotion = useReducedMotion();
   const c = COLOR_PALETTES[color];
-  const half = s.horizon / 2;
+  const scale = SCALE_MAP[size];
+
+  const stars = useMemo(
+    () =>
+      Array.from({ length: 20 }).map((_, i) => ({
+        id: i,
+        x: (Math.random() - 0.5) * 800,
+        y: (Math.random() - 0.5) * 800,
+        scale: 0.2 + Math.random() * 1.5,
+        opacity: 0.1 + Math.random() * 0.7,
+        duration: 2 + Math.random() * 4,
+        delay: Math.random() * 5,
+        rotation: (Math.random() - 0.5) * 1440,
+      })),
+    [],
+  );
+
+  useGSAP(
+    () => {
+      if (!container.current || reducedMotion) return;
+      const tweens: gsap.core.Tween[] = [];
+
+      // 1. Container Breathing
+      tweens.push(gsap.to(container.current, {
+        y: -15,
+        x: 10,
+        rotationZ: 1,
+        duration: 10,
+        yoyo: true,
+        repeat: -1,
+        ease: "sine.inOut",
+      }));
+
+      // 2. Accretion Disk Rotation
+      tweens.push(gsap.to(".accretion-group", { rotationZ: -360, duration: 25, ease: "none", repeat: -1 }));
+      tweens.push(gsap.to(".accretion-group-reverse", { rotationZ: 360, duration: 35, ease: "none", repeat: -1 }));
+
+      // 3. Einstein Ring
+      tweens.push(gsap.to(".einstein-ring", { rotationZ: -360, scale: 1.02, duration: 40, yoyo: true, repeat: -1, ease: "sine.inOut" }));
+
+      // 4. Photon Sphere Pulse (transform-only — avoids boxShadow repaint)
+      tweens.push(gsap.to(".photon-ring", {
+        scale: 1.03,
+        opacity: 0.85,
+        duration: 3,
+        yoyo: true,
+        repeat: -1,
+        ease: "sine.inOut",
+      }));
+
+      // 5. Gravitational Lensing Ambient
+      tweens.push(gsap.to(".gravity-ambient", { scale: 1.15, opacity: 0.7, duration: 6, yoyo: true, repeat: -1, ease: "power1.inOut" }));
+
+      // 6. Particle field
+      const starElements = gsap.utils.toArray(".bh-star") as HTMLElement[];
+      starElements.forEach((star, index) => {
+        const cfg = stars[index];
+        if (!cfg) return;
+        tweens.push(gsap.fromTo(
+          star,
+          { x: cfg.x, y: cfg.y, scale: cfg.scale, opacity: cfg.opacity },
+          { x: 0, y: 0, scale: 0, opacity: 0, rotation: cfg.rotation, duration: cfg.duration, repeat: -1, delay: cfg.delay, ease: "power2.in" },
+        ));
+      });
+
+      tweensRef.current = tweens;
+    },
+    { scope: container, dependencies: [reducedMotion] },
+  );
+
+  // Pause animations when tab is hidden to save CPU/GPU
+  useEffect(() => {
+    function handleVisibility() {
+      const tweens = tweensRef.current;
+      if (!tweens.length) return;
+      if (document.hidden) {
+        tweens.forEach((t) => t.pause());
+      } else {
+        tweens.forEach((t) => t.resume());
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
 
   return (
     <div
-      className="absolute top-1/2 left-1/2"
+      ref={container}
+      className="absolute top-1/2 left-1/2 flex items-center justify-center"
       style={{
-        width: s.diskW,
-        height: s.diskW,
-        marginLeft: -s.diskW / 2,
-        marginTop: -s.diskW / 2,
+        transform: `translate(-50%, -50%) scale(${scale})`,
+        perspective: 1200,
+        transformStyle: "preserve-3d",
+        willChange: "transform",
+        width: "100%",
+        height: "100%",
         opacity,
       }}
     >
-      {/* === LAYER 1 (back): Outer diffuse glow === */}
+      {/* 1. AGGREGATING MASS (Particle Field) */}
+      <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
+        {stars.map((star) => (
+          <div
+            key={star.id}
+            className="bh-star absolute w-[3px] h-[3px] bg-white rounded-full mix-blend-screen"
+            style={{ boxShadow: "0 0 12px 2px rgba(255,255,255,0.8)" }}
+          />
+        ))}
+      </div>
+
+      {/* 2. AMBIENT GRAVITY WELL */}
       <div
-        className="absolute rounded-full black-hole-glow"
-        style={{
-          top: "50%",
-          left: "50%",
-          width: s.diskW * 1.3,
-          height: s.diskW * 1.3,
-          marginLeft: -(s.diskW * 1.3) / 2,
-          marginTop: -(s.diskW * 1.3) / 2,
-          background: `radial-gradient(ellipse at center, rgba(${c.primary},0.12) 10%, rgba(${c.mid},0.06) 35%, transparent 55%)`,
-          filter: `blur(${s.glowSpread}px)`,
-          zIndex: 1,
-        }}
+        className="gravity-ambient absolute w-[700px] h-[700px] md:w-[1300px] md:h-[1300px] rounded-full blur-[60px] md:blur-[80px] z-[0] pointer-events-none mix-blend-screen overflow-visible"
+        style={{ background: `rgba(${c.primary},0.15)`, willChange: "transform" }}
+      />
+      <div
+        className="gravity-ambient absolute w-[500px] h-[500px] md:w-[800px] md:h-[800px] rounded-full blur-[40px] md:blur-[60px] z-[0] pointer-events-none mix-blend-screen"
+        style={{ background: `rgba(${c.mid},0.35)`, willChange: "transform" }}
       />
 
-      {/* === LAYER 2: Accretion Disk — Bright horizontal ellipse === */}
-      {/* This is the flat disk viewed slightly edge-on — a wide, thin glowing band */}
-      <div
-        className="absolute animate-[portal-spin_80s_linear_infinite]"
-        style={{
-          top: "50%",
-          left: "50%",
-          width: s.diskW,
-          height: s.diskH,
-          marginLeft: -s.diskW / 2,
-          marginTop: -s.diskH / 2,
-          borderRadius: "50%",
-          background: `radial-gradient(ellipse at center,
-            rgba(${c.bright},0.95) 0%,
-            rgba(${c.glow},0.85) 15%,
-            rgba(${c.mid},0.7) 30%,
-            rgba(${c.primary},0.5) 50%,
-            rgba(${c.dark},0.25) 70%,
-            transparent 90%
-          )`,
-          boxShadow: `
-            0 0 ${s.glowSpread * 0.5}px ${s.glowSpread * 0.3}px rgba(${c.mid},0.3),
-            0 0 ${s.glowSpread}px ${s.glowSpread * 0.5}px rgba(${c.primary},0.15)
-          `,
-          zIndex: 2,
-        }}
-      />
+      {/* 3. EINSTEIN RING */}
+      <div className="absolute z-10 flex items-center justify-center">
+        <div className="einstein-ring relative w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full mix-blend-screen">
+          <div
+            className="absolute inset-0 rounded-full border-[10px] md:border-[20px] border-transparent opacity-80 blur-[8px] md:blur-[12px]"
+            style={{ borderTopColor: `rgb(${c.glow})`, borderRightColor: "rgba(255,255,255,0.4)" }}
+          />
+          <div
+            className="absolute inset-0 rounded-full border-[6px] md:border-[12px] border-transparent opacity-60 blur-[6px] md:blur-[8px]"
+            style={{ borderBottomColor: `rgb(${c.mid})`, borderLeftColor: `rgb(${c.primary})` }}
+          />
+          <div className="absolute inset-[-40px] rounded-full border-[4px] border-white/20 blur-[15px]" />
+        </div>
+      </div>
 
-      {/* Doppler beaming — left side brighter (approaching viewer) */}
-      <div
-        className="absolute"
-        style={{
-          top: "50%",
-          left: "50%",
-          width: s.diskW,
-          height: s.diskH,
-          marginLeft: -s.diskW / 2,
-          marginTop: -s.diskH / 2,
-          borderRadius: "50%",
-          background: `linear-gradient(90deg, rgba(${c.bright},0.35) 0%, rgba(${c.glow},0.15) 25%, transparent 55%, rgba(${c.dark},0.1) 100%)`,
-          zIndex: 3,
-        }}
-      />
+      {/* 4. ACCRETION DISK (BACK HALF) */}
+      <div className="absolute z-20 flex items-center justify-center" style={{ transformStyle: "preserve-3d", transform: "rotateX(78deg)" }}>
+        <div className="accretion-group relative w-[600px] h-[600px] md:w-[1000px] md:h-[1000px]" style={{ willChange: "transform" }}>
+          <div
+            className="absolute inset-0 rounded-full opacity-90 mix-blend-screen"
+            style={{
+              background: `conic-gradient(from 0deg, rgba(${c.primary},0) 0%, rgba(${c.glow},0.7) 15%, #ffffff 30%, rgba(${c.primary},0.9) 50%, rgba(${c.primary},0) 70%, rgba(${c.mid},0.5) 100%)`,
+              filter: "blur(12px)",
+              boxShadow: `inset 0 0 100px rgba(${c.primary},1), 0 0 120px rgba(${c.glow},0.8)`,
+            }}
+          />
+          <div className="absolute inset-10 border-[4px] md:border-[8px] rounded-full blur-[2px]" style={{ borderColor: "rgba(255,255,255,0.4)" }} />
+          <div className="absolute inset-24 border-[2px] md:border-[6px] rounded-full border-dashed opacity-80" style={{ borderColor: `rgba(${c.mid},0.6)` }} />
+          <div className="absolute inset-32 border-[10px] md:border-[20px] rounded-full blur-[8px]" style={{ borderColor: `rgba(${c.mid},0.3)` }} />
+        </div>
+      </div>
 
-      {/* Inner hot ring of the disk — thinner, brighter band near the event horizon */}
-      <div
-        className="absolute animate-[portal-spin_50s_linear_infinite] [animation-direction:reverse]"
-        style={{
-          top: "50%",
-          left: "50%",
-          width: s.diskW * 0.7,
-          height: s.diskH * 0.55,
-          marginLeft: -(s.diskW * 0.7) / 2,
-          marginTop: -(s.diskH * 0.55) / 2,
-          borderRadius: "50%",
-          background: `radial-gradient(ellipse at center,
-            rgba(255,255,255,0.9) 0%,
-            rgba(${c.bright},0.95) 20%,
-            rgba(${c.glow},0.7) 45%,
-            rgba(${c.mid},0.3) 70%,
-            transparent 90%
-          )`,
-          zIndex: 4,
-        }}
-      />
+      <div className="absolute z-20 flex items-center justify-center" style={{ transformStyle: "preserve-3d", transform: "rotateX(78deg) rotateY(15deg)" }}>
+        <div className="accretion-group-reverse relative w-[800px] h-[800px] md:w-[1200px] md:h-[1200px]" style={{ willChange: "transform" }}>
+          <div
+            className="absolute inset-0 rounded-full opacity-50 mix-blend-screen"
+            style={{
+              background: `conic-gradient(from 90deg, transparent 0%, rgba(${c.mid},0.4) 25%, transparent 50%, rgba(${c.glow},0.6) 75%, transparent 100%)`,
+              filter: "blur(20px)",
+              boxShadow: `0 0 200px rgba(${c.primary},0.2)`,
+            }}
+          />
+        </div>
+      </div>
 
-      {/* === LAYER 3: Einstein Ring — TOP ARC === */}
-      {/* Light from the far side of the disk bends OVER the top of the black hole */}
+      {/* 5. PHOTON RING */}
       <div
-        className="absolute"
-        style={{
-          left: "50%",
-          top: "50%",
-          width: s.arcW,
-          height: s.arcTopH,
-          marginLeft: -s.arcW / 2,
-          marginTop: -half - s.arcTopH + 8,
-          borderRadius: "50% 50% 0 0",
-          background: `radial-gradient(ellipse 100% 80% at 50% 100%,
-            rgba(${c.bright},0.85) 0%,
-            rgba(${c.glow},0.6) 25%,
-            rgba(${c.mid},0.35) 50%,
-            rgba(${c.primary},0.15) 75%,
-            transparent 100%
-          )`,
-          boxShadow: `0 0 20px 5px rgba(${c.mid},0.25)`,
-          zIndex: 5,
-        }}
-      />
-
-      {/* === LAYER 4: Einstein Ring — BOTTOM ARC (dimmer) === */}
-      {/* Same effect but under the black hole — fainter due to redshift */}
-      <div
-        className="absolute"
-        style={{
-          left: "50%",
-          top: "50%",
-          width: s.arcW * 0.9,
-          height: s.arcBottomH,
-          marginLeft: -(s.arcW * 0.9) / 2,
-          marginTop: half - 8,
-          borderRadius: "0 0 50% 50%",
-          background: `radial-gradient(ellipse 100% 80% at 50% 0%,
-            rgba(${c.glow},0.55) 0%,
-            rgba(${c.mid},0.35) 30%,
-            rgba(${c.primary},0.15) 60%,
-            transparent 100%
-          )`,
-          boxShadow: `0 0 15px 3px rgba(${c.primary},0.15)`,
-          zIndex: 5,
-        }}
-      />
-
-      {/* === LAYER 5: Event Horizon — The absolute void === */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          top: "50%",
-          left: "50%",
-          width: s.horizon,
-          height: s.horizon,
-          marginLeft: -half,
-          marginTop: -half,
-          background: "radial-gradient(circle, #000 0%, #000 65%, #010005 80%, #020010 95%)",
-          boxShadow: `inset 0 0 ${half}px rgba(0,0,0,0.99)`,
-          zIndex: 6,
-        }}
+        className="photon-ring absolute w-[200px] h-[200px] md:w-[320px] md:h-[320px] rounded-full z-30 mix-blend-screen flex items-center justify-center border-[3px] md:border-[5px] border-white"
+        style={{ boxShadow: `0 0 50px 10px rgba(${c.mid},0.9), inset 0 0 30px 5px rgba(255,255,255,0.8)` }}
       >
-        {/* PHOTON RING — razor-thin, extremely bright at the shadow edge */}
-        <div
-          className="absolute inset-[-2px] rounded-full"
-          style={{
-            border: `${s.photonRing}px solid rgba(${c.bright},0.95)`,
-            boxShadow: `
-              0 0 4px 1px rgba(${c.bright},0.7),
-              0 0 12px 3px rgba(${c.glow},0.5),
-              0 0 30px 6px rgba(${c.mid},0.3),
-              0 0 60px 12px rgba(${c.primary},0.15),
-              inset 0 0 ${half}px rgba(0,0,0,0.98)
-            `,
-          }}
-        />
+        <div className="absolute inset-[2px] border-[2px] rounded-full opacity-80" style={{ borderColor: `rgb(${c.glow})` }} />
+        <div className="absolute inset-[-10px] border border-white/40 rounded-full blur-[4px]" />
+      </div>
 
-        {/* Deep inner void */}
+      {/* 6. EVENT HORIZON */}
+      <div
+        className="absolute w-[185px] h-[185px] md:w-[295px] md:h-[295px] bg-[#010002] rounded-full z-40 flex items-center justify-center overflow-hidden mix-blend-normal"
+        style={{ boxShadow: "inset 0 0 100px rgba(0,0,0,1)" }}
+      >
+        <div className="w-full h-full bg-black rounded-full" />
         <div
-          className="absolute inset-[3px] rounded-full"
-          style={{
-            background: "#000",
-            boxShadow: `inset 0 0 ${half * 0.8}px rgba(0,0,0,0.99)`,
-          }}
-        />
-
-        {/* Subtle Doppler highlight on horizon edge — left side slightly brighter */}
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            background: `linear-gradient(100deg, rgba(${c.mid},0.06) 0%, transparent 40%, rgba(${c.dark},0.03) 100%)`,
-          }}
+          className="absolute w-[120%] h-[120%] opacity-50"
+          style={{ background: `linear-gradient(to top right, black, black, ${c.voidEdge})` }}
         />
       </div>
 
-      {/* Disk glow that passes IN FRONT of event horizon (left + right sides) */}
-      {/* This creates the visual of the disk wrapping around */}
+      {/* 7. ACCRETION DISK (FRONT HALF OCCLUSION) */}
       <div
-        className="absolute"
-        style={{
-          top: "50%",
-          left: "50%",
-          width: s.diskW * 0.85,
-          height: s.diskH * 0.4,
-          marginLeft: -(s.diskW * 0.85) / 2,
-          marginTop: -(s.diskH * 0.4) / 2,
-          borderRadius: "50%",
-          background: `linear-gradient(90deg,
-            rgba(${c.bright},0.5) 0%,
-            rgba(${c.glow},0.3) 10%,
-            transparent 25%,
-            transparent 75%,
-            rgba(${c.primary},0.15) 90%,
-            rgba(${c.dark},0.1) 100%
-          )`,
-          zIndex: 7,
-        }}
-      />
+        className="absolute z-[50] flex items-center justify-center pointer-events-none"
+        style={{ transform: "rotateX(78deg)", clipPath: "polygon(0 50%, 100% 50%, 100% 100%, 0 100%)" }}
+      >
+        <div className="accretion-group relative w-[600px] h-[600px] md:w-[1000px] md:h-[1000px]">
+          <div
+            className="absolute inset-0 rounded-full opacity-90 mix-blend-screen"
+            style={{
+              background: `conic-gradient(from 0deg, rgba(${c.primary},0) 0%, rgba(${c.glow},0.7) 15%, #ffffff 30%, rgba(${c.primary},0.9) 50%, rgba(${c.primary},0) 70%, rgba(${c.mid},0.5) 100%)`,
+              filter: "blur(10px)",
+              boxShadow: `inset 0 0 100px rgba(${c.primary},1), 0 0 120px rgba(${c.glow},0.8)`,
+            }}
+          />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[30%] bg-white/40 blur-[30px] rounded-full mix-blend-screen" />
+          <div className="absolute inset-10 border-[4px] md:border-[8px] rounded-full blur-[2px]" style={{ borderColor: "rgba(255,255,255,0.4)" }} />
+          <div className="absolute inset-24 border-[2px] md:border-[6px] rounded-full border-dashed opacity-80" style={{ borderColor: `rgba(${c.mid},0.6)` }} />
+          <div className="absolute inset-32 border-[10px] md:border-[20px] rounded-full blur-[8px]" style={{ borderColor: `rgba(${c.mid},0.3)` }} />
+        </div>
+      </div>
+
+      <div
+        className="absolute z-[50] flex items-center justify-center pointer-events-none"
+        style={{ transform: "rotateX(78deg) rotateY(15deg)", clipPath: "polygon(0 50%, 100% 50%, 100% 100%, 0 100%)" }}
+      >
+        <div className="accretion-group-reverse relative w-[800px] h-[800px] md:w-[1200px] md:h-[1200px]">
+          <div
+            className="absolute inset-0 rounded-full opacity-60 mix-blend-screen"
+            style={{
+              background: `conic-gradient(from 90deg, transparent 0%, rgba(${c.mid},0.4) 25%, transparent 50%, rgba(${c.glow},0.6) 75%, transparent 100%)`,
+              filter: "blur(20px)",
+              boxShadow: `0 0 200px rgba(${c.primary},0.2)`,
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

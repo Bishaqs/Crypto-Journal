@@ -8,6 +8,7 @@ import { useGuide } from "./guide-context";
 import { useTour } from "@/lib/tour-context";
 import type { TourStep } from "@/lib/tour-context";
 import { StarWarpTransition } from "./star-warp";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 const GUIDE_SIZE = 48;
 const BUBBLE_WIDTH = 340;
@@ -212,46 +213,62 @@ function GuideCharacterAnimated({
   glow: string;
   arrivalKey: number;
 }) {
+  const reducedMotion = useReducedMotion();
+
+  // Reduced motion: static guide with glow, still clickable
+  if (reducedMotion) {
+    return (
+      <div className="rounded-full" style={{ boxShadow: glow }}>
+        <div className="drop-shadow-[0_0_8px_var(--accent-glow)]">
+          <StargateLogo size={size} />
+        </div>
+      </div>
+    );
+  }
+
+  // Idle: single gentle float. Talking/flying: full 3-layer animation.
+  if (!isTalking && !isFlying) {
+    return (
+      <motion.div
+        className="rounded-full"
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" as const }}
+        style={{ boxShadow: "0 0 16px var(--accent-glow)" }}
+      >
+        <div className="drop-shadow-[0_0_8px_var(--accent-glow)]">
+          <StargateLogo size={size} />
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div className="rounded-full overflow-visible">
-      {/* Talking pulse or breathing */}
+      {/* Talking pulse or flying */}
       <motion.div
         animate={
           isFlying
             ? { scale: 1 }
-            : isTalking
-              ? { scale: [1, 1.08, 1, 1.05, 1] }
-              : { scale: [1, 1.15, 1] }
+            : { scale: [1, 1.08, 1, 1.05, 1] }
         }
         transition={
           isFlying
             ? { duration: 0.3 }
-            : isTalking
-              ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" as const }
-              : { duration: 3.5, repeat: Infinity, ease: "easeInOut" as const }
+            : { duration: 0.8, repeat: Infinity, ease: "easeInOut" as const }
         }
       >
-        {/* Float + glow (glow follows the bob so shadow isn't detached) */}
+        {/* Float + glow */}
         <motion.div
           className="rounded-full"
           animate={
             isFlying
               ? { y: 0, boxShadow: glow }
-              : isTalking
-                ? {
+              : {
                     y: [0, -8, 0],
                     boxShadow: [
                       "0 0 20px var(--accent-glow)",
                       "0 0 36px var(--accent-glow), 0 0 64px var(--accent-glow)",
                       "0 0 20px var(--accent-glow)",
-                    ],
-                  }
-                : {
-                    y: [0, -8, 0],
-                    boxShadow: [
-                      "0 0 16px var(--accent-glow)",
-                      "0 0 28px var(--accent-glow), 0 0 56px var(--accent-glow)",
-                      "0 0 16px var(--accent-glow)",
                     ],
                   }
           }
@@ -263,13 +280,11 @@ function GuideCharacterAnimated({
         >
           {/* Tilt */}
           <motion.div
-            animate={isFlying ? { rotate: 0 } : isTalking ? { rotate: [0, 4, -3, 0] } : { rotate: [0, 8, -6, 0] }}
+            animate={isFlying ? { rotate: 0 } : { rotate: [0, 4, -3, 0] }}
             transition={
               isFlying
                 ? { duration: 0.3 }
-                : isTalking
-                  ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" as const, times: [0, 0.3, 0.7, 1] }
-                  : { duration: 5, repeat: Infinity, ease: "easeInOut" as const, times: [0, 0.3, 0.7, 1] }
+                : { duration: 1.5, repeat: Infinity, ease: "easeInOut" as const, times: [0, 0.3, 0.7, 1] }
             }
           >
             {/* Arrival bounce */}
@@ -437,8 +452,8 @@ export function StargateGuideCharacter() {
       {/* ── Tour Overlay ── */}
       {isTourMode && (
         <>
-          {/* Click blocker */}
-          <div className="fixed inset-0 z-[997]" />
+          {/* Click blocker — only block in centered mode */}
+          {isCentered && <div className="fixed inset-0 z-[997]" />}
 
           <AnimatePresence>
             {isCentered ? (

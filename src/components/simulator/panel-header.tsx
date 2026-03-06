@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { SUPPORTED_SYMBOLS, type SupportedSymbol } from "@/lib/simulator/types";
+import type { SupportedSymbol } from "@/lib/simulator/types";
+import SymbolSearch from "@/components/ui/symbol-search";
 
 interface PanelHeaderProps {
   panelId: number;
@@ -63,19 +64,16 @@ export default function PanelHeader({
       </span>
 
       {/* Symbol selector */}
-      <select
-        value={symbol}
-        onChange={(e) => onSymbolChange(e.target.value as SupportedSymbol)}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-transparent text-xs font-semibold text-white border-none outline-none cursor-pointer"
-        disabled={loading}
-      >
-        {SUPPORTED_SYMBOLS.map((s) => (
-          <option key={s.value} value={s.value} className="bg-[#111118]">
-            {s.label}
-          </option>
-        ))}
-      </select>
+      <div onClick={(e) => e.stopPropagation()}>
+        <SymbolSearch
+          mode="binance"
+          value={symbol}
+          onSelect={(sym) => onSymbolChange(sym as SupportedSymbol)}
+          compact
+          placeholder="Search..."
+          className="w-[130px]"
+        />
+      </div>
 
       {/* Stats */}
       <div className="flex items-center gap-3 ml-auto text-[10px]">

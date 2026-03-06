@@ -36,10 +36,7 @@ export async function DELETE(req: NextRequest) {
 
   const rl = await rateLimit(`admin:${owner.id}`, 30, 60_000);
   if (!rl.success) {
-    return NextResponse.json(
-      { error: "Too many requests" },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } },
-    );
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   let parsed;

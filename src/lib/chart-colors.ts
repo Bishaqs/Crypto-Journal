@@ -41,6 +41,11 @@ const CHART_COLORS: Record<Theme, ChartColors> = {
     grid: "#0f2040", tick: "#6ab0cc",
     tooltipBg: "rgba(2, 8, 23, 0.9)", tooltipBorder: "1px solid rgba(14, 165, 233, 0.2)",
   },
+  "satoshi-gold": {
+    win: "#ffd700", loss: "#ef4444", accent: "#f7931a",
+    grid: "#3d2e12", tick: "#b8965a",
+    tooltipBg: "rgba(10, 8, 6, 0.9)", tooltipBorder: "1px solid rgba(247, 147, 26, 0.2)",
+  },
 };
 
 export function getChartColors(theme: Theme) {

@@ -2,6 +2,9 @@
  * Achievement definitions — all achievements, categories, tiers, and thresholds.
  *
  * Golden Rule: reward PROCESS, never reward P&L or trade volume.
+ *
+ * 57 total achievements across 5 categories.
+ * Tiers: Bronze → Silver → Gold → Diamond → Legendary
  */
 
 export type AchievementCategory =
@@ -11,7 +14,7 @@ export type AchievementCategory =
   | "analysis"
   | "milestones";
 
-export type AchievementTier = "bronze" | "silver" | "gold" | "diamond";
+export type AchievementTier = "bronze" | "silver" | "gold" | "diamond" | "legendary";
 
 export type AchievementDefinition = {
   id: string;
@@ -89,10 +92,18 @@ export const TIER_META: Record<
     bgColor: "bg-cyan-300/10",
     borderColor: "border-cyan-300/30",
   },
+  legendary: {
+    label: "Legendary",
+    color: "text-amber-300",
+    bgColor: "bg-amber-400/10",
+    borderColor: "border-amber-400/40",
+  },
 };
 
 export const ACHIEVEMENTS: AchievementDefinition[] = [
-  // ── Consistency ──────────────────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ── Consistency (12 achievements) ─────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   {
     id: "journal_streak",
     category: "consistency",
@@ -143,8 +154,110 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     ],
     metric: "losing_trades_with_notes",
   },
+  // ── NEW Consistency ────────────────────────────────────────────
+  {
+    id: "daily_checkin_streak",
+    category: "consistency",
+    title: "Sunrise Ritual",
+    description: "Complete daily check-ins consistently",
+    emoji: "🌅",
+    tiers: [
+      { tier: "bronze", threshold: 7, label: "7-day check-in streak" },
+      { tier: "silver", threshold: 30, label: "30-day check-in streak" },
+      { tier: "gold", threshold: 90, label: "90-day check-in streak" },
+      { tier: "diamond", threshold: 180, label: "180-day check-in streak" },
+      { tier: "legendary", threshold: 365, label: "365-day check-in streak" },
+    ],
+    metric: "checkin_streak",
+  },
+  {
+    id: "trade_planner_streak",
+    category: "consistency",
+    title: "The Strategist",
+    description: "Create a trade plan every day you trade",
+    emoji: "♟️",
+    tiers: [
+      { tier: "bronze", threshold: 5, label: "5 trading days with plan" },
+      { tier: "silver", threshold: 20, label: "20 trading days with plan" },
+      { tier: "gold", threshold: 50, label: "50 trading days with plan" },
+      { tier: "diamond", threshold: 100, label: "100 trading days with plan" },
+    ],
+    metric: "trading_days_with_plan",
+  },
+  {
+    id: "weekend_reviewer",
+    category: "consistency",
+    title: "Weekend Warrior",
+    description: "Review your trading week every weekend",
+    emoji: "📅",
+    tiers: [
+      { tier: "bronze", threshold: 4, label: "4 weekend reviews" },
+      { tier: "silver", threshold: 12, label: "12 weekend reviews" },
+      { tier: "gold", threshold: 26, label: "26 weekend reviews" },
+      { tier: "diamond", threshold: 52, label: "52 weekend reviews" },
+      { tier: "legendary", threshold: 104, label: "104 weekend reviews (2 years)" },
+    ],
+    metric: "weekend_reviews",
+  },
+  {
+    id: "multi_asset_logger",
+    category: "consistency",
+    title: "Diversified",
+    description: "Log trades across multiple symbols",
+    emoji: "🌐",
+    tiers: [
+      { tier: "bronze", threshold: 5, label: "5 unique symbols" },
+      { tier: "silver", threshold: 15, label: "15 unique symbols" },
+      { tier: "gold", threshold: 30, label: "30 unique symbols" },
+      { tier: "diamond", threshold: 50, label: "50 unique symbols" },
+    ],
+    metric: "unique_symbols_traded",
+  },
+  {
+    id: "month_perfect",
+    category: "consistency",
+    title: "Perfect Month",
+    description: "Journal every single trading day in a calendar month",
+    emoji: "⭐",
+    tiers: [
+      { tier: "bronze", threshold: 1, label: "1 perfect month" },
+      { tier: "silver", threshold: 3, label: "3 perfect months" },
+      { tier: "gold", threshold: 6, label: "6 perfect months" },
+      { tier: "diamond", threshold: 12, label: "12 perfect months" },
+    ],
+    metric: "perfect_months",
+  },
+  {
+    id: "early_bird",
+    category: "consistency",
+    title: "Early Bird",
+    description: "Complete your daily check-in before market open 50 times",
+    emoji: "🐦",
+    tiers: null,
+    metric: "early_checkins",
+  },
+  {
+    id: "two_year_veteran",
+    category: "consistency",
+    title: "Two-Year Veteran",
+    description: "Use Stargate for two full years",
+    emoji: "🏅",
+    tiers: null,
+    metric: "account_age_730",
+  },
+  {
+    id: "three_year_legend",
+    category: "consistency",
+    title: "Three-Year Legend",
+    description: "Use Stargate for three full years",
+    emoji: "👑",
+    tiers: null,
+    metric: "account_age_1095",
+  },
 
-  // ── Risk Management ──────────────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ── Risk Management (10 achievements) ─────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   {
     id: "stop_loss_sentinel",
     category: "risk",
@@ -184,8 +297,105 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     ],
     metric: "avg_process_score",
   },
+  // ── NEW Risk Management ────────────────────────────────────────
+  {
+    id: "position_sizer",
+    category: "risk",
+    title: "Position Sizer",
+    description: "Define position size before entering trades",
+    emoji: "📏",
+    tiers: [
+      { tier: "bronze", threshold: 10, label: "10 trades sized" },
+      { tier: "silver", threshold: 50, label: "50 trades sized" },
+      { tier: "gold", threshold: 100, label: "100 trades sized" },
+      { tier: "diamond", threshold: 250, label: "250 trades sized" },
+    ],
+    metric: "trades_with_position_size",
+  },
+  {
+    id: "risk_reward_tracker",
+    category: "risk",
+    title: "R:R Disciplined",
+    description: "Log your risk-reward ratio before entering",
+    emoji: "🎯",
+    tiers: [
+      { tier: "bronze", threshold: 10, label: "10 trades with R:R" },
+      { tier: "silver", threshold: 50, label: "50 trades with R:R" },
+      { tier: "gold", threshold: 100, label: "100 trades with R:R" },
+      { tier: "diamond", threshold: 200, label: "200 trades with R:R" },
+    ],
+    metric: "trades_with_rr_ratio",
+  },
+  {
+    id: "loss_limit_master",
+    category: "risk",
+    title: "Loss Limit Master",
+    description: "Respect your daily loss limit for an extended period",
+    emoji: "🛡️",
+    tiers: [
+      { tier: "bronze", threshold: 30, label: "30 days within limit" },
+      { tier: "silver", threshold: 90, label: "90 days within limit" },
+      { tier: "gold", threshold: 180, label: "180 days within limit" },
+      { tier: "diamond", threshold: 365, label: "365 days within limit" },
+      { tier: "legendary", threshold: 730, label: "730 days within limit (2 years)" },
+    ],
+    metric: "consecutive_days_within_loss_limit",
+  },
+  {
+    id: "max_drawdown_guardian",
+    category: "risk",
+    title: "Drawdown Guardian",
+    description: "Keep max drawdown under your threshold for a month",
+    emoji: "⚓",
+    tiers: [
+      { tier: "bronze", threshold: 1, label: "1 month under threshold" },
+      { tier: "silver", threshold: 3, label: "3 months under threshold" },
+      { tier: "gold", threshold: 6, label: "6 months under threshold" },
+      { tier: "diamond", threshold: 12, label: "12 months under threshold" },
+    ],
+    metric: "months_under_drawdown_threshold",
+  },
+  {
+    id: "checklist_master",
+    category: "risk",
+    title: "Checklist Master",
+    description: "Complete your trade checklist 100% on trades",
+    emoji: "✅",
+    tiers: [
+      { tier: "bronze", threshold: 10, label: "10 full checklists" },
+      { tier: "silver", threshold: 50, label: "50 full checklists" },
+      { tier: "gold", threshold: 150, label: "150 full checklists" },
+      { tier: "diamond", threshold: 300, label: "300 full checklists" },
+    ],
+    metric: "trades_with_full_checklist",
+  },
+  {
+    id: "green_light_discipline",
+    category: "risk",
+    title: "Green Light Only",
+    description: "Only trade on green traffic-light days",
+    emoji: "🚦",
+    tiers: [
+      { tier: "bronze", threshold: 10, label: "10 green-only trading days" },
+      { tier: "silver", threshold: 30, label: "30 green-only trading days" },
+      { tier: "gold", threshold: 60, label: "60 green-only trading days" },
+      { tier: "diamond", threshold: 100, label: "100 green-only trading days" },
+    ],
+    metric: "trades_on_green_days_only",
+  },
+  {
+    id: "zero_overleverage",
+    category: "risk",
+    title: "Never Overleveraged",
+    description: "Stay within position size rules for 100 consecutive trades",
+    emoji: "🔒",
+    tiers: null,
+    metric: "consecutive_within_size_rules",
+  },
 
-  // ── Psychology ───────────────────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ── Psychology (11 achievements) ──────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   {
     id: "mindful_trader",
     category: "psychology",
@@ -239,8 +449,98 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     ],
     metric: "behavioral_logs",
   },
+  // ── NEW Psychology ─────────────────────────────────────────────
+  {
+    id: "emotion_diversity",
+    category: "psychology",
+    title: "Emotional Range",
+    description: "Log 10 different emotions across your trades",
+    emoji: "🌈",
+    tiers: null,
+    metric: "unique_emotions_logged",
+  },
+  {
+    id: "post_loss_reflection",
+    category: "psychology",
+    title: "Post-Loss Reflector",
+    description: "Write a reflection note after every losing trade",
+    emoji: "🪞",
+    tiers: [
+      { tier: "bronze", threshold: 10, label: "10 post-loss reflections" },
+      { tier: "silver", threshold: 30, label: "30 post-loss reflections" },
+      { tier: "gold", threshold: 75, label: "75 post-loss reflections" },
+      { tier: "diamond", threshold: 150, label: "150 post-loss reflections" },
+    ],
+    metric: "losing_trades_with_reflection",
+  },
+  {
+    id: "confidence_calibrator",
+    category: "psychology",
+    title: "Confidence Calibrator",
+    description: "Log your confidence level on trades consistently",
+    emoji: "📊",
+    tiers: [
+      { tier: "bronze", threshold: 20, label: "20 trades with confidence" },
+      { tier: "silver", threshold: 75, label: "75 trades with confidence" },
+      { tier: "gold", threshold: 150, label: "150 trades with confidence" },
+      { tier: "diamond", threshold: 300, label: "300 trades with confidence" },
+    ],
+    metric: "trades_with_confidence",
+  },
+  {
+    id: "bias_spotter",
+    category: "psychology",
+    title: "Bias Spotter",
+    description: "Identify and log cognitive biases in your behavioral logs",
+    emoji: "👁️",
+    tiers: [
+      { tier: "bronze", threshold: 5, label: "5 bias identifications" },
+      { tier: "silver", threshold: 20, label: "20 bias identifications" },
+      { tier: "gold", threshold: 50, label: "50 bias identifications" },
+      { tier: "diamond", threshold: 100, label: "100 bias identifications" },
+    ],
+    metric: "logs_with_biases_identified",
+  },
+  {
+    id: "emotional_awareness_streak",
+    category: "psychology",
+    title: "Emotionally Consistent",
+    description: "Log emotions on every trade for consecutive trading days",
+    emoji: "🧠",
+    tiers: [
+      { tier: "bronze", threshold: 7, label: "7 consecutive days" },
+      { tier: "silver", threshold: 30, label: "30 consecutive days" },
+      { tier: "gold", threshold: 60, label: "60 consecutive days" },
+      { tier: "diamond", threshold: 90, label: "90 consecutive days" },
+    ],
+    metric: "consecutive_trading_days_with_emotions",
+  },
+  {
+    id: "calm_after_storm",
+    category: "psychology",
+    title: "Calm After the Storm",
+    description: "Take a day off after 3 consecutive losing trades",
+    emoji: "☮️",
+    tiers: [
+      { tier: "bronze", threshold: 3, label: "3 rest days taken" },
+      { tier: "silver", threshold: 10, label: "10 rest days taken" },
+      { tier: "gold", threshold: 25, label: "25 rest days taken" },
+    ],
+    metric: "rest_days_after_losing_streaks",
+  },
+  {
+    id: "gratitude_journalist",
+    category: "psychology",
+    title: "Gratitude Journalist",
+    description: "End 50 journal entries with what you learned",
+    emoji: "🙏",
+    tiers: null,
+    metric: "journal_with_gratitude",
+  },
 
-  // ── Analysis ─────────────────────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ── Analysis (10 achievements) ────────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   {
     id: "setup_tracker",
     category: "analysis",
@@ -280,8 +580,98 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     ],
     metric: "trades_with_notes",
   },
+  // ── NEW Analysis ───────────────────────────────────────────────
+  {
+    id: "tag_master",
+    category: "analysis",
+    title: "Tag Master",
+    description: "Create and use many different tags to categorize trades",
+    emoji: "🏷️",
+    tiers: [
+      { tier: "bronze", threshold: 5, label: "5 unique tags" },
+      { tier: "silver", threshold: 10, label: "10 unique tags" },
+      { tier: "gold", threshold: 20, label: "20 unique tags" },
+      { tier: "diamond", threshold: 30, label: "30 unique tags" },
+    ],
+    metric: "unique_tags_used",
+  },
+  {
+    id: "multi_timeframe_analyst",
+    category: "analysis",
+    title: "Multi-Timeframe Analyst",
+    description: "Log and tag your trades by timeframe",
+    emoji: "🕐",
+    tiers: [
+      { tier: "bronze", threshold: 10, label: "10 timeframe-tagged trades" },
+      { tier: "silver", threshold: 30, label: "30 timeframe-tagged trades" },
+      { tier: "gold", threshold: 75, label: "75 timeframe-tagged trades" },
+    ],
+    metric: "trades_with_timeframe_tag",
+  },
+  {
+    id: "playbook_builder",
+    category: "analysis",
+    title: "Playbook Builder",
+    description: "Create entries in your trading playbook",
+    emoji: "📖",
+    tiers: [
+      { tier: "bronze", threshold: 3, label: "3 playbook entries" },
+      { tier: "silver", threshold: 10, label: "10 playbook entries" },
+      { tier: "gold", threshold: 20, label: "20 playbook entries" },
+      { tier: "diamond", threshold: 30, label: "30 playbook entries" },
+    ],
+    metric: "playbook_entries",
+  },
+  {
+    id: "sector_analyst",
+    category: "analysis",
+    title: "Sector Analyst",
+    description: "Trade and tag across multiple sectors",
+    emoji: "📈",
+    tiers: [
+      { tier: "bronze", threshold: 3, label: "3 sectors" },
+      { tier: "silver", threshold: 7, label: "7 sectors" },
+      { tier: "gold", threshold: 12, label: "12 sectors" },
+      { tier: "diamond", threshold: 20, label: "20 sectors" },
+    ],
+    metric: "unique_sectors_traded",
+  },
+  {
+    id: "review_scholar",
+    category: "analysis",
+    title: "Review Scholar",
+    description: "Add a detailed post-trade review to your trades",
+    emoji: "🔍",
+    tiers: [
+      { tier: "bronze", threshold: 10, label: "10 reviews" },
+      { tier: "silver", threshold: 50, label: "50 reviews" },
+      { tier: "gold", threshold: 100, label: "100 reviews" },
+      { tier: "diamond", threshold: 250, label: "250 reviews" },
+    ],
+    metric: "trades_with_review",
+  },
+  {
+    id: "pattern_recognizer",
+    category: "analysis",
+    title: "Pattern Recognizer",
+    description: "Use the same setup type consistently across 50+ trades",
+    emoji: "💡",
+    tiers: null,
+    metric: "consistent_setup_usage",
+  },
+  {
+    id: "data_scientist",
+    category: "analysis",
+    title: "Data Scientist",
+    description: "Log 500 trades to power deep analytics",
+    emoji: "🔬",
+    tiers: null,
+    metric: "total_trades_500",
+  },
 
-  // ── Milestones ───────────────────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ── Milestones (11 achievements) ──────────────────────────────────
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   {
     id: "century_club",
     category: "milestones",
@@ -317,6 +707,106 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     emoji: "📚",
     tiers: null,
     metric: "journal_entries_500",
+  },
+  // ── NEW Milestones ─────────────────────────────────────────────
+  {
+    id: "five_thousand_trades",
+    category: "milestones",
+    title: "Market Oracle",
+    description: "Log 5,000 trades",
+    emoji: "🔮",
+    tiers: null,
+    metric: "total_trades_5000",
+  },
+  {
+    id: "ten_thousand_entries",
+    category: "milestones",
+    title: "Encyclopedia",
+    description: "Write 10,000 journal entries",
+    emoji: "📚",
+    tiers: null,
+    metric: "journal_entries_10000",
+  },
+  {
+    id: "thousand_day_streak",
+    category: "milestones",
+    title: "The Unstoppable",
+    description: "Maintain a 1,000-day journaling streak",
+    emoji: "🔥",
+    tiers: null,
+    metric: "current_streak_1000",
+  },
+  {
+    id: "five_hundred_checkins",
+    category: "milestones",
+    title: "Habitual",
+    description: "Complete 500 daily check-ins",
+    emoji: "☀️",
+    tiers: null,
+    metric: "total_checkins_500",
+  },
+  {
+    id: "level_50",
+    category: "milestones",
+    title: "Halfway There",
+    description: "Reach Level 50",
+    emoji: "🏆",
+    tiers: null,
+    metric: "player_level_50",
+  },
+  {
+    id: "level_100",
+    category: "milestones",
+    title: "The Summit",
+    description: "Reach Level 100",
+    emoji: "🏔️",
+    tiers: null,
+    metric: "player_level_100",
+  },
+  {
+    id: "level_150",
+    category: "milestones",
+    title: "Ascension",
+    description: "Reach Level 150",
+    emoji: "🌟",
+    tiers: null,
+    metric: "player_level_150",
+  },
+  {
+    id: "level_200",
+    category: "milestones",
+    title: "Titan",
+    description: "Reach Level 200",
+    emoji: "⚡",
+    tiers: null,
+    metric: "player_level_200",
+  },
+  {
+    id: "level_300",
+    category: "milestones",
+    title: "Celestial",
+    description: "Reach Level 300",
+    emoji: "🌌",
+    tiers: null,
+    metric: "player_level_300",
+  },
+  {
+    id: "level_500",
+    category: "milestones",
+    title: "The Infinite",
+    description: "Reach the maximum level",
+    emoji: "♾️",
+    tiers: null,
+    metric: "player_level_500",
+  },
+  {
+    id: "completionist",
+    category: "milestones",
+    title: "Completionist",
+    description: "Unlock every single achievement at maximum tier",
+    emoji: "✨",
+    tiers: null,
+    metric: "all_achievements_maxed",
   },
 ];
 

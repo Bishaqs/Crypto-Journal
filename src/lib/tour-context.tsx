@@ -263,7 +263,7 @@ function executeStep(step: TourStep, stepIndex: number, tourName: string) {
       side: step.side || "bottom",
       step: stepIndex,
       tourName,
-      padding: step.pointerPadding ?? 10,
+      padding: step.pointerPadding ?? 6,
       radius: step.pointerRadius ?? 12,
     });
   }, 300);

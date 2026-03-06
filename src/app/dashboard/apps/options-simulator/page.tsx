@@ -19,6 +19,7 @@ import {
   type OrderStatus,
 } from "@/lib/options-chain";
 import type { OptionType } from "@/lib/options-math";
+import SymbolSearch from "@/components/ui/symbol-search";
 
 const DTE_OPTIONS = [7, 14, 30, 45, 60, 90];
 const RISK_FREE_RATE = 0.05;
@@ -144,17 +145,14 @@ export default function OptionsSimulatorPage() {
           {/* Symbol */}
           <div className="flex items-center gap-2">
             <label className="text-[10px] text-gray-500">Symbol</label>
-            <select
+            <SymbolSearch
+              mode="stock"
               value={symbol}
-              onChange={(e) => setSymbol(e.target.value as OptionSymbol)}
-              className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white outline-none"
-            >
-              {OPTION_SYMBOLS.map((s) => (
-                <option key={s.value} value={s.value} className="bg-[#111118]">
-                  {s.value} — {s.label}
-                </option>
-              ))}
-            </select>
+              onSelect={(sym) => setSymbol(sym as OptionSymbol)}
+              compact
+              placeholder="Search stock..."
+              className="w-[160px]"
+            />
           </div>
 
           {/* Spot price display */}

@@ -71,6 +71,15 @@ export function DailyCheckin() {
       traffic_light: trafficLight,
     }, { onConflict: "user_id,date" });
 
+    // Award XP for daily check-in
+    try {
+      const { awardXP } = await import("@/lib/xp/engine");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await awardXP(supabase, user.id, "checkin");
+      }
+    } catch { /* XP tables may not exist yet */ }
+
     setSaving(false);
     setShow(false);
     setAlreadyCheckedIn(true);

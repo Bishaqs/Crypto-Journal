@@ -75,6 +75,7 @@ const de = {
     watchlist: "Watchlist",
     settings: "Einstellungen",
     admin: "Administration",
+    leaderboard: "Bestenliste",
     performanceAnalysis: "Performance & Analyse",
     intelligence: "Intelligenz",
     marketTools: "Markt & Werkzeuge",

@@ -5,8 +5,7 @@ import { Globe, RefreshCw, CalendarDays, DollarSign, BarChart3, ChevronDown } fr
 import { TradingViewMiniChart, TradingViewTechnicalAnalysis } from "@/components/tradingview-mini-chart";
 import { getRecentAndUpcoming, EVENT_META } from "@/lib/macro-calendar";
 import type { MacroEvent, EventType } from "@/lib/macro-calendar";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface IndexData {
   price: number;
@@ -78,7 +77,6 @@ const FOREX_PAIRS: { symbol: string; label: string; base: string; invert: boolea
 ];
 
 export default function StockMarketOverviewPage() {
-  usePageTour("stocks-market-page");
   const [data, setData] = useState<StockMarketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -127,7 +125,7 @@ export default function StockMarketOverviewPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Globe size={24} className="text-accent" />
             Stock Market Overview
-            <PageInfoButton tourName="stocks-market-page" />
+            <InfoTooltip text="Live stock market overview — major indices, sector performance, and market movers" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Indices, macro data & forex</p>
         </div>

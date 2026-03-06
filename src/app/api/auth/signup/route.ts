@@ -10,7 +10,7 @@ const SignupSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    // Auth check: caller must have a valid session
+    // 1. Auth check — caller must be logged in
     const supabase = await createClient();
     const {
       data: { user },
@@ -20,32 +20,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Rate limit: 5 attempts per minute per user
+    // 2. Rate limit
     const rl = await rateLimit(`signup:${user.id}`, 5, 60_000);
     if (!rl.success) {
       return NextResponse.json(
         { error: "Too many requests. Please wait." },
-        { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) },
+        }
       );
     }
 
+    // 3. Validate body
     const body = await request.json();
     const parsed = SignupSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
+    // 4. Identity check — can only confirm your own email
     const { userId } = parsed.data;
-
-    // Identity check: caller can only confirm their own email
     if (userId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Auto-confirm email — just flips the flag, no trigger involvement
+    // 5. Confirm email + ensure subscription row
     const admin = createAdminClient();
     const { error } = await admin.auth.admin.updateUserById(userId, {
       email_confirm: true,
@@ -54,17 +54,15 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json(
         { error: "Failed to confirm email" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    // Belt-and-suspenders: ensure subscription row exists
-    // (trigger should create it, but if it fails, we catch it here)
     const { error: subError } = await admin
       .from("user_subscriptions")
       .upsert(
         { user_id: userId, tier: "free" },
-        { onConflict: "user_id", ignoreDuplicates: true },
+        { onConflict: "user_id", ignoreDuplicates: true }
       );
 
     if (subError) {
@@ -75,7 +73,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

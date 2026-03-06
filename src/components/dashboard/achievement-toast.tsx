@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useAchievements, ACHIEVEMENT_MAP, TIER_META } from "@/lib/achievements";
 import type { AchievementTier } from "@/lib/achievements";
+import { XP_AMOUNTS } from "@/lib/xp/types";
 
 export function AchievementToast() {
   const { recentUnlocks, dismissUnlock } = useAchievements();
@@ -94,6 +95,11 @@ export function AchievementToast() {
                     </span>
                   )}
                   {def.description}
+                </p>
+                <p className="text-[10px] font-bold text-accent mt-1">
+                  +{item.tier
+                    ? XP_AMOUNTS[`achievement_${item.tier}` as keyof typeof XP_AMOUNTS] ?? 75
+                    : XP_AMOUNTS.achievement_single} XP
                 </p>
               </div>
               <button

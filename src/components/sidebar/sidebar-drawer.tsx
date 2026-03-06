@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, TrendingUp, BarChart3, Lock, X, MoreHorizontal } from "lucide-react";
@@ -44,6 +44,8 @@ export function SidebarDrawer({
   setViewModeTo,
 }: SidebarDrawerProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const { t } = useI18n();
 
   const foundCategory = RAIL_CATEGORIES.find(c => c.key === categoryKey);
@@ -88,7 +90,7 @@ export function SidebarDrawer({
 
   /* ── NavLink ─────────────────────────────────── */
   function NavLink({ item, indent }: { item: NavItem; indent?: boolean }) {
-    const active = isActivePath(pathname, item.href);
+    const active = isActivePath(pathname, item.href, search);
     const label = LABEL_KEY[item.label] ? t(LABEL_KEY[item.label]) : item.label;
     return (
       <Link

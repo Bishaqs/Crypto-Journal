@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Info } from "lucide-react";
 
-export function InfoTooltip({ text, size = 14, position = "above" }: { text: string; size?: number; position?: "above" | "below" }) {
+export function InfoTooltip({ text, size = 14, position = "below" }: { text: string; size?: number; position?: "above" | "below" }) {
   const [show, setShow] = useState(false);
   const posClass = position === "below" ? "top-full mt-2" : "bottom-full mb-2";
   return (

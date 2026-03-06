@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { TradeSummarySchema } from "@/lib/schemas/ai";
+import { TradeSummarySchema, DashboardInsightSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
 import { getProvider, resolveModel } from "@/lib/ai";
 
 const SYSTEM_PROMPT = `You are Stargate AI — a trading psychology coach analyzing a single trade.
@@ -13,6 +14,10 @@ Provide a concise analysis covering:
 4. **Action item** — one specific thing to do differently next time
 
 Be direct and specific. Reference the actual trade data. Keep under 200 words. Use markdown.`;
+
+const DASHBOARD_INSIGHT_PROMPT = `You are Stargate AI — a trading psychology coach embedded in a dashboard widget.
+
+Given recent trade data and context about what the widget shows, produce a single actionable insight in 1-2 sentences (max 50 words). Be specific — reference symbols, emotions, or patterns from the data. No bullet points, no markdown headers. Just one clear, direct sentence a trader can act on right now.`;
 
 export async function POST(req: NextRequest) {
   // Auth check — only authenticated users can get trade summaries
@@ -31,18 +36,64 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Daily tier-based limit
+  const daily = await checkAiDailyLimit(user.id);
+  if (!daily.allowed) return daily.response;
+
   const body = await req.json();
+
+  // Branch: dashboard-insight mode
+  if (body.mode === "dashboard-insight") {
+    const parsed = DashboardInsightSchema.safeParse(body);
+    if (!parsed.success) {
+      const msg = parsed.error.issues.map((e) => e.message).join(", ");
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+    const { context, trades, provider: providerId, model: modelId, apiKey } = parsed.data;
+
+    const provider = getProvider(providerId, apiKey);
+    if (!provider.isConfigured(apiKey)) {
+      return NextResponse.json(
+        { error: "AI service not configured." },
+        { status: 500 }
+      );
+    }
+
+    const model = resolveModel(provider.id, modelId);
+
+    const tradesSummary = trades.map((t) => {
+      const pnl = t.pnl != null ? `$${Number(t.pnl).toFixed(2)}` : "OPEN";
+      return `${t.symbol ?? "?"} ${t.position ?? "?"} P&L:${pnl} emotion:${t.emotion || "none"}`;
+    }).join("\n");
+
+    try {
+      const text = await provider.chat({
+        system: DASHBOARD_INSIGHT_PROMPT,
+        userMessage: `Widget context: ${context}\n\nRecent trades:\n${tradesSummary}`,
+        maxTokens: 100,
+        model,
+        apiKey,
+      });
+
+      return NextResponse.json({ summary: text });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
+    }
+  }
+
+  // Default: single trade summary mode
   const parsed = TradeSummarySchema.safeParse(body);
   if (!parsed.success) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { trade, provider: providerId, model: modelId } = parsed.data;
+  const { trade, provider: providerId, model: modelId, apiKey } = parsed.data;
 
-  const provider = getProvider(providerId);
-  if (!provider.isConfigured()) {
+  const provider = getProvider(providerId, apiKey);
+  if (!provider.isConfigured(apiKey)) {
     return NextResponse.json(
-      { error: "AI service not configured. Contact the administrator." },
+      { error: "AI service not configured. Add your own API key in Settings → AI Coach." },
       { status: 500 }
     );
   }
@@ -74,6 +125,7 @@ export async function POST(req: NextRequest) {
       userMessage: `Analyze this trade:\n\n${tradeContext}`,
       maxTokens: 512,
       model,
+      apiKey,
     });
 
     return NextResponse.json({ summary: text });

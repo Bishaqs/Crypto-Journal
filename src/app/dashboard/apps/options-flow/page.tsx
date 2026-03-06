@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Activity, Search, RefreshCw, Loader2, Filter, X } from "lucide-react";
+import { Activity, RefreshCw, Loader2, Filter, X } from "lucide-react";
 import { Header } from "@/components/header";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -20,8 +20,8 @@ import {
   type SortKey,
   type SortDir,
   TAB_OPTIONS,
-  SYMBOL_GROUPS,
 } from "@/components/options-flow/options-flow-types";
+import SymbolSearch from "@/components/ui/symbol-search";
 import {
   mapApiEntry,
   computeFlowSummary,
@@ -55,7 +55,6 @@ export default function OptionsFlowPage() {
   const [activeTab, setActiveTab] = useState<OptionsFlowTab>("table");
 
   // Filter state
-  const [search, setSearch] = useState("");
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [premiumFilter, setPremiumFilter] = useState<PremiumFilter>("all");
@@ -100,10 +99,6 @@ export default function OptionsFlowPage() {
   const filteredFlows = useMemo(() => {
     let result = [...flows];
     if (selectedSymbol) result = result.filter((f) => f.symbol === selectedSymbol);
-    if (search) {
-      const q = search.toUpperCase();
-      result = result.filter((f) => f.symbol.includes(q));
-    }
     if (sentimentFilter !== "all") result = result.filter((f) => f.sentiment === sentimentFilter);
     if (typeFilter !== "all") result = result.filter((f) => (typeFilter === "call" ? f.type === "C" : f.type === "P"));
     result = filterByPremium(result, premiumFilter);
@@ -122,7 +117,7 @@ export default function OptionsFlowPage() {
     });
 
     return result;
-  }, [flows, search, sentimentFilter, typeFilter, premiumFilter, selectedSymbol, sortKey, sortDir]);
+  }, [flows, sentimentFilter, typeFilter, premiumFilter, selectedSymbol, sortKey, sortDir]);
 
   const summary = useMemo(() => computeFlowSummary(filteredFlows), [filteredFlows]);
   const symbolSummaries = useMemo(() => computeSymbolSummaries(flows), [flows]);
@@ -207,61 +202,36 @@ export default function OptionsFlowPage() {
         />
       </div>
 
-      {/* Symbol Groups */}
-      <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
-        {selectedSymbol && (
-          <button
-            onClick={() => setSelectedSymbol(null)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-accent/15 text-accent border border-accent/30 mr-1"
-          >
-            {selectedSymbol} <X size={10} />
-          </button>
-        )}
-        {Object.entries(SYMBOL_GROUPS).map(([groupName, symbols], gi) => (
-          <div key={groupName} className="flex items-center gap-1">
-            <span className="text-[9px] text-muted/40 uppercase tracking-wider font-semibold whitespace-nowrap mr-0.5">
-              {groupName}
-            </span>
-            {symbols.map((sym) => (
-              <button
-                key={sym}
-                onClick={() => {
-                  if (selectedSymbol === sym) {
-                    setSelectedSymbol(null);
-                  } else {
-                    setSelectedSymbol(sym);
-                    setActiveTab("table");
-                  }
-                }}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
-                  selectedSymbol === sym
-                    ? "bg-accent/15 text-accent border border-accent/30"
-                    : "bg-surface border border-border/50 text-muted hover:text-foreground hover:border-accent/20"
-                }`}
-              >
-                {sym}
-              </button>
-            ))}
-            {gi < Object.keys(SYMBOL_GROUPS).length - 1 && (
-              <div className="w-px h-4 bg-border/30 mx-1" />
-            )}
-          </div>
-        ))}
+      {/* Symbol Search + Filter */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <SymbolSearch
+            mode="stock"
+            value={selectedSymbol ?? "ALL"}
+            onSelect={(sym) => {
+              if (sym === selectedSymbol) {
+                setSelectedSymbol(null);
+              } else {
+                setSelectedSymbol(sym);
+                setActiveTab("table");
+              }
+            }}
+            popularKey="options-flow"
+            placeholder="Filter by symbol..."
+          />
+          {selectedSymbol && (
+            <button
+              onClick={() => setSelectedSymbol(null)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-loss/10 text-loss border border-loss/20 hover:bg-loss/15 transition-all"
+            >
+              Clear <X size={10} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div className="relative max-w-[160px]">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Symbol..."
-            className="w-full bg-surface border border-border rounded-xl pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted/30 focus:outline-none focus:border-accent/50 transition-all"
-          />
-        </div>
-
         <div className="flex items-center gap-2 flex-wrap">
           <Filter size={12} className="text-muted/40" />
 
@@ -356,7 +326,7 @@ export default function OptionsFlowPage() {
           <Activity size={48} className="text-accent/30 mb-4" />
           <h3 className="text-lg font-bold text-foreground mb-2">No Options Flow Data</h3>
           <p className="text-sm text-muted max-w-xs">
-            {search || sentimentFilter !== "all" || typeFilter !== "all" || premiumFilter !== "all" || selectedSymbol
+            {sentimentFilter !== "all" || typeFilter !== "all" || premiumFilter !== "all" || selectedSymbol
               ? "No results match your current filters. Try broadening your search."
               : "Options flow data is not available at this time."}
           </p>

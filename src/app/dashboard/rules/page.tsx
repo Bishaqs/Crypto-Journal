@@ -12,8 +12,7 @@ import {
   XCircle,
   BarChart3,
 } from "lucide-react";
-import { PageInfoButton } from "@/components/ui/page-info-button";
-import { usePageTour } from "@/lib/use-page-tour";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 type Rule = {
   id: string;
@@ -55,7 +54,6 @@ const DEMO_VIOLATIONS: Violation[] = [
 ];
 
 export default function RulesPage() {
-  usePageTour("rules-page");
   const [rules, setRules] = useState<Rule[]>(DEFAULT_RULES);
   const [violations] = useState<Violation[]>(DEMO_VIOLATIONS);
   const [newRuleName, setNewRuleName] = useState("");
@@ -132,7 +130,7 @@ export default function RulesPage() {
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Shield size={22} className="text-accent" />
           Rule Tracker
-          <PageInfoButton tourName="rules-page" />
+          <InfoTooltip text="Define your trading rules and track violations to build discipline" />
         </h1>
         <p className="text-sm text-muted mt-1">
           Define your rules. Track violations. See what breaking them costs you.

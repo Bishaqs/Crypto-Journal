@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { FileSearch, Search, Loader2 } from "lucide-react";
+import { FileSearch, Loader2 } from "lucide-react";
 import { Header } from "@/components/header";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -17,8 +17,8 @@ import {
   type FundamentalsData,
   type FundamentalsTab,
   TAB_OPTIONS,
-  SYMBOL_GROUPS,
 } from "@/components/fundamentals/fundamentals-types";
+import SymbolSearch from "@/components/ui/symbol-search";
 
 export default function FundamentalsPage() {
   const { hasAccess, loading: subLoading } = useSubscription();
@@ -26,7 +26,6 @@ export default function FundamentalsPage() {
   const colors = getChartColors(theme);
 
   const [symbol, setSymbol] = useState("AAPL");
-  const [inputValue, setInputValue] = useState("AAPL");
   const [activeTab, setActiveTab] = useState<FundamentalsTab>("overview");
   const [data, setData] = useState<FundamentalsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,17 +53,10 @@ export default function FundamentalsPage() {
     fetchFundamentals(symbol);
   }, [symbol, fetchFundamentals]);
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = inputValue.trim().toUpperCase();
-    if (trimmed && trimmed !== symbol) {
-      setSymbol(trimmed);
+  function handleSymbolSelect(sym: string) {
+    if (sym !== symbol) {
+      setSymbol(sym);
     }
-  }
-
-  function handleSymbolClick(sym: string) {
-    setSymbol(sym);
-    setInputValue(sym);
   }
 
   if (subLoading) return null;
@@ -96,52 +88,14 @@ export default function FundamentalsPage() {
         </div>
       )}
 
-      {/* Symbol Groups */}
-      <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
-        {Object.entries(SYMBOL_GROUPS).map(([groupName, symbols], gi) => (
-          <div key={groupName} className="flex items-center gap-1">
-            <span className="text-[9px] text-muted/40 uppercase tracking-wider font-semibold whitespace-nowrap mr-0.5">
-              {groupName}
-            </span>
-            {symbols.map((sym) => (
-              <button
-                key={sym}
-                onClick={() => handleSymbolClick(sym)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
-                  symbol === sym
-                    ? "bg-accent/15 text-accent border border-accent/30"
-                    : "bg-surface border border-border/50 text-muted hover:text-foreground hover:border-accent/20"
-                }`}
-              >
-                {sym}
-              </button>
-            ))}
-            {gi < Object.keys(SYMBOL_GROUPS).length - 1 && (
-              <div className="w-px h-4 bg-border/30 mx-1" />
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Search */}
-      <form onSubmit={handleSearch} className="flex gap-3 items-center">
-        <div className="relative max-w-[200px]">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value.toUpperCase())}
-            placeholder="Symbol..."
-            className="w-full bg-surface border border-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-foreground placeholder:text-muted/30 focus:outline-none focus:border-accent/50 transition-all uppercase font-semibold"
-          />
-        </div>
-        <button
-          type="submit"
-          className="px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-xs hover:bg-accent-hover transition-all"
-        >
-          Analyze
-        </button>
-      </form>
+      {/* Symbol Search */}
+      <SymbolSearch
+        mode="stock"
+        value={symbol}
+        onSelect={handleSymbolSelect}
+        popularKey="fundamentals"
+        placeholder="Search any stock..."
+      />
 
       {/* Tab bar */}
       <div className="flex gap-1 rounded-xl border border-border/50 p-1 glass w-fit">

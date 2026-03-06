@@ -76,6 +76,7 @@ const en = {
     analytics: "Analytics",
     tradePlans: "Trade Plans",
     achievements: "Achievements",
+    leaderboard: "Leaderboard",
     positions: "Positions",
     watchlist: "Watchlist",
     settings: "Settings",
@@ -247,6 +248,7 @@ const en = {
 
   quickAction: {
     title: "Quick Actions",
+    quickTrade: "Quick Trade",
     logTrade: "Log Trade",
     importCsv: "Import CSV",
     addNote: "Add Note",
