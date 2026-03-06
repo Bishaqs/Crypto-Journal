@@ -529,6 +529,41 @@ body { background: var(--background); color: var(--foreground); font-family: var
 }
 .animate-fadeIn { animation: fadeIn 0.3s ease-out both; }
 
+/* Tour highlight glow on sidebar/target items */
+.tour-highlight {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 16px rgba(var(--accent-rgb), 0.4),
+    0 0 32px rgba(var(--accent-rgb), 0.2) !important;
+  border-color: var(--accent) !important;
+  transition: box-shadow 0.5s ease, border-color 0.5s ease !important;
+  animation: tour-pulse 2s ease-in-out infinite;
+  position: relative;
+  z-index: 999;
+}
+
+@keyframes tour-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px var(--accent),
+      0 0 16px rgba(var(--accent-rgb), 0.4),
+      0 0 32px rgba(var(--accent-rgb), 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px var(--accent),
+      0 0 24px rgba(var(--accent-rgb), 0.5),
+      0 0 48px rgba(var(--accent-rgb), 0.3);
+  }
+}
+
+/* Fade-in animation for content sections */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.3s ease-out both; }
+
 /* Feature & pricing card depth */
 .feature-card {
   box-shadow: var(--shadow-card);
