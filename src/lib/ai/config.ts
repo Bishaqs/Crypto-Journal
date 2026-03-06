@@ -27,14 +27,14 @@ export const PROVIDER_CONFIGS: Record<ProviderId, ProviderConfig> = {
     id: "google",
     name: "Gemini (Google)",
     models: [
-      { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
-      { id: "gemini-2.0-pro", label: "Gemini 2.0 Pro" },
+      { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+      { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
     ],
-    defaultModel: "gemini-2.0-flash",
+    defaultModel: "gemini-2.5-flash",
   },
 };
 
-export const DEFAULT_PROVIDER: ProviderId = "anthropic";
+export const DEFAULT_PROVIDER: ProviderId = "google";
 
 /** Returns an array of providers that have API keys configured */
 export function getAvailableProviders(): ProviderConfig[] {
