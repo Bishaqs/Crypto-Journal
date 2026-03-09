@@ -767,7 +767,7 @@ function OceanBackground() {
       {smallFish.map((fish, i) => (
         <div
           key={`fish-${i}`}
-          className={fish.goingRight ? "ocean-fish-right" : "ocean-fish-left"}
+          className={fish.goingRight ? "triton-fish-right" : "triton-fish-left"}
           style={{
             top: `${fish.top}%`,
             "--fish-duration": `${fish.duration}s`,
@@ -801,7 +801,7 @@ function OceanBackground() {
       ))}
 
       {/* Rare large fish (whale silhouette) — appears every ~4 minutes */}
-      <div className="ocean-big-fish">
+      <div className="triton-big-fish">
         <svg width="120" height="40" viewBox="0 0 120 40" style={{ filter: "drop-shadow(0 0 8px rgba(14,165,233,0.15))" }}>
           <path
             d="M5,20 Q10,8 30,6 Q50,4 70,8 Q85,12 95,15 Q100,17 105,14 Q110,10 115,8 L118,12 L115,16 Q110,20 105,22 Q100,23 95,25 Q85,28 70,32 Q50,36 30,34 Q10,32 5,20 Z"

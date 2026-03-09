@@ -19,12 +19,12 @@ type ThemeOption = {
   accentGlow: string;
 };
 
-const PRO_THEME_IDS = ["dark", "matrix", "volcano", "ocean"];
+const PRO_THEME_IDS = ["nebula", "cipher", "vulcan", "triton"];
 
 const THEME_OPTIONS: ThemeOption[] = [
   {
-    id: "light",
-    label: "Light",
+    id: "solara",
+    label: "Solara",
     dot: "#eef0f4",
     bg: "#eef0f4",
     surface: "#f7f8fa",
@@ -37,8 +37,8 @@ const THEME_OPTIONS: ThemeOption[] = [
     accentGlow: "rgba(0, 150, 183, 0.1)",
   },
   {
-    id: "dark-simple",
-    label: "Dark",
+    id: "obsidian",
+    label: "Obsidian",
     dot: "#1e1e1e",
     bg: "#121212",
     surface: "rgba(30, 30, 30, 0.9)",
@@ -51,8 +51,8 @@ const THEME_OPTIONS: ThemeOption[] = [
     accentGlow: "rgba(96, 165, 250, 0.12)",
   },
   {
-    id: "dark",
-    label: "Space Purple",
+    id: "nebula",
+    label: "Nebula",
     dot: "#8B5CF6",
     bg: "#080c14",
     surface: "rgba(12, 18, 30, 0.85)",
@@ -65,8 +65,8 @@ const THEME_OPTIONS: ThemeOption[] = [
     accentGlow: "rgba(139, 92, 246, 0.15)",
   },
   {
-    id: "matrix",
-    label: "Matrix",
+    id: "cipher",
+    label: "Cipher",
     dot: "#22c55e",
     bg: "#000000",
     surface: "rgba(5, 15, 5, 0.9)",
@@ -79,8 +79,8 @@ const THEME_OPTIONS: ThemeOption[] = [
     accentGlow: "rgba(34, 197, 94, 0.15)",
   },
   {
-    id: "volcano",
-    label: "Volcano",
+    id: "vulcan",
+    label: "Vulcan",
     dot: "#f97316",
     bg: "#0a0504",
     surface: "rgba(18, 10, 6, 0.85)",
@@ -93,8 +93,8 @@ const THEME_OPTIONS: ThemeOption[] = [
     accentGlow: "rgba(249, 115, 22, 0.15)",
   },
   {
-    id: "ocean",
-    label: "Ocean",
+    id: "triton",
+    label: "Triton",
     dot: "#0ea5e9",
     bg: "#020817",
     surface: "rgba(4, 14, 30, 0.85)",
@@ -109,7 +109,7 @@ const THEME_OPTIONS: ThemeOption[] = [
 ];
 
 function ThemeBackground({ theme }: { theme: ThemeOption }) {
-  if (theme.id === "light") {
+  if (theme.id === "solara") {
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
         {[...Array(5)].map((_, i) => (
@@ -130,7 +130,7 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
     );
   }
 
-  if (theme.id === "matrix") {
+  if (theme.id === "cipher") {
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
         {/* Dense binary rain columns */}
@@ -160,7 +160,7 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
     );
   }
 
-  if (theme.id === "volcano") {
+  if (theme.id === "vulcan") {
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
         {/* Dark charcoal gradient */}
@@ -192,7 +192,7 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
     );
   }
 
-  if (theme.id === "ocean") {
+  if (theme.id === "triton") {
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
         {/* Deep abyss gradient */}
@@ -244,7 +244,7 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
     );
   }
 
-  if (theme.id === "dark-simple") {
+  if (theme.id === "obsidian") {
     // Mini candlestick shapes floating on dark background
     const candles = [
       { x: 5, y: 10, h: 32, w: 6, up: true, delay: 0 },
@@ -420,7 +420,7 @@ function MockDashboard({ theme }: { theme: ThemeOption }) {
 }
 
 export function ThemeShowcase() {
-  const [active, setActive] = useState(2); // Default to Space Purple
+  const [active, setActive] = useState(2); // Default to Nebula
 
   const current = THEME_OPTIONS[active];
 
@@ -445,7 +445,7 @@ export function ThemeShowcase() {
                 style={{
                   background: theme.dot,
                   boxShadow: active === i ? `0 0 8px ${theme.dot}60` : "none",
-                  border: theme.id === "light" || theme.id === "dark-simple" ? "1px solid #555" : "none",
+                  border: theme.id === "solara" || theme.id === "obsidian" ? "1px solid #555" : "none",
                 }}
               />
               {theme.label}

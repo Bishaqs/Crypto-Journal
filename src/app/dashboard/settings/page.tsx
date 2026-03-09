@@ -1043,7 +1043,7 @@ function SettingsContent() {
                     period: "forever",
                     badge: null,
                     highlight: false,
-                    features: ["2 trade logs/week", "Basic analytics", "Calendar heatmap", "Light + Dark Simple themes", "CSV import"],
+                    features: ["2 trade logs/week", "Basic analytics", "Calendar heatmap", "Solara + Obsidian themes", "CSV import"],
                     current: tier === "free",
                   },
                   {

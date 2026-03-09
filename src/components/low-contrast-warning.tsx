@@ -47,7 +47,7 @@ export function LowContrastWarning() {
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           <button
-            onClick={() => setTheme("dark-simple")}
+            onClick={() => setTheme("obsidian")}
             className="px-3 py-1.5 rounded-lg bg-surface border border-border text-xs font-medium text-foreground hover:border-amber-400/30 transition-all flex items-center gap-1.5"
           >
             <Moon size={12} />

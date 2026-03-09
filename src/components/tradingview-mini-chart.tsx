@@ -13,7 +13,7 @@ interface Props {
 export function TradingViewMiniChart({ symbol, height = 160, dateRange = "1M", trendColor = "rgba(0, 180, 216, 1)" }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
-  const colorTheme = (theme as string) === "light" ? "light" : "dark";
+  const colorTheme = (theme as string) === "solara" ? "light" : "dark";
 
   useEffect(() => {
     const el = containerRef.current;
@@ -52,7 +52,7 @@ export function TradingViewMiniChart({ symbol, height = 160, dateRange = "1M", t
 export function TradingViewTechnicalAnalysis({ symbol, height = 250 }: { symbol: string; height?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
-  const colorTheme = (theme as string) === "light" ? "light" : "dark";
+  const colorTheme = (theme as string) === "solara" ? "light" : "dark";
 
   useEffect(() => {
     const el = containerRef.current;
