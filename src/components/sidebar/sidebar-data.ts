@@ -186,6 +186,7 @@ const reportItems: NavItem[] = [
 ];
 
 export const bottomItems: NavItem[] = [
+  { href: "/dashboard/import-export", label: "Import / Export", icon: ArrowUpDown },
   { href: "/dashboard/feedback", label: "Feedback", icon: MessageSquareText },
   { href: "/dashboard/help", label: "Help Center", icon: HelpCircle },
   { href: "/dashboard/profile", label: "Profile", icon: UserCircle },
@@ -258,7 +259,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     key: "journal",
     label: "Journal",
     icon: BookOpen,
-    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5], coreItems[6]],
+    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5]],
   },
   {
     key: "analytics",
