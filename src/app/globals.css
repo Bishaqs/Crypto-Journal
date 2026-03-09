@@ -153,8 +153,8 @@
   --shadow-cosmic-hover: 0 0 12px rgba(14, 165, 233, 0.6), 0 0 30px rgba(14, 165, 233, 0.4), 0 0 70px rgba(14, 165, 233, 0.2), 0 0 120px rgba(14, 165, 233, 0.08);
 }
 
-/* Midas — completionist prestige theme (Bitcoin orange/gold) */
-.midas {
+/* Satoshi — level 500 prestige theme (Bitcoin orange/gold) */
+.satoshi {
   --background: #0a0806;
   --surface: rgba(20, 14, 6, 0.85);
   --surface-hover: rgba(30, 22, 10, 0.9);
@@ -791,7 +791,7 @@ body {
   -webkit-backdrop-filter: blur(8px);
 }
 
-.midas .glass {
+.satoshi .glass {
   background: rgba(10, 8, 4, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -1025,158 +1025,32 @@ body {
 
 /* ===== TRITON — Deep Sea ===== */
 
-/* Bioluminescent particles — multi-color */
-@keyframes bioluminescence {
-
-  0%,
-  100% {
-    opacity: 0.1;
-    transform: translateY(0) translateX(0) scale(1);
-  }
-
-  25% {
-    opacity: 0.7;
-    transform: translateY(-25px) translateX(10px) scale(1.2);
-  }
-
-  50% {
-    opacity: 0.3;
-    transform: translateY(-40px) translateX(-8px) scale(0.9);
-  }
-
-  75% {
-    opacity: 0.6;
-    transform: translateY(-15px) translateX(15px) scale(1.1);
-  }
-}
-
-.bio-dot {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: bioluminescence var(--bio-duration, 10s) ease-in-out infinite;
-  animation-delay: var(--bio-delay, 0s);
-}
-
-/* Light rays from above — underwater god rays */
-@keyframes ocean-ray-sway {
-
-  0%,
-  100% {
-    transform: rotate(var(--ray-angle, 15deg)) scaleX(1);
-    opacity: 0.3;
-  }
-
-  50% {
-    transform: rotate(calc(var(--ray-angle, 15deg) + 3deg)) scaleX(1.1);
-    opacity: 0.6;
-  }
-}
-
 .triton-ray {
   position: absolute;
   top: -10%;
   pointer-events: none;
-  animation: ocean-ray-sway var(--ray-duration, 10s) ease-in-out infinite;
-  animation-delay: var(--ray-delay, 0s);
   transform-origin: top center;
-}
-
-/* Jellyfish floating */
-@keyframes jellyfish-drift {
-
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  25% {
-    transform: translate(15px, -30px) scale(1.05);
-  }
-
-  50% {
-    transform: translate(-10px, -50px) scale(0.95);
-  }
-
-  75% {
-    transform: translate(20px, -20px) scale(1.02);
-  }
-}
-
-@keyframes jellyfish-pulse {
-
-  0%,
-  100% {
-    opacity: 0.4;
-    filter: blur(2px);
-  }
-
-  50% {
-    opacity: 0.85;
-    filter: blur(1px);
-  }
 }
 
 .jellyfish {
   position: absolute;
-  border-radius: 50% 50% 40% 40%;
   pointer-events: none;
-  animation:
-    jellyfish-drift var(--jelly-duration, 20s) ease-in-out infinite,
-    jellyfish-pulse var(--jelly-pulse, 5s) ease-in-out infinite;
-  animation-delay: var(--jelly-delay, 0s);
 }
 
-/* Swimming fish — left to right */
 @keyframes swim-right {
-  0% {
-    left: -8%;
-    opacity: 0;
-  }
-
-  3% {
-    opacity: 1;
-  }
-
-  50% {
-    transform: translateY(-12px);
-  }
-
-  97% {
-    opacity: 1;
-  }
-
-  100% {
-    left: 105%;
-    opacity: 0;
-    transform: translateY(0);
-  }
+  0% { left: -8%; opacity: 0; }
+  3% { opacity: 1; }
+  50% { transform: translateY(-12px); }
+  97% { opacity: 1; }
+  100% { left: 105%; opacity: 0; transform: translateY(0); }
 }
 
-/* Swimming fish — right to left */
 @keyframes swim-left {
-  0% {
-    right: -8%;
-    opacity: 0;
-  }
-
-  3% {
-    opacity: 1;
-  }
-
-  50% {
-    transform: translateY(10px);
-  }
-
-  97% {
-    opacity: 1;
-  }
-
-  100% {
-    right: 105%;
-    opacity: 0;
-    transform: translateY(0);
-  }
+  0% { right: -8%; opacity: 0; }
+  3% { opacity: 1; }
+  50% { transform: translateY(10px); }
+  97% { opacity: 1; }
+  100% { right: 105%; opacity: 0; transform: translateY(0); }
 }
 
 .triton-fish-right {
@@ -1193,37 +1067,13 @@ body {
   animation-delay: var(--fish-delay, 0s);
 }
 
-/* Rare big fish — crosses screen every ~4 minutes */
 @keyframes big-fish-pass {
-
-  0%,
-  95% {
-    right: -15%;
-    opacity: 0;
-  }
-
-  96% {
-    opacity: 0.5;
-  }
-
-  98% {
-    opacity: 0.5;
-  }
-
-  99% {
-    right: 110%;
-    opacity: 0.5;
-  }
-
-  99.5% {
-    right: 110%;
-    opacity: 0;
-  }
-
-  100% {
-    right: -15%;
-    opacity: 0;
-  }
+  0%, 95% { right: -15%; opacity: 0; }
+  96% { opacity: 0.5; }
+  98% { opacity: 0.5; }
+  99% { right: 110%; opacity: 0.5; }
+  99.5% { right: 110%; opacity: 0; }
+  100% { right: -15%; opacity: 0; }
 }
 
 .triton-big-fish {
@@ -1234,15 +1084,9 @@ body {
   animation-delay: -60s;
 }
 
-/* Caustic light ripple overlay near top */
 @keyframes caustic-shift {
-  0% {
-    background-position: 0% 0%;
-  }
-
-  100% {
-    background-position: 100% 100%;
-  }
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
 }
 
 .triton-caustics {

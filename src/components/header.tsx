@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme, THEMES, isProTheme, isCompletionistTheme } from "@/lib/theme-context";
-import { useCosmetics } from "@/lib/cosmetics";
+import { useTheme, THEMES, isProTheme, isLevel500Theme } from "@/lib/theme-context";
+import { useLevel } from "@/lib/xp";
 import { useSubscriptionContext } from "@/lib/subscription-context";
 import { useDateRange, DATE_RANGES } from "@/lib/date-range-context";
 import {
@@ -30,8 +30,8 @@ export function Header() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { tier, isOwner } = useSubscriptionContext();
-  const { isOwned: isCosmeticOwned } = useCosmetics();
-  const hasCompletionistTheme = isCosmeticOwned("title_completionist");
+  const { level } = useLevel();
+  const hasLevel500Access = level >= 500;
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const { dateRange, setDateRange } = useDateRange();
@@ -183,7 +183,7 @@ export function Header() {
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
                 {THEMES.map((t) => {
-                  const isLocked = isCompletionistTheme(t.value) && !hasCompletionistTheme && !isOwner;
+                  const isLocked = isLevel500Theme(t.value) && !hasLevel500Access && !isOwner;
                   const isProLocked = isProTheme(t.value) && tier === "free" && !isOwner;
                   return (
                     <button
@@ -212,7 +212,7 @@ export function Header() {
                         }}
                       />
                       {t.label}
-                      {isLocked && <span className="text-[10px] text-amber-400/60 ml-auto">🔒 100%</span>}
+                      {isLocked && <span className="text-[10px] text-amber-400/60 ml-auto">🔒 Lv.500</span>}
                     </button>
                   );
                 })}
