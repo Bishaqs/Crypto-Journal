@@ -7,6 +7,50 @@ import type {
 } from "./seasonality-types";
 import { resolveCoinGeckoId } from "@/lib/coin-registry";
 
+// ── Sine curve fitting via Fourier coefficients ───────────────────
+
+export interface SineFitResult {
+  amplitude: number;
+  phase: number;
+  offset: number;
+  fittedValues: number[]; // 12 values for Jan-Dec
+  r2: number; // R-squared goodness of fit
+}
+
+export function fitSineCurve(monthlyReturns: number[]): SineFitResult {
+  const n = monthlyReturns.length; // should be 12
+  if (n === 0) return { amplitude: 0, phase: 0, offset: 0, fittedValues: [], r2: 0 };
+
+  const mean = monthlyReturns.reduce((s, v) => s + v, 0) / n;
+
+  let a1 = 0;
+  let b1 = 0;
+  for (let i = 0; i < n; i++) {
+    const angle = (2 * Math.PI * i) / n;
+    a1 += monthlyReturns[i] * Math.cos(angle);
+    b1 += monthlyReturns[i] * Math.sin(angle);
+  }
+  a1 *= 2 / n;
+  b1 *= 2 / n;
+
+  const amplitude = Math.sqrt(a1 * a1 + b1 * b1);
+  const phase = Math.atan2(a1, b1);
+
+  const fittedValues = Array.from({ length: n }, (_, i) =>
+    amplitude * Math.sin((2 * Math.PI * i) / n + phase) + mean,
+  );
+
+  // R-squared
+  const ssTot = monthlyReturns.reduce((s, v) => s + (v - mean) ** 2, 0);
+  const ssRes = monthlyReturns.reduce(
+    (s, v, i) => s + (v - fittedValues[i]) ** 2,
+    0,
+  );
+  const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
+
+  return { amplitude, phase, offset: mean, fittedValues, r2 };
+}
+
 export function formatReturn(value: number, decimals = 2): string {
   const sign = value >= 0 ? "+" : "";
   return `${sign}${value.toFixed(decimals)}%`;
@@ -60,10 +104,11 @@ export function mapApiResponse(json: Record<string, unknown>): SeasonalityData {
   };
 }
 
-// ── Client-side direct CoinGecko fallback ──────────────────────
+// ── Client-side direct fallback (CoinGecko + CryptoCompare) ─────
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const CRYPTOCOMPARE_BASE = "https://min-api.cryptocompare.com/data/v2";
 
 function avg(arr: number[]): number {
   return arr.length > 0 ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
@@ -78,17 +123,110 @@ function round3(n: number): number {
   return Math.round(n * 1000) / 1000;
 }
 
+async function fetchFromCryptoCompareDirect(
+  ticker: string,
+  days: number | "max",
+): Promise<[number, number][]> {
+  const maxDays = days === "max" ? 3650 : days;
+  const allPrices: [number, number][] = [];
+  let remaining = maxDays;
+  let toTs = Math.floor(Date.now() / 1000);
+
+  while (remaining > 0) {
+    const limit = Math.min(remaining, 2000);
+    const res = await fetch(
+      `${CRYPTOCOMPARE_BASE}/histoday?fsym=${ticker}&tsym=USD&limit=${limit}&toTs=${toTs}`,
+    );
+    if (!res.ok) throw new Error(`CryptoCompare returned ${res.status}`);
+    const json = await res.json();
+    if (json.Response !== "Success") throw new Error(json.Message || "CryptoCompare error");
+
+    const dataPoints: { time: number; close: number }[] = json.Data?.Data ?? [];
+    if (dataPoints.length === 0) break;
+
+    const batch: [number, number][] = dataPoints
+      .filter((d) => d.close > 0)
+      .map((d) => [d.time * 1000, d.close]);
+
+    allPrices.unshift(...batch);
+    remaining -= dataPoints.length;
+    if (dataPoints.length < limit) break;
+    toTs = dataPoints[0].time - 1;
+  }
+  return allPrices;
+}
+
+async function fetchDerivedMetricDirect(
+  metricId: string,
+  days: number | "max",
+  useExtended: boolean,
+): Promise<[number, number][]> {
+  if (metricId === "__virtual__btc_dominance") {
+    if (useExtended) {
+      const [btcPrices, ethPrices] = await Promise.all([
+        fetchFromCryptoCompareDirect("BTC", days),
+        fetchFromCryptoCompareDirect("ETH", days),
+      ]);
+      const ethMap = new Map<number, number>();
+      for (const [ts, price] of ethPrices) ethMap.set(Math.floor(ts / 86400000), price);
+      return btcPrices
+        .map(([ts, btcPrice]) => {
+          const ethPrice = ethMap.get(Math.floor(ts / 86400000));
+          if (ethPrice == null || btcPrice + ethPrice === 0) return null;
+          return [ts, (btcPrice / (btcPrice + ethPrice)) * 100] as [number, number];
+        })
+        .filter((v): v is [number, number] => v !== null);
+    }
+
+    // CoinGecko path (≤365 days)
+    const cgDays = typeof days === "number" && days > 365 ? 365 : days;
+    const base = "https://api.coingecko.com/api/v3";
+    const [btcRes, ethRes] = await Promise.all([
+      fetch(`${base}/coins/bitcoin/market_chart?vs_currency=usd&days=${cgDays}`),
+      fetch(`${base}/coins/ethereum/market_chart?vs_currency=usd&days=${cgDays}`),
+    ]);
+    if (!btcRes.ok || !ethRes.ok) throw new Error("Failed to fetch BTC/ETH data");
+    const btcData = await btcRes.json();
+    const ethData = await ethRes.json();
+    const btcMcaps: [number, number][] = btcData.market_caps ?? [];
+    const ethMcaps: [number, number][] = ethData.market_caps ?? [];
+
+    const ethMap = new Map<number, number>();
+    for (const [ts, mcap] of ethMcaps) ethMap.set(Math.floor(ts / 86400000), mcap);
+
+    return btcMcaps
+      .map(([ts, btcMcap]) => {
+        const ethMcap = ethMap.get(Math.floor(ts / 86400000));
+        if (ethMcap == null || btcMcap + ethMcap === 0) return null;
+        return [ts, (btcMcap / (btcMcap + ethMcap)) * 100] as [number, number];
+      })
+      .filter((v): v is [number, number] => v !== null);
+  }
+  throw new Error(`Unknown derived metric: ${metricId}`);
+}
+
 export async function fetchSeasonalityDirect(symbol: string, days: number): Promise<SeasonalityData> {
   const coinId = resolveCoinGeckoId(symbol);
-  const clampedDays = Math.min(Math.max(days, 30), 365);
+  const clampedDays = days === 0 ? "max" : Math.min(Math.max(days, 30), 1825);
+  const isVirtual = coinId.startsWith("__virtual__");
+  const numericDays = typeof clampedDays === "number" ? clampedDays : 1825;
+  const needsExtended = numericDays > 365;
 
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${clampedDays}`
-  );
-  if (!res.ok) throw new Error(`CoinGecko returned ${res.status}`);
+  let prices: [number, number][];
 
-  const data = await res.json();
-  const prices: [number, number][] = data.prices ?? [];
+  if (isVirtual) {
+    prices = await fetchDerivedMetricDirect(coinId, clampedDays, needsExtended);
+  } else if (needsExtended) {
+    prices = await fetchFromCryptoCompareDirect(symbol, clampedDays);
+  } else {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${clampedDays}`,
+    );
+    if (!res.ok) throw new Error(`CoinGecko returned ${res.status}`);
+    const data = await res.json();
+    prices = data.prices ?? [];
+  }
+
   if (prices.length < 2) throw new Error("Not enough price data");
 
   // Daily returns

@@ -7,6 +7,7 @@ import {
   Heart,
   TrendingUp,
   MessageCircle,
+  Headphones,
   RotateCcw,
   X,
   Send,
@@ -208,6 +209,22 @@ export function GuideMenu() {
               </div>
             </button>
 
+            <button
+              onClick={() => setMenuPanel("support")}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left hover:bg-accent/10 transition-all group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 relative">
+                <Headphones size={16} className="text-accent" />
+                <SupportStatusDot />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground group-hover:text-accent transition-colors">
+                  Live Support
+                </p>
+                <p className="text-[10px] text-muted">Talk to a human</p>
+              </div>
+            </button>
+
             {isDashboard && canReplayWelcome && (
               <button
                 onClick={replayWelcomeTour}
@@ -351,7 +368,26 @@ export function GuideMenu() {
         )}
 
         {/* Chat sub-panel uses GuideHelp — rendered separately */}
+        {/* Support sub-panel uses GuideSupport — rendered separately */}
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+function SupportStatusDot() {
+  const cetHour = parseInt(
+    new Intl.DateTimeFormat("en", {
+      timeZone: "Europe/Berlin",
+      hour: "numeric",
+      hour12: false,
+    }).format(new Date()),
+  );
+  const online = cetHour >= 12 && cetHour < 22;
+  return (
+    <div
+      className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background ${
+        online ? "bg-emerald-500 animate-pulse" : "bg-red-500"
+      }`}
+    />
   );
 }

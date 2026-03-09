@@ -4,6 +4,8 @@ import { useReducer, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { FeatureInfoBox } from "@/components/ui/feature-info-box";
+import { FEATURE_INFO } from "@/lib/feature-info-content";
 import SimulatorPanel from "@/components/simulator/simulator-panel";
 import PlaybackControls from "@/components/simulator/playback-controls";
 import MultiSessionSummary from "@/components/simulator/multi-session-summary";
@@ -270,6 +272,8 @@ export default function MultiChartPage() {
           </button>
         </div>
       </div>
+
+      <FeatureInfoBox variant="simulator" {...FEATURE_INFO["multi-chart"]} />
 
       {/* 2x2 Chart Grid */}
       <div className="flex-1 grid grid-cols-2 grid-rows-2 min-h-0 gap-px bg-white/5">

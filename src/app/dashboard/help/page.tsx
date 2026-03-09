@@ -87,11 +87,42 @@ export default function HelpPage() {
   const [chatInput, setChatInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasAutoSubmitted = useRef(false);
+  const [dynamicFaqs, setDynamicFaqs] = useState<FaqEntry[]>([]);
 
   // FAQ library state
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<FaqCategory | "all">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Load dynamic FAQs from database
+  useEffect(() => {
+    async function loadDynamicFaqs() {
+      try {
+        const res = await fetch("/api/dynamic-faqs");
+        if (res.ok) {
+          const data = await res.json();
+          const entries: FaqEntry[] = (data.faqs ?? []).map((f: { id: string; question: string; answer: string; category: string; tags: string[] }) => ({
+            id: `dynamic-${f.id}`,
+            question: f.question,
+            answer: f.answer,
+            category: f.category as FaqCategory,
+            tags: f.tags ?? [],
+            relatedIds: [],
+          }));
+          setDynamicFaqs(entries);
+        }
+      } catch {
+        // Dynamic FAQs are optional — static FAQs still work
+      }
+    }
+    loadDynamicFaqs();
+  }, []);
+
+  // Merge static + dynamic FAQs
+  const allFaqEntries = useMemo(
+    () => [...FAQ_ENTRIES, ...dynamicFaqs],
+    [dynamicFaqs],
+  );
 
   const submitQuestion = useCallback((question: string) => {
     const q = question.trim();
@@ -99,7 +130,7 @@ export default function HelpPage() {
 
     const userMsg: HelpMessage = { role: "user", content: q };
 
-    const scored = FAQ_ENTRIES
+    const scored = allFaqEntries
       .map((e) => ({ entry: e, score: scoreFaq(e, q) }))
       .filter((s) => s.score > 0)
       .sort((a, b) => b.score - a.score);
@@ -120,7 +151,7 @@ export default function HelpPage() {
     }
 
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
-  }, []);
+  }, [allFaqEntries]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -144,7 +175,7 @@ export default function HelpPage() {
 
   // FAQ library filtering
   const filteredEntries = useMemo(() => {
-    let entries = FAQ_ENTRIES;
+    let entries = allFaqEntries;
 
     if (activeCategory !== "all") {
       entries = entries.filter((e) => e.category === activeCategory);
@@ -159,7 +190,7 @@ export default function HelpPage() {
     }
 
     return entries;
-  }, [search, activeCategory]);
+  }, [search, activeCategory, allFaqEntries]);
 
   function handleAccordionRelatedClick(relatedId: string) {
     const entry = FAQ_MAP[relatedId];

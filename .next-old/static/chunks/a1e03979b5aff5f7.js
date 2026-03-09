@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,320238,e=>{"use strict";var t=e.i(843476);function c(){return(0,t.jsx)("div",{className:"text-center py-12 text-muted",children:"Week view coming soon."})}e.s(["default",()=>c])}]);

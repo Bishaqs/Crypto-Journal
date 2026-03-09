@@ -40,7 +40,7 @@ function MatrixRain() {
       {columns.map((col, i) => (
         <div
           key={i}
-          className="matrix-column"
+          className="cipher-column"
           style={{
             left: `${col.left}%`,
             "--rain-duration": `${col.speed}s`,
@@ -718,7 +718,7 @@ function OceanBackground() {
       }} />
 
       {/* Caustic light ripple overlay near top */}
-      <div className="ocean-caustics" />
+      <div className="triton-caustics" />
 
       {/* Light rays from above — god rays */}
       {[
@@ -731,7 +731,7 @@ function OceanBackground() {
       ].map((ray, i) => (
         <div
           key={i}
-          className="ocean-ray"
+          className="triton-ray"
           style={{
             left: ray.left,
             width: `${ray.width}px`,
@@ -1052,12 +1052,12 @@ export function Starfield() {
   // When OS "Reduce motion" is enabled, render only static backgrounds
   if (reducedMotion) {
     const bg: Record<string, string> = {
-      dark: "#080c14",
-      "dark-simple": "#121212",
-      matrix: "#000000",
-      volcano: "linear-gradient(180deg, #1a0a00 0%, #0d0500 40%, #0a0300 100%)",
-      ocean: "linear-gradient(180deg, #020a18 0%, #001020 50%, #020a18 100%)",
-      "satoshi-gold": "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
+      nebula: "#080c14",
+      obsidian: "#121212",
+      cipher: "#000000",
+      vulcan: "linear-gradient(180deg, #1a0a00 0%, #0d0500 40%, #0a0300 100%)",
+      triton: "linear-gradient(180deg, #020a18 0%, #001020 50%, #020a18 100%)",
+      midas: "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
     };
     return (
       <div
@@ -1065,7 +1065,7 @@ export function Starfield() {
         style={{ background: bg[theme] ?? "var(--background)" }}
       >
         {/* Static star dots for dark theme */}
-        {theme === "dark" && (
+        {theme === "nebula" && (
           <>
             <div className="stars-small" />
             <div className="stars-medium" />
@@ -1076,8 +1076,8 @@ export function Starfield() {
     );
   }
 
-  // Space Purple mode — stars, violet shooting stars, purple nebula, floating space objects
-  if (theme === "dark") {
+  // Nebula mode — stars, violet shooting stars, purple nebula, floating space objects
+  if (theme === "nebula") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" style={{ background: "#080c14" }}>
         <RealisticBlackHole size="medium" opacity={0.4} />
@@ -1126,8 +1126,8 @@ export function Starfield() {
     );
   }
 
-  // Dark Simple — clean dark background with floating candles
-  if (theme === "dark-simple") {
+  // Obsidian — clean dark background with floating candles
+  if (theme === "obsidian") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" style={{ background: "#121212" }}>
         <CandleBackground colorScheme="trading" />
@@ -1135,18 +1135,18 @@ export function Starfield() {
     );
   }
 
-  // Matrix mode — dense binary rain, no stars
-  if (theme === "matrix") {
+  // Cipher mode — dense binary rain, no stars
+  if (theme === "cipher") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" style={{ background: "#000000" }}>
         <MatrixRain />
-        <div className="matrix-scanlines" />
+        <div className="cipher-scanlines" />
       </div>
     );
   }
 
-  // Volcano mode — fiery eruption
-  if (theme === "volcano") {
+  // Vulcan mode — fiery eruption
+  if (theme === "vulcan") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <VolcanoBackground />
@@ -1154,8 +1154,8 @@ export function Starfield() {
     );
   }
 
-  // Ocean mode — deep underwater cave
-  if (theme === "ocean") {
+  // Triton mode — deep underwater cave
+  if (theme === "triton") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <OceanBackground />
@@ -1163,8 +1163,8 @@ export function Starfield() {
     );
   }
 
-  // Satoshi Gold — gold dust particle field
-  if (theme === "satoshi-gold") {
+  // Midas — gold dust particle field
+  if (theme === "midas") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <SatoshiGoldBackground />

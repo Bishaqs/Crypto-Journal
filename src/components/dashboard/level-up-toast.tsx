@@ -17,6 +17,7 @@ const RARITY_TEXT: Record<CosmeticRarity, string> = {
   rare: "text-blue-400",
   epic: "text-purple-400",
   legendary: "text-amber-400",
+  mythic: "text-red-400",
 };
 
 export function LevelUpToast() {
@@ -93,7 +94,11 @@ export function LevelUpToast() {
                       style={{ backgroundColor: getAccentDef(item.css_class)?.accent ?? "var(--accent)" }}
                     />
                   )}
-                  {item.name}
+                  {item.type === "name_style" && item.css_class ? (
+                    <span className={item.css_class}>{item.name}</span>
+                  ) : (
+                    item.name
+                  )}
                 </span>
               ))}
             </div>

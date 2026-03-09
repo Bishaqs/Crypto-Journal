@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../src/app/dashboard/calendar/week/page.tsx"],"sourcesContent":["\"use client\";\n\nexport default function WeekViewPage() {\n  return (\n    <div className=\"text-center py-12 text-muted\">\n      Week view coming soon.\n    </div>\n  );\n}\n"],"names":[],"mappings":"0DAEe,SAAS,IACtB,MACE,CAAA,EAAA,EAAA,GAAA,EAAC,MAAA,CAAI,UAAU,wCAA+B,0BAIlD"}

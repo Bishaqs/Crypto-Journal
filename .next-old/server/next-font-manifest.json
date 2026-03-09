@@ -1,0 +1,532 @@
+{
+  "app": {
+    "[project]/src/app/(simulator)/simulator/multi/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/(simulator)/simulator/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/_not-found/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/achievements/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/admin/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/ai/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/fees/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/running-pnl/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/sectors/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/tag-groups/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/technical-analysis/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/trade-count/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/treemap/sector/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/treemap/symbol/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/treemap/tags/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analysis/volume/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/analytics/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/backtester/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/compare-trades/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/filters/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/multi-simulator/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/options-backtest/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/options-flow/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/options-payoff/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/options-simulator/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/pnl-charts/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/seasonality/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/sec-13f/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/shared-trades/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/stock-screener/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/apps/target-simulator/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/calendar/day/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/calendar/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/calendar/week/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/calendar/year/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/challenges/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/commodities/analytics/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/commodities/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/commodities/plans/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/commodities/trades/[id]/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/commodities/trades/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/dca/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/execution/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/exit-analysis/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/feedback/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/forex/analytics/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/forex/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/forex/plans/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/forex/trades/[id]/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/forex/trades/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/funding-rates/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/goals/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/heatmaps/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/help/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/insights/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/journal/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/leaderboard/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/market/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/calendar/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/expectancy/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/hit-ratio/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/metrics/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/mfe-mae/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/profit-factor/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/r-value/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/returns/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/trends/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/performance/volume/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/plans/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/playbook/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/profile/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/prop-firm/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/reports/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/risk-analysis/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/risk/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/rules/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/screener/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/settings/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/simulations/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/statistics/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/stocks/analytics/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/stocks/market/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/stocks/options-analysis/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/stocks/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/stocks/plans/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/stocks/trades/[id]/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/stocks/trades/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/summaries/accounts/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/summaries/open-trades/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/summaries/tags/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/taxes/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/[id]/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/chart/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/day-grouped/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/executions/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/goals/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/pivot/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/plan-analytics/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/symbol-grouped/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/dashboard/trades/tag-grouped/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/login/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ],
+    "[project]/src/app/pricing/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/797e433ab948586e-s.p.dbea232f.woff2",
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

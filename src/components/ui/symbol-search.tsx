@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Search, X } from "lucide-react";
 import { searchStocks, resolveStockName, POPULAR_STOCKS } from "@/lib/stock-registry";
-import { COIN_TO_COINGECKO_ID, SUPPORTED_BINANCE_SYMBOLS } from "@/lib/coin-registry";
+import { COIN_TO_COINGECKO_ID, SUPPORTED_BINANCE_SYMBOLS, VIRTUAL_DISPLAY_NAMES } from "@/lib/coin-registry";
 
 interface SymbolSearchProps {
   mode: "stock" | "crypto" | "binance";
@@ -26,10 +26,8 @@ interface SearchResult {
 const CRYPTO_LIST: SearchResult[] = Object.entries(COIN_TO_COINGECKO_ID).map(
   ([ticker, id]) => ({
     ticker,
-    name: id
-      .split("-")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" "),
+    name: VIRTUAL_DISPLAY_NAMES[id] ??
+      id.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
   }),
 );
 
@@ -88,7 +86,7 @@ function searchBinance(query: string, limit = 12): SearchResult[] {
   return results;
 }
 
-const POPULAR_CRYPTO = ["BTC", "ETH", "SOL", "DOGE", "AVAX", "LINK", "ARB", "PEPE"];
+const POPULAR_CRYPTO = ["BTC", "ETH", "SOL", "DOGE", "AVAX", "LINK", "ARB", "PEPE", "SUI"];
 const POPULAR_BINANCE = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "DOGEUSDT", "AVAXUSDT", "LINKUSDT"];
 
 export default function SymbolSearch({
@@ -130,7 +128,8 @@ export default function SymbolSearch({
     }
     const cgId = COIN_TO_COINGECKO_ID[value.toUpperCase()];
     if (cgId) {
-      return cgId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      return VIRTUAL_DISPLAY_NAMES[cgId] ??
+        cgId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
     }
     return undefined;
   }, [mode, value]);

@@ -1,0 +1,3 @@
+{
+  "/dashboard/stocks/trades/[id]/page": "app/dashboard/stocks/trades/[id]/page.js"
+}

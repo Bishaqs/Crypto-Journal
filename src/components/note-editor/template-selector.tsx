@@ -93,8 +93,16 @@ export function TemplateSelector({ templates, contentRef, onApply, hasContent, d
       <select
         value={selected}
         onChange={(e) => {
-          setSelected(e.target.value);
+          const val = e.target.value;
+          setSelected(val);
           setShowWarning(false);
+          // Auto-apply on selection
+          const custom = customTemplates.find((t) => t.id === val);
+          if (custom) {
+            onApply(val, custom.content);
+          } else {
+            onApply(val);
+          }
         }}
         disabled={disabled || saving}
         className="px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all disabled:opacity-50 min-w-[140px]"
@@ -116,14 +124,6 @@ export function TemplateSelector({ templates, contentRef, onApply, hasContent, d
           </optgroup>
         )}
       </select>
-      <button
-        type="button"
-        onClick={handleApply}
-        disabled={disabled || saving}
-        className="px-4 py-2.5 rounded-xl bg-accent text-background text-sm font-medium hover:bg-accent-hover transition-all disabled:opacity-50"
-      >
-        Apply
-      </button>
       {showSaveInput ? (
         <>
           <input
@@ -175,9 +175,6 @@ export function TemplateSelector({ templates, contentRef, onApply, hasContent, d
         >
           <X size={14} />
         </button>
-      )}
-      {showWarning && (
-        <span className="text-[11px] text-loss">Click Apply again to replace content</span>
       )}
     </div>
   );

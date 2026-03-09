@@ -140,7 +140,7 @@ function TradingViewTickerTape({ colorTheme }: { colorTheme: "dark" | "light" })
 
 export default function StockWatchlistPage() {
   const { theme } = useTheme();
-  const tvColorTheme = theme === "light" ? "light" : "dark";
+  const tvColorTheme = (theme as string) === "light" ? "light" : "dark";
   const [items, setItems] = useState<WatchlistItem[]>(loadWatchlist);
   const [showForm, setShowForm] = useState(false);
   const [showFormAdvanced, setShowFormAdvanced] = useState(false);

@@ -17,6 +17,8 @@ export type TourStep = {
   icon?: string;
   title: string;
   content: string;
+  titleKey?: string;
+  contentKey?: string;
   selector?: string;
   side?: string;
   showControls?: boolean;
@@ -107,7 +109,7 @@ const TOUR_ID_TO_CATEGORY: Record<string, string> = {
   "tour-journal": "journal",
   "tour-calendar": "journal",
   "tour-plans": "journal",
-  "tour-achievements": "journal",
+  "tour-achievements": "compete",
   "tour-analytics": "analytics",
   "tour-insights": "analytics",
   "tour-ai": "analytics",
@@ -116,7 +118,11 @@ const TOUR_ID_TO_CATEGORY: Record<string, string> = {
 
 const SIDEBAR_TOUR_IDS = new Set(Object.keys(TOUR_ID_TO_CATEGORY));
 
+// Track sidebar state to avoid unnecessary close/open cycles during transitions
+let sidebarOpen = false;
+
 function expandSidebar(category?: string) {
+  sidebarOpen = true;
   window.dispatchEvent(
     new CustomEvent("tour-sidebar", { detail: { expand: true, category: category || "journal" } }),
   );
@@ -124,6 +130,7 @@ function expandSidebar(category?: string) {
 }
 
 function restoreSidebar() {
+  sidebarOpen = false;
   window.dispatchEvent(
     new CustomEvent("tour-sidebar", { detail: { expand: false } }),
   );
@@ -131,15 +138,27 @@ function restoreSidebar() {
 }
 
 function forceCloseSidebar() {
+  sidebarOpen = false;
   window.dispatchEvent(
     new CustomEvent("tour-sidebar", { detail: { expand: false, force: true } }),
   );
   window.dispatchEvent(new CustomEvent("tour-sections-restore"));
 }
 
+function openAppsDropdown() {
+  window.dispatchEvent(new CustomEvent("tour-apps-open"));
+}
+
+function closeAppsDropdown() {
+  window.dispatchEvent(new CustomEvent("tour-apps-close"));
+}
+
 // ─── Step Execution ─────────────────────────────────────────
 
 function executeStep(step: TourStep, stepIndex: number, tourName: string) {
+  // Close apps dropdown from previous step (if it was open)
+  closeAppsDropdown();
+
   const isCentered = step.presentation === "centered";
 
   // ── Centered mode: guide + bubble stay centered, element just gets highlight ──
@@ -162,25 +181,43 @@ function executeStep(step: TourStep, stepIndex: number, tourName: string) {
             targetEl.scrollIntoView({ behavior: "instant", block: "nearest" });
           }
           dispatchGuideFly({ centered: true, step: stepIndex, tourName });
-        }, 380);
+        }, 550);
       } else {
-        // Close sidebar first, then wait for drawer close animation before highlighting
+        // Close sidebar first
         forceCloseSidebar();
 
-        setTimeout(() => {
-          document
-            .querySelectorAll(".tour-highlight")
-            .forEach((el) => el.classList.remove("tour-highlight"));
-          const targetEl = document.querySelector(step.selector!);
-          if (targetEl) {
-            targetEl.classList.add("tour-highlight");
-            const viewport = document.getElementById(step.viewportID || "dashboard-viewport");
-            if (viewport?.contains(targetEl)) {
-              targetEl.scrollIntoView({ behavior: "instant", block: "center" });
+        // Special case: Apps dropdown — scroll to top + open dropdown
+        if (selectorId === "tour-apps") {
+          const vp = document.getElementById("dashboard-viewport");
+          if (vp) vp.scrollTo({ top: 0, behavior: "instant" });
+
+          setTimeout(() => {
+            openAppsDropdown();
+            setTimeout(() => {
+              document
+                .querySelectorAll(".tour-highlight")
+                .forEach((el) => el.classList.remove("tour-highlight"));
+              const targetEl = document.querySelector(step.selector!);
+              if (targetEl) targetEl.classList.add("tour-highlight");
+              dispatchGuideFly({ centered: true, step: stepIndex, tourName });
+            }, 200);
+          }, 100);
+        } else {
+          setTimeout(() => {
+            document
+              .querySelectorAll(".tour-highlight")
+              .forEach((el) => el.classList.remove("tour-highlight"));
+            const targetEl = document.querySelector(step.selector!);
+            if (targetEl) {
+              targetEl.classList.add("tour-highlight");
+              const viewport = document.getElementById(step.viewportID || "dashboard-viewport");
+              if (viewport?.contains(targetEl)) {
+                targetEl.scrollIntoView({ behavior: "instant", block: "center" });
+              }
             }
-          }
-          dispatchGuideFly({ centered: true, step: stepIndex, tourName });
-        }, 200);
+            dispatchGuideFly({ centered: true, step: stepIndex, tourName });
+          }, 200);
+        }
       }
     } else {
       // Floating centered step — no target
@@ -230,43 +267,96 @@ function executeStep(step: TourStep, stepIndex: number, tourName: string) {
           radius: step.pointerRadius ?? 12,
         });
       }
-    }, 380);
+    }, 550);
     return;
   }
 
-  // Non-sidebar target — force close sidebar so content is fully visible
-  forceCloseSidebar();
-  const targetEl = document.querySelector(step.selector);
-  if (!targetEl) return;
+  // Apps dropdown — scroll to top so header is visible, then open dropdown
+  if (selectorId === "tour-apps") {
+    forceCloseSidebar();
+    // Scroll viewport to top so the header button is in view
+    const vp = document.getElementById("dashboard-viewport");
+    if (vp) vp.scrollTo({ top: 0, behavior: "instant" });
 
-  document
-    .querySelectorAll(".tour-highlight")
-    .forEach((el) => el.classList.remove("tour-highlight"));
-  targetEl.classList.add("tour-highlight");
+    // Small delay for scroll to settle, then open dropdown
+    setTimeout(() => {
+      openAppsDropdown();
 
-  const viewport = document.getElementById(
-    step.viewportID || "dashboard-viewport",
-  );
-  if (viewport?.contains(targetEl)) {
-    targetEl.scrollIntoView({ behavior: "instant", block: "center" });
+      setTimeout(() => {
+        document
+          .querySelectorAll(".tour-highlight")
+          .forEach((el) => el.classList.remove("tour-highlight"));
+        const appsEl = document.querySelector(step.selector!);
+        if (!appsEl) return;
+        appsEl.classList.add("tour-highlight");
+
+        const rect = appsEl.getBoundingClientRect();
+        dispatchGuideFly({
+          rect: {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+          },
+          side: step.side || "bottom",
+          step: stepIndex,
+          tourName,
+          padding: step.pointerPadding ?? 8,
+          radius: step.pointerRadius ?? 12,
+        });
+      }, 200);
+    }, 100);
+    return;
   }
 
-  setTimeout(() => {
-    const rect = targetEl.getBoundingClientRect();
-    dispatchGuideFly({
-      rect: {
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-      },
-      side: step.side || "bottom",
-      step: stepIndex,
-      tourName,
-      padding: step.pointerPadding ?? 6,
-      radius: step.pointerRadius ?? 12,
+  // Non-sidebar target — only close sidebar if it's actually open
+  const needsSidebarClose = sidebarOpen;
+  if (needsSidebarClose) {
+    forceCloseSidebar();
+  }
+
+  const highlightAndFly = () => {
+    const targetEl = document.querySelector(step.selector!);
+    if (!targetEl) return;
+
+    document
+      .querySelectorAll(".tour-highlight")
+      .forEach((el) => el.classList.remove("tour-highlight"));
+    targetEl.classList.add("tour-highlight");
+
+    const viewport = document.getElementById(
+      step.viewportID || "dashboard-viewport",
+    );
+    if (viewport?.contains(targetEl)) {
+      targetEl.scrollIntoView({ behavior: "instant", block: "center" });
+    }
+
+    // Small rAF delay for DOM paint, then fly
+    requestAnimationFrame(() => {
+      const rect = targetEl.getBoundingClientRect();
+      dispatchGuideFly({
+        rect: {
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        },
+        side: step.side || "bottom",
+        step: stepIndex,
+        tourName,
+        padding: step.pointerPadding ?? 6,
+        radius: step.pointerRadius ?? 12,
+      });
     });
-  }, 300);
+  };
+
+  if (needsSidebarClose) {
+    // Wait for sidebar close animation before highlighting
+    setTimeout(highlightAndFly, 300);
+  } else {
+    // Sidebar already closed — highlight immediately
+    highlightAndFly();
+  }
 }
 
 function cleanupHighlights() {
@@ -292,6 +382,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const completeTour = useCallback((tourName: string | null) => {
     if (tourName) markTourComplete(tourName);
     sessionStorage.removeItem(TOUR_SESSION_KEY);
+    closeAppsDropdown();
     cleanupHighlights();
     restoreSidebar();
     dispatchGuideFly({ home: true });

@@ -62,6 +62,68 @@ const hi = {
     goToDashboard: "डैशबोर्ड पर जाएं",
     skipOnboarding: "ऑनबोर्डिंग छोड़ें",
     language: "भाषा",
+
+    // Guide speech (per step)
+    speech0: "Welcome to Stargate! I'm Nova, your trading companion. Let's get you set up.",
+    speech1WithName: "Nice to meet you, {name}! How long have you been trading?",
+    speech1NoName: "What should I call you?",
+    speech2: "How do you trade?",
+    speech3: "Where do you execute your trades?",
+    speech4: "What instruments do you trade?",
+    speech5: "What do you want to achieve with Stargate?",
+    speech6: "Almost done! Let's personalize your experience.",
+    speech7: "Last one — how did you find us?",
+
+    // Intro cinematic
+    welcomeTitle: "Welcome to Stargate",
+    tapToSkip: "tap to skip",
+
+    // Step indicator + navigation
+    stepOf: "Step {current} of {total}",
+    navBack: "Back",
+    navContinue: "Continue",
+    letsGo: "Let's Go",
+    letsGoFinal: "Let's Go!",
+
+    // Step 1: Experience
+    experienceLevel: "Experience Level",
+    newbie: "Newbie",
+    newbieDesc: "Just starting",
+    climbing: "Climbing",
+    climbingDesc: "1-2 years",
+    ninja: "Ninja",
+    ninjaDesc: "3-5 years",
+    monk: "Monk",
+    monkDesc: "5+ years",
+
+    // Step 2: Account type
+    personal: "Personal",
+    personalDesc: "Trading with your own capital",
+    propFirm: "Prop Firm",
+    propFirmDesc: "Trading a funded account",
+    notStarted: "Not Started",
+    notStartedDesc: "Still exploring trading",
+
+    // Step 3: Broker
+    selectBroker: "Select your broker",
+    otherBroker: "Other / Not listed",
+
+    // Step 5: Goals
+    journalTrades: "Journal Trades",
+    analyze: "Analyze",
+    backtest: "Backtest",
+    learn: "Learn",
+
+    // Step 6: Risk
+    riskTolerance: "Risk Tolerance",
+    safe: "Safe",
+    moderate: "Moderate",
+    aggressive: "Aggressive",
+    preferredAnalytics: "Preferred Analytics (optional)",
+
+    // Step 7: Referral
+    aFriend: "A Friend",
+    other: "Other",
   },
 
   sidebar: {
@@ -75,11 +137,14 @@ const hi = {
     watchlist: "वॉचलिस्ट",
     settings: "सेटिंग्स",
     admin: "एडमिन",
+    quests: "क्वेस्ट",
+    achievements: "उपलब्धियां",
     leaderboard: "लीडरबोर्ड",
     performanceAnalysis: "प्रदर्शन और विश्लेषण",
     intelligence: "इंटेलिजेंस",
     marketTools: "बाज़ार और टूल्स",
     tools: "टूल्स",
+    compete: "प्रतिस्पर्धा",
     discipline: "अनुशासन",
     reports: "रिपोर्ट्स",
     performance: "प्रदर्शन",
@@ -139,6 +204,8 @@ const hi = {
     full: "उन्नत",
     cryptoLabel: "क्रिप्टो",
     stocksLabel: "स्टॉक्स",
+    commoditiesLabel: "कमोडिटीज",
+    forexLabel: "फॉरेक्स",
     stockUpgradeMsg: "स्टॉक ट्रैकिंग के लिए Stocks ऐड-ऑन या Max प्लान आवश्यक है।",
     upgradeNow: "अभी अपग्रेड करें",
     logOutConfirmTitle: "लॉग आउट करें?",
@@ -215,6 +282,54 @@ const hi = {
     goodToTrade: "ट्रेड के लिए अच्छा",
     caution: "सावधानी से आगे बढ़ें",
     stepAway: "दूर हट जाएं",
+  },
+
+  tours: {
+    skipTour: "Skip tour",
+    welcome: {
+      step0Title: "Ready for Liftoff?",
+      step0Content: "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
+      step1Title: "Welcome to Stargate!",
+      step1Content: "Hey! I'm Nova, your trading companion. Let me show you around. This takes about 2 minutes, and you can skip anytime.",
+      step2Title: "Dashboard",
+      step2Content: "This is home base. Your P&L, win rate, and equity curve all update live as you log trades.",
+      step3Title: "Trade Log",
+      step3Content: "Every trade lands here. You can filter by date, emotion, or coin. Click any row to see the full picture.",
+      step4Title: "Journal",
+      step4Content: "Write daily reflections. What went well, what went sideways. Over time you'll spot patterns in your own thinking.",
+      step5Title: "Calendar",
+      step5Content: "Green day, red day, at a glance. You'll quickly see if Mondays are good or Fridays are bad.",
+      step6Title: "Trade Plans",
+      step6Content: "Plan before you trade. Set your entry, target, and stop. After the trade, rate how well you followed the plan.",
+      step7Title: "Achievements",
+      step7Content: "Earn badges for your trading milestones — journal streaks, win rates, risk management. Track your growth as a trader.",
+      step8Title: "Analytics",
+      step8Content: "50+ metrics. P&L by hour, by setup, by pair. Stop guessing and start knowing where your edge is.",
+      step9Title: "Insights",
+      step9Content: "How do your emotions affect your P&L? Which moods lead to your best trades? This page has the answers.",
+      step10Title: "AI Coach",
+      step10Content: "Ask it anything about your trading. For a personal AI coach, connect your own API key in Settings — your data stays secure and private.",
+      step11Title: "Simple & Advanced Mode",
+      step11Content: "You're in Simple mode with 6 core tools. Switch to Advanced for prop firm tracking, Monte Carlo sims, heat maps, and more.",
+      step12Title: "Your Key Metrics",
+      step12Content: "Win rate, P&L, profit factor, max drawdown. These four numbers tell the whole story. They update as you trade.",
+      step13Title: "Equity Curve",
+      step13Content: "Your cumulative P&L over time. A rising line means you have an edge. Sharp drops show your drawdowns.",
+      step14Title: "Daily P&L",
+      step14Content: "Each bar is one day. Green above zero means profit. Small steady bars beat big volatile ones every time.",
+      step15Title: "Recent Trades",
+      step15Content: "Your latest trades with P&L and emotion tags. Click any row and notice the difference between calm and anxious trades.",
+      step16Title: "Journaling Streak",
+      step16Content: "Like a Duolingo streak, but for trading. Journal every day and watch the data compound.",
+      step17Title: "Calendar Heatmap",
+      step17Content: "Green means profit, red means loss, gray means no trades. You can spot hot streaks at a glance.",
+      step18Title: "AI Insights",
+      step18Content: "Nova summarizes your recent trading patterns: streaks, emotional tendencies, and hidden leaks. Check here for quick insights without asking.",
+      step19Title: "Apps",
+      step19Content: "15+ specialized tools — paper trading, strategy backtester, options analysis, seasonality charts, P&L deep dives, and more. All free.",
+      step20Title: "You're All Set!",
+      step20Content: "Hit Log Trade to record your first one. Every page has its own mini-tour on first visit. I'm Nova, click me anytime you need help. Now go trade!",
+    },
   },
 } as const;
 export default hi;

@@ -40,6 +40,27 @@ export async function middleware(request: NextRequest) {
   const ownerEmail = process.env.OWNER_EMAIL || process.env.NEXT_PUBLIC_OWNER_EMAIL;
   const isOwner = !!(user && ownerEmail && user.email?.toLowerCase() === ownerEmail.toLowerCase());
 
+  // Ban check: cookie-based for performance, DB-verified for correctness
+  if (user && request.cookies.get("stargate-banned")?.value === "1") {
+    const { data: banCheck } = await supabase
+      .from("user_subscriptions")
+      .select("is_banned")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (banCheck?.is_banned) {
+      if (pathname !== "/banned") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/banned";
+        return NextResponse.redirect(url);
+      }
+      return supabaseResponse;
+    } else {
+      // No longer banned — clear stale cookie, continue normally
+      supabaseResponse.cookies.delete("stargate-banned");
+    }
+  }
+
   // If not logged in and trying to access protected routes, redirect to login
   if (!user && (pathname.startsWith("/dashboard") || pathname.startsWith("/simulator"))) {
     const url = request.nextUrl.clone();
@@ -77,5 +98,7 @@ export const config = {
     "/api/invite/:path*",
     "/api/admin/:path*",
     "/api/auth/signup",
+    "/api/discount/:path*",
+    "/banned",
   ],
 };

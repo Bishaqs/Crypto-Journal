@@ -33,85 +33,90 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
     if (isClosed && (!exitPrice || isNaN(Number(exitPrice)))) { setError("Valid exit price required"); return; }
 
     setSaving(true);
-    const now = new Date().toISOString();
+    try {
+      const now = new Date().toISOString();
 
-    let pnl: number | null = null;
-    if (isClosed && exitPrice) {
-      const tempTrade = {
+      let pnl: number | null = null;
+      if (isClosed && exitPrice) {
+        const tempTrade = {
+          position,
+          entry_price: Number(entryPrice),
+          exit_price: Number(exitPrice),
+          quantity: Number(quantity),
+          fees: 0,
+        } as Trade;
+        pnl = calculateTradePnl(tempTrade);
+      }
+
+      const payload = {
+        symbol: symbol.trim().toUpperCase(),
         position,
         entry_price: Number(entryPrice),
-        exit_price: Number(exitPrice),
+        exit_price: isClosed ? Number(exitPrice) : null,
         quantity: Number(quantity),
         fees: 0,
-      } as Trade;
-      pnl = calculateTradePnl(tempTrade);
-    }
+        open_timestamp: now,
+        close_timestamp: isClosed ? now : null,
+        pnl,
+        trade_source: "cex" as const,
+        notes: null,
+        tags: [],
+        emotion: null,
+        confidence: null,
+        setup_type: null,
+        process_score: null,
+        checklist: null,
+        review: null,
+        chain: null,
+        dex_protocol: null,
+        tx_hash: null,
+        wallet_address: null,
+        gas_fee: 0,
+        gas_fee_native: 0,
+      };
 
-    const payload = {
-      symbol: symbol.trim().toUpperCase(),
-      position,
-      entry_price: Number(entryPrice),
-      exit_price: isClosed ? Number(exitPrice) : null,
-      quantity: Number(quantity),
-      fees: 0,
-      open_timestamp: now,
-      close_timestamp: isClosed ? now : null,
-      pnl,
-      trade_source: "cex" as const,
-      notes: null,
-      tags: [],
-      emotion: null,
-      confidence: null,
-      setup_type: null,
-      process_score: null,
-      checklist: null,
-      review: null,
-      chain: null,
-      dex_protocol: null,
-      tx_hash: null,
-      wallet_address: null,
-      gas_fee: 0,
-      gas_fee_native: 0,
-    };
+      const { error: dbError } = await supabase.from("trades").insert(payload);
 
-    const { error: dbError } = await supabase.from("trades").insert(payload);
-
-    if (dbError) {
-      setError(dbError.message);
-      setSaving(false);
-      return;
-    }
-
-    // Award XP
-    try {
-      const { awardXP } = await import("@/lib/xp/engine");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) await awardXP(supabase, user.id, "trade_logged");
-    } catch { /* XP tables may not exist yet */ }
-
-    onSaved();
-
-    // Trigger post-trade prompt for closed trades
-    if (isClosed && onTradeCompleted) {
-      const { data: inserted } = await supabase
-        .from("trades")
-        .select("id")
-        .eq("symbol", payload.symbol)
-        .eq("entry_price", payload.entry_price)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (inserted && inserted.length > 0) {
-        onTradeCompleted({
-          id: inserted[0].id,
-          symbol: payload.symbol,
-          pnl: pnl ?? 0,
-        });
+      if (dbError) {
+        setError(dbError.message);
         return;
       }
-    }
 
-    onClose();
+      // Award XP
+      try {
+        const { awardXP } = await import("@/lib/xp/engine");
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) await awardXP(supabase, user.id, "trade_logged");
+      } catch { /* XP tables may not exist yet */ }
+
+      onSaved();
+
+      // Trigger post-trade prompt for closed trades
+      if (isClosed && onTradeCompleted) {
+        const { data: inserted } = await supabase
+          .from("trades")
+          .select("id")
+          .eq("symbol", payload.symbol)
+          .eq("entry_price", payload.entry_price)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (inserted && inserted.length > 0) {
+          onTradeCompleted({
+            id: inserted[0].id,
+            symbol: payload.symbol,
+            pnl: pnl ?? 0,
+          });
+          return;
+        }
+      }
+
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save trade. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

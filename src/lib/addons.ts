@@ -4,12 +4,12 @@ const ADDONS_KEY = "stargate-addons";
 const ASSET_CONTEXT_KEY = "stargate-asset-context";
 
 export function getUserAddons(): UserAddons {
-  if (typeof window === "undefined") return { stocks: false };
+  if (typeof window === "undefined") return { stocks: false, commodities: false, forex: false };
   try {
     const raw = localStorage.getItem(ADDONS_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-  return { stocks: false };
+  return { stocks: false, commodities: false, forex: false };
 }
 
 export function setUserAddons(addons: UserAddons): void {
@@ -20,7 +20,15 @@ export function hasStockAccess(): boolean {
   return true; // All features unlocked — re-enable tiers before launch
 }
 
-export type AssetContext = "crypto" | "stocks";
+export function hasCommodityAccess(): boolean {
+  return true; // All features unlocked — re-enable tiers before launch
+}
+
+export function hasForexAccess(): boolean {
+  return true; // All features unlocked — re-enable tiers before launch
+}
+
+export type AssetContext = "crypto" | "stocks" | "commodities" | "forex";
 
 export function getAssetContext(): AssetContext {
   if (typeof window === "undefined") return "crypto";

@@ -13,6 +13,7 @@ const RARITY_TEXT: Record<CosmeticRarity, string> = {
   rare: "text-blue-400",
   epic: "text-purple-400",
   legendary: "text-amber-400",
+  mythic: "text-red-400",
 };
 
 const TYPE_EMOJI: Record<string, string> = {
@@ -22,6 +23,7 @@ const TYPE_EMOJI: Record<string, string> = {
   sidebar_flair: "Flair",
   avatar_icon: "Icon",
   theme_accent: "Accent",
+  name_style: "Name",
 };
 
 function SmallPreview({ cosmetic }: { cosmetic: CosmeticDefinition }) {
@@ -54,6 +56,12 @@ function SmallPreview({ cosmetic }: { cosmetic: CosmeticDefinition }) {
           className={`w-4 h-4 rounded-full bg-accent/20 ${cosmetic.css_class ?? ""}`}
           style={{ overflow: "visible" }}
         />
+      );
+    case "name_style":
+      return (
+        <span className={`text-[10px] font-bold ${cosmetic.css_class ?? "text-foreground"}`}>
+          Aa
+        </span>
       );
     default:
       return <Lock size={12} className="text-muted/40" />;

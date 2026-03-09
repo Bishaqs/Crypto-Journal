@@ -26,8 +26,10 @@ export const welcomeTour: Tour = {
     {
       icon: "🚀",
       title: "Ready for Liftoff?",
+      titleKey: "tours.welcome.step0Title",
       content:
         "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
+      contentKey: "tours.welcome.step0Content",
       presentation: "centered",
       transitionEffect: "star-warp",
       showControls: true,
@@ -37,8 +39,10 @@ export const welcomeTour: Tour = {
     {
       icon: "🚀",
       title: "Welcome to Stargate!",
+      titleKey: "tours.welcome.step1Title",
       content:
         "Hey! I'm Nova, your trading companion. Let me show you around. This takes about 2 minutes, and you can skip anytime.",
+      contentKey: "tours.welcome.step1Content",
       presentation: "centered",
       logoSize: 96,
       showControls: true,
@@ -48,8 +52,10 @@ export const welcomeTour: Tour = {
     {
       icon: "🏠",
       title: "Dashboard",
+      titleKey: "tours.welcome.step2Title",
       content:
         "This is home base. Your P&L, win rate, and equity curve all update live as you log trades.",
+      contentKey: "tours.welcome.step2Content",
       selector: "#dashboard-viewport",
       presentation: "centered",
       showControls: true,
@@ -61,108 +67,146 @@ export const welcomeTour: Tour = {
     {
       icon: "📊",
       title: "Trade Log",
+      titleKey: "tours.welcome.step3Title",
       content:
         "Every trade lands here. You can filter by date, emotion, or coin. Click any row to see the full picture.",
+      contentKey: "tours.welcome.step3Content",
       selector: "#tour-trades",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     {
       icon: "📓",
       title: "Journal",
+      titleKey: "tours.welcome.step4Title",
       content:
         "Write daily reflections. What went well, what went sideways. Over time you'll spot patterns in your own thinking.",
+      contentKey: "tours.welcome.step4Content",
       selector: "#tour-journal",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     {
       icon: "📅",
       title: "Calendar",
+      titleKey: "tours.welcome.step5Title",
       content:
         "Green day, red day, at a glance. You'll quickly see if Mondays are good or Fridays are bad.",
+      contentKey: "tours.welcome.step5Content",
       selector: "#tour-calendar",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     {
       icon: "📋",
       title: "Trade Plans",
+      titleKey: "tours.welcome.step6Title",
       content:
         "Plan before you trade. Set your entry, target, and stop. After the trade, rate how well you followed the plan.",
+      contentKey: "tours.welcome.step6Content",
       selector: "#tour-plans",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     {
       icon: "🏆",
       title: "Achievements",
+      titleKey: "tours.welcome.step7Title",
       content:
         "Earn badges for your trading milestones — journal streaks, win rates, risk management. Track your growth as a trader.",
+      contentKey: "tours.welcome.step7Content",
       selector: "#tour-achievements",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     {
       icon: "📈",
       title: "Analytics",
+      titleKey: "tours.welcome.step8Title",
       content:
         "50+ metrics. P&L by hour, by setup, by pair. Stop guessing and start knowing where your edge is.",
+      contentKey: "tours.welcome.step8Content",
       selector: "#tour-analytics",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     {
       icon: "🧠",
       title: "Insights",
+      titleKey: "tours.welcome.step9Title",
       content:
         "How do your emotions affect your P&L? Which moods lead to your best trades? This page has the answers.",
+      contentKey: "tours.welcome.step9Content",
       selector: "#tour-insights",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     {
       icon: "🤖",
       title: "AI Coach",
+      titleKey: "tours.welcome.step10Title",
       content:
         "Ask it anything about your trading. For a personal AI coach, connect your own API key in Settings — your data stays secure and private.",
+      contentKey: "tours.welcome.step10Content",
       selector: "#tour-ai",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     {
       icon: "⚡",
       title: "Simple & Advanced Mode",
+      titleKey: "tours.welcome.step11Title",
       content:
         "You're in Simple mode with 6 core tools. Switch to Advanced for prop firm tracking, Monte Carlo sims, heat maps, and more.",
+      contentKey: "tours.welcome.step11Content",
       selector: "#tour-view-toggle",
       presentation: "attached",
       side: "right",
       showControls: true,
       showSkip: true,
+      pointerPadding: 4,
+      pointerRadius: 12,
     },
     // ── Steps 11-17: Dashboard content (attached, guide flies to each element) ──
     {
       icon: "📊",
       title: "Your Key Metrics",
+      titleKey: "tours.welcome.step12Title",
       content:
         "Win rate, P&L, profit factor, max drawdown. These four numbers tell the whole story. They update as you trade.",
+      contentKey: "tours.welcome.step12Content",
       selector: "#tour-stats",
       side: "top",
       presentation: "attached",
@@ -173,8 +217,10 @@ export const welcomeTour: Tour = {
     {
       icon: "📈",
       title: "Equity Curve",
+      titleKey: "tours.welcome.step13Title",
       content:
         "Your cumulative P&L over time. A rising line means you have an edge. Sharp drops show your drawdowns.",
+      contentKey: "tours.welcome.step13Content",
       selector: "#tour-equity",
       side: "top",
       presentation: "attached",
@@ -185,8 +231,10 @@ export const welcomeTour: Tour = {
     {
       icon: "📊",
       title: "Daily P&L",
+      titleKey: "tours.welcome.step14Title",
       content:
         "Each bar is one day. Green above zero means profit. Small steady bars beat big volatile ones every time.",
+      contentKey: "tours.welcome.step14Content",
       selector: "#tour-pnl-chart",
       side: "top",
       presentation: "attached",
@@ -197,8 +245,10 @@ export const welcomeTour: Tour = {
     {
       icon: "📋",
       title: "Recent Trades",
+      titleKey: "tours.welcome.step15Title",
       content:
         "Your latest trades with P&L and emotion tags. Click any row and notice the difference between calm and anxious trades.",
+      contentKey: "tours.welcome.step15Content",
       selector: "#tour-trades-table",
       side: "top",
       presentation: "attached",
@@ -210,8 +260,10 @@ export const welcomeTour: Tour = {
     {
       icon: "🔥",
       title: "Journaling Streak",
+      titleKey: "tours.welcome.step16Title",
       content:
         "Like a Duolingo streak, but for trading. Journal every day and watch the data compound.",
+      contentKey: "tours.welcome.step16Content",
       selector: "#tour-streak",
       side: "top",
       presentation: "attached",
@@ -222,8 +274,10 @@ export const welcomeTour: Tour = {
     {
       icon: "🗓️",
       title: "Calendar Heatmap",
+      titleKey: "tours.welcome.step17Title",
       content:
         "Green means profit, red means loss, gray means no trades. You can spot hot streaks at a glance.",
+      contentKey: "tours.welcome.step17Content",
       selector: "#tour-heatmap-mini",
       side: "top",
       presentation: "attached",
@@ -234,8 +288,10 @@ export const welcomeTour: Tour = {
     {
       icon: "🤖",
       title: "AI Insights",
+      titleKey: "tours.welcome.step18Title",
       content:
         "Nova summarizes your recent trading patterns: streaks, emotional tendencies, and hidden leaks. Check here for quick insights without asking.",
+      contentKey: "tours.welcome.step18Content",
       selector: "#tour-ai-summary",
       side: "top",
       presentation: "attached",
@@ -243,12 +299,30 @@ export const welcomeTour: Tour = {
       showControls: true,
       showSkip: true,
     },
-    // ── Step 18: Floating outro ──
+    // ── Step 18: Apps launcher (highlight header button + auto-open dropdown) ──
+    // Uses "centered" so the speech bubble doesn't overlap the dropdown panel
+    {
+      icon: "🧩",
+      title: "Apps",
+      titleKey: "tours.welcome.step19Title",
+      content:
+        "15+ specialized tools — paper trading, strategy backtester, options analysis, seasonality charts, P&L deep dives, and more. All free.",
+      contentKey: "tours.welcome.step19Content",
+      selector: "#tour-apps",
+      presentation: "centered",
+      showControls: true,
+      showSkip: true,
+      pointerPadding: 8,
+      pointerRadius: 12,
+    },
+    // ── Step 19: Floating outro ──
     {
       icon: "✅",
       title: "You're All Set!",
+      titleKey: "tours.welcome.step20Title",
       content:
         "Hit Log Trade to record your first one. Every page has its own mini-tour on first visit. I'm Nova, click me anytime you need help. Now go trade!",
+      contentKey: "tours.welcome.step20Content",
       presentation: "centered",
       showControls: true,
       showSkip: false,

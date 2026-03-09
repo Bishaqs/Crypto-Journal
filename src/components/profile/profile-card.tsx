@@ -11,6 +11,7 @@ const RARITY_TEXT: Record<CosmeticRarity, string> = {
   rare: "text-blue-400",
   epic: "text-purple-400",
   legendary: "text-amber-400",
+  mythic: "text-red-400",
 };
 
 /**
@@ -26,10 +27,12 @@ export function ProfileCard({ displayName }: { displayName: string }) {
   const titleDef = equipped.title_badge ? getDefinition(equipped.title_badge) : undefined;
   const iconDef = equipped.avatar_icon ? getDefinition(equipped.avatar_icon) : undefined;
   const accentDef = equipped.theme_accent ? getAccentDef(equipped.theme_accent) : undefined;
+  const nameStyleDef = equipped.name_style ? getDefinition(equipped.name_style) : undefined;
 
   const frameCss = frameDef?.css_class ?? "";
   const flairCss = flairDef?.css_class ?? "";
   const bannerCss = bannerDef?.css_class ?? "";
+  const nameStyleCss = nameStyleDef?.css_class ?? "";
   const iconCss = iconDef?.css_class ?? null;
 
   const avatarSize = 80;
@@ -42,8 +45,8 @@ export function ProfileCard({ displayName }: { displayName: string }) {
     >
       {/* Banner gradient overlay */}
       <div
-        className={`absolute inset-0 ${bannerCss}`}
-        style={{ opacity: bannerCss ? 0.5 : 0 }}
+        className={bannerCss}
+        style={{ position: "absolute", inset: 0, opacity: bannerCss ? 0.7 : 0 }}
       />
 
       <div className="relative z-10 p-8 flex items-center gap-6">
@@ -55,16 +58,16 @@ export function ProfileCard({ displayName }: { displayName: string }) {
           {/* Flair behind */}
           {flairCss && (
             <div
-              className={`absolute rounded-full ${flairCss}`}
-              style={{ inset: -4, zIndex: 0 }}
+              className={flairCss}
+              style={{ position: "absolute", inset: 0, zIndex: 0 }}
             />
           )}
 
           {/* Frame */}
           {frameCss && (
             <div
-              className={`absolute rounded-full ${frameCss}`}
-              style={{ inset: 6, zIndex: 1 }}
+              className={frameCss}
+              style={{ position: "absolute", inset: 4, zIndex: 1 }}
             />
           )}
 
@@ -90,7 +93,7 @@ export function ProfileCard({ displayName }: { displayName: string }) {
 
         {/* Info */}
         <div className="min-w-0 flex-1">
-          <h2 className="text-xl font-bold text-foreground truncate">
+          <h2 className={`text-xl font-bold text-foreground truncate ${nameStyleCss}`}>
             {displayName || "Trader"}
           </h2>
           {titleDef && (

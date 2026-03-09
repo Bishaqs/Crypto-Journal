@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Send, ExternalLink, BookOpen, ArrowLeft } from "lucide-react";
+import { Send, ExternalLink, BookOpen, ArrowLeft, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FAQ_ENTRIES,
@@ -16,6 +16,8 @@ type ChatMessage = {
   content: string;
   relatedIds?: string[];
   matchId?: string;
+  noMatch?: boolean;
+  originalQuestion?: string;
 };
 
 const SUGGESTED = [
@@ -33,6 +35,8 @@ export function GuideHelp() {
   const router = useRouter();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [submittedQuestions, setSubmittedQuestions] = useState<Set<string>>(new Set());
+  const [submitting, setSubmitting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -97,6 +101,8 @@ export function GuideHelp() {
         role: "assistant",
         content:
           "I couldn't find a match. Try different keywords or browse the <strong>Help Center</strong> for all topics.",
+        noMatch: true,
+        originalQuestion: q,
       };
     }
 
@@ -107,6 +113,25 @@ export function GuideHelp() {
     e?.preventDefault();
     submitQuestion(input);
     setInput("");
+  }
+
+  async function handleSubmitQuestion(question: string) {
+    if (submittedQuestions.has(question)) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/submitted-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      if (res.ok) {
+        setSubmittedQuestions((prev) => new Set(prev).add(question));
+      }
+    } catch {
+      // Silently fail — not critical
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function goToHelpCenter(query?: string) {
@@ -224,6 +249,29 @@ export function GuideHelp() {
                             <ExternalLink size={10} />
                             View in Help Center
                           </button>
+                        )}
+                        {msg.noMatch && msg.originalQuestion && (
+                          <div className="mt-2 pt-2 border-t border-border/20">
+                            {submittedQuestions.has(msg.originalQuestion) ? (
+                              <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+                                <HelpCircle size={10} />
+                                Question submitted! We&apos;ll add it to our FAQ.
+                              </p>
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  handleSubmitQuestion(msg.originalQuestion!)
+                                }
+                                disabled={submitting}
+                                className="text-[10px] text-accent/70 hover:text-accent transition-colors flex items-center gap-1 disabled:opacity-50"
+                              >
+                                <HelpCircle size={10} />
+                                {submitting
+                                  ? "Submitting..."
+                                  : "Submit this question to our team"}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>

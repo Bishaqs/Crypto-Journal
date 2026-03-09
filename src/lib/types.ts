@@ -45,6 +45,8 @@ export type JournalNote = {
   tags: string[];
   trade_id: string | null;
   auto_link_on_import?: boolean;
+  note_type?: string;
+  is_favorite?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -247,6 +249,8 @@ export type Wallet = {
 // User add-on state
 export type UserAddons = {
   stocks: boolean;
+  commodities: boolean;
+  forex: boolean;
 };
 
 // Referral system types
@@ -347,4 +351,150 @@ export const DEX_PROTOCOLS: Record<Chain, string[]> = {
   bsc: ["PancakeSwap", "1inch"],
   polygon: ["Uniswap V3", "QuickSwap"],
   avalanche: ["Trader Joe", "GMX"],
+};
+
+// ─── Commodity Trading Types ────────────────────────────────────────────────
+
+export type CommodityCategory = "metals" | "energy" | "grains" | "softs" | "livestock";
+export type CommodityContractType = "spot" | "futures" | "options";
+
+export type CommodityTrade = {
+  id: string;
+  user_id: string;
+  symbol: string;
+  commodity_name: string | null;
+  commodity_category: CommodityCategory | null;
+  contract_type: CommodityContractType;
+  position: "long" | "short";
+  entry_price: number;
+  exit_price: number | null;
+  quantity: number;
+  contract_size: number | null;
+  tick_size: number | null;
+  tick_value: number | null;
+  fees: number;
+  open_timestamp: string;
+  close_timestamp: string | null;
+  exchange: string | null;
+  contract_month: string | null;
+  expiration_date: string | null;
+  margin_required: number | null;
+  option_type: "call" | "put" | null;
+  strike_price: number | null;
+  premium_per_contract: number | null;
+  underlying_contract: string | null;
+  // Psychology (shared)
+  emotion: string | null;
+  confidence: number | null;
+  setup_type: string | null;
+  process_score: number | null;
+  checklist: Record<string, boolean> | null;
+  review: Record<string, string> | null;
+  notes: string | null;
+  tags: string[];
+  pnl: number | null;
+  created_at: string;
+};
+
+export const COMMODITY_CATEGORIES = [
+  "metals", "energy", "grains", "softs", "livestock",
+] as const;
+
+export const COMMODITY_EXCHANGES = [
+  "COMEX", "NYMEX", "CBOT", "ICE", "CME",
+] as const;
+
+export const COMMODITY_SYMBOLS: Record<string, {
+  name: string;
+  category: CommodityCategory;
+  exchange: string;
+  contractSize: number;
+  unit: string;
+  tickSize: number;
+  tickValue: number;
+}> = {
+  // Metals (COMEX)
+  GC: { name: "Gold", category: "metals", exchange: "COMEX", contractSize: 100, unit: "troy oz", tickSize: 0.10, tickValue: 10 },
+  SI: { name: "Silver", category: "metals", exchange: "COMEX", contractSize: 5000, unit: "troy oz", tickSize: 0.005, tickValue: 25 },
+  HG: { name: "Copper", category: "metals", exchange: "COMEX", contractSize: 25000, unit: "lbs", tickSize: 0.0005, tickValue: 12.50 },
+  PL: { name: "Platinum", category: "metals", exchange: "NYMEX", contractSize: 50, unit: "troy oz", tickSize: 0.10, tickValue: 5 },
+  PA: { name: "Palladium", category: "metals", exchange: "NYMEX", contractSize: 100, unit: "troy oz", tickSize: 0.05, tickValue: 5 },
+  // Energy (NYMEX)
+  CL: { name: "Crude Oil (WTI)", category: "energy", exchange: "NYMEX", contractSize: 1000, unit: "barrels", tickSize: 0.01, tickValue: 10 },
+  BZ: { name: "Brent Crude", category: "energy", exchange: "NYMEX", contractSize: 1000, unit: "barrels", tickSize: 0.01, tickValue: 10 },
+  NG: { name: "Natural Gas", category: "energy", exchange: "NYMEX", contractSize: 10000, unit: "mmBtu", tickSize: 0.001, tickValue: 10 },
+  HO: { name: "Heating Oil", category: "energy", exchange: "NYMEX", contractSize: 42000, unit: "gallons", tickSize: 0.0001, tickValue: 4.20 },
+  RB: { name: "Gasoline (RBOB)", category: "energy", exchange: "NYMEX", contractSize: 42000, unit: "gallons", tickSize: 0.0001, tickValue: 4.20 },
+  // Grains (CBOT)
+  ZW: { name: "Wheat", category: "grains", exchange: "CBOT", contractSize: 5000, unit: "bushels", tickSize: 0.25, tickValue: 12.50 },
+  ZC: { name: "Corn", category: "grains", exchange: "CBOT", contractSize: 5000, unit: "bushels", tickSize: 0.25, tickValue: 12.50 },
+  ZS: { name: "Soybeans", category: "grains", exchange: "CBOT", contractSize: 5000, unit: "bushels", tickSize: 0.25, tickValue: 12.50 },
+  ZO: { name: "Oats", category: "grains", exchange: "CBOT", contractSize: 5000, unit: "bushels", tickSize: 0.25, tickValue: 12.50 },
+  ZR: { name: "Rough Rice", category: "grains", exchange: "CBOT", contractSize: 2000, unit: "cwt", tickSize: 0.005, tickValue: 10 },
+  // Softs (ICE)
+  KC: { name: "Coffee", category: "softs", exchange: "ICE", contractSize: 37500, unit: "lbs", tickSize: 0.05, tickValue: 18.75 },
+  SB: { name: "Sugar #11", category: "softs", exchange: "ICE", contractSize: 112000, unit: "lbs", tickSize: 0.01, tickValue: 11.20 },
+  CC: { name: "Cocoa", category: "softs", exchange: "ICE", contractSize: 10, unit: "metric tons", tickSize: 1, tickValue: 10 },
+  CT: { name: "Cotton #2", category: "softs", exchange: "ICE", contractSize: 50000, unit: "lbs", tickSize: 0.01, tickValue: 5 },
+  OJ: { name: "Orange Juice", category: "softs", exchange: "ICE", contractSize: 15000, unit: "lbs", tickSize: 0.05, tickValue: 7.50 },
+  // Livestock (CME)
+  LE: { name: "Live Cattle", category: "livestock", exchange: "CME", contractSize: 40000, unit: "lbs", tickSize: 0.025, tickValue: 10 },
+  HE: { name: "Lean Hogs", category: "livestock", exchange: "CME", contractSize: 40000, unit: "lbs", tickSize: 0.025, tickValue: 10 },
+  GF: { name: "Feeder Cattle", category: "livestock", exchange: "CME", contractSize: 50000, unit: "lbs", tickSize: 0.025, tickValue: 12.50 },
+};
+
+// ─── Forex Trading Types ────────────────────────────────────────────────────
+
+export type ForexPairCategory = "major" | "minor" | "exotic";
+export type ForexLotType = "standard" | "mini" | "micro";
+export type ForexSession = "london" | "new_york" | "tokyo" | "sydney" | "overlap";
+
+export type ForexTrade = {
+  id: string;
+  user_id: string;
+  pair: string;
+  base_currency: string;
+  quote_currency: string;
+  pair_category: ForexPairCategory | null;
+  lot_type: ForexLotType;
+  lot_size: number;
+  position: "long" | "short";
+  entry_price: number;
+  exit_price: number | null;
+  fees: number;
+  open_timestamp: string;
+  close_timestamp: string | null;
+  pip_value: number | null;
+  leverage: number | null;
+  spread: number | null;
+  swap_fee: number;
+  session: ForexSession | null;
+  broker: string | null;
+  // Psychology (shared)
+  emotion: string | null;
+  confidence: number | null;
+  setup_type: string | null;
+  process_score: number | null;
+  checklist: Record<string, boolean> | null;
+  review: Record<string, string> | null;
+  notes: string | null;
+  tags: string[];
+  pnl: number | null;
+  created_at: string;
+};
+
+export const FOREX_PAIRS: Record<ForexPairCategory, string[]> = {
+  major: ["EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF", "AUD/USD", "USD/CAD", "NZD/USD"],
+  minor: ["EUR/GBP", "EUR/JPY", "GBP/JPY", "AUD/JPY", "EUR/AUD", "GBP/AUD", "EUR/CAD", "CHF/JPY", "NZD/JPY"],
+  exotic: ["USD/TRY", "USD/MXN", "USD/ZAR", "EUR/TRY", "USD/SGD", "USD/HKD", "USD/NOK", "USD/SEK"],
+};
+
+export const FOREX_SESSIONS = [
+  "london", "new_york", "tokyo", "sydney", "overlap",
+] as const;
+
+export const LOT_SIZES: Record<ForexLotType, number> = {
+  standard: 100000,
+  mini: 10000,
+  micro: 1000,
 };

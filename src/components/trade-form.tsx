@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { tradeSchema, type TradeFormData } from "@/lib/validators";
 import { calculateTradePnl } from "@/lib/calculations";
 import { Trade, Chain, DEX_PROTOCOLS, CHAINS } from "@/lib/types";
-import { X, Wallet, Building2 } from "lucide-react";
+import { X, Wallet, Building2, Trash2 } from "lucide-react";
 import { EmotionPicker, ConfidenceSlider, SetupTypePicker, ProcessScoreInput } from "./psychology-inputs";
 import { PreTradeChecklist } from "./pre-trade-checklist";
 import { PostTradeReview } from "./post-trade-review";
@@ -23,11 +23,13 @@ export function TradeForm({
   onSaved,
   editTrade,
   onTradeCompleted,
+  onDelete,
 }: {
   onClose: () => void;
   onSaved: () => void;
   editTrade?: Trade | null;
   onTradeCompleted?: (trade: { id: string; symbol: string; pnl: number; emotion: string | null; process_score: number | null }) => void;
+  onDelete?: () => void;
 }) {
   const supabase = createClient();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -87,174 +89,176 @@ export function TradeForm({
     setErrors({});
     setSaving(true);
 
-    // Free tier: 2 trades per week limit
-    if (!editTrade) {
-      try {
-        const raw = localStorage.getItem("stargate-subscription-cache");
-        const tier: SubscriptionTier = raw ? (JSON.parse(raw).data?.tier ?? "free") : "free";
-        if (!checkFeatureAccess(tier, "unlimited-trades")) {
-          const now = new Date();
-          const weekStart = new Date(now);
-          weekStart.setDate(now.getDate() - now.getDay());
-          weekStart.setHours(0, 0, 0, 0);
-          const { count } = await supabase
-            .from("trades")
-            .select("*", { count: "exact", head: true })
-            .gte("created_at", weekStart.toISOString());
-          if ((count ?? 0) >= 2) {
-            setErrors({ symbol: "Free tier is limited to 2 trades per week. Upgrade to Pro for unlimited trades." });
-            setSaving(false);
-            return;
+    try {
+      // Free tier: 2 trades per week limit
+      if (!editTrade) {
+        try {
+          const raw = localStorage.getItem("stargate-subscription-cache");
+          const tier: SubscriptionTier = raw ? (JSON.parse(raw).data?.tier ?? "free") : "free";
+          if (!checkFeatureAccess(tier, "unlimited-trades")) {
+            const now = new Date();
+            const weekStart = new Date(now);
+            weekStart.setDate(now.getDate() - now.getDay());
+            weekStart.setHours(0, 0, 0, 0);
+            const { count } = await supabase
+              .from("trades")
+              .select("*", { count: "exact", head: true })
+              .gte("created_at", weekStart.toISOString());
+            if ((count ?? 0) >= 2) {
+              setErrors({ symbol: "Free tier is limited to 2 trades per week. Upgrade to Pro for unlimited trades." });
+              return;
+            }
           }
-        }
-      } catch {}
-    }
-
-    const formData = new FormData(e.currentTarget);
-    const raw = {
-      symbol: formData.get("symbol") as string,
-      position: formData.get("position") as string,
-      entry_price: formData.get("entry_price") as string,
-      exit_price: formData.get("exit_price") as string || undefined,
-      quantity: formData.get("quantity") as string,
-      fees: formData.get("fees") as string || "0",
-      open_timestamp: formData.get("open_timestamp") as string,
-      close_timestamp: formData.get("close_timestamp") as string || undefined,
-      notes: formData.get("notes") as string || undefined,
-      tags: [
-        ...tags,
-        ...(narrative === "other" && customNarrative.trim()
-          ? [`narrative:${customNarrative.trim().toLowerCase()}`]
-          : narrative && narrative !== "other"
-            ? [`narrative:${narrative.toLowerCase()}`]
-            : []),
-      ],
-      emotion: emotion || undefined,
-      confidence: confidence || undefined,
-      setup_type: setupType || undefined,
-      process_score: processScore || undefined,
-      checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
-      review: Object.values(review).some((v) => v.length > 0) ? review : undefined,
-      // DEX fields
-      trade_source: tradeSource,
-      chain: tradeSource === "dex" && chain ? chain : undefined,
-      dex_protocol: tradeSource === "dex" && dexProtocol ? dexProtocol : undefined,
-      tx_hash: tradeSource === "dex" && txHash ? txHash : undefined,
-      wallet_address: tradeSource === "dex" && walletAddress ? walletAddress : undefined,
-      gas_fee: tradeSource === "dex" ? gasFee : 0,
-      gas_fee_native: 0,
-    };
-
-    const result = tradeSchema.safeParse(raw);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      for (const issue of result.error.issues) {
-        fieldErrors[issue.path[0] as string] = issue.message;
+        } catch {}
       }
-      setErrors(fieldErrors);
-      setSaving(false);
-      return;
-    }
 
-    const data: TradeFormData = result.data;
+      const formData = new FormData(e.currentTarget);
+      const raw = {
+        symbol: formData.get("symbol") as string,
+        position: formData.get("position") as string,
+        entry_price: formData.get("entry_price") as string,
+        exit_price: formData.get("exit_price") as string || undefined,
+        quantity: formData.get("quantity") as string,
+        fees: formData.get("fees") as string || "0",
+        open_timestamp: formData.get("open_timestamp") as string,
+        close_timestamp: formData.get("close_timestamp") as string || undefined,
+        notes: formData.get("notes") as string || undefined,
+        tags: [
+          ...tags,
+          ...(narrative === "other" && customNarrative.trim()
+            ? [`narrative:${customNarrative.trim().toLowerCase()}`]
+            : narrative && narrative !== "other"
+              ? [`narrative:${narrative.toLowerCase()}`]
+              : []),
+        ],
+        emotion: emotion || undefined,
+        confidence: confidence || undefined,
+        setup_type: setupType || undefined,
+        process_score: processScore || undefined,
+        checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
+        review: Object.values(review).some((v) => v.length > 0) ? review : undefined,
+        // DEX fields
+        trade_source: tradeSource,
+        chain: tradeSource === "dex" && chain ? chain : undefined,
+        dex_protocol: tradeSource === "dex" && dexProtocol ? dexProtocol : undefined,
+        tx_hash: tradeSource === "dex" && txHash ? txHash : undefined,
+        wallet_address: tradeSource === "dex" && walletAddress ? walletAddress : undefined,
+        gas_fee: tradeSource === "dex" ? gasFee : 0,
+        gas_fee_native: 0,
+      };
 
-    let pnl: number | null = null;
-    if (data.exit_price && data.close_timestamp) {
-      const tempTrade = {
-        ...data,
-        exit_price: data.exit_price,
-        position: data.position as "long" | "short",
-      } as Trade;
-      pnl = calculateTradePnl(tempTrade);
-    }
-
-    const payload = {
-      symbol: data.symbol,
-      position: data.position,
-      entry_price: data.entry_price,
-      exit_price: data.exit_price ?? null,
-      quantity: data.quantity,
-      fees: data.fees,
-      open_timestamp: data.open_timestamp,
-      close_timestamp: data.close_timestamp ?? null,
-      notes: data.notes ?? null,
-      tags: data.tags,
-      pnl,
-      emotion: data.emotion ?? null,
-      confidence: data.confidence ?? null,
-      setup_type: data.setup_type ?? null,
-      process_score: data.process_score ?? null,
-      checklist: data.checklist ?? null,
-      review: data.review ?? null,
-      trade_source: data.trade_source,
-      chain: data.chain ?? null,
-      dex_protocol: data.dex_protocol ?? null,
-      tx_hash: data.tx_hash ?? null,
-      wallet_address: data.wallet_address ?? null,
-      gas_fee: data.gas_fee,
-      gas_fee_native: data.gas_fee_native,
-    };
-
-    let error;
-    if (editTrade) {
-      ({ error } = await supabase
-        .from("trades")
-        .update(payload)
-        .eq("id", editTrade.id));
-    } else {
-      ({ error } = await supabase.from("trades").insert(payload));
-    }
-
-    if (error) {
-      setErrors({ _form: error.message });
-      setSaving(false);
-      return;
-    }
-
-    // Award XP for new trades
-    if (!editTrade) {
-      try {
-        const { awardXP } = await import("@/lib/xp/engine");
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await awardXP(supabase, user.id, payload.notes ? "trade_with_notes" : "trade_logged");
+      const result = tradeSchema.safeParse(raw);
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        for (const issue of result.error.issues) {
+          fieldErrors[issue.path[0] as string] = issue.message;
         }
-      } catch { /* XP tables may not exist yet */ }
-    }
-
-    onSaved();
-
-    // For new closed trades without psychology data, trigger post-trade prompt
-    if (
-      !editTrade &&
-      onTradeCompleted &&
-      payload.exit_price !== null &&
-      payload.close_timestamp !== null &&
-      !payload.emotion &&
-      payload.process_score === null
-    ) {
-      // We need the inserted trade's ID — fetch the most recent trade
-      const { data: inserted } = await supabase
-        .from("trades")
-        .select("id")
-        .eq("symbol", payload.symbol)
-        .eq("entry_price", payload.entry_price)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (inserted && inserted.length > 0) {
-        onTradeCompleted({
-          id: inserted[0].id,
-          symbol: payload.symbol,
-          pnl: pnl ?? 0,
-          emotion: payload.emotion,
-          process_score: payload.process_score,
-        });
-        return; // Don't call onClose — the prompt will handle it
+        setErrors(fieldErrors);
+        return;
       }
-    }
 
-    onClose();
+      const data: TradeFormData = result.data;
+
+      let pnl: number | null = null;
+      if (data.exit_price && data.close_timestamp) {
+        const tempTrade = {
+          ...data,
+          exit_price: data.exit_price,
+          position: data.position as "long" | "short",
+        } as Trade;
+        pnl = calculateTradePnl(tempTrade);
+      }
+
+      const payload = {
+        symbol: data.symbol,
+        position: data.position,
+        entry_price: data.entry_price,
+        exit_price: data.exit_price ?? null,
+        quantity: data.quantity,
+        fees: data.fees,
+        open_timestamp: data.open_timestamp,
+        close_timestamp: data.close_timestamp ?? null,
+        notes: data.notes ?? null,
+        tags: data.tags,
+        pnl,
+        emotion: data.emotion ?? null,
+        confidence: data.confidence ?? null,
+        setup_type: data.setup_type ?? null,
+        process_score: data.process_score ?? null,
+        checklist: data.checklist ?? null,
+        review: data.review ?? null,
+        trade_source: data.trade_source,
+        chain: data.chain ?? null,
+        dex_protocol: data.dex_protocol ?? null,
+        tx_hash: data.tx_hash ?? null,
+        wallet_address: data.wallet_address ?? null,
+        gas_fee: data.gas_fee,
+        gas_fee_native: data.gas_fee_native,
+      };
+
+      let dbError;
+      if (editTrade) {
+        ({ error: dbError } = await supabase
+          .from("trades")
+          .update(payload)
+          .eq("id", editTrade.id));
+      } else {
+        ({ error: dbError } = await supabase.from("trades").insert(payload));
+      }
+
+      if (dbError) {
+        setErrors({ _form: dbError.message });
+        return;
+      }
+
+      // Award XP for new trades
+      if (!editTrade) {
+        try {
+          const { awardXP } = await import("@/lib/xp/engine");
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await awardXP(supabase, user.id, payload.notes ? "trade_with_notes" : "trade_logged");
+          }
+        } catch { /* XP tables may not exist yet */ }
+      }
+
+      onSaved();
+
+      // For new closed trades without psychology data, trigger post-trade prompt
+      if (
+        !editTrade &&
+        onTradeCompleted &&
+        payload.exit_price !== null &&
+        payload.close_timestamp !== null &&
+        !payload.emotion &&
+        payload.process_score === null
+      ) {
+        const { data: inserted } = await supabase
+          .from("trades")
+          .select("id")
+          .eq("symbol", payload.symbol)
+          .eq("entry_price", payload.entry_price)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (inserted && inserted.length > 0) {
+          onTradeCompleted({
+            id: inserted[0].id,
+            symbol: payload.symbol,
+            pnl: pnl ?? 0,
+            emotion: payload.emotion,
+            process_score: payload.process_score,
+          });
+          return; // Don't call onClose — the prompt will handle it
+        }
+      }
+
+      onClose();
+    } catch (err) {
+      setErrors({ _form: err instanceof Error ? err.message : "Failed to save trade. Please try again." });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -585,13 +589,25 @@ export function TradeForm({
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full py-2.5 rounded-lg bg-accent text-background font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"
-          >
-            {saving ? "Saving..." : editTrade ? "Update Trade" : "Log Trade"}
-          </button>
+          <div className="flex items-center gap-3">
+            {editTrade && onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-loss/10 border border-loss/20 text-loss font-medium hover:bg-loss/20 transition-colors"
+              >
+                <Trash2 size={14} />
+                Delete
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 py-2.5 rounded-lg bg-accent text-background font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"
+            >
+              {saving ? "Saving..." : editTrade ? "Update Trade" : "Log Trade"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

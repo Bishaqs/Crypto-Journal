@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/ai/trade-summary/route.js")
+R.c("server/chunks/[root-of-the-server]__c1210a1e._.js")
+R.c("server/chunks/[root-of-the-server]__f408c708._.js")
+R.c("server/chunks/[root-of-the-server]__2501908c._.js")
+R.c("server/chunks/node_modules_7cd0395a._.js")
+R.c("server/chunks/node_modules_zod_v4_classic_external_fa90cebf.js")
+R.c("server/chunks/src_lib_ai_index_ts_48e10893._.js")
+R.c("server/chunks/_next-internal_server_app_api_ai_trade-summary_route_actions_d29cf12a.js")
+R.m(964714)
+module.exports=R.m(964714).exports

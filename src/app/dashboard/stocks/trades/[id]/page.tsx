@@ -74,7 +74,7 @@ export default function StockTradeDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { theme } = useTheme();
-  const tvColorTheme = theme === "light" ? "light" : "dark";
+  const tvColorTheme = (theme as string) === "light" ? "light" : "dark";
 
   const [trade, setTrade] = useState<StockTrade | null>(null);
   const [allTradeIds, setAllTradeIds] = useState<string[]>([]);

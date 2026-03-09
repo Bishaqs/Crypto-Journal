@@ -94,7 +94,7 @@ export const coreItems: NavItem[] = [
   { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays, tourId: "tour-calendar" },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, tourId: "tour-analytics" },
   { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList, tourId: "tour-plans" },
-  { href: "/dashboard/challenges", label: "Challenges", icon: Target },
+  { href: "/dashboard/challenges", label: "Quests", icon: Target },
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy, tourId: "tour-achievements" },
   { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users },
 ];
@@ -258,7 +258,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     key: "journal",
     label: "Journal",
     icon: BookOpen,
-    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5], coreItems[6], coreItems[7], coreItems[8]],
+    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5]],
   },
   {
     key: "analytics",
@@ -274,6 +274,12 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     items: [],
     sections: [NAV_SECTIONS[2], NAV_SECTIONS[3], NAV_SECTIONS[4]],
   },
+  {
+    key: "compete",
+    label: "Compete",
+    icon: Trophy,
+    items: [coreItems[6], coreItems[7], coreItems[8]],
+  },
 ];
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -284,7 +290,7 @@ export const LABEL_KEY: Record<string, string> = {
   Dashboard: "sidebar.dashboard", "Trade Log": "sidebar.tradeLog", Journal: "sidebar.journal",
   Calendar: "sidebar.calendar", Analytics: "sidebar.analytics", "Trade Plans": "sidebar.tradePlans",
   Positions: "sidebar.positions", Watchlist: "sidebar.watchlist", Settings: "sidebar.settings",
-  Admin: "sidebar.admin", Challenges: "sidebar.challenges", Achievements: "sidebar.achievements", Leaderboard: "sidebar.leaderboard",
+  Admin: "sidebar.admin", Quests: "sidebar.quests", Achievements: "sidebar.achievements", Leaderboard: "sidebar.leaderboard",
   "Running PnL Analysis": "sidebar.runningPnl", "Trade Count": "sidebar.tradeCount",
   Volume: "sidebar.volume", "Commissions/Fees": "sidebar.commissionsFees",
   "Trade Expectancy": "sidebar.tradeExpectancy", "R-Value": "sidebar.rValue",
@@ -317,7 +323,7 @@ export const LABEL_KEY: Record<string, string> = {
 
 export const SECTION_KEY: Record<string, string> = {
   "Performance & Analysis": "sidebar.performanceAnalysis", Intelligence: "sidebar.intelligence",
-  "Market & Tools": "sidebar.marketTools", Tools: "sidebar.tools",
+  "Market & Tools": "sidebar.marketTools", Tools: "sidebar.tools", Compete: "sidebar.compete",
   Discipline: "sidebar.discipline", Reports: "sidebar.reports",
   Performance: "sidebar.performance", "Exit Analysis": "sidebar.exitAnalysis",
   "Breakdown Views": "sidebar.breakdownViews", Summaries: "sidebar.summaries",
@@ -346,22 +352,50 @@ export function saveSectionState(state: Record<string, boolean>) {
 /*  Asset context resolution                                          */
 /* ────────────────────────────────────────────────────────────────── */
 
-export function resolveItems(items: NavItem[], assetContext: "crypto" | "stocks"): NavItem[] {
+export function resolveItems(items: NavItem[], assetContext: "crypto" | "stocks" | "commodities" | "forex"): NavItem[] {
   if (assetContext === "stocks") {
     return items
       .filter(item => !["/dashboard/dca", "/dashboard/screener", "/dashboard/funding-rates", "/dashboard/prop-firm", "/dashboard/simulations"].includes(item.href))
       .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/stocks/market" } : item);
   }
+  if (assetContext === "commodities") {
+    return items
+      .filter(item => !["/dashboard/screener", "/dashboard/funding-rates", "/dashboard/prop-firm", "/dashboard/simulations", "/dashboard/stocks/options-analysis"].includes(item.href))
+      .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/commodities/market" } : item);
+  }
+  if (assetContext === "forex") {
+    return items
+      .filter(item => !["/dashboard/screener", "/dashboard/funding-rates", "/dashboard/prop-firm", "/dashboard/simulations", "/dashboard/stocks/options-analysis", "/dashboard/heatmaps"].includes(item.href))
+      .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/forex/market" } : item);
+  }
   return items.filter(item => !item.href.startsWith("/dashboard/stocks/"));
 }
 
-export function getResolvedCoreItems(assetContext: "crypto" | "stocks"): NavItem[] {
+export function getResolvedCoreItems(assetContext: "crypto" | "stocks" | "commodities" | "forex"): NavItem[] {
   if (assetContext === "stocks") {
     return coreItems.map((item, i) => {
       if (i === 0) return { ...item, href: "/dashboard/stocks", label: "Dashboard" };
       if (i === 1) return { ...item, href: "/dashboard/stocks/trades", label: "Positions" };
       if (i === 4) return { ...item, href: "/dashboard/stocks/analytics", label: "Analytics" };
       if (i === 5) return { ...item, href: "/dashboard/stocks/plans", label: "Watchlist" };
+      return item;
+    });
+  }
+  if (assetContext === "commodities") {
+    return coreItems.map((item, i) => {
+      if (i === 0) return { ...item, href: "/dashboard/commodities", label: "Dashboard" };
+      if (i === 1) return { ...item, href: "/dashboard/commodities/trades", label: "Positions" };
+      if (i === 4) return { ...item, href: "/dashboard/commodities/analytics", label: "Analytics" };
+      if (i === 5) return { ...item, href: "/dashboard/commodities/plans", label: "Watchlist" };
+      return item;
+    });
+  }
+  if (assetContext === "forex") {
+    return coreItems.map((item, i) => {
+      if (i === 0) return { ...item, href: "/dashboard/forex", label: "Dashboard" };
+      if (i === 1) return { ...item, href: "/dashboard/forex/trades", label: "Positions" };
+      if (i === 4) return { ...item, href: "/dashboard/forex/analytics", label: "Analytics" };
+      if (i === 5) return { ...item, href: "/dashboard/forex/plans", label: "Watchlist" };
       return item;
     });
   }
@@ -375,6 +409,8 @@ export function getResolvedCoreItems(assetContext: "crypto" | "stocks"): NavItem
 export function isActivePath(pathname: string, href: string, search?: string): boolean {
   if (href === "/dashboard") return pathname === "/dashboard";
   if (href === "/dashboard/stocks") return pathname === "/dashboard/stocks";
+  if (href === "/dashboard/commodities") return pathname === "/dashboard/commodities";
+  if (href === "/dashboard/forex") return pathname === "/dashboard/forex";
   const [hrefPath, hrefQuery] = href.split("?");
   if (!pathname.startsWith(hrefPath)) return false;
   // If href has query params, require them to match
@@ -383,15 +419,18 @@ export function isActivePath(pathname: string, href: string, search?: string): b
 }
 
 export function getCategoryForPath(pathname: string): string | null {
-  if (pathname === "/dashboard" || pathname === "/dashboard/stocks") return "home";
+  if (pathname === "/dashboard" || pathname === "/dashboard/stocks" || pathname === "/dashboard/commodities" || pathname === "/dashboard/forex") return "home";
 
-  const journalPrefixes = ["/dashboard/trades", "/dashboard/journal", "/dashboard/calendar", "/dashboard/plans", "/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard", "/dashboard/stocks/trades", "/dashboard/stocks/plans"];
+  const journalPrefixes = ["/dashboard/trades", "/dashboard/journal", "/dashboard/calendar", "/dashboard/plans", "/dashboard/stocks/trades", "/dashboard/stocks/plans", "/dashboard/commodities/trades", "/dashboard/commodities/plans", "/dashboard/forex/trades", "/dashboard/forex/plans"];
   if (journalPrefixes.some(p => pathname.startsWith(p))) return "journal";
 
-  const analyticsPrefixes = ["/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/insights", "/dashboard/ai", "/dashboard/reports"];
+  const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard"];
+  if (competePrefixes.some(p => pathname.startsWith(p))) return "compete";
+
+  const analyticsPrefixes = ["/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/commodities/analytics", "/dashboard/forex/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/insights", "/dashboard/ai", "/dashboard/reports"];
   if (analyticsPrefixes.some(p => pathname.startsWith(p))) return "analytics";
 
-  const toolsPrefixes = ["/dashboard/market", "/dashboard/stocks/market", "/dashboard/screener", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/dca", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
+  const toolsPrefixes = ["/dashboard/market", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/screener", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/dca", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
   if (toolsPrefixes.some(p => pathname.startsWith(p))) return "tools";
 
   return null;

@@ -36,13 +36,14 @@ export interface SeasonalityData {
 
 export type SeasonalityTab = "monthly" | "weekday" | "heatmap" | "comparison";
 
-export type LookbackPeriod = "1Y" | "2Y" | "3Y" | "5Y";
+export type LookbackPeriod = "1Y" | "2Y" | "3Y" | "5Y" | "MAX";
 
 export const LOOKBACK_DAYS: Record<LookbackPeriod, number> = {
   "1Y": 365,
-  "2Y": 365,
-  "3Y": 365,
-  "5Y": 365,
+  "2Y": 730,
+  "3Y": 1095,
+  "5Y": 1825,
+  "MAX": 0, // 0 signals "max" to the API / CoinGecko
 };
 
 export { CRYPTO_SYMBOL_GROUPS as SYMBOL_GROUPS } from "@/lib/coin-registry";

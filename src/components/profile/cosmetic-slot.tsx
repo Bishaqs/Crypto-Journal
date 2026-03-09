@@ -13,6 +13,7 @@ const TYPE_LABELS: Record<CosmeticType, string> = {
   sidebar_flair: "Flair",
   avatar_icon: "Icon",
   theme_accent: "Accent",
+  name_style: "Name",
 };
 
 const RARITY_META: Record<CosmeticRarity, { label: string; text: string }> = {
@@ -21,6 +22,7 @@ const RARITY_META: Record<CosmeticRarity, { label: string; text: string }> = {
   rare: { label: "Rare", text: "text-blue-400" },
   epic: { label: "Epic", text: "text-purple-400" },
   legendary: { label: "Legendary", text: "text-amber-400" },
+  mythic: { label: "Mythic", text: "text-red-400" },
 };
 
 function CosmeticPreview({ cosmetic, small }: { cosmetic: CosmeticDefinition; small?: boolean }) {
@@ -40,7 +42,7 @@ function CosmeticPreview({ cosmetic, small }: { cosmetic: CosmeticDefinition; sm
       return (
         <div
           className={`rounded-lg ${cosmetic.css_class ?? ""}`}
-          style={{ width: small ? 48 : 64, height: small ? 16 : 24 }}
+          style={{ width: small ? 48 : 64, height: small ? 16 : 24, overflow: "hidden" }}
         />
       );
     case "title_badge":
@@ -51,10 +53,12 @@ function CosmeticPreview({ cosmetic, small }: { cosmetic: CosmeticDefinition; sm
       );
     case "sidebar_flair":
       return (
-        <div
-          className={`rounded-full bg-accent/20 ${cosmetic.css_class ?? ""}`}
-          style={{ width: size, height: size, overflow: "visible" }}
-        />
+        <div style={{ position: "relative", width: size, height: size }}>
+          <div
+            className={`rounded-full bg-accent/20 ${cosmetic.css_class ?? ""}`}
+            style={{ position: "absolute", inset: 0, overflow: "visible" }}
+          />
+        </div>
       );
     case "avatar_icon":
       return (
@@ -75,6 +79,12 @@ function CosmeticPreview({ cosmetic, small }: { cosmetic: CosmeticDefinition; sm
         />
       );
     }
+    case "name_style":
+      return (
+        <span className={`text-xs font-bold ${cosmetic.css_class ?? "text-foreground"}`}>
+          Aa
+        </span>
+      );
     default:
       return null;
   }
@@ -93,7 +103,7 @@ export function CosmeticSlot({ type }: { type: CosmeticType }) {
   const allOfType = definitions.filter((d) => d.type === type);
   const ownedOfType = allOfType.filter((d) => isOwned(d.id));
   const sortedItems = [...allOfType].sort((a, b) => {
-    const order: CosmeticRarity[] = ["common", "uncommon", "rare", "epic", "legendary"];
+    const order: CosmeticRarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
     return order.indexOf(a.rarity) - order.indexOf(b.rarity);
   });
 

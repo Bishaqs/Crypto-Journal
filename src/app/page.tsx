@@ -57,7 +57,7 @@ export default function LandingPage() {
 
   // Lock landing page to purple (Space Purple) theme
   useEffect(() => {
-    setTheme("dark");
+    setTheme("obsidian");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../src/app/dashboard/apps/layout.tsx"],"sourcesContent":["export default function AppsLayout({ children }: { children: React.ReactNode }) {\n  return <>{children}</>;\n}\n"],"names":[],"mappings":"0DAAe,SAAS,EAAW,UAAE,CAAQ,CAAiC,EAC5E,MAAO,CAAA,EAAA,EAAA,GAAA,EAAA,EAAA,QAAA,CAAA,UAAG,GACZ"}

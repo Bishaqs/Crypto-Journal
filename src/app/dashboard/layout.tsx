@@ -1,6 +1,8 @@
 import dynamic from "next/dynamic";
 import { Sidebar } from "@/components/sidebar";
-import { Starfield } from "@/components/starfield";
+const Starfield = dynamic(
+  () => import("@/components/starfield").then(m => ({ default: m.Starfield }))
+);
 import { OnboardingTour } from "@/components/onboarding-tour";
 import { OnboardingGate } from "@/components/onboarding-gate";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -12,6 +14,7 @@ import { ChallengeProvider } from "@/lib/challenges";
 import { CoinsProvider } from "@/lib/coins";
 import { GuideProvider } from "@/components/stargate-guide";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import type { SubscriptionTier } from "@/lib/use-subscription";
 
 // Lazy-load non-critical floating components (not visible on initial paint)
@@ -23,6 +26,7 @@ const CelebrationOverlay = dynamic(() => import("@/components/dashboard/celebrat
 const StargateGuideCharacter = dynamic(() => import("@/components/stargate-guide/stargate-guide").then(m => ({ default: m.StargateGuideCharacter })));
 const GuideMenu = dynamic(() => import("@/components/stargate-guide/guide-menu").then(m => ({ default: m.GuideMenu })));
 const GuideHelp = dynamic(() => import("@/components/stargate-guide/guide-help").then(m => ({ default: m.GuideHelp })));
+const GuideSupport = dynamic(() => import("@/components/stargate-guide/guide-support").then(m => ({ default: m.GuideSupport })));
 
 export default async function DashboardLayout({
   children,
@@ -38,20 +42,30 @@ export default async function DashboardLayout({
 
   let tier: SubscriptionTier = "free";
   let isTrial = false;
+  let isReturningUser = false;
 
   if (user) {
     try {
       // Use regular client — RLS allows SELECT on own rows, no admin client needed
       const { data: sub } = await supabase
         .from("user_subscriptions")
-        .select("tier, is_trial, is_owner")
+        .select("tier, is_trial, is_owner, is_banned, created_at")
         .eq("user_id", user.id)
         .maybeSingle();
       if (sub) {
+        // Safety-net: redirect banned users even if middleware cookie was missing
+        if (sub.is_banned) {
+          redirect("/banned");
+        }
         tier = (sub.tier as SubscriptionTier) ?? "free";
         isTrial = sub.is_trial ?? false;
         if (sub.is_owner) {
           isOwner = true;
+        }
+        // Account older than 5 minutes = returning user (skip onboarding on new devices)
+        if (sub.created_at) {
+          const accountAge = Date.now() - new Date(sub.created_at).getTime();
+          isReturningUser = accountAge > 5 * 60 * 1000;
         }
       }
     } catch {
@@ -71,7 +85,7 @@ export default async function DashboardLayout({
             <ChallengeProvider userId={user?.id}>
             <CoinsProvider userId={user?.id}>
             <GuideProvider>
-              <OnboardingGate userId={user?.id} />
+              <OnboardingGate userId={user?.id} isReturningUser={isReturningUser} />
               <OnboardingTour>
                 <div className="flex h-screen overflow-hidden relative">
                   <Starfield />
@@ -89,6 +103,7 @@ export default async function DashboardLayout({
                   <StargateGuideCharacter />
                   <GuideMenu />
                   <GuideHelp />
+                  <GuideSupport />
                 </div>
               </OnboardingTour>
             </GuideProvider>

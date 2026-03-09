@@ -27,6 +27,7 @@ const RARITY_COLORS: Record<CosmeticRarity, string> = {
   rare: "text-blue-400",
   epic: "text-purple-400",
   legendary: "text-amber-400",
+  mythic: "text-red-400",
 };
 
 function RankBadge({ rank }: { rank: number }) {
@@ -60,6 +61,15 @@ export default function LeaderboardPage() {
   const [showOptIn, setShowOptIn] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Build cosmetic ID -> css_class lookup map
+  const cssClassMap = useMemo(() => {
+    const map = new Map<string, string>();
+    definitions.forEach((d) => {
+      if (d.css_class) map.set(d.id, d.css_class);
+    });
+    return map;
+  }, [definitions]);
 
   // Build title badge CSS class -> definition map for display name lookup
   const titleMap = useMemo(() => {
@@ -260,7 +270,7 @@ export default function LeaderboardPage() {
                 {/* Banner gradient overlay */}
                 {entry.banner && (
                   <div
-                    className={`absolute inset-0 ${entry.banner} opacity-30 pointer-events-none`}
+                    className={`absolute inset-0 ${cssClassMap.get(entry.banner) ?? entry.banner} opacity-30 pointer-events-none`}
                   />
                 )}
 
@@ -275,10 +285,10 @@ export default function LeaderboardPage() {
                   <div className="flex-1 flex items-center gap-2.5 min-w-0">
                     {/* Avatar frame + icon preview */}
                     <div
-                      className={`w-9 h-9 rounded-full bg-surface flex items-center justify-center shrink-0 ${entry.avatar_frame ?? ""}`}
+                      className={`w-9 h-9 rounded-full bg-surface flex items-center justify-center shrink-0 ${entry.avatar_frame ? (cssClassMap.get(entry.avatar_frame) ?? entry.avatar_frame) : ""}`}
                     >
                       {entry.avatar_icon ? (
-                        <span className="text-accent">{renderCosmeticIcon(entry.avatar_icon, 16)}</span>
+                        <span className="text-accent">{renderCosmeticIcon(cssClassMap.get(entry.avatar_icon) ?? entry.avatar_icon, 16)}</span>
                       ) : (
                         <span className="text-[10px] font-bold text-muted">
                           {entry.current_level}
@@ -286,7 +296,7 @@ export default function LeaderboardPage() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">
+                      <p className={`text-sm font-semibold text-foreground truncate ${entry.name_style ? (cssClassMap.get(entry.name_style) ?? "") : ""}`}>
                         {entry.display_name}
                       </p>
                       {titleInfo ? (

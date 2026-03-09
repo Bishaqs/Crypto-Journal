@@ -6,14 +6,16 @@ export type CosmeticType =
   | "title_badge"
   | "sidebar_flair"
   | "avatar_icon"
-  | "theme_accent";
+  | "theme_accent"
+  | "name_style";
 
 export type CosmeticRarity =
   | "common"
   | "uncommon"
   | "rare"
   | "epic"
-  | "legendary";
+  | "legendary"
+  | "mythic";
 
 export type UnlockCondition =
   | { type: "level"; value: number }
@@ -44,6 +46,7 @@ export type EquippedCosmetics = {
   sidebar_flair: string | null;
   avatar_icon: string | null;
   theme_accent: string | null;
+  name_style: string | null;
 };
 
 /** Row shape from the leaderboard_view materialized view */
@@ -55,6 +58,7 @@ export type LeaderboardEntry = {
   title_badge: string | null;
   avatar_icon: string | null;
   theme_accent: string | null;
+  name_style: string | null;
   current_level: number;
   total_xp: number;
   current_streak: number;
@@ -78,6 +82,7 @@ export type UserProfile = {
   avatar_icon: string | null;
   sidebar_flair: string | null;
   theme_accent: string | null;
+  name_style: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -6,6 +6,8 @@ import { useTheme } from "@/lib/theme-context";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { FeatureInfoBox } from "@/components/ui/feature-info-box";
+import { FEATURE_INFO } from "@/lib/feature-info-content";
 import ChainGrid from "@/components/options/chain-grid";
 import OrderList from "@/components/options/order-list";
 import PositionSummary from "@/components/options/position-summary";
@@ -230,6 +232,8 @@ export default function OptionsSimulatorPage() {
 
           <InfoTooltip text="Build and manage options positions using a simulated order book. Practice calls, puts, and spreads risk-free." size={14} />
         </div>
+
+        <FeatureInfoBox variant="simulator" {...FEATURE_INFO["options-simulator"]} />
 
         {/* Chain header labels */}
         <div className="flex items-center px-4 py-1 bg-[#0e0e14] border-b border-white/5 shrink-0">

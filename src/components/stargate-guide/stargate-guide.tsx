@@ -6,6 +6,7 @@ import { ArrowRight, ArrowLeft, Rocket } from "lucide-react";
 import { StargateLogo } from "@/components/stargate-logo";
 import { useGuide } from "./guide-context";
 import { useTour } from "@/lib/tour-context";
+import { useI18n } from "@/lib/i18n";
 import type { TourStep } from "@/lib/tour-context";
 import { StarWarpTransition } from "./star-warp";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
@@ -27,7 +28,7 @@ function calcTourOffset(
   rect: { top: number; left: number; width: number; height: number },
   side: string,
 ): { x: number; y: number } {
-  const margin = 16;
+  const margin = 24;
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
 
@@ -107,6 +108,11 @@ function ChatBubble({
   onSkip: () => void;
   tail?: "top" | "bottom";
 }) {
+  const { t } = useI18n();
+  const title = step.titleKey ? t(step.titleKey) : step.title;
+  const content = step.contentKey ? t(step.contentKey) : step.content;
+  const skipLabel = t("tours.skipTour");
+
   return (
     <div className="relative">
       {/* Tail pointing toward guide */}
@@ -147,11 +153,11 @@ function ChatBubble({
           {/* Icon + title */}
           <div className="flex items-center gap-2.5 mb-2">
             {step.icon && <span className="text-xl">{step.icon}</span>}
-            <h3 className="text-base font-bold text-foreground">{step.title}</h3>
+            <h3 className="text-base font-bold text-foreground">{title}</h3>
           </div>
 
           {/* Content */}
-          <p className="text-sm text-muted leading-relaxed mb-4">{step.content}</p>
+          <p className="text-sm text-muted leading-relaxed mb-4">{content}</p>
 
           {/* Controls */}
           <div className="flex items-center justify-between">
@@ -160,7 +166,7 @@ function ChatBubble({
                 onClick={onSkip}
                 className="text-xs text-muted/50 hover:text-muted transition-colors"
               >
-                Skip tour
+                {skipLabel}
               </button>
             ) : (
               <div />
@@ -390,7 +396,7 @@ export function StargateGuideCharacter() {
       setIsFlying(true);
       setArrivalKey((k) => k + 1);
 
-      setTimeout(() => setShowBubble(true), 500);
+      setTimeout(() => setShowBubble(true), 350);
     }
 
     window.addEventListener("tour-guide-fly", handleFly);
