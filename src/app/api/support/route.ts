@@ -7,7 +7,7 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 const CreateTicketSchema = z.object({
-  subject: z.string().min(3, "Subject must be at least 3 characters").max(200, "Subject must be under 200 characters"),
+  subject: z.string().min(3).max(200).optional(),
   message: z.string().min(1, "Message is required").max(2000, "Message must be under 2000 characters"),
 });
 
@@ -51,12 +51,19 @@ export async function POST(req: NextRequest) {
 
   const displayName = await resolveDisplayName(supabase, user);
 
+  // Auto-generate subject from message if not provided
+  const subject = parsed.subject ?? (
+    parsed.message.length > 50
+      ? parsed.message.slice(0, 50) + "..."
+      : parsed.message
+  );
+
   // Create ticket
   const { data: ticket, error: ticketErr } = await supabase
     .from("support_tickets")
     .insert({
       user_id: user.id,
-      subject: parsed.subject,
+      subject,
       display_name: displayName,
     })
     .select("id")
