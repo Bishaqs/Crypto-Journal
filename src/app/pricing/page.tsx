@@ -12,7 +12,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Background */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <CandleBackground colorScheme="brand" />
+        <CandleBackground />
         <div className="stars-small" />
         <div className="stars-medium" />
       </div>
