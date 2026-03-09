@@ -1130,7 +1130,7 @@ export function Starfield() {
   if (theme === "obsidian") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" style={{ background: "#121212" }}>
-        <CandleBackground colorScheme="trading" />
+        <CandleBackground />
       </div>
     );
   }

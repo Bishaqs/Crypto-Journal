@@ -398,35 +398,10 @@ body { background: var(--background); color: var(--foreground); font-family: var
 }
 .black-hole-glow { animation: accretion-glow 5s ease-in-out infinite; }
 
-/* ===== Light Mode Candlestick Background — Directional Spawning ===== */
-@keyframes candle-from-top {
-  0% { opacity: 0; transform: translateY(-60px) scale(0.9); }
-  6% { opacity: 1; transform: translateY(0) scale(1); }
-  80% { opacity: 1; transform: translateY(var(--candle-drift, 0)) scale(1); }
-  100% { opacity: 0; transform: translateY(var(--candle-drift, 0)) scale(0.9); }
-}
-@keyframes candle-from-bottom {
-  0% { opacity: 0; transform: translateY(60px) scale(0.9); }
-  6% { opacity: 1; transform: translateY(0) scale(1); }
-  80% { opacity: 1; transform: translateY(var(--candle-drift, 0)) scale(1); }
-  100% { opacity: 0; transform: translateY(var(--candle-drift, 0)) scale(0.9); }
-}
-@keyframes candle-from-left {
-  0% { opacity: 0; transform: translateX(-60px) scale(0.9); }
-  6% { opacity: 1; transform: translateX(0) scale(1); }
-  80% { opacity: 1; transform: translateX(var(--candle-drift, 0)) scale(1); }
-  100% { opacity: 0; transform: translateX(var(--candle-drift, 0)) scale(0.9); }
-}
-@keyframes candle-from-right {
-  0% { opacity: 0; transform: translateX(60px) scale(0.9); }
-  6% { opacity: 1; transform: translateX(0) scale(1); }
-  80% { opacity: 1; transform: translateX(var(--candle-drift, 0)) scale(1); }
-  100% { opacity: 0; transform: translateX(var(--candle-drift, 0)) scale(0.9); }
-}
-.candle-stick {
-  animation-name: var(--candle-anim, candle-from-top);
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
+/* ===== Candlestick Background — Left-to-right chart flow ===== */
+@keyframes candle-appear {
+  0% { opacity: 0; transform: scaleY(0.6); }
+  100% { opacity: 1; transform: scaleY(1); }
 }
 
 /* ===== AI Message Markdown Tables ===== */
