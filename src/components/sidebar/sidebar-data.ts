@@ -94,6 +94,7 @@ export const coreItems: NavItem[] = [
   { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays, tourId: "tour-calendar" },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, tourId: "tour-analytics" },
   { href: "/dashboard/plans", label: "Trade Plans", icon: ClipboardList, tourId: "tour-plans" },
+  { href: "/dashboard/import-export", label: "Import / Export", icon: ArrowUpDown },
   { href: "/dashboard/challenges", label: "Quests", icon: Target },
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy, tourId: "tour-achievements" },
   { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users },
@@ -257,7 +258,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     key: "journal",
     label: "Journal",
     icon: BookOpen,
-    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5]],
+    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5], coreItems[6]],
   },
   {
     key: "analytics",
@@ -277,7 +278,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     key: "compete",
     label: "Compete",
     icon: Trophy,
-    items: [coreItems[6], coreItems[7], coreItems[8]],
+    items: [coreItems[7], coreItems[8], coreItems[9]],
   },
 ];
 
@@ -318,6 +319,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Tax Reports": "sidebar.taxReports", Simulations: "sidebar.simulations",
   Feedback: "sidebar.feedback",
   "Help Center": "sidebar.helpCenter",
+  "Import / Export": "sidebar.importExport",
 };
 
 export const SECTION_KEY: Record<string, string> = {
@@ -420,7 +422,7 @@ export function isActivePath(pathname: string, href: string, search?: string): b
 export function getCategoryForPath(pathname: string): string | null {
   if (pathname === "/dashboard" || pathname === "/dashboard/stocks" || pathname === "/dashboard/commodities" || pathname === "/dashboard/forex") return "home";
 
-  const journalPrefixes = ["/dashboard/trades", "/dashboard/journal", "/dashboard/calendar", "/dashboard/plans", "/dashboard/stocks/trades", "/dashboard/stocks/plans", "/dashboard/commodities/trades", "/dashboard/commodities/plans", "/dashboard/forex/trades", "/dashboard/forex/plans"];
+  const journalPrefixes = ["/dashboard/trades", "/dashboard/journal", "/dashboard/calendar", "/dashboard/plans", "/dashboard/import-export", "/dashboard/stocks/trades", "/dashboard/stocks/plans", "/dashboard/commodities/trades", "/dashboard/commodities/plans", "/dashboard/forex/trades", "/dashboard/forex/plans"];
   if (journalPrefixes.some(p => pathname.startsWith(p))) return "journal";
 
   const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard"];

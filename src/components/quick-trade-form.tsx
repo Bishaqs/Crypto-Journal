@@ -13,7 +13,7 @@ interface QuickTradeFormProps {
   onSwitchToFull?: (values: { symbol: string; position: string; entry_price: number; quantity: number; exit_price?: number }) => void;
 }
 
-export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToFull }: QuickTradeFormProps) {
+export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToFull, variant = "modal" }: QuickTradeFormProps & { variant?: "modal" | "inline" }) {
   const [symbol, setSymbol] = useState("");
   const [position, setPosition] = useState<"long" | "short">("long");
   const [entryPrice, setEntryPrice] = useState("");
@@ -119,10 +119,9 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
     }
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="glass border border-border/50 rounded-2xl w-full max-w-sm overflow-hidden">
-        {/* Header */}
+  const formContent = (
+    <>
+      {variant === "modal" && (
         <div className="flex items-center justify-between p-4 border-b border-border/30">
           <div className="flex items-center gap-2">
             <Zap size={14} className="text-accent" />
@@ -133,6 +132,7 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
             <X size={16} />
           </button>
         </div>
+      )}
 
         <div className="p-4 space-y-3">
           {/* Symbol + Position */}
@@ -262,6 +262,21 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
             </button>
           )}
         </div>
+    </>
+  );
+
+  if (variant === "inline") {
+    return (
+      <div className="glass border border-border/50 rounded-2xl w-full overflow-hidden">
+        {formContent}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="glass border border-border/50 rounded-2xl w-full max-w-sm overflow-hidden">
+        {formContent}
       </div>
     </div>
   );
