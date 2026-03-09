@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import { CandleBackground } from "./candle-background";
 import { RealisticBlackHole } from "./realistic-black-hole";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { SatoshiBackground } from "./satoshi-background";
 
 /* ================================================================
    MATRIX — Dense binary rain covering the entire screen
@@ -973,263 +974,262 @@ function VolcanoBackground() {
    OCEAN — Deep underwater cave with bioluminescence
    ================================================================ */
 
-const BIO_DOT_COUNT = 30;
-const JELLYFISH_COUNT = 3;
-const SMALL_FISH_COUNT = 4;
-
-function OceanBackground() {
-  type Fish = { top: number; size: number; duration: number; delay: number; goingRight: boolean; body: string; glow: string };
-  type BioDot = { left: number; top: number; duration: number; delay: number; size: number; bg: string; shadow: string };
-  type Jelly = { left: number; top: number; size: number; duration: number; pulseDuration: number; delay: number; bg: string; border: string };
-
-  const [smallFish, setSmallFish] = useState<Fish[]>([]);
-  const [bioDots, setBioDots] = useState<BioDot[]>([]);
-  const [jellyfish, setJellyfish] = useState<Jelly[]>([]);
-
-  useEffect(() => {
-    const fishColorVariants = [
-      { body: "rgba(100, 220, 255, 0.6)", glow: "rgba(14, 165, 233, 0.3)" },
-      { body: "rgba(100, 255, 218, 0.55)", glow: "rgba(45, 212, 191, 0.3)" },
-      { body: "rgba(255, 180, 220, 0.5)", glow: "rgba(236, 72, 153, 0.25)" },
-      { body: "rgba(180, 240, 255, 0.5)", glow: "rgba(125, 211, 252, 0.25)" },
-      { body: "rgba(200, 160, 255, 0.5)", glow: "rgba(168, 85, 247, 0.25)" },
-    ];
-    setSmallFish(
-      Array.from({ length: SMALL_FISH_COUNT }).map((_, i) => {
-        const color = fishColorVariants[i % fishColorVariants.length];
-        return {
-          top: 15 + Math.random() * 70,
-          size: 8 + Math.random() * 10,
-          duration: 22 + Math.random() * 18,
-          delay: -(Math.random() * 40),
-          goingRight: i % 2 === 0,
-          ...color,
-        };
-      })
-    );
-
-    const bioColorVariants = [
-      { bg: "rgba(100, 220, 255, 0.85)", shadow: "rgba(14, 165, 233, 0.45)" },
-      { bg: "rgba(200, 120, 255, 0.75)", shadow: "rgba(168, 85, 247, 0.45)" },
-      { bg: "rgba(255, 130, 200, 0.75)", shadow: "rgba(236, 72, 153, 0.45)" },
-      { bg: "rgba(180, 240, 255, 0.65)", shadow: "rgba(125, 211, 252, 0.4)" },
-      { bg: "rgba(100, 255, 218, 0.65)", shadow: "rgba(45, 212, 191, 0.4)" },
-      { bg: "rgba(255, 200, 100, 0.75)", shadow: "rgba(251, 191, 36, 0.45)" },
-      { bg: "rgba(250, 160, 80, 0.65)", shadow: "rgba(245, 158, 11, 0.4)" },
-    ];
-    setBioDots(
-      Array.from({ length: BIO_DOT_COUNT }).map(() => {
-        const color = bioColorVariants[Math.floor(Math.random() * bioColorVariants.length)];
-        return {
-          left: 3 + Math.random() * 94,
-          top: 15 + Math.random() * 80,
-          duration: 6 + Math.random() * 12,
-          delay: Math.random() * -15,
-          size: 2 + Math.random() * 4,
-          ...color,
-        };
-      })
-    );
-
-    const jellyColors = [
-      { bg: "rgba(200, 120, 255, 0.3)", border: "rgba(200, 120, 255, 0.4)" },
-      { bg: "rgba(100, 220, 255, 0.28)", border: "rgba(100, 220, 255, 0.38)" },
-      { bg: "rgba(255, 130, 200, 0.28)", border: "rgba(255, 130, 200, 0.38)" },
-      { bg: "rgba(100, 255, 218, 0.25)", border: "rgba(100, 255, 218, 0.35)" },
-      { bg: "rgba(255, 200, 100, 0.25)", border: "rgba(255, 200, 100, 0.35)" },
-      { bg: "rgba(180, 240, 255, 0.28)", border: "rgba(180, 240, 255, 0.38)" },
-    ];
-    setJellyfish(
-      Array.from({ length: JELLYFISH_COUNT }).map(() => {
-        const color = jellyColors[Math.floor(Math.random() * jellyColors.length)];
-        return {
-          left: 10 + Math.random() * 80,
-          top: 20 + Math.random() * 60,
-          size: 30 + Math.random() * 50,
-          duration: 18 + Math.random() * 15,
-          pulseDuration: 4 + Math.random() * 4,
-          delay: Math.random() * -20,
-          ...color,
-        };
-      })
-    );
-  }, []);
-
-  return (
-    <>
-      {/* Deep abyss gradient */}
-      <div className="absolute inset-0" style={{
-        background: "linear-gradient(180deg, #051020 0%, #030a18 40%, #020817 100%)",
-      }} />
-
-      {/* Caustic light ripple overlay near top */}
-      <div className="triton-caustics" />
-
-      {/* Light rays from above — god rays */}
-      {[
-        { left: "15%", angle: 12, width: 130, opacity: 0.14, dur: 10, delay: 0 },
-        { left: "35%", angle: 5, width: 170, opacity: 0.11, dur: 12, delay: -3 },
-        { left: "55%", angle: -6, width: 120, opacity: 0.13, dur: 11, delay: -6 },
-        { left: "72%", angle: 18, width: 90, opacity: 0.10, dur: 14, delay: -9 },
-        { left: "25%", angle: -10, width: 100, opacity: 0.09, dur: 16, delay: -5 },
-        { left: "80%", angle: 8, width: 80, opacity: 0.08, dur: 13, delay: -11 },
-      ].map((ray, i) => (
-        <div
-          key={i}
-          className="triton-ray"
-          style={{
-            left: ray.left,
-            width: `${ray.width}px`,
-            height: "110%",
-            background: `linear-gradient(180deg, rgba(125,211,252,${ray.opacity}) 0%, rgba(14,165,233,${ray.opacity * 0.3}) 40%, transparent 80%)`,
-            "--ray-angle": `${ray.angle}deg`,
-            "--ray-duration": `${ray.dur}s`,
-            "--ray-delay": `${ray.delay}s`,
-          } as React.CSSProperties}
-        />
-      ))}
-
-      {/* Jellyfish — large glowing blobs */}
-      {jellyfish.map((j, i) => (
-        <div
-          key={i}
-          className="jellyfish"
-          style={{
-            left: `${j.left}%`,
-            top: `${j.top}%`,
-            width: `${j.size}px`,
-            height: `${j.size * 0.7}px`,
-            background: `radial-gradient(ellipse, ${j.bg} 30%, transparent 70%)`,
-            boxShadow: `0 0 ${j.size}px ${j.size / 3}px ${j.border}`,
-            "--jelly-duration": `${j.duration}s`,
-            "--jelly-pulse": `${j.pulseDuration}s`,
-            "--jelly-delay": `${j.delay}s`,
-          } as React.CSSProperties}
-        />
-      ))}
-
-      {/* Small swimming fish */}
-      {smallFish.map((fish, i) => (
-        <div
-          key={`fish-${i}`}
-          className={fish.goingRight ? "triton-fish-right" : "triton-fish-left"}
-          style={{
-            top: `${fish.top}%`,
-            "--fish-duration": `${fish.duration}s`,
-            "--fish-delay": `${fish.delay}s`,
-            "--fish-size": `${fish.size}px`,
-          } as React.CSSProperties}
-        >
-          {/* Fish body — simple SVG */}
-          <svg
-            width={fish.size * 2.2}
-            height={fish.size}
-            viewBox="0 0 22 10"
-            style={{ filter: `drop-shadow(0 0 ${fish.size * 0.5}px ${fish.glow})` }}
-          >
-            {/* Body */}
-            <ellipse cx="10" cy="5" rx="8" ry="4" fill={fish.body} />
-            {/* Tail */}
-            <polygon
-              points={fish.goingRight ? "2,5 0,1 0,9" : "20,5 22,1 22,9"}
-              fill={fish.body}
-            />
-            {/* Eye */}
-            <circle
-              cx={fish.goingRight ? "15" : "7"}
-              cy="4"
-              r="1"
-              fill="rgba(255,255,255,0.8)"
-            />
-          </svg>
-        </div>
-      ))}
-
-      {/* Rare large fish (whale silhouette) — appears every ~4 minutes */}
-      <div className="triton-big-fish">
-        <svg width="120" height="40" viewBox="0 0 120 40" style={{ filter: "drop-shadow(0 0 8px rgba(14,165,233,0.15))" }}>
-          <path
-            d="M5,20 Q10,8 30,6 Q50,4 70,8 Q85,12 95,15 Q100,17 105,14 Q110,10 115,8 L118,12 L115,16 Q110,20 105,22 Q100,23 95,25 Q85,28 70,32 Q50,36 30,34 Q10,32 5,20 Z"
-            fill="rgba(8,25,50,0.7)"
-            stroke="rgba(14,165,233,0.15)"
-            strokeWidth="0.5"
-          />
-          {/* Eye */}
-          <circle cx="25" cy="18" r="2" fill="rgba(125,211,252,0.4)" />
-          {/* Belly line */}
-          <path d="M25,22 Q50,30 90,24" fill="none" stroke="rgba(14,165,233,0.08)" strokeWidth="0.5" />
-        </svg>
-      </div>
-
-      {/* Bioluminescent particles */}
-      {bioDots.map((dot, i) => (
-        <div
-          key={i}
-          className="bio-dot"
-          style={{
-            left: `${dot.left}%`,
-            top: `${dot.top}%`,
-            width: `${dot.size}px`,
-            height: `${dot.size}px`,
-            background: dot.bg,
-            boxShadow: `0 0 ${dot.size * 3}px ${dot.size}px ${dot.shadow}`,
-            filter: "blur(0.5px)",
-            "--bio-duration": `${dot.duration}s`,
-            "--bio-delay": `${dot.delay}s`,
-          } as React.CSSProperties}
-        />
-      ))}
-
-      {/* Deep ocean gradient at bottom */}
-      <div className="absolute inset-x-0 bottom-0 h-1/3" style={{
-        background: "linear-gradient(to top, rgba(2,8,23,0.8), transparent)",
-      }} />
-    </>
-  );
-}
-
-/* ================================================================
-   DASHBOARD BLACK HOLE — Uses shared RealisticBlackHole component
-   ================================================================ */
-
-/* ================================================================
-   SATOSHI GOLD — Gold dust particle field
-   ================================================================ */
-
-type GoldParticle = {
+type OceanParticle = {
   x: number;
   y: number;
-  vy: number;
   vx: number;
+  vy: number;
+  vxPhase: number;
+  vxAmp: number;
   size: number;
   opacity: number;
   maxOpacity: number;
-  hue: number;
   life: number;
   lifeSpeed: number;
+  kind: "bio" | "snow" | "bubble";
+  r: number;
+  g: number;
+  b: number;
+  glowR?: number;
+  glowG?: number;
+  glowB?: number;
 };
 
-function SatoshiGoldBackground() {
+function OceanBackground() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<GoldParticle[]>([]);
+  const particlesRef = useRef<OceanParticle[]>([]);
   const rafRef = useRef<number>(0);
   const pausedRef = useRef(false);
+  const isReducedMotion = useReducedMotion();
+
+  const [jellyfish, setJellyfish] = useState<{ id: number; left: number; top: number; size: number; colorIndex: number; delay: number; duration: number; pulseDuration: number; }[]>([]);
+  const [smallFish, setSmallFish] = useState<{ id: number; top: number; size: number; duration: number; delay: number; goingRight: boolean; colorIndex: number; }[]>([]);
+
+  const BIO_COLORS = [
+    { r: 100, g: 220, b: 255, gr: 14, gg: 165, gb: 233 },
+    { r: 200, g: 120, b: 255, gr: 168, gg: 85, gb: 247 },
+    { r: 255, g: 130, b: 200, gr: 236, gg: 72, gb: 153 },
+    { r: 100, g: 255, b: 218, gr: 45, gg: 212, gb: 191 },
+    { r: 255, g: 200, b: 100, gr: 251, gg: 191, gb: 36 },
+    { r: 180, g: 240, b: 255, gr: 125, gg: 211, gb: 252 },
+  ];
+
+  const JELLY_COLORS = [
+    { fill: "rgba(100, 220, 255, 0.5)", inner: "rgba(100, 220, 255, 1)", outer: "rgba(14, 165, 233, 0.4)", stroke: "rgba(100, 220, 255, 0.7)" },
+    { fill: "rgba(200, 120, 255, 0.5)", inner: "rgba(200, 120, 255, 1)", outer: "rgba(168, 85, 247, 0.4)", stroke: "rgba(200, 120, 255, 0.7)" },
+    { fill: "rgba(255, 130, 200, 0.5)", inner: "rgba(255, 130, 200, 1)", outer: "rgba(236, 72, 153, 0.4)", stroke: "rgba(255, 130, 200, 0.7)" },
+    { fill: "rgba(100, 255, 218, 0.5)", inner: "rgba(100, 255, 218, 1)", outer: "rgba(45, 212, 191, 0.4)", stroke: "rgba(100, 255, 218, 0.7)" },
+    { fill: "rgba(255, 200, 100, 0.5)", inner: "rgba(255, 200, 100, 1)", outer: "rgba(251, 191, 36, 0.4)", stroke: "rgba(255, 200, 100, 0.7)" },
+    { fill: "rgba(180, 240, 255, 0.5)", inner: "rgba(180, 240, 255, 1)", outer: "rgba(125, 211, 252, 0.4)", stroke: "rgba(180, 240, 255, 0.7)" },
+  ];
+
+  const FISH_COLORS = [
+    { body: "rgba(100, 220, 255, 0.6)", glow: "rgba(14, 165, 233, 0.3)" },
+    { body: "rgba(100, 255, 218, 0.55)", glow: "rgba(45, 212, 191, 0.3)" },
+    { body: "rgba(255, 180, 220, 0.5)", glow: "rgba(236, 72, 153, 0.25)" },
+    { body: "rgba(180, 240, 255, 0.5)", glow: "rgba(125, 211, 252, 0.25)" },
+    { body: "rgba(200, 160, 255, 0.5)", glow: "rgba(168, 85, 247, 0.25)" },
+  ];
 
   const initParticles = useCallback((w: number, h: number) => {
-    const count = window.innerWidth < 768 ? 50 : 100;
-    particlesRef.current = Array.from({ length: count }).map(() => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      vy: -(0.08 + Math.random() * 0.22),
-      vx: (Math.random() - 0.5) * 0.12,
-      size: 0.8 + Math.random() * 2.2,
-      opacity: 0,
-      maxOpacity: 0.3 + Math.random() * 0.5,
-      hue: 35 + Math.random() * 15, // gold range
-      life: Math.random(),
-      lifeSpeed: 0.001 + Math.random() * 0.002,
-    }));
+    const isMobile = window.innerWidth < 768;
+    const bioCount = isMobile ? 60 : 120;
+    const snowCount = isMobile ? 15 : 30;
+
+    const particles: OceanParticle[] = [];
+
+    for (let i = 0; i < bioCount; i++) {
+      const color = BIO_COLORS[Math.floor(Math.random() * BIO_COLORS.length)];
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: -(0.05 + Math.random() * 0.15),
+        vxPhase: Math.random() * Math.PI * 2,
+        vxAmp: 0.1 + Math.random() * 0.3,
+        size: 0.8 + Math.random() * 2,
+        opacity: 0,
+        maxOpacity: 0.6 + Math.random() * 0.4,
+        life: Math.random(),
+        lifeSpeed: 0.001 + Math.random() * 0.002,
+        kind: "bio",
+        r: color.r, g: color.g, b: color.b,
+        glowR: color.gr, glowG: color.gg, glowB: color.gb,
+      });
+    }
+
+    for (let i = 0; i < snowCount; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.1,
+        vy: 0.08 + Math.random() * 0.17,
+        vxPhase: Math.random() * Math.PI * 2,
+        vxAmp: 0.05 + Math.random() * 0.1,
+        size: 0.5 + Math.random() * 1.5,
+        opacity: 0.3 + Math.random() * 0.3,
+        maxOpacity: 1,
+        life: 0, lifeSpeed: 0, kind: "snow",
+        r: 200, g: 220, b: 240,
+      });
+    }
+
+    particlesRef.current = particles;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    const jellyCount = isMobile ? 3 : 5;
+    const fishCount = isMobile ? 4 : 6;
+
+    setJellyfish(
+      Array.from({ length: jellyCount }).map((_, i) => ({
+        id: i,
+        left: 10 + Math.random() * 80,
+        top: 20 + Math.random() * 60,
+        size: 30 + Math.random() * 50,
+        colorIndex: Math.floor(Math.random() * JELLY_COLORS.length),
+        delay: Math.random() * -20,
+        duration: 12 + Math.random() * 8,
+        pulseDuration: 4 + Math.random() * 2,
+      }))
+    );
+
+    setSmallFish(
+      Array.from({ length: fishCount }).map((_, i) => ({
+        id: i,
+        top: 15 + Math.random() * 70,
+        size: 6 + Math.random() * 12,
+        duration: 22 + Math.random() * 20,
+        delay: -(Math.random() * 40),
+        goingRight: i < fishCount / 2,
+        colorIndex: Math.floor(Math.random() * FISH_COLORS.length),
+      }))
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useGSAP(
+    () => {
+      if (!containerRef.current) return;
+
+      if (!isReducedMotion) {
+        gsap.utils.toArray<HTMLElement>(".triton-ray").forEach((ray, i) => {
+          gsap.to(ray, {
+            scaleX: 1.15,
+            duration: 8 + (i % 3) * 2,
+            yoyo: true,
+            repeat: -1,
+            ease: "sine.inOut"
+          });
+
+          gsap.fromTo(ray,
+            { opacity: 0.6 },
+            {
+              opacity: 1.0,
+              duration: 10 + (i % 4) * 2,
+              yoyo: true,
+              repeat: -1,
+              ease: "sine.inOut",
+              delay: i * -1.5
+            }
+          );
+        });
+
+        gsap.utils.toArray<HTMLElement>(".jellyfish").forEach((el, i) => {
+          gsap.to(el, { x: 20, y: -20, duration: 12 + i * 2, yoyo: true, repeat: -1, ease: "sine.inOut" });
+          gsap.fromTo(el, { opacity: 0.3 }, { opacity: 0.7, duration: 4 + i, yoyo: true, repeat: -1, ease: "sine.inOut" });
+
+          const bell = el.querySelector('.jelly-bell');
+          if (bell) gsap.to(bell, { scale: 1.08, transformOrigin: 'center', duration: 3 + i, yoyo: true, repeat: -1, ease: "sine.inOut" });
+
+          const tentacles = el.querySelectorAll('.jelly-tentacle');
+          tentacles.forEach((t, j) => {
+            gsap.to(t, { rotation: 10 + j * 2, transformOrigin: 'top center', duration: 2.5 + j * 0.4, yoyo: true, repeat: -1, ease: "sine.inOut", delay: j * -0.5 });
+          });
+        });
+
+        const triggerAnglerFish = () => {
+          if (pausedRef.current || !containerRef.current) {
+            gsap.delayedCall(5, triggerAnglerFish);
+            return;
+          }
+
+          const isRightToLeft = Math.random() > 0.5;
+          const topPercent = 25 + Math.random() * 40;
+          const container = containerRef.current.querySelector('.angler-container');
+
+          if (container) {
+            gsap.set(container, {
+              top: `${topPercent}%`,
+              left: isRightToLeft ? window.innerWidth + 200 : -200,
+              scaleX: isRightToLeft ? -1 : 1,
+              opacity: 1
+            });
+
+            const lure = container.querySelector('.angler-lure');
+            const svg = container.querySelector('.angler-svg');
+
+            const lureAnim = gsap.to(lure, { scale: 1.3, opacity: 1, duration: 1.5, yoyo: true, repeat: -1 });
+            const bobAnim = gsap.to(svg, { y: 16, duration: 3, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+
+            gsap.to(container, {
+              x: isRightToLeft ? -(window.innerWidth + 400) : window.innerWidth + 400,
+              duration: 10 + Math.random() * 4,
+              ease: "none",
+              onComplete: () => {
+                gsap.set(container, { opacity: 0, x: 0 });
+                lureAnim.kill();
+                bobAnim.kill();
+              }
+            });
+          }
+
+          gsap.delayedCall(90 + Math.random() * 60, triggerAnglerFish);
+        };
+        gsap.delayedCall(90 + Math.random() * 60, triggerAnglerFish);
+
+        const triggerPulseWave = () => {
+          if (pausedRef.current || !containerRef.current) {
+            gsap.delayedCall(5, triggerPulseWave);
+            return;
+          }
+
+          gsap.fromTo(".triton-pulse-wave",
+            { opacity: 0, scale: 0.8, transformOrigin: "center bottom" },
+            {
+              opacity: 1, scale: 1.5, duration: 1.5, ease: "sine.out",
+              onComplete: () => {
+                gsap.to(".triton-pulse-wave", { opacity: 0, duration: 2, ease: "sine.in" });
+              }
+            }
+          );
+
+          gsap.delayedCall(18 + Math.random() * 7, triggerPulseWave);
+        };
+        gsap.delayedCall(18, triggerPulseWave);
+
+        const triggerRumble = () => {
+          if (pausedRef.current || !containerRef.current) {
+            gsap.delayedCall(5, triggerRumble);
+            return;
+          }
+
+          gsap.to(containerRef.current, { x: 2, y: -1, duration: 0.08, yoyo: true, repeat: 5, ease: "sine.inOut" });
+
+          const tl = gsap.timeline();
+          tl.to(".triton-rumble-flash", { opacity: 0.06, duration: 0.3 })
+            .to(".triton-rumble-flash", { opacity: 0, duration: 0.5 });
+
+          gsap.delayedCall(45 + Math.random() * 45, triggerRumble);
+        };
+        gsap.delayedCall(45, triggerRumble);
+      }
+    },
+    { scope: containerRef, dependencies: [isReducedMotion] }
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1249,110 +1249,115 @@ function SatoshiGoldBackground() {
 
     const onVisibility = () => {
       pausedRef.current = document.hidden;
-      // Restart loop when un-pausing (don't burn RAF while paused)
       if (!document.hidden) rafRef.current = requestAnimationFrame(draw);
     };
     document.addEventListener("visibilitychange", onVisibility);
 
     let lastFrame = 0;
-    const TARGET_INTERVAL = 1000 / 30; // Cap at 30fps for decorative background
+    const TARGET_INTERVAL = 1000 / 30;
+    const VENTS = [0.2, 0.65, 0.85];
 
-    const draw = (now: number) => {
-      if (pausedRef.current) return; // Don't re-schedule when paused
-
+    function draw(now = 0) {
+      if (pausedRef.current || !ctx || !canvas) return;
       rafRef.current = requestAnimationFrame(draw);
-
-      // Frame throttle — skip if less than ~33ms since last draw
       if (now - lastFrame < TARGET_INTERVAL) return;
       lastFrame = now;
 
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const particles = particlesRef.current;
-
-      // Spatial grid for constellation lines — O(n·k) instead of O(n²)
-      const CELL = 100;
-      const cols = Math.ceil(w / CELL);
-      const rows = Math.ceil(h / CELL);
-      const gridLen = cols * rows;
-      const grid: number[][] = new Array(gridLen);
-      for (let g = 0; g < gridLen; g++) grid[g] = [];
-
-      for (let i = 0; i < particles.length; i++) {
-        const a = particles[i];
-        if (a.opacity < 0.1) continue;
-        const cx = Math.floor(a.x / CELL);
-        const cy = Math.floor(a.y / CELL);
-        const idx = cy * cols + cx;
-        if (idx >= 0 && idx < gridLen) grid[idx].push(i);
+      if (!isReducedMotion) {
+        if (Math.random() < 0.03) {
+          const ventX = VENTS[Math.floor(Math.random() * VENTS.length)] * canvas.width;
+          particlesRef.current.push({
+            x: ventX + (Math.random() - 0.5) * 10,
+            y: canvas.height + 10,
+            vx: 0,
+            vy: -(0.5 + Math.random() * 1.0),
+            vxPhase: Math.random() * Math.PI * 2,
+            vxAmp: 0.3 + Math.random() * 0.5,
+            size: 2 + Math.random() * 2,
+            opacity: 0,
+            maxOpacity: 1,
+            life: 0,
+            lifeSpeed: 0,
+            kind: "bubble",
+            r: 14, g: 165, b: 233
+          });
+        }
       }
 
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < particles.length; i++) {
-        const a = particles[i];
-        if (a.opacity < 0.1) continue;
-        const cx = Math.floor(a.x / CELL);
-        const cy = Math.floor(a.y / CELL);
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const nx = cx + dx;
-            const ny = cy + dy;
-            if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) continue;
-            const nidx = ny * cols + nx;
-            for (const j of grid[nidx]) {
-              if (j <= i) continue;
-              const b = particles[j];
-              const ddx = a.x - b.x;
-              const ddy = a.y - b.y;
-              const dist = Math.sqrt(ddx * ddx + ddy * ddy);
-              if (dist < 100) {
-                const proximity = 1 - dist / 100;
-                ctx.strokeStyle = `rgba(247, 147, 26, ${0.04 * proximity * Math.min(a.opacity, b.opacity)})`;
-                ctx.beginPath();
-                ctx.moveTo(a.x, a.y);
-                ctx.lineTo(b.x, b.y);
-                ctx.stroke();
-              }
+      for (let i = particlesRef.current.length - 1; i >= 0; i--) {
+        const p = particlesRef.current[i];
+
+        if (p.kind === "bio") {
+          if (!isReducedMotion) {
+            p.life += p.lifeSpeed;
+            if (p.life >= 1) {
+              p.life = 0;
+              p.x = Math.random() * canvas.width;
+              p.y = Math.random() * canvas.height;
+            }
+            p.y += p.vy;
+            p.x += p.vx + Math.sin(p.life * Math.PI * 2 + p.vxPhase) * p.vxAmp;
+            p.opacity = p.maxOpacity * Math.sin(p.life * Math.PI);
+          } else {
+            p.opacity = p.maxOpacity * 0.5;
+          }
+
+          if (p.opacity > 0) {
+            const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
+            grad.addColorStop(0, `rgba(${p.glowR}, ${p.glowG}, ${p.glowB}, ${p.opacity * 0.4})`);
+            grad.addColorStop(1, `rgba(${p.glowR}, ${p.glowG}, ${p.glowB}, 0)`);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${p.opacity})`;
+            ctx.fill();
+          }
+
+        } else if (p.kind === "snow") {
+          if (!isReducedMotion) {
+            p.y += p.vy;
+            p.x += p.vx + Math.sin(now * 0.001 + p.vxPhase) * p.vxAmp;
+            if (p.y > canvas.height + 10) {
+              p.y = -10;
+              p.x = Math.random() * canvas.width;
+            }
+          }
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${p.opacity})`;
+          ctx.fill();
+
+        } else if (p.kind === "bubble") {
+          if (!isReducedMotion) {
+            p.y += p.vy;
+            p.x += Math.sin(p.y * 0.02 + p.vxPhase) * p.vxAmp;
+            p.size += 0.005;
+
+            const progress = 1 - (p.y / canvas.height);
+            const bubbleOpacity = progress > 0.7 ? Math.max(0, 1 - (progress - 0.7) / 0.3) : 1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(14, 165, 233, ${0.15 * bubbleOpacity})`;
+            ctx.fill();
+            ctx.strokeStyle = `rgba(56, 189, 248, ${0.3 * bubbleOpacity})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            if (bubbleOpacity <= 0 || p.y < -10) {
+              particlesRef.current.splice(i, 1);
             }
           }
         }
       }
-
-      // Draw and update particles
-      for (const p of particles) {
-        p.life += p.lifeSpeed;
-        if (p.life > 1) {
-          // Respawn at bottom
-          p.life = 0;
-          p.x = Math.random() * w;
-          p.y = h + 10;
-          p.opacity = 0;
-        }
-
-        // Fade in/out lifecycle
-        if (p.life < 0.1) {
-          p.opacity = (p.life / 0.1) * p.maxOpacity;
-        } else if (p.life > 0.85) {
-          p.opacity = ((1 - p.life) / 0.15) * p.maxOpacity;
-        } else {
-          p.opacity = p.maxOpacity;
-        }
-
-        p.y += p.vy;
-        p.x += p.vx;
-
-        // Wrap horizontally
-        if (p.x < 0) p.x = w;
-        if (p.x > w) p.x = 0;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue}, 85%, 58%, ${p.opacity})`;
-        ctx.fill();
-      }
-    };
+    }
 
     rafRef.current = requestAnimationFrame(draw);
 
@@ -1361,30 +1366,162 @@ function SatoshiGoldBackground() {
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [initParticles]);
+  }, [initParticles, isReducedMotion]);
 
   return (
-    <div className="absolute inset-0">
-      {/* Base warm dark background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
-        }}
-      />
-      {/* Central gold glow from bottom */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 85%, rgba(247,147,26,0.06) 0%, rgba(191,120,10,0.03) 35%, transparent 65%)",
-        }}
-      />
-      {/* Canvas particles */}
-      <canvas ref={canvasRef} className="absolute inset-0" />
+    <div ref={containerRef} className="absolute inset-0">
+      <div className="absolute inset-0" style={{
+        background: "linear-gradient(180deg, #051020 0%, #030a18 40%, #020817 100%)",
+      }} />
+
+      <div className="triton-caustics" />
+
+      {[
+        { left: "15%", angle: 12, width: 130, opacity: 0.14, dur: 10, delay: 0 },
+        { left: "35%", angle: 5, width: 170, opacity: 0.11, dur: 12, delay: -3 },
+        { left: "55%", angle: -6, width: 120, opacity: 0.13, dur: 11, delay: -6 },
+        { left: "72%", angle: 18, width: 90, opacity: 0.10, dur: 14, delay: -9 },
+        { left: "25%", angle: -10, width: 100, opacity: 0.09, dur: 16, delay: -5 },
+        { left: "80%", angle: 8, width: 80, opacity: 0.08, dur: 13, delay: -11 },
+      ].map((ray, i) => (
+        <div
+          key={i}
+          className="triton-ray"
+          style={{
+            left: ray.left,
+            width: `${ray.width}px`,
+            height: "110%",
+            background: `linear-gradient(180deg, rgba(125,211,252,${ray.opacity}) 0%, rgba(14,165,233,${ray.opacity * 0.3}) 40%, transparent 80%)`,
+            "--ray-angle": `${ray.angle}deg`,
+          } as React.CSSProperties}
+        />
+      ))}
+
+      <div className="triton-pulse-wave absolute inset-0 pointer-events-none opacity-0" style={{
+        background: "radial-gradient(ellipse at 50% 100%, rgba(14, 165, 233, 0.20) 0%, rgba(100, 220, 255, 0.08) 40%, transparent 70%)"
+      }} />
+      <div className="triton-rumble-flash absolute inset-0 pointer-events-none opacity-0 bg-[#0ea5e9]" />
+
+      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }} />
+
+      {jellyfish.map((j) => {
+        const c = JELLY_COLORS[j.colorIndex];
+        return (
+          <div
+            key={j.id}
+            className="jellyfish"
+            style={{
+              left: `${j.left}%`,
+              top: `${j.top}%`,
+              width: `${j.size}px`,
+              height: `${j.size * 0.7}px`,
+              filter: `drop-shadow(0 0 ${j.size / 2}px ${c.outer})`,
+            }}
+          >
+            <svg width="100%" height="180%" viewBox="0 0 100 180" style={{ overflow: "visible" }}>
+              <defs>
+                <radialGradient id={`jelly-glow-${j.id}`}>
+                  <stop offset="0%" stopColor={c.inner} stopOpacity="0.8" />
+                  <stop offset="60%" stopColor={c.fill} stopOpacity="0.4" />
+                  <stop offset="100%" stopColor={c.fill} stopOpacity="0" />
+                </radialGradient>
+                <filter id="glow-blur">
+                  <feGaussianBlur stdDeviation="3" />
+                </filter>
+              </defs>
+              {[40, 50, 60, 70].map((x, tIdx) => (
+                <path
+                  key={tIdx}
+                  className="jelly-tentacle"
+                  d={`M${x},40 C${x - 10},80 ${x + 10},120 ${x},160`}
+                  fill="none"
+                  stroke={c.stroke}
+                  strokeWidth="1.5"
+                  opacity="0.6"
+                />
+              ))}
+              <ellipse className="jelly-bell" cx="50" cy="35" rx="45" ry="30" fill={`url(#jelly-glow-${j.id})`} />
+              <ellipse className="jelly-bell" cx="50" cy="35" rx="35" ry="20" fill={c.inner} filter="url(#glow-blur)" opacity="0.5" />
+            </svg>
+          </div>
+        );
+      })}
+
+      {smallFish.map((fish) => {
+        const color = FISH_COLORS[fish.colorIndex];
+        return (
+          <div
+            key={fish.id}
+            className={fish.goingRight ? "triton-fish-right" : "triton-fish-left"}
+            style={{
+              top: `${fish.top}%`,
+              "--fish-duration": `${fish.duration}s`,
+              "--fish-delay": `${fish.delay}s`,
+              "--fish-size": `${fish.size}px`,
+            } as React.CSSProperties}
+          >
+            <svg
+              width={fish.size * 2.2}
+              height={fish.size}
+              viewBox="0 0 22 10"
+              style={{ filter: `drop-shadow(0 0 ${fish.size * 0.5}px ${color.glow})` }}
+            >
+              <ellipse cx="10" cy="5" rx="8" ry="4" fill={color.body} />
+              <polygon
+                points={fish.goingRight ? "2,5 0,1 0,9" : "20,5 22,1 22,9"}
+                fill={color.body}
+              />
+              <circle
+                cx={fish.goingRight ? "15" : "7"}
+                cy="4"
+                r="1"
+                fill="rgba(255,255,255,0.8)"
+              />
+            </svg>
+          </div>
+        );
+      })}
+
+      <div className="triton-big-fish">
+        <svg width="120" height="40" viewBox="0 0 120 40" style={{ filter: "drop-shadow(0 0 8px rgba(14,165,233,0.15))" }}>
+          <path
+            d="M5,20 Q10,8 30,6 Q50,4 70,8 Q85,12 95,15 Q100,17 105,14 Q110,10 115,8 L118,12 L115,16 Q110,20 105,22 Q100,23 95,25 Q85,28 70,32 Q50,36 30,34 Q10,32 5,20 Z"
+            fill="rgba(8,25,50,0.7)"
+            stroke="rgba(14,165,233,0.15)"
+            strokeWidth="0.5"
+          />
+          <circle cx="25" cy="18" r="2" fill="rgba(125,211,252,0.4)" />
+          <path d="M25,22 Q50,30 90,24" fill="none" stroke="rgba(14,165,233,0.08)" strokeWidth="0.5" />
+        </svg>
+      </div>
+
+      <div className="angler-container absolute pointer-events-none opacity-0" style={{ zIndex: 2 }}>
+        <svg className="angler-svg" width="160" height="100" viewBox="0 0 160 100" style={{ filter: "drop-shadow(0 0 10px rgba(4,14,30,0.5))" }}>
+          <path d="M40,50 Q20,30 35,15" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+          <circle className="angler-lure" cx="35" cy="15" r="4" fill="#a855f7" style={{ filter: "drop-shadow(0 0 10px #d8b4fe) drop-shadow(0 0 20px #a855f7)" }} opacity="0.5" />
+          <g>
+            <path d="M90,55 Q110,35 120,60" fill="rgba(6, 20, 42, 0.8)" />
+            <path d="M20,60 C30,30 80,30 110,40 C140,50 150,60 155,70 C140,80 120,85 100,85 C60,85 30,75 20,60 Z" fill="rgba(4, 14, 30, 0.9)" stroke="rgba(14, 165, 233, 0.15)" strokeWidth="1" />
+            <polygon points="150,70 160,50 160,90" fill="rgba(8, 25, 50, 0.85)" stroke="rgba(14, 165, 233, 0.1)" strokeWidth="0.5" />
+            <circle cx="50" cy="50" r="1.5" fill="rgba(100, 255, 218, 0.8)" style={{ filter: "drop-shadow(0 0 4px #2dd4bf)" }} />
+            <path d="M25,65 Q50,75 75,70" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+          </g>
+        </svg>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 h-1/3" style={{
+        background: "linear-gradient(to top, rgba(2,8,23,0.8), transparent)",
+        zIndex: 3
+      }} />
     </div>
   );
 }
+
+
+
+/* ================================================================
+   DASHBOARD BLACK HOLE — Uses shared RealisticBlackHole component
+   ================================================================ */
 
 /* ================================================================
    MAIN STARFIELD COMPONENT
@@ -1402,7 +1539,7 @@ export function Starfield() {
       cipher: "#000000",
       vulcan: "linear-gradient(180deg, #1a0a00 0%, #0d0500 40%, #0a0300 100%)",
       triton: "linear-gradient(180deg, #020a18 0%, #001020 50%, #020a18 100%)",
-      midas: "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
+      satoshi: "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
     };
     return (
       <div
@@ -1508,11 +1645,11 @@ export function Starfield() {
     );
   }
 
-  // Midas — gold dust particle field
-  if (theme === "midas") {
+  // Satoshi (formerly midas) — highest tier animated background
+  if (theme === "satoshi") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <SatoshiGoldBackground />
+        <SatoshiBackground reducedMotion={reducedMotion} />
       </div>
     );
   }

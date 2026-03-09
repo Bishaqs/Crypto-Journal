@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 
-export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "midas";
+export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "satoshi";
 export type ViewMode = "simple" | "full";
 
 export const THEMES: { value: Theme; label: string; dot: string; locked?: boolean }[] = [
@@ -12,19 +12,19 @@ export const THEMES: { value: Theme; label: string; dot: string; locked?: boolea
   { value: "cipher", label: "Cipher", dot: "#22c55e" },
   { value: "vulcan", label: "Vulcan", dot: "#f97316" },
   { value: "triton", label: "Triton", dot: "#0ea5e9" },
-  { value: "midas", label: "Midas", dot: "#f7931a", locked: true },
+  { value: "satoshi", label: "Satoshi", dot: "#f7931a", locked: true },
 ];
 
 export const FREE_THEMES: Theme[] = ["solara", "obsidian"];
 export const PRO_THEMES: Theme[] = ["nebula", "cipher", "vulcan", "triton"];
-export const COMPLETIONIST_THEMES: Theme[] = ["midas"];
+export const LEVEL_500_THEMES: Theme[] = ["satoshi"];
 
 export function isProTheme(theme: Theme): boolean {
   return PRO_THEMES.includes(theme);
 }
 
-export function isCompletionistTheme(theme: Theme): boolean {
-  return COMPLETIONIST_THEMES.includes(theme);
+export function isLevel500Theme(theme: Theme): boolean {
+  return LEVEL_500_THEMES.includes(theme);
 }
 
 const VIEW_MODE_ORDER: ViewMode[] = ["simple", "full"];
@@ -42,16 +42,16 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: "obsidian",
-  setTheme: () => {},
-  toggleTheme: () => {},
+  setTheme: () => { },
+  toggleTheme: () => { },
   viewMode: "simple",
-  setViewModeTo: () => {},
-  toggleViewMode: () => {},
+  setViewModeTo: () => { },
+  toggleViewMode: () => { },
   reducedMotion: false,
-  setReducedMotion: () => {},
+  setReducedMotion: () => { },
 });
 
-const ALL_THEME_CLASSES: Theme[] = ["solara", "obsidian", "nebula", "cipher", "vulcan", "triton", "midas"];
+const ALL_THEME_CLASSES: Theme[] = ["solara", "obsidian", "nebula", "cipher", "vulcan", "triton", "satoshi"];
 
 // Migration map for users with old theme names in localStorage
 const THEME_MIGRATION: Record<string, Theme> = {
@@ -61,7 +61,8 @@ const THEME_MIGRATION: Record<string, Theme> = {
   "matrix": "cipher",
   "volcano": "vulcan",
   "ocean": "triton",
-  "satoshi-gold": "midas",
+  "satoshi-gold": "satoshi",
+  "midas": "satoshi",
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

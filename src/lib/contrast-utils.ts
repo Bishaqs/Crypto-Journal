@@ -28,7 +28,7 @@ const THEME_BACKGROUNDS: Record<string, string> = {
   cipher: "#000000",
   vulcan: "#0a0504",
   triton: "#020817",
-  midas: "#0a0806",
+  satoshi: "#0a0806",
 };
 
 /**
