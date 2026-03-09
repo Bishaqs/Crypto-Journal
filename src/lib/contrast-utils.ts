@@ -22,9 +22,9 @@ function contrastRatio(hex1: string, hex2: string): number {
 }
 
 const THEME_BACKGROUNDS: Record<string, string> = {
-  solara: "#eef0f4",
+  solara: "#faf8f5",
   nebula: "#080c14",
-  obsidian: "#121212",
+  obsidian: "#0a0a0c",
   cipher: "#000000",
   vulcan: "#0a0504",
   triton: "#020817",

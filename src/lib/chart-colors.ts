@@ -17,14 +17,14 @@ const CHART_COLORS: Record<Theme, ChartColors> = {
     tooltipBg: "rgba(20, 23, 32, 0.9)", tooltipBorder: "1px solid rgba(31, 36, 53, 0.5)",
   },
   solara: {
-    win: "#0096B7", loss: "#dc2626", accent: "#0096B7",
-    grid: "#d5d9e2", tick: "#5a5f7a",
-    tooltipBg: "rgba(247, 248, 250, 0.95)", tooltipBorder: "1px solid rgba(213, 217, 226, 0.5)",
+    win: "#059669", loss: "#dc2626", accent: "#c2410c",
+    grid: "rgba(0, 0, 0, 0.04)", tick: "#7a756d",
+    tooltipBg: "rgba(253, 252, 251, 0.95)", tooltipBorder: "1px solid rgba(0, 0, 0, 0.08)",
   },
   obsidian: {
-    win: "#4ade80", loss: "#f87171", accent: "#60a5fa",
-    grid: "#2a2a2a", tick: "#a1a1aa",
-    tooltipBg: "rgba(24, 24, 27, 0.95)", tooltipBorder: "1px solid rgba(63, 63, 70, 0.5)",
+    win: "#34d399", loss: "#fb7185", accent: "#67e8f9",
+    grid: "rgba(255, 255, 255, 0.03)", tick: "#a1a1aa",
+    tooltipBg: "rgba(20, 20, 24, 0.95)", tooltipBorder: "1px solid rgba(255, 255, 255, 0.06)",
   },
   cipher: {
     win: "#86efac", loss: "#ef4444", accent: "#22c55e",

@@ -259,7 +259,7 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
     <button
       onClick={onClick}
       className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
-        saved ? "bg-win text-background" : "bg-accent text-background hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(0,180,216,0.3)]"
+        saved ? "bg-win text-background" : "bg-accent text-white hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(0,180,216,0.3)]"
       }`}
     >
       <Save size={16} />

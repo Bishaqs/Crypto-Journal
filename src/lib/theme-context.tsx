@@ -6,8 +6,8 @@ export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "tr
 export type ViewMode = "simple" | "full";
 
 export const THEMES: { value: Theme; label: string; dot: string; locked?: boolean }[] = [
-  { value: "solara", label: "Solara", dot: "#eef0f4" },
-  { value: "obsidian", label: "Obsidian", dot: "#1e1e1e" },
+  { value: "solara", label: "Solara", dot: "#faf8f5" },
+  { value: "obsidian", label: "Obsidian", dot: "#0a0a0c" },
   { value: "nebula", label: "Nebula", dot: "#8B5CF6" },
   { value: "cipher", label: "Cipher", dot: "#22c55e" },
   { value: "vulcan", label: "Vulcan", dot: "#f97316" },

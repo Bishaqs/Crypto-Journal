@@ -25,30 +25,30 @@ const THEME_OPTIONS: ThemeOption[] = [
   {
     id: "solara",
     label: "Solara",
-    dot: "#eef0f4",
-    bg: "#eef0f4",
-    surface: "#f7f8fa",
-    border: "#d5d9e2",
-    foreground: "#1a1d27",
-    muted: "#5a5f7a",
-    accent: "#0096B7",
-    win: "#0096B7",
+    dot: "#faf8f5",
+    bg: "#faf8f5",
+    surface: "rgba(255, 255, 255, 0.85)",
+    border: "rgba(0, 0, 0, 0.08)",
+    foreground: "#2c2a27",
+    muted: "#7a756d",
+    accent: "#c2410c",
+    win: "#059669",
     loss: "#dc2626",
-    accentGlow: "rgba(0, 150, 183, 0.1)",
+    accentGlow: "rgba(194, 65, 12, 0.1)",
   },
   {
     id: "obsidian",
     label: "Obsidian",
-    dot: "#1e1e1e",
-    bg: "#121212",
-    surface: "rgba(30, 30, 30, 0.9)",
-    border: "#2a2a2a",
-    foreground: "#e4e4e7",
-    muted: "#71717a",
-    accent: "#60a5fa",
-    win: "#4ade80",
-    loss: "#f87171",
-    accentGlow: "rgba(96, 165, 250, 0.12)",
+    dot: "#0a0a0c",
+    bg: "#0a0a0c",
+    surface: "rgba(20, 20, 24, 0.85)",
+    border: "rgba(255, 255, 255, 0.06)",
+    foreground: "#f4f4f5",
+    muted: "#a1a1aa",
+    accent: "#67e8f9",
+    win: "#34d399",
+    loss: "#fb7185",
+    accentGlow: "rgba(103, 232, 249, 0.12)",
   },
   {
     id: "nebula",
@@ -260,7 +260,7 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
     ];
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
-        <div className="absolute inset-0" style={{ background: "#121212" }} />
+        <div className="absolute inset-0" style={{ background: "#0a0a0c" }} />
         {candles.map((c, i) => (
           <div
             key={i}
@@ -276,24 +276,24 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
             <div style={{
               width: "1.5px",
               height: `${c.h * 0.35}px`,
-              background: c.up ? "rgba(34,197,94,0.5)" : "rgba(239,68,68,0.45)",
+              background: c.up ? "rgba(52,211,153,0.5)" : "rgba(251,113,133,0.45)",
               margin: "0 auto",
             }} />
             {/* Body */}
             <div style={{
               width: `${c.w}px`,
               height: `${c.h * 0.45}px`,
-              background: c.up ? "rgba(34,197,94,0.55)" : "rgba(239,68,68,0.5)",
+              background: c.up ? "rgba(52,211,153,0.55)" : "rgba(251,113,133,0.5)",
               borderRadius: "1px",
               boxShadow: c.up
-                ? "0 0 6px rgba(34,197,94,0.35), 0 0 12px rgba(34,197,94,0.15)"
-                : "0 0 6px rgba(239,68,68,0.3), 0 0 12px rgba(239,68,68,0.12)",
+                ? "0 0 6px rgba(52,211,153,0.35), 0 0 12px rgba(52,211,153,0.15)"
+                : "0 0 6px rgba(251,113,133,0.3), 0 0 12px rgba(251,113,133,0.12)",
             }} />
             {/* Lower wick */}
             <div style={{
               width: "1.5px",
               height: `${c.h * 0.25}px`,
-              background: c.up ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.35)",
+              background: c.up ? "rgba(52,211,153,0.4)" : "rgba(251,113,133,0.35)",
               margin: "0 auto",
             }} />
           </div>
