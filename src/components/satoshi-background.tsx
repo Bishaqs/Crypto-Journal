@@ -182,7 +182,7 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
 
     useEffect(() => {
         // Determine BTC logo size based on screen
-        const size = typeof window !== 'undefined' ? Math.min(window.innerWidth, window.innerHeight) * 0.38 : 300;
+        const size = typeof window !== 'undefined' ? Math.min(window.innerWidth, window.innerHeight) * 0.30 : 300;
         btcPathRef.current = createBTCPath(size);
     }, []);
 
@@ -198,7 +198,7 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
-            const size = Math.min(canvas.width, canvas.height) * 0.38;
+            const size = Math.min(canvas.width, canvas.height) * 0.30;
             btcPathRef.current = createBTCPath(size);
 
             if (particlesRef.current.length === 0) {
@@ -290,7 +290,7 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
                     const progress = hTime / 500;
                     const pop = Math.sin(progress * Math.PI);
                     halvingLogoScaleInc = pop * 0.05; // Base is up to 1.03, so +0.05 -> 1.08
-                    halvingLogoOpInc = pop * 0.08;   // Base is up to 0.07, so +0.08 -> 0.15
+                    halvingLogoOpInc = pop * 0.04;   // Reduce peak opacity flash
                 }
 
                 // End event (~2.5s to let particles settle is handled by empty array)
@@ -488,7 +488,7 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
                     ctx.rotate(m.rotation);
                     // We need a path scaled for this, but to save creating 5 scaled paths, we can just scale the context.
                     // Assuming btcPathRef was made for size 'S', and we want size 'm.size'.
-                    const sSize = Math.min(w, h) * 0.38;
+                    const sSize = Math.min(w, h) * 0.30;
                     const scaleRatio = m.size / sSize;
 
                     // Scale to match
@@ -526,25 +526,20 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
             // --- Layer 2: Central BTC Logo ---
             if (btcPathRef.current) {
                 const breathT = (Math.sin(time * 0.000785) + 1) / 2; // ~8s full cycle
-                const logoOpacity = 0.03 + breathT * 0.04 + halvingLogoOpInc; // 0.03 to 0.07 + event
+                const logoOpacity = 0.015 + breathT * 0.02 + halvingLogoOpInc; // Range: 0.015 to 0.035 + event
                 const logoScale = 0.97 + breathT * 0.06 + halvingLogoScaleInc; // 0.97 to 1.03 + event
 
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.scale(logoScale, logoScale);
 
-                const sSize = Math.min(w, h) * 0.38;
+                const sSize = Math.min(w, h) * 0.30;
                 const pathGridOffset = -16 * (sSize / 32);
                 ctx.translate(pathGridOffset, pathGridOffset);
 
-                // Glow layer
-                ctx.shadowColor = "rgba(247, 147, 26, 0.3)";
-                ctx.shadowBlur = 40;
-                ctx.fillStyle = `rgba(247, 147, 26, ${logoOpacity * 0.5})`;
-                ctx.fill(btcPathRef.current);
-
                 // Main logo
-                ctx.shadowBlur = 0;
+                ctx.shadowColor = "rgba(247, 147, 26, 0.06)";
+                ctx.shadowBlur = 12;
                 ctx.fillStyle = `rgba(247, 147, 26, ${logoOpacity})`;
                 ctx.fill(btcPathRef.current);
 
@@ -552,8 +547,8 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
                 const sHalf = 16 * (sSize / 32);
                 ctx.beginPath();
                 ctx.arc(sHalf, sHalf, 15 * (sSize / 32), 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(247, 147, 26, ${logoOpacity * 0.3})`;
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = `rgba(247, 147, 26, ${logoOpacity * 0.2})`;
+                ctx.lineWidth = 1;
                 ctx.stroke();
 
                 ctx.restore();
