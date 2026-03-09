@@ -152,7 +152,7 @@ export function Header() {
               className="w-2.5 h-2.5 rounded-full"
               style={{
                 background: currentTheme?.dot,
-                border: (theme === "light" || theme === "dark-simple")
+                border: ((theme as string) === "solara" || (theme as string) === "obsidian")
                   ? "1.5px solid #888"
                   : "1px solid rgba(255,255,255,0.15)",
               }}
@@ -188,7 +188,7 @@ export function Header() {
                         className="w-3 h-3 rounded-full shrink-0"
                         style={{
                           background: isLocked ? "#444" : t.dot,
-                          border: (t.value === "light" || t.value === "dark-simple")
+                          border: ((t.value as string) === "solara" || (t.value as string) === "obsidian")
                             ? "1.5px solid #888"
                             : "1px solid rgba(255,255,255,0.15)",
                           boxShadow: theme === t.value ? `0 0 8px ${t.dot}60` : "none",

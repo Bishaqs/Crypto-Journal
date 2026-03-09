@@ -79,7 +79,7 @@ export default function TradeDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { theme } = useTheme();
-  const tvColorTheme = (theme as string) === "light" ? "light" : "dark";
+  const tvColorTheme = (theme as string) === "solara" ? "light" : "dark";
 
   const [trade, setTrade] = useState<Trade | null>(null);
   const [allTradeIds, setAllTradeIds] = useState<string[]>([]);

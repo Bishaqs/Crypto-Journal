@@ -42,12 +42,12 @@ const THEME_TO_COLOR: Record<
   string,
   "purple" | "orange" | "blue" | "green" | "neutral"
 > = {
-  dark: "purple",
-  volcano: "orange",
-  ocean: "blue",
-  matrix: "green",
-  light: "neutral",
-  "dark-simple": "neutral",
+  nebula: "purple",
+  vulcan: "orange",
+  triton: "blue",
+  cipher: "green",
+  solara: "neutral",
+  obsidian: "neutral",
 };
 
 export default function LandingPage() {
@@ -120,7 +120,7 @@ export default function LandingPage() {
             <RealisticBlackHole
               size="large"
               color={bhColor}
-              opacity={theme === "light" ? 0.3 : 0.7}
+              opacity={theme === "solara" ? 0.3 : 0.7}
             />
           </div>
         </div>

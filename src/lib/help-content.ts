@@ -476,7 +476,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as-change-theme",
     question: "How do I change the theme?",
-    answer: "Click the theme icon in the top-right header (palette icon) to switch between themes. Available themes include: <strong>Space Purple</strong> (default dark), <strong>Matrix</strong> (green hacker), <strong>Volcano</strong> (fiery orange), <strong>Ocean</strong> (deep blue), <strong>Dark Simple</strong> (minimal dark), and <strong>Light</strong> (clean light mode). Each theme includes a unique animated background.",
+    answer: "Click the theme icon in the top-right header (palette icon) to switch between themes. Available themes include: <strong>Nebula</strong> (violet sci-fi), <strong>Cipher</strong> (green hacker), <strong>Vulcan</strong> (fiery orange), <strong>Triton</strong> (deep blue), <strong>Obsidian</strong> (minimal dark), and <strong>Solara</strong> (clean light mode). Each theme includes a unique animated background.",
     category: "account-settings",
     tags: ["theme", "dark mode", "light mode", "color", "appearance", "visual", "skin"],
     relatedIds: ["as-change-language", "as-change-display-name"],
@@ -1608,7 +1608,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr2-dark-theme-readability",
     question: "Some text is hard to read in dark mode — how do I fix it?",
-    answer: "If text is hard to read, try switching to a different dark theme — <strong>Dark Simple</strong> has the highest contrast ratios. You can also try the <strong>Light</strong> theme for maximum readability. If specific elements are hard to read in any theme, report it to support with a screenshot — we continuously improve contrast ratios across all themes to meet accessibility standards.",
+    answer: "If text is hard to read, try switching to a different dark theme — <strong>Obsidian</strong> has the highest contrast ratios. You can also try the <strong>Solara</strong> theme for maximum readability. If specific elements are hard to read in any theme, report it to support with a screenshot — we continuously improve contrast ratios across all themes to meet accessibility standards.",
     category: "troubleshooting",
     tags: ["dark mode", "contrast", "readability", "text", "hard to read", "visibility", "color"],
     relatedIds: ["as-change-theme", "as2-accessibility", "tr-contact-support"],
@@ -3927,7 +3927,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-dark-light-mode",
     question: "How do I switch between dark mode and light mode?",
-    answer: "<p>Click the <strong>theme icon</strong> (palette icon) in the top-right header of the app. This opens the theme selector where you can choose from several themes including multiple dark themes (Space Purple, Matrix, Volcano, Ocean, Dark Simple) and a clean <strong>Light</strong> mode. Click any theme to apply it instantly -- no page reload required.</p><p>Your theme preference is saved to your account and syncs across all devices you log in from. Most traders prefer dark mode for reduced eye strain during long sessions and better chart readability. However, light mode can be easier to read in bright environments. You can switch themes as often as you like. Some themes include unique animated backgrounds that add visual character to the interface without affecting performance.</p>",
+    answer: "<p>Click the <strong>theme icon</strong> (palette icon) in the top-right header of the app. This opens the theme selector where you can choose from several themes including multiple dark themes (Nebula, Cipher, Vulcan, Triton, Obsidian) and a clean <strong>Solara</strong> light mode. Click any theme to apply it instantly -- no page reload required.</p><p>Your theme preference is saved to your account and syncs across all devices you log in from. Most traders prefer dark mode for reduced eye strain during long sessions and better chart readability. However, light mode can be easier to read in bright environments. You can switch themes as often as you like. Some themes include unique animated backgrounds that add visual character to the interface without affecting performance.</p>",
     category: "account-settings",
     tags: ["dark mode", "light mode", "theme", "appearance", "switch theme", "display"],
     relatedIds: ["as-change-theme", "as2-dark-light-auto", "gs-onboarding"],
@@ -4309,7 +4309,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-app-slow",
     question: "The app is very slow on my computer — what can I do?",
-    answer: "Slow performance has several common causes and fixes: <strong>1)</strong> <strong>Too many open tabs</strong> — each tab consumes memory; close tabs you are not using. <strong>2)</strong> <strong>Large trade history</strong> — if you have 5,000+ trades, analytics pages load more data; use date filters to narrow the range. <strong>3)</strong> <strong>Animated themes</strong> — premium themes with particle effects use GPU resources; switch to <strong>Dark Simple</strong> for maximum performance. <strong>4)</strong> <strong>Browser extensions</strong> — disable non-essential extensions temporarily. <strong>5)</strong> <strong>Outdated browser</strong> — update to the latest version of Chrome, Firefox, or Edge. <strong>6)</strong> <strong>Slow internet</strong> — market data pages require API calls; a slow connection causes loading delays.",
+    answer: "Slow performance has several common causes and fixes: <strong>1)</strong> <strong>Too many open tabs</strong> — each tab consumes memory; close tabs you are not using. <strong>2)</strong> <strong>Large trade history</strong> — if you have 5,000+ trades, analytics pages load more data; use date filters to narrow the range. <strong>3)</strong> <strong>Animated themes</strong> — premium themes with particle effects use GPU resources; switch to <strong>Obsidian</strong> for maximum performance. <strong>4)</strong> <strong>Browser extensions</strong> — disable non-essential extensions temporarily. <strong>5)</strong> <strong>Outdated browser</strong> — update to the latest version of Chrome, Firefox, or Edge. <strong>6)</strong> <strong>Slow internet</strong> — market data pages require API calls; a slow connection causes loading delays.",
     category: "troubleshooting",
     tags: ["slow", "performance", "laggy", "speed", "optimize", "memory", "computer"],
     relatedIds: ["tr2-slow-loading", "as-browser-support", "as-change-theme"],
@@ -4381,7 +4381,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-high-memory-usage",
     question: "The app is using too much memory on my browser — how do I reduce it?",
-    answer: "Stargate's memory usage increases with trade volume and animated themes. To reduce it: <strong>1)</strong> <strong>Switch to Dark Simple theme</strong> — animated particle backgrounds can use 50-100MB of memory. <strong>2)</strong> <strong>Use date range filters</strong> — loading all-time analytics with 5,000+ trades is memory-intensive; filter to the current month. <strong>3)</strong> <strong>Close unused Stargate tabs</strong> — each open tab maintains its own data cache. <strong>4)</strong> <strong>Disable auto-refresh on market data pages</strong> — screeners and heatmaps that update every few seconds consume memory over time. <strong>5)</strong> <strong>Restart your browser periodically</strong> — long-running browser sessions accumulate memory that garbage collection does not always reclaim.",
+    answer: "Stargate's memory usage increases with trade volume and animated themes. To reduce it: <strong>1)</strong> <strong>Switch to Obsidian theme</strong> — animated particle backgrounds can use 50-100MB of memory. <strong>2)</strong> <strong>Use date range filters</strong> — loading all-time analytics with 5,000+ trades is memory-intensive; filter to the current month. <strong>3)</strong> <strong>Close unused Stargate tabs</strong> — each open tab maintains its own data cache. <strong>4)</strong> <strong>Disable auto-refresh on market data pages</strong> — screeners and heatmaps that update every few seconds consume memory over time. <strong>5)</strong> <strong>Restart your browser periodically</strong> — long-running browser sessions accumulate memory that garbage collection does not always reclaim.",
     category: "troubleshooting",
     tags: ["memory", "ram", "usage", "high", "browser", "heavy", "reduce"],
     relatedIds: ["tr2-slow-loading", "tr2-browser-storage", "as-change-theme"],

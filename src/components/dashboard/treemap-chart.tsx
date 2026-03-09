@@ -19,7 +19,7 @@ function CustomContent(props: Record<string, unknown>) {
     pnlValue: number;
   };
 
-  const colors = getChartColors("dark");
+  const colors = getChartColors("obsidian");
   const fill = pnlValue >= 0 ? colors.win : colors.loss;
   const showLabel = width > 50 && height > 30;
   const showValue = width > 60 && height > 45;
