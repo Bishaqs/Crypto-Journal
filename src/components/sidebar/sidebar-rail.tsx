@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, HelpCircle, Shield, BarChart3, Gem, DollarSign, MessageSquareText, Bitcoin } from "lucide-react";
+import { Settings, LogOut, HelpCircle, Shield, BarChart3, Gem, DollarSign, MessageSquareText, Bitcoin, ArrowUpDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { StargateLogo } from "../stargate-logo";
 import { LevelBadge } from "./level-badge";
@@ -152,6 +152,17 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
             <Shield size={20} />
           </Link>
         )}
+        <Link
+          href="/dashboard/import-export"
+          title={t("sidebar.importExport") || "Import / Export"}
+          className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+            pathname.startsWith("/dashboard/import-export")
+              ? "text-accent bg-accent/10"
+              : "text-muted hover:text-foreground hover:bg-surface-hover"
+          }`}
+        >
+          <ArrowUpDown size={20} />
+        </Link>
         <Link
           href="/dashboard/feedback"
           title={t("sidebar.feedback") || "Feedback"}
