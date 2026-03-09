@@ -382,7 +382,7 @@ function SupportStatusDot() {
       hour12: false,
     }).format(new Date()),
   );
-  const online = cetHour >= 12 && cetHour < 22;
+  const online = cetHour >= 14 && cetHour < 20;
   return (
     <div
       className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background ${

@@ -41,7 +41,7 @@ function isSupportOnline(): boolean {
       hour12: false,
     }).format(new Date()),
   );
-  return cetHour >= 12 && cetHour < 22;
+  return cetHour >= 14 && cetHour < 20;
 }
 
 function getNextOnlineTime(): string {
@@ -53,10 +53,10 @@ function getNextOnlineTime(): string {
   });
   const cetHour = parseInt(cetFormatter.format(now));
 
-  if (cetHour < 12) {
-    return "12:00 PM CET today";
+  if (cetHour < 14) {
+    return "2:00 PM CET today";
   }
-  return "12:00 PM CET tomorrow";
+  return "2:00 PM CET tomorrow";
 }
 
 function timeAgo(dateStr: string): string {
@@ -76,15 +76,15 @@ export function GuideSupport() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [view, setView] = useState<"list" | "new" | "chat">("list");
+  const [view, setView] = useState<"list" | "chat">("list");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
-  const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [ticketJustCreated, setTicketJustCreated] = useState(false);
 
   const open = state.menuOpen && state.menuPanel === "support";
   const online = isSupportOnline();
@@ -176,7 +176,7 @@ export function GuideSupport() {
 
   // Focus input
   useEffect(() => {
-    if (open && (view === "new" || view === "chat")) {
+    if (open && view === "chat") {
       inputRef.current?.focus();
     }
   }, [open, view]);
@@ -208,57 +208,47 @@ export function GuideSupport() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open, closeMenu]);
 
-  async function handleCreateTicket(e?: React.FormEvent) {
+  async function handleSend(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!subject.trim() || !message.trim()) return;
+    if (!message.trim()) return;
 
     setSending(true);
     setError(null);
     try {
-      const res = await fetch("/api/support", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: subject.trim(), message: message.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Failed to create ticket");
-        return;
+      if (!activeTicketId) {
+        // First message — create ticket (subject auto-generated from message)
+        const res = await fetch("/api/support", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: message.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? "Failed to create ticket");
+          return;
+        }
+        setActiveTicketId(data.ticketId);
+        setTicketJustCreated(true);
+        setMessage("");
+        fetchMessages(data.ticketId);
+      } else {
+        // Subsequent messages — add to existing ticket
+        const res = await fetch("/api/support/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ticketId: activeTicketId,
+            message: message.trim(),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? "Failed to send message");
+          return;
+        }
+        setMessage("");
+        fetchMessages(activeTicketId);
       }
-      setActiveTicketId(data.ticketId);
-      setSubject("");
-      setMessage("");
-      setView("chat");
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  async function handleSendMessage(e?: React.FormEvent) {
-    e?.preventDefault();
-    if (!message.trim() || !activeTicketId) return;
-
-    setSending(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/support/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ticketId: activeTicketId,
-          message: message.trim(),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Failed to send message");
-        return;
-      }
-      setMessage("");
-      // Fetch messages immediately as fallback for Realtime
-      fetchMessages(activeTicketId);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -293,11 +283,12 @@ export function GuideSupport() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                if (view === "chat" || view === "new") {
+                if (view === "chat") {
                   setView("list");
                   setActiveTicketId(null);
                   setMessages([]);
                   setError(null);
+                  setTicketJustCreated(false);
                 } else {
                   setMenuPanel("main");
                 }
@@ -311,11 +302,7 @@ export function GuideSupport() {
                 className={`w-2 h-2 rounded-full ${online ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`}
               />
               <p className="text-sm font-bold text-foreground">
-                {view === "new"
-                  ? "New Conversation"
-                  : view === "chat"
-                    ? "Support Chat"
-                    : "Live Support"}
+                {view === "chat" ? "Support Chat" : "Live Support"}
               </p>
             </div>
           </div>
@@ -360,11 +347,19 @@ export function GuideSupport() {
                     ? "Available now — start a conversation and get a personal reply."
                     : `Back ${getNextOnlineTime()}. Leave a message and we'll reply when we're back.`}
                 </p>
+                <p className="text-[10px] text-muted/60 mt-1">
+                  This is ticket-based support. Replies may take up to a few hours.
+                </p>
               </div>
 
               {/* New conversation button */}
               <button
-                onClick={() => setView("new")}
+                onClick={() => {
+                  setActiveTicketId(null);
+                  setMessages([]);
+                  setTicketJustCreated(false);
+                  setView("chat");
+                }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl border border-accent/20 bg-accent/5 hover:bg-accent/10 transition-all group"
               >
                 <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
@@ -431,65 +426,27 @@ export function GuideSupport() {
                 </a>
                 <div className="flex items-center gap-2 px-3 py-1 text-[10px] text-muted/60">
                   <Clock size={10} />
-                  <span>Support hours: 12:00 – 22:00 CET (Mon–Sun)</span>
+                  <span>Support hours: 14:00 – 20:00 CET (Mon–Sun)</span>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* ── New ticket view ── */}
-          {view === "new" && (
-            <form onSubmit={handleCreateTicket} className="p-4 space-y-3">
-              <div>
-                <label className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-1 block">
-                  Subject
-                </label>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="What do you need help with?"
-                  className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 text-xs text-foreground placeholder:text-muted/40 focus:outline-none focus:border-accent/50 transition-all"
-                  maxLength={200}
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-1 block">
-                  Message
-                </label>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Describe your issue or question..."
-                  rows={4}
-                  className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 text-xs text-foreground placeholder:text-muted/40 focus:outline-none focus:border-accent/50 transition-all resize-none"
-                  maxLength={2000}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={!subject.trim() || !message.trim() || sending}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-accent text-background text-sm font-semibold hover:bg-accent-hover transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <MessageCircle size={14} />
-                {sending ? "Sending..." : online ? "Start Chat" : "Leave a Message"}
-              </button>
-            </form>
           )}
 
           {/* ── Chat view ── */}
           {view === "chat" && (
             <div className="flex flex-col h-full">
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-[200px] max-h-[290px] max-sm:max-h-[calc(85vh-180px)]">
-                {messages.length === 0 ? (
+                {messages.length === 0 && !ticketJustCreated ? (
                   <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                    <CheckCircle2
+                    <MessageCircle
                       size={24}
-                      className="text-emerald-500 mb-2"
+                      className="text-accent mb-2"
                     />
-                    <p className="text-xs text-muted">
-                      Message sent! We&apos;ll reply soon.
+                    <p className="text-xs text-foreground font-medium mb-1">
+                      Start a conversation
+                    </p>
+                    <p className="text-[10px] text-muted">
+                      Type your message below and hit send.
                     </p>
                   </div>
                 ) : (
@@ -531,6 +488,21 @@ export function GuideSupport() {
                         )}
                       </div>
                     ))}
+                    {ticketJustCreated && (
+                      <div className="flex justify-start">
+                        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl rounded-tl-md px-3 py-2 max-w-[85%] text-xs">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <CheckCircle2 size={10} className="text-emerald-400" />
+                            <span className="text-[9px] font-bold text-emerald-400">
+                              Message received
+                            </span>
+                          </div>
+                          <p className="text-muted leading-relaxed">
+                            We typically reply within a few hours during support hours (14:00–20:00 CET).
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     <div ref={messagesEndRef} />
                   </>
                 )}
@@ -539,7 +511,7 @@ export function GuideSupport() {
               {/* Chat input */}
               <div className="border-t border-border/30 p-3">
                 <form
-                  onSubmit={handleSendMessage}
+                  onSubmit={handleSend}
                   className="flex items-center gap-2"
                 >
                   <input
