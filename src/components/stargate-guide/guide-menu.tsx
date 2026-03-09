@@ -139,7 +139,7 @@ export function GuideMenu() {
     return isTourComplete(`${page}-page`);
   })();
 
-  if (!state.menuOpen) return null;
+  if (!state.menuOpen || (state.menuPanel !== "main" && state.menuPanel !== "feeling")) return null;
 
   return (
     <AnimatePresence>
