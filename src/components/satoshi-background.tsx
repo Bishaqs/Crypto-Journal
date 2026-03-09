@@ -55,33 +55,32 @@ function createBTCPath(size: number) {
     const s = size / 32;
     const path = new Path2D();
 
-    // Outer circle
-    path.arc(16 * s, 16 * s, 15 * s, 0, Math.PI * 2);
+    // ₿ letter only — no outer circle (circle is drawn separately as a stroke)
 
-    // Top vertical strike
-    path.moveTo(14 * s, 5 * s);
-    path.lineTo(14 * s, 8 * s);
-    // Bottom vertical strike
-    path.moveTo(14 * s, 24 * s);
-    path.lineTo(14 * s, 27 * s);
+    // Left vertical spine of the B
+    path.rect(11 * s, 8 * s, 1.5 * s, 16 * s);
+
+    // Top vertical strike (extends above B)
+    path.rect(13.5 * s, 5 * s, 1.8 * s, 3.5 * s);
+    // Bottom vertical strike (extends below B)
+    path.rect(13.5 * s, 23.5 * s, 1.8 * s, 3.5 * s);
     // Second top strike
-    path.moveTo(18 * s, 5 * s);
-    path.lineTo(18 * s, 8 * s);
+    path.rect(17.2 * s, 5 * s, 1.8 * s, 3.5 * s);
     // Second bottom strike
-    path.moveTo(18 * s, 24 * s);
-    path.lineTo(18 * s, 27 * s);
+    path.rect(17.2 * s, 23.5 * s, 1.8 * s, 3.5 * s);
 
-    // B shape body
-    path.moveTo(11 * s, 8 * s);
+    // Upper B bump
+    path.moveTo(12.5 * s, 8 * s);
     path.lineTo(19 * s, 8 * s);
-    path.bezierCurveTo(23 * s, 8 * s, 23 * s, 15.5 * s, 19 * s, 15.5 * s);
-    path.lineTo(11 * s, 15.5 * s);
+    path.bezierCurveTo(23.5 * s, 8 * s, 23.5 * s, 15.5 * s, 19 * s, 15.5 * s);
+    path.lineTo(12.5 * s, 15.5 * s);
     path.closePath();
 
-    path.moveTo(11 * s, 15.5 * s);
+    // Lower B bump (slightly wider)
+    path.moveTo(12.5 * s, 15.5 * s);
     path.lineTo(20 * s, 15.5 * s);
-    path.bezierCurveTo(24.5 * s, 15.5 * s, 24.5 * s, 24 * s, 20 * s, 24 * s);
-    path.lineTo(11 * s, 24 * s);
+    path.bezierCurveTo(25 * s, 15.5 * s, 25 * s, 24 * s, 20 * s, 24 * s);
+    path.lineTo(12.5 * s, 24 * s);
     path.closePath();
 
     return path;
@@ -305,9 +304,6 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
             // --- Layer 4: Constellation Lines (Drawn before particles) ---
             ctx.lineWidth = 0.4;
             const MAX_DIST = 110;
-            const CELL_SIZE = 120;
-            const cols = Math.ceil(w / CELL_SIZE);
-            const rows = Math.ceil(h / CELL_SIZE);
 
             // Basic O(n^2) for now as N=80 is very small, spatial grid overhead might not be worth it in JS
             // But let's stick to the spec suggestion if possible. A simple double loop is fine for N=80.
@@ -551,6 +547,15 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = `rgba(247, 147, 26, ${logoOpacity})`;
                 ctx.fill(btcPathRef.current);
+
+                // Circle outline ring around the ₿
+                const sHalf = 16 * (sSize / 32);
+                ctx.beginPath();
+                ctx.arc(sHalf, sHalf, 15 * (sSize / 32), 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(247, 147, 26, ${logoOpacity * 0.3})`;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
                 ctx.restore();
             }
 
@@ -577,7 +582,7 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
             }} />
 
             {/* Layer 2-5,7: Canvas (all animated layers) */}
-            {!reducedMotion && <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none mix-blend-screen" />}
+            {!reducedMotion && <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />}
 
             {/* Reduced motion fallback: static BTC logo */}
             {reducedMotion && (
@@ -590,7 +595,7 @@ export function SatoshiBackground({ reducedMotion }: SatoshiBackgroundProps) {
             )}
 
             {/* Layer 6: Golden vignette */}
-            <div className="absolute inset-0 pointer-events-none mix-blend-multiply" style={{
+            <div className="absolute inset-0 pointer-events-none" style={{
                 background: "radial-gradient(ellipse at center, transparent 40%, rgba(10, 8, 6, 0.4) 100%)"
             }} />
         </div>
