@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme, THEMES, isProTheme, isCompletionistTheme } from "@/lib/theme-context";
 import { useCosmetics } from "@/lib/cosmetics";
@@ -33,10 +33,17 @@ export function Header() {
   const { isOwned: isCosmeticOwned } = useCosmetics();
   const hasCompletionistTheme = isCosmeticOwned("title_completionist");
   const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const { dateRange, setDateRange } = useDateRange();
   const [showRanges, setShowRanges] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [helpSearch, setHelpSearch] = useState("");
+
+  useEffect(() => {
+    if (!syncMessage) return;
+    const t = setTimeout(() => setSyncMessage(null), 3000);
+    return () => clearTimeout(t);
+  }, [syncMessage]);
 
   const currentLabel = DATE_RANGES.find((r) => r.value === dateRange)?.label ?? "All";
   const currentTheme = THEMES.find((t) => t.value === theme);
@@ -120,22 +127,32 @@ export function Header() {
         </div>
 
         {/* Sync button */}
-        <button
-          onClick={() => {
-            const config = localStorage.getItem("stargate-exchange-config");
-            if (!config || !JSON.parse(config).apiKey) {
-              alert("Connect an exchange in Settings first.");
-              return;
-            }
-            setSyncing(true);
-            setTimeout(() => setSyncing(false), 2000);
-          }}
-          className="p-2 rounded-xl bg-surface border border-border text-muted hover:text-foreground hover:border-accent/30 transition-all"
-          style={{ boxShadow: "var(--shadow-card)" }}
-          title="Sync trades"
-        >
-          <RefreshCw size={14} className={syncing ? "animate-spin text-accent" : ""} />
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => {
+              const config = localStorage.getItem("stargate-exchange-config");
+              if (!config || !JSON.parse(config).apiKey) {
+                setSyncMessage("Connect an exchange in Settings first.");
+                return;
+              }
+              setSyncing(true);
+              setTimeout(() => setSyncing(false), 2000);
+            }}
+            className="p-2 rounded-xl bg-surface border border-border text-muted hover:text-foreground hover:border-accent/30 transition-all"
+            style={{ boxShadow: "var(--shadow-card)" }}
+            title="Sync trades"
+          >
+            <RefreshCw size={14} className={syncing ? "animate-spin text-accent" : ""} />
+          </button>
+          {syncMessage && (
+            <div
+              className="absolute right-0 top-full mt-2 px-3 py-2 rounded-xl bg-surface border border-accent/30 text-xs text-foreground whitespace-nowrap z-50"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
+              {syncMessage}
+            </div>
+          )}
+        </div>
 
         {/* Apps launcher */}
         <AppsDropdown />

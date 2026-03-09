@@ -7,6 +7,7 @@ import { AdminBannedAccountsManager } from "@/components/admin/banned-accounts-m
 import { AdminDiscountManager } from "@/components/admin/discount-codes-manager";
 import { AdminSupportTicketsManager, type SupportTicketAdmin } from "@/components/admin/support-tickets-manager";
 import { AdminSubmittedQuestionsManager, type SubmittedQuestion } from "@/components/admin/submitted-questions-manager";
+import { OnlineUsersCard } from "@/components/admin/online-users-card";
 
 export const dynamic = "force-dynamic";
 
@@ -224,6 +225,7 @@ export default async function AdminPage() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard icon={Users} label="Total Users" value={totalUsers} />
+        <OnlineUsersCard />
         <StatCard icon={CreditCard} label="Free / Pro / Max" value={`${tierCounts.free} / ${tierCounts.pro} / ${tierCounts.max}`} />
         <StatCard icon={TrendingUp} label="Active Trials" value={trialCount} />
         <StatCard icon={Ticket} label="Invite Codes" value={activeInvites} />

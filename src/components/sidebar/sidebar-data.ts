@@ -175,7 +175,6 @@ const marketToolsItemsSimple: NavItem[] = [
 const disciplineItems: NavItem[] = [
   { href: "/dashboard/rules", label: "Rule Tracker", icon: ShieldAlert },
   { href: "/dashboard/execution", label: "Execution", icon: Crosshair },
-  { href: "/dashboard/goals", label: "Goals", icon: Target },
   { href: "/dashboard/risk-analysis", label: "Risk Analysis", icon: TrendingDown },
   { href: "/dashboard/prop-firm", label: "Prop Firm", icon: Flame },
 ];

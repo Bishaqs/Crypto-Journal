@@ -27,6 +27,7 @@ const StargateGuideCharacter = dynamic(() => import("@/components/stargate-guide
 const GuideMenu = dynamic(() => import("@/components/stargate-guide/guide-menu").then(m => ({ default: m.GuideMenu })));
 const GuideHelp = dynamic(() => import("@/components/stargate-guide/guide-help").then(m => ({ default: m.GuideHelp })));
 const GuideSupport = dynamic(() => import("@/components/stargate-guide/guide-support").then(m => ({ default: m.GuideSupport })));
+const Heartbeat = dynamic(() => import("@/components/heartbeat").then(m => ({ default: m.Heartbeat })));
 
 export default async function DashboardLayout({
   children,
@@ -104,6 +105,7 @@ export default async function DashboardLayout({
                   <GuideMenu />
                   <GuideHelp />
                   <GuideSupport />
+                  <Heartbeat />
                 </div>
               </OnboardingTour>
             </GuideProvider>
