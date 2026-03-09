@@ -8,6 +8,11 @@ const MarkReadSchema = z.object({
   id: z.string().uuid("Invalid feedback ID"),
 });
 
+const DeleteSchema = z.object({
+  id: z.string().uuid("Invalid ID"),
+  type: z.enum(["feedback", "comment"]),
+});
+
 async function verifyOwner(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -92,6 +97,45 @@ export async function PATCH(req: NextRequest) {
   if (error) {
     console.error("[admin/feedback] mark read failed:", error.message);
     return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}
+
+export async function DELETE(req: NextRequest) {
+  const supabase = await createClient();
+  const user = await verifyOwner(supabase);
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rl = await rateLimit(`admin:${user.id}`, 30, 60_000);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  let parsed;
+  try {
+    parsed = DeleteSchema.parse(await req.json());
+  } catch (err) {
+    const msg = err instanceof z.ZodError ? err.issues[0]?.message ?? "Invalid request" : "Invalid request";
+    return NextResponse.json({ error: msg }, { status: 400 });
+  }
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (err) {
+    console.error("[admin/feedback] Admin client failed:", err);
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+  }
+
+  const table = parsed.type === "comment" ? "feedback_comments" : "feedback";
+  const { error } = await admin.from(table).delete().eq("id", parsed.id);
+
+  if (error) {
+    console.error(`[admin/feedback] delete from ${table} failed:`, error.message);
+    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

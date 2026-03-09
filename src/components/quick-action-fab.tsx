@@ -8,20 +8,25 @@ import { TradeForm } from "@/components/trade-form";
 import { CSVImportModal } from "@/components/csv-import-modal";
 import { QuickTradeForm } from "@/components/quick-trade-form";
 import {
-  Plus, Upload, Download, BookOpen, RefreshCw, Zap,
+  Plus, Upload, Download, BookOpen, RefreshCw, Zap, Briefcase,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { hasStockAccess } from "@/lib/addons";
+import { StockTradeForm } from "@/components/stock-trade-form";
 
-const ACTIONS = [
+type ActionItem = { key: string; tKey: string; icon: typeof Zap; stockGated?: boolean };
+
+const BASE_ACTIONS: ActionItem[] = [
   { key: "quickTrade", tKey: "quickAction.quickTrade", icon: Zap },
   { key: "trade", tKey: "quickAction.logTrade", icon: Plus },
+  { key: "stockTrade", tKey: "quickAction.stockTrade", icon: Briefcase, stockGated: true },
   { key: "import", tKey: "quickAction.importCsv", icon: Upload },
   { key: "note", tKey: "quickAction.addNote", icon: BookOpen },
   { key: "export", tKey: "quickAction.exportCsv", icon: Download },
   { key: "resync", tKey: "quickAction.resync", icon: RefreshCw },
-] as const;
+];
 
-type ActionKey = (typeof ACTIONS)[number]["key"];
+type ActionKey = string;
 
 /**
  * Quick action menu that can be embedded in any container.
@@ -33,7 +38,10 @@ export function QuickActionMenu() {
   const [open, setOpen] = useState(false);
   const [showTradeForm, setShowTradeForm] = useState(false);
   const [showQuickTrade, setShowQuickTrade] = useState(false);
+  const [showStockTradeForm, setShowStockTradeForm] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const stockAccess = hasStockAccess();
+  const actions = BASE_ACTIONS.filter((a) => !a.stockGated || stockAccess);
   const [syncing, setSyncing] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -98,6 +106,9 @@ export function QuickActionMenu() {
       case "trade":
         setShowTradeForm(true);
         break;
+      case "stockTrade":
+        setShowStockTradeForm(true);
+        break;
       case "import":
         setShowImport(true);
         break;
@@ -144,7 +155,7 @@ export function QuickActionMenu() {
             {t("quickAction.title")}
           </p>
           <div className="grid grid-cols-2 gap-1.5">
-            {ACTIONS.map(({ key, tKey, icon: Icon }) => (
+            {actions.map(({ key, tKey, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => handleAction(key)}
@@ -185,6 +196,16 @@ export function QuickActionMenu() {
           onClose={() => setShowTradeForm(false)}
           onSaved={() => {
             setShowTradeForm(false);
+            router.refresh();
+          }}
+        />
+      )}
+
+      {showStockTradeForm && (
+        <StockTradeForm
+          onClose={() => setShowStockTradeForm(false)}
+          onSaved={() => {
+            setShowStockTradeForm(false);
             router.refresh();
           }}
         />

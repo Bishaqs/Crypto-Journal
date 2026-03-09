@@ -1,0 +1,839 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/dashboard/commodities/trades/[id]",
+      "regex": "^/dashboard/commodities/trades/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/commodities/trades/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/dashboard/forex/trades/[id]",
+      "regex": "^/dashboard/forex/trades/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/forex/trades/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/dashboard/stocks/trades/[id]",
+      "regex": "^/dashboard/stocks/trades/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/stocks/trades/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/[id]",
+      "regex": "^/dashboard/trades/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/trades/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/admin/feedback",
+      "regex": "^/api/admin/feedback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/feedback(?:/)?$"
+    },
+    {
+      "page": "/api/admin/invite",
+      "regex": "^/api/admin/invite(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/invite(?:/)?$"
+    },
+    {
+      "page": "/api/admin/users",
+      "regex": "^/api/admin/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/users(?:/)?$"
+    },
+    {
+      "page": "/api/ai",
+      "regex": "^/api/ai(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai(?:/)?$"
+    },
+    {
+      "page": "/api/ai/providers",
+      "regex": "^/api/ai/providers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/providers(?:/)?$"
+    },
+    {
+      "page": "/api/ai/stream",
+      "regex": "^/api/ai/stream(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/stream(?:/)?$"
+    },
+    {
+      "page": "/api/ai/trade-summary",
+      "regex": "^/api/ai/trade\\-summary(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/trade\\-summary(?:/)?$"
+    },
+    {
+      "page": "/api/auth/signup",
+      "regex": "^/api/auth/signup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/signup(?:/)?$"
+    },
+    {
+      "page": "/api/feedback",
+      "regex": "^/api/feedback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/feedback(?:/)?$"
+    },
+    {
+      "page": "/api/invite/redeem",
+      "regex": "^/api/invite/redeem(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/invite/redeem(?:/)?$"
+    },
+    {
+      "page": "/api/leaderboard",
+      "regex": "^/api/leaderboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/leaderboard(?:/)?$"
+    },
+    {
+      "page": "/api/market/fundamentals",
+      "regex": "^/api/market/fundamentals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/fundamentals(?:/)?$"
+    },
+    {
+      "page": "/api/market/funding-rates",
+      "regex": "^/api/market/funding\\-rates(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/funding\\-rates(?:/)?$"
+    },
+    {
+      "page": "/api/market/historical",
+      "regex": "^/api/market/historical(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/historical(?:/)?$"
+    },
+    {
+      "page": "/api/market/options-flow",
+      "regex": "^/api/market/options\\-flow(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/options\\-flow(?:/)?$"
+    },
+    {
+      "page": "/api/market/overview",
+      "regex": "^/api/market/overview(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/overview(?:/)?$"
+    },
+    {
+      "page": "/api/market/screener",
+      "regex": "^/api/market/screener(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/screener(?:/)?$"
+    },
+    {
+      "page": "/api/market/seasonality",
+      "regex": "^/api/market/seasonality(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/seasonality(?:/)?$"
+    },
+    {
+      "page": "/api/market/sec-13f",
+      "regex": "^/api/market/sec\\-13f(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/sec\\-13f(?:/)?$"
+    },
+    {
+      "page": "/api/market/stock-screener",
+      "regex": "^/api/market/stock\\-screener(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/stock\\-screener(?:/)?$"
+    },
+    {
+      "page": "/api/market/stocks",
+      "regex": "^/api/market/stocks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/market/stocks(?:/)?$"
+    },
+    {
+      "page": "/api/subscription",
+      "regex": "^/api/subscription(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/subscription(?:/)?$"
+    },
+    {
+      "page": "/api/trades/share",
+      "regex": "^/api/trades/share(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/trades/share(?:/)?$"
+    },
+    {
+      "page": "/auth/callback",
+      "regex": "^/auth/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/callback(?:/)?$"
+    },
+    {
+      "page": "/dashboard",
+      "regex": "^/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/dashboard/achievements",
+      "regex": "^/dashboard/achievements(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/achievements(?:/)?$"
+    },
+    {
+      "page": "/dashboard/admin",
+      "regex": "^/dashboard/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/admin(?:/)?$"
+    },
+    {
+      "page": "/dashboard/ai",
+      "regex": "^/dashboard/ai(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/ai(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/fees",
+      "regex": "^/dashboard/analysis/fees(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/fees(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/running-pnl",
+      "regex": "^/dashboard/analysis/running\\-pnl(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/running\\-pnl(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/sectors",
+      "regex": "^/dashboard/analysis/sectors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/sectors(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/tag-groups",
+      "regex": "^/dashboard/analysis/tag\\-groups(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/tag\\-groups(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/technical-analysis",
+      "regex": "^/dashboard/analysis/technical\\-analysis(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/technical\\-analysis(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/trade-count",
+      "regex": "^/dashboard/analysis/trade\\-count(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/trade\\-count(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/treemap/sector",
+      "regex": "^/dashboard/analysis/treemap/sector(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/treemap/sector(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/treemap/symbol",
+      "regex": "^/dashboard/analysis/treemap/symbol(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/treemap/symbol(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/treemap/tags",
+      "regex": "^/dashboard/analysis/treemap/tags(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/treemap/tags(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis/volume",
+      "regex": "^/dashboard/analysis/volume(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis/volume(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analytics",
+      "regex": "^/dashboard/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analytics(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/backtester",
+      "regex": "^/dashboard/apps/backtester(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/backtester(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/compare-trades",
+      "regex": "^/dashboard/apps/compare\\-trades(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/compare\\-trades(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/filters",
+      "regex": "^/dashboard/apps/filters(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/filters(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/multi-simulator",
+      "regex": "^/dashboard/apps/multi\\-simulator(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/multi\\-simulator(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/options-backtest",
+      "regex": "^/dashboard/apps/options\\-backtest(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/options\\-backtest(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/options-flow",
+      "regex": "^/dashboard/apps/options\\-flow(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/options\\-flow(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/options-payoff",
+      "regex": "^/dashboard/apps/options\\-payoff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/options\\-payoff(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/options-simulator",
+      "regex": "^/dashboard/apps/options\\-simulator(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/options\\-simulator(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/pnl-charts",
+      "regex": "^/dashboard/apps/pnl\\-charts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/pnl\\-charts(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/seasonality",
+      "regex": "^/dashboard/apps/seasonality(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/seasonality(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/sec-13f",
+      "regex": "^/dashboard/apps/sec\\-13f(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/sec\\-13f(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/shared-trades",
+      "regex": "^/dashboard/apps/shared\\-trades(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/shared\\-trades(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/stock-screener",
+      "regex": "^/dashboard/apps/stock\\-screener(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/stock\\-screener(?:/)?$"
+    },
+    {
+      "page": "/dashboard/apps/target-simulator",
+      "regex": "^/dashboard/apps/target\\-simulator(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/apps/target\\-simulator(?:/)?$"
+    },
+    {
+      "page": "/dashboard/calendar",
+      "regex": "^/dashboard/calendar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/calendar(?:/)?$"
+    },
+    {
+      "page": "/dashboard/calendar/day",
+      "regex": "^/dashboard/calendar/day(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/calendar/day(?:/)?$"
+    },
+    {
+      "page": "/dashboard/calendar/week",
+      "regex": "^/dashboard/calendar/week(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/calendar/week(?:/)?$"
+    },
+    {
+      "page": "/dashboard/calendar/year",
+      "regex": "^/dashboard/calendar/year(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/calendar/year(?:/)?$"
+    },
+    {
+      "page": "/dashboard/challenges",
+      "regex": "^/dashboard/challenges(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/challenges(?:/)?$"
+    },
+    {
+      "page": "/dashboard/commodities",
+      "regex": "^/dashboard/commodities(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/commodities(?:/)?$"
+    },
+    {
+      "page": "/dashboard/commodities/analytics",
+      "regex": "^/dashboard/commodities/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/commodities/analytics(?:/)?$"
+    },
+    {
+      "page": "/dashboard/commodities/plans",
+      "regex": "^/dashboard/commodities/plans(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/commodities/plans(?:/)?$"
+    },
+    {
+      "page": "/dashboard/commodities/trades",
+      "regex": "^/dashboard/commodities/trades(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/commodities/trades(?:/)?$"
+    },
+    {
+      "page": "/dashboard/dca",
+      "regex": "^/dashboard/dca(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/dca(?:/)?$"
+    },
+    {
+      "page": "/dashboard/execution",
+      "regex": "^/dashboard/execution(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/execution(?:/)?$"
+    },
+    {
+      "page": "/dashboard/exit-analysis",
+      "regex": "^/dashboard/exit\\-analysis(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/exit\\-analysis(?:/)?$"
+    },
+    {
+      "page": "/dashboard/feedback",
+      "regex": "^/dashboard/feedback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/feedback(?:/)?$"
+    },
+    {
+      "page": "/dashboard/forex",
+      "regex": "^/dashboard/forex(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/forex(?:/)?$"
+    },
+    {
+      "page": "/dashboard/forex/analytics",
+      "regex": "^/dashboard/forex/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/forex/analytics(?:/)?$"
+    },
+    {
+      "page": "/dashboard/forex/plans",
+      "regex": "^/dashboard/forex/plans(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/forex/plans(?:/)?$"
+    },
+    {
+      "page": "/dashboard/forex/trades",
+      "regex": "^/dashboard/forex/trades(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/forex/trades(?:/)?$"
+    },
+    {
+      "page": "/dashboard/funding-rates",
+      "regex": "^/dashboard/funding\\-rates(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/funding\\-rates(?:/)?$"
+    },
+    {
+      "page": "/dashboard/goals",
+      "regex": "^/dashboard/goals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/goals(?:/)?$"
+    },
+    {
+      "page": "/dashboard/heatmaps",
+      "regex": "^/dashboard/heatmaps(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/heatmaps(?:/)?$"
+    },
+    {
+      "page": "/dashboard/help",
+      "regex": "^/dashboard/help(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/help(?:/)?$"
+    },
+    {
+      "page": "/dashboard/insights",
+      "regex": "^/dashboard/insights(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/insights(?:/)?$"
+    },
+    {
+      "page": "/dashboard/journal",
+      "regex": "^/dashboard/journal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/journal(?:/)?$"
+    },
+    {
+      "page": "/dashboard/leaderboard",
+      "regex": "^/dashboard/leaderboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/leaderboard(?:/)?$"
+    },
+    {
+      "page": "/dashboard/market",
+      "regex": "^/dashboard/market(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/market(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/calendar",
+      "regex": "^/dashboard/performance/calendar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/calendar(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/expectancy",
+      "regex": "^/dashboard/performance/expectancy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/expectancy(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/hit-ratio",
+      "regex": "^/dashboard/performance/hit\\-ratio(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/hit\\-ratio(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/metrics",
+      "regex": "^/dashboard/performance/metrics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/metrics(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/mfe-mae",
+      "regex": "^/dashboard/performance/mfe\\-mae(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/mfe\\-mae(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/profit-factor",
+      "regex": "^/dashboard/performance/profit\\-factor(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/profit\\-factor(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/r-value",
+      "regex": "^/dashboard/performance/r\\-value(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/r\\-value(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/returns",
+      "regex": "^/dashboard/performance/returns(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/returns(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/trends",
+      "regex": "^/dashboard/performance/trends(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/trends(?:/)?$"
+    },
+    {
+      "page": "/dashboard/performance/volume",
+      "regex": "^/dashboard/performance/volume(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/performance/volume(?:/)?$"
+    },
+    {
+      "page": "/dashboard/plans",
+      "regex": "^/dashboard/plans(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/plans(?:/)?$"
+    },
+    {
+      "page": "/dashboard/playbook",
+      "regex": "^/dashboard/playbook(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/playbook(?:/)?$"
+    },
+    {
+      "page": "/dashboard/profile",
+      "regex": "^/dashboard/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/profile(?:/)?$"
+    },
+    {
+      "page": "/dashboard/prop-firm",
+      "regex": "^/dashboard/prop\\-firm(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/prop\\-firm(?:/)?$"
+    },
+    {
+      "page": "/dashboard/reports",
+      "regex": "^/dashboard/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/reports(?:/)?$"
+    },
+    {
+      "page": "/dashboard/risk",
+      "regex": "^/dashboard/risk(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/risk(?:/)?$"
+    },
+    {
+      "page": "/dashboard/risk-analysis",
+      "regex": "^/dashboard/risk\\-analysis(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/risk\\-analysis(?:/)?$"
+    },
+    {
+      "page": "/dashboard/rules",
+      "regex": "^/dashboard/rules(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/rules(?:/)?$"
+    },
+    {
+      "page": "/dashboard/screener",
+      "regex": "^/dashboard/screener(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/screener(?:/)?$"
+    },
+    {
+      "page": "/dashboard/settings",
+      "regex": "^/dashboard/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/settings(?:/)?$"
+    },
+    {
+      "page": "/dashboard/simulations",
+      "regex": "^/dashboard/simulations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/simulations(?:/)?$"
+    },
+    {
+      "page": "/dashboard/statistics",
+      "regex": "^/dashboard/statistics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/statistics(?:/)?$"
+    },
+    {
+      "page": "/dashboard/stocks",
+      "regex": "^/dashboard/stocks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/stocks(?:/)?$"
+    },
+    {
+      "page": "/dashboard/stocks/analytics",
+      "regex": "^/dashboard/stocks/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/stocks/analytics(?:/)?$"
+    },
+    {
+      "page": "/dashboard/stocks/market",
+      "regex": "^/dashboard/stocks/market(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/stocks/market(?:/)?$"
+    },
+    {
+      "page": "/dashboard/stocks/options-analysis",
+      "regex": "^/dashboard/stocks/options\\-analysis(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/stocks/options\\-analysis(?:/)?$"
+    },
+    {
+      "page": "/dashboard/stocks/plans",
+      "regex": "^/dashboard/stocks/plans(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/stocks/plans(?:/)?$"
+    },
+    {
+      "page": "/dashboard/stocks/trades",
+      "regex": "^/dashboard/stocks/trades(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/stocks/trades(?:/)?$"
+    },
+    {
+      "page": "/dashboard/summaries/accounts",
+      "regex": "^/dashboard/summaries/accounts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/summaries/accounts(?:/)?$"
+    },
+    {
+      "page": "/dashboard/summaries/open-trades",
+      "regex": "^/dashboard/summaries/open\\-trades(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/summaries/open\\-trades(?:/)?$"
+    },
+    {
+      "page": "/dashboard/summaries/tags",
+      "regex": "^/dashboard/summaries/tags(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/summaries/tags(?:/)?$"
+    },
+    {
+      "page": "/dashboard/taxes",
+      "regex": "^/dashboard/taxes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/taxes(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades",
+      "regex": "^/dashboard/trades(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/chart",
+      "regex": "^/dashboard/trades/chart(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades/chart(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/day-grouped",
+      "regex": "^/dashboard/trades/day\\-grouped(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades/day\\-grouped(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/executions",
+      "regex": "^/dashboard/trades/executions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades/executions(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/goals",
+      "regex": "^/dashboard/trades/goals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades/goals(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/pivot",
+      "regex": "^/dashboard/trades/pivot(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades/pivot(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/plan-analytics",
+      "regex": "^/dashboard/trades/plan\\-analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades/plan\\-analytics(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/symbol-grouped",
+      "regex": "^/dashboard/trades/symbol\\-grouped(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades/symbol\\-grouped(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trades/tag-grouped",
+      "regex": "^/dashboard/trades/tag\\-grouped(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trades/tag\\-grouped(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/pricing",
+      "regex": "^/pricing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pricing(?:/)?$"
+    },
+    {
+      "page": "/simulator",
+      "regex": "^/simulator(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/simulator(?:/)?$"
+    },
+    {
+      "page": "/simulator/multi",
+      "regex": "^/simulator/multi(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/simulator/multi(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

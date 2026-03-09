@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, TrendingUp, BarChart3, Lock, X, MoreHorizontal } from "lucide-react";
+import { ChevronDown, Bitcoin, LineChart, Gem, ArrowLeftRight, Lock, X, MoreHorizontal } from "lucide-react";
 import {
   type NavItem,
   type NavSection,
@@ -17,14 +17,14 @@ import {
   saveSectionState,
 } from "./sidebar-data";
 import { useI18n } from "@/lib/i18n";
-import { hasStockAccess } from "@/lib/addons";
+import type { AssetContext } from "@/lib/addons";
 import type { ViewMode } from "@/lib/theme-context";
 
 interface SidebarDrawerProps {
   categoryKey: string;
   onClose: () => void;
-  assetContext: "crypto" | "stocks";
-  onAssetToggle: (ctx: "crypto" | "stocks") => void;
+  assetContext: AssetContext;
+  onAssetToggle: (ctx: AssetContext) => void;
   showStockUpgrade: boolean;
   sectionState: Record<string, boolean>;
   onToggleSection: (key: string) => void;
@@ -66,20 +66,22 @@ export function SidebarDrawer({
 
   function getResolvedCategoryItems(): NavItem[] {
     const catItems = category.items;
+    const prefix = assetContext === "crypto" ? "" : `/dashboard/${assetContext}`;
+
     if (categoryKey === "journal") {
-      if (assetContext === "stocks") {
+      if (assetContext !== "crypto") {
         return catItems.map(item => {
-          if (item.href === "/dashboard/trades") return { ...item, href: "/dashboard/stocks/trades", label: "Positions" };
-          if (item.href === "/dashboard/plans") return { ...item, href: "/dashboard/stocks/plans", label: "Watchlist" };
+          if (item.href === "/dashboard/trades") return { ...item, href: `${prefix}/trades`, label: "Positions" };
+          if (item.href === "/dashboard/plans") return { ...item, href: `${prefix}/plans`, label: "Watchlist" };
           return item;
         });
       }
       return catItems;
     }
     if (categoryKey === "analytics") {
-      if (assetContext === "stocks") {
+      if (assetContext !== "crypto") {
         return catItems.map(item => {
-          if (item.href === "/dashboard/analytics") return { ...item, href: "/dashboard/stocks/analytics" };
+          if (item.href === "/dashboard/analytics") return { ...item, href: `${prefix}/analytics` };
           return item;
         });
       }
@@ -289,31 +291,28 @@ export function SidebarDrawer({
           </button>
         </div>
 
-        {/* Asset toggle */}
+        {/* Asset toggle — 2x2 grid */}
         <div className="px-3 pt-3">
-          <div className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
-            <button
-              onClick={() => onAssetToggle("crypto")}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                assetContext === "crypto"
-                  ? "bg-accent/15 text-accent border border-accent/30"
-                  : "text-muted hover:text-foreground border border-transparent"
-              }`}
-            >
-              <TrendingUp size={12} />
-              {t("sidebar.cryptoLabel")}
-            </button>
-            <button
-              onClick={() => onAssetToggle("stocks")}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                assetContext === "stocks"
-                  ? "bg-accent/15 text-accent border border-accent/30"
-                  : "text-muted hover:text-foreground border border-transparent"
-              }`}
-            >
-              {hasStockAccess() ? <BarChart3 size={12} /> : <Lock size={10} />}
-              {t("sidebar.stocksLabel")}
-            </button>
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-background border border-border/50 p-1 w-full">
+            {([
+              { ctx: "crypto" as const, label: t("sidebar.cryptoLabel"), icon: Bitcoin },
+              { ctx: "stocks" as const, label: t("sidebar.stocksLabel"), icon: LineChart },
+              { ctx: "commodities" as const, label: t("sidebar.commoditiesLabel"), icon: Gem },
+              { ctx: "forex" as const, label: t("sidebar.forexLabel"), icon: ArrowLeftRight },
+            ]).map(({ ctx, label, icon: Icon }) => (
+              <button
+                key={ctx}
+                onClick={() => onAssetToggle(ctx)}
+                className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                  assetContext === ctx
+                    ? "bg-accent/15 text-accent border border-accent/30"
+                    : "text-muted hover:text-foreground border border-transparent"
+                }`}
+              >
+                <Icon size={11} />
+                {label}
+              </button>
+            ))}
           </div>
           {showStockUpgrade && (
             <div className="mt-2 p-2.5 rounded-lg bg-accent/5 border border-accent/20 text-center">

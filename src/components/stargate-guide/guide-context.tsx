@@ -10,7 +10,7 @@ import {
 
 export type GuideMode = "idle" | "onboarding" | "tour" | "help";
 
-export type MenuPanel = "main" | "feeling" | "chat";
+export type MenuPanel = "main" | "feeling" | "chat" | "support";
 
 export type SpeechContent = {
   title?: string;

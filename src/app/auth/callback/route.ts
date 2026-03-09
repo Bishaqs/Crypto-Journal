@@ -37,6 +37,24 @@ export async function GET(request: Request) {
       if (isOwner) {
         response.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true });
       }
+
+      // Check if user is banned before allowing dashboard access
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const adminClient = createAdminClient();
+        const { data: sub } = await adminClient
+          .from("user_subscriptions")
+          .select("is_banned")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (sub?.is_banned) {
+          const bannedResponse = NextResponse.redirect(`${origin}/banned`);
+          bannedResponse.cookies.set("stargate-banned", "1", { path: "/", httpOnly: true });
+          return bannedResponse;
+        }
+      }
+
       return response;
     }
   }

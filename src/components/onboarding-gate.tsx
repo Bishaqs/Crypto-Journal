@@ -28,7 +28,7 @@ const ONBOARDING_KEYS = [
   "stargate-tour-welcome",
 ];
 
-export function OnboardingGate({ userId }: { userId?: string }) {
+export function OnboardingGate({ userId, isReturningUser }: { userId?: string; isReturningUser?: boolean }) {
   const [step, setStep] = useState<GateStep>("loading");
 
   useEffect(() => {
@@ -36,15 +36,22 @@ export function OnboardingGate({ userId }: { userId?: string }) {
     if (userId) {
       const prevUser = localStorage.getItem("stargate-current-user");
       if (prevUser !== userId) {
-        ONBOARDING_KEYS.forEach((k) => localStorage.removeItem(k));
-        // Clear all page tour completion keys (prefix-based, so new tours are auto-covered)
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith("stargate-tour-")) {
-            localStorage.removeItem(key);
+        if (isReturningUser) {
+          // Returning user on new device/browser — silently mark as onboarded
+          localStorage.setItem("stargate-onboarded", "true");
+          localStorage.setItem("stargate-onboarding-version", ONBOARDING_VERSION);
+          localStorage.setItem("stargate-tour-welcome", "true");
+        } else {
+          // Truly new user — clear everything for fresh experience
+          ONBOARDING_KEYS.forEach((k) => localStorage.removeItem(k));
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("stargate-tour-")) {
+              localStorage.removeItem(key);
+            }
           }
+          sessionStorage.removeItem("stargate-tour-active");
         }
-        sessionStorage.removeItem("stargate-tour-active");
       }
       localStorage.setItem("stargate-current-user", userId);
     }
@@ -53,12 +60,20 @@ export function OnboardingGate({ userId }: { userId?: string }) {
     const version = localStorage.getItem("stargate-onboarding-version");
 
     if (!onboarded || version !== ONBOARDING_VERSION) {
-      // New user OR existing user who hasn't seen the latest onboarding
-      setStep("onboarding");
+      if (isReturningUser) {
+        // Returning user whose localStorage was cleared — skip onboarding
+        localStorage.setItem("stargate-onboarded", "true");
+        localStorage.setItem("stargate-onboarding-version", ONBOARDING_VERSION);
+        localStorage.setItem("stargate-tour-welcome", "true");
+        setStep("done");
+      } else {
+        // New user OR existing user who hasn't seen the latest onboarding
+        setStep("onboarding");
+      }
     } else {
       setStep("done");
     }
-  }, [userId]);
+  }, [userId, isReturningUser]);
 
   // When transitioning, keep black overlay until welcome tour starts
   useEffect(() => {

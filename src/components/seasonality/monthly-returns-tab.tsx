@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import {
-  BarChart,
+  ComposedChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -12,7 +14,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import type { MonthlyReturn } from "./seasonality-types";
-import { formatReturn } from "./seasonality-utils";
+import { formatReturn, fitSineCurve } from "./seasonality-utils";
 
 interface MonthlyReturnsTabProps {
   data: MonthlyReturn[];
@@ -37,6 +39,8 @@ function StatBlock({ label, value, color = "text-foreground" }: { label: string;
 }
 
 export default function MonthlyReturnsTab({ data, symbol, colors }: MonthlyReturnsTabProps) {
+  const [showSine, setShowSine] = useState(true);
+
   const best = data.reduce((b, m) => (m.avgReturn > b.avgReturn ? m : b), data[0]);
   const worst = data.reduce((w, m) => (m.avgReturn < w.avgReturn ? m : w), data[0]);
   const avgWinRate = data.length > 0
@@ -45,6 +49,16 @@ export default function MonthlyReturnsTab({ data, symbol, colors }: MonthlyRetur
   const medianAll = data.length > 0
     ? [...data].sort((a, b) => a.medianReturn - b.medianReturn)[Math.floor(data.length / 2)].medianReturn
     : 0;
+
+  const sineFit = useMemo(
+    () => fitSineCurve(data.map((d) => d.avgReturn)),
+    [data],
+  );
+
+  const chartData = useMemo(
+    () => data.map((d, i) => ({ ...d, sineFitted: sineFit.fittedValues[i] })),
+    [data, sineFit],
+  );
 
   return (
     <div className="space-y-4">
@@ -72,11 +86,24 @@ export default function MonthlyReturnsTab({ data, symbol, colors }: MonthlyRetur
       </div>
 
       <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-          Monthly Average Returns — {symbol}
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+            Monthly Average Returns — {symbol}
+          </h3>
+          <button
+            onClick={() => setShowSine(!showSine)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+              showSine
+                ? "bg-accent/10 text-accent border border-accent/30"
+                : "bg-surface border border-border/50 text-muted hover:text-foreground hover:border-accent/20"
+            }`}
+          >
+            <span className="w-3 h-0.5 border-t-2 border-dashed border-current" />
+            Sine Fit (R² = {sineFit.r2.toFixed(2)})
+          </button>
+        </div>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
+          <ComposedChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
             <XAxis
               dataKey="month"
@@ -91,17 +118,9 @@ export default function MonthlyReturnsTab({ data, symbol, colors }: MonthlyRetur
               tickLine={false}
             />
             <Tooltip
-              contentStyle={{
-                background: colors.tooltipBg,
-                backdropFilter: "blur(16px)",
-                border: colors.tooltipBorder,
-                borderRadius: "12px",
-                fontSize: "12px",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-              }}
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null;
-                const d = payload[0].payload as MonthlyReturn;
+                const d = payload[0].payload as MonthlyReturn & { sineFitted: number };
                 return (
                   <div style={{
                     background: colors.tooltipBg,
@@ -116,6 +135,9 @@ export default function MonthlyReturnsTab({ data, symbol, colors }: MonthlyRetur
                     <p className={d.avgReturn >= 0 ? "text-win" : "text-loss"}>
                       Avg: {formatReturn(d.avgReturn)}
                     </p>
+                    {showSine && d.sineFitted != null && (
+                      <p className="text-accent">Sine: {formatReturn(d.sineFitted)}</p>
+                    )}
                     <p className="text-muted">Median: {formatReturn(d.medianReturn)}</p>
                     <p className="text-muted">Win Rate: {d.winRate.toFixed(1)}%</p>
                     <p className="text-muted/60 text-[10px] mt-1">{d.sampleSize} data points</p>
@@ -125,7 +147,7 @@ export default function MonthlyReturnsTab({ data, symbol, colors }: MonthlyRetur
             />
             <ReferenceLine y={0} stroke={colors.grid} strokeDasharray="3 3" />
             <Bar dataKey="avgReturn" radius={[6, 6, 0, 0]} maxBarSize={50}>
-              {data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell
                   key={`monthly-${index}`}
                   fill={entry.avgReturn >= 0 ? colors.win : colors.loss}
@@ -133,7 +155,19 @@ export default function MonthlyReturnsTab({ data, symbol, colors }: MonthlyRetur
                 />
               ))}
             </Bar>
-          </BarChart>
+            {showSine && (
+              <Line
+                type="monotone"
+                dataKey="sineFitted"
+                stroke="var(--accent, #8b5cf6)"
+                strokeWidth={2}
+                strokeDasharray="8 4"
+                dot={false}
+                name="Seasonal Cycle"
+                isAnimationActive={false}
+              />
+            )}
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
 

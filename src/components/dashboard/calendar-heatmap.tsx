@@ -4,7 +4,13 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DailyPnl } from "@/lib/types";
 
-export function CalendarHeatmap({ dailyPnl }: { dailyPnl: DailyPnl[] }) {
+export function CalendarHeatmap({
+  dailyPnl,
+  showCard = true,
+}: {
+  dailyPnl: DailyPnl[];
+  showCard?: boolean;
+}) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const year = currentMonth.getFullYear();
@@ -70,8 +76,8 @@ export function CalendarHeatmap({ dailyPnl }: { dailyPnl: DailyPnl[] }) {
     );
   }
 
-  return (
-    <div className="glass rounded-2xl border border-border/50 p-4 self-start" style={{ boxShadow: "var(--shadow-card)" }}>
+  const content = (
+    <>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-foreground">{monthName}</h3>
         <div className="flex gap-1">
@@ -99,6 +105,14 @@ export function CalendarHeatmap({ dailyPnl }: { dailyPnl: DailyPnl[] }) {
       </div>
 
       <div className="grid grid-cols-7 gap-1">{days}</div>
+    </>
+  );
+
+  if (!showCard) return <div className="p-4">{content}</div>;
+
+  return (
+    <div className="glass rounded-2xl border border-border/50 p-4 self-start" style={{ boxShadow: "var(--shadow-card)" }}>
+      {content}
     </div>
   );
 }

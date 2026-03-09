@@ -18,6 +18,7 @@ const TYPE_LABELS: Record<CosmeticType, string> = {
   sidebar_flair: "Flair",
   avatar_icon: "Icons",
   theme_accent: "Accents",
+  name_style: "Names",
 };
 
 const RARITY_META: Record<CosmeticRarity, { label: string; text: string; bg: string; border: string }> = {
@@ -26,9 +27,10 @@ const RARITY_META: Record<CosmeticRarity, { label: string; text: string; bg: str
   rare: { label: "Rare", text: "text-blue-400", bg: "bg-blue-500/5", border: "border-blue-500/20" },
   epic: { label: "Epic", text: "text-purple-400", bg: "bg-purple-500/5", border: "border-purple-500/20" },
   legendary: { label: "Legendary", text: "text-amber-400", bg: "bg-amber-500/5", border: "border-amber-500/20" },
+  mythic: { label: "Mythic", text: "text-red-400", bg: "bg-red-500/5", border: "border-red-500/20" },
 };
 
-const COSMETIC_TYPES: CosmeticType[] = ["avatar_frame", "banner", "title_badge", "sidebar_flair", "avatar_icon", "theme_accent"];
+const COSMETIC_TYPES: CosmeticType[] = ["avatar_frame", "banner", "title_badge", "sidebar_flair", "avatar_icon", "theme_accent", "name_style"];
 
 function getUnlockDescription(condition: UnlockCondition): string {
   switch (condition.type) {
@@ -71,6 +73,7 @@ function BannerPreview({ cssClass, locked }: { cssClass: string | null; locked: 
     <div className="py-3">
       <div
         className={`w-full h-12 rounded-xl ${cssClass ?? ""} ${locked ? "opacity-30" : ""}`}
+        style={{ overflow: "hidden" }}
       >
         {locked && (
           <div className="w-full h-full flex items-center justify-center">
@@ -110,10 +113,12 @@ function TitlePreview({
 function FlairPreview({ cssClass, locked }: { cssClass: string | null; locked: boolean }) {
   return (
     <div className="flex items-center justify-center py-4" style={{ overflow: "visible" }}>
-      <div
-        className={`w-14 h-14 rounded-full bg-accent/20 ${cssClass ?? ""} ${locked ? "flair-locked" : ""}`}
-        style={{ overflow: "visible" }}
-      />
+      <div className="relative w-14 h-14">
+        <div
+          className={`rounded-full bg-accent/20 ${cssClass ?? ""} ${locked ? "flair-locked" : ""}`}
+          style={{ position: "absolute", inset: 0, overflow: "visible" }}
+        />
+      </div>
     </div>
   );
 }
@@ -152,6 +157,18 @@ function AccentPreview({ cssClass, locked }: { cssClass: string | null; locked: 
   );
 }
 
+function NameStylePreview({ cssClass, name, locked }: { cssClass: string | null; name: string; locked: boolean }) {
+  return (
+    <div className="flex items-center justify-center py-5">
+      <span
+        className={`text-lg font-bold ${locked ? "text-muted/30" : cssClass ?? "text-foreground"}`}
+      >
+        {locked ? "Trader" : name || "Trader"}
+      </span>
+    </div>
+  );
+}
+
 /* ---------- Main Grid ---------- */
 
 export function CosmeticGrid() {
@@ -160,7 +177,7 @@ export function CosmeticGrid() {
 
   const filtered = definitions.filter((d) => d.type === selectedType);
   const sortedFiltered = [...filtered].sort((a, b) => {
-    const rarityOrder: CosmeticRarity[] = ["common", "uncommon", "rare", "epic", "legendary"];
+    const rarityOrder: CosmeticRarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
     return rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity);
   });
 
@@ -191,6 +208,18 @@ export function CosmeticGrid() {
           );
         })}
       </div>
+
+      {/* Type description */}
+      {selectedType === "theme_accent" && (
+        <p className="text-xs text-muted mb-4 -mt-2">
+          Accents change your dashboard&apos;s theme color — buttons, links, progress bars, and highlights all use this color.
+        </p>
+      )}
+      {selectedType === "name_style" && (
+        <p className="text-xs text-muted mb-4 -mt-2">
+          Name styles add color, gradients, and animations to your display name across the dashboard, profile, and leaderboard.
+        </p>
+      )}
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -234,6 +263,9 @@ export function CosmeticGrid() {
                 )}
                 {cosmetic.type === "theme_accent" && (
                   <AccentPreview cssClass={cosmetic.css_class} locked={!owned} />
+                )}
+                {cosmetic.type === "name_style" && (
+                  <NameStylePreview cssClass={cosmetic.css_class} name={cosmetic.name} locked={!owned} />
                 )}
               </div>
 

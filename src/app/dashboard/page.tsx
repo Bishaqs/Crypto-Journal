@@ -12,20 +12,21 @@ import {
   detectTiltSignals,
   calculateAdvancedStats,
 } from "@/lib/calculations";
-import { useTheme } from "@/lib/theme-context";
-import { calculateTaxReport } from "@/lib/tax-calculator";
+import { useTheme, ViewMode } from "@/lib/theme-context";
+
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { TradesTable } from "@/components/dashboard/trades-table";
 import { EquityCurve } from "@/components/dashboard/equity-curve";
 import { PnlChart } from "@/components/dashboard/pnl-chart";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
+import { ExpandableChart } from "@/components/dashboard/expandable-chart/expandable-chart";
 import { TradeForm } from "@/components/trade-form";
 import { TiltWarnings } from "@/components/dashboard/tilt-warnings";
 import { StreakWidget } from "@/components/dashboard/streak-widget";
 import { AISummaryWidget } from "@/components/dashboard/ai-summary-widget";
 import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
-import { Plus, Sparkles, Download, Upload, Activity, Dices, Receipt, TrendingUp, Calculator } from "lucide-react";
+import { Plus, Sparkles, Download, Upload, Activity, Dices, TrendingUp, Calculator, Bitcoin } from "lucide-react";
 import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CSVImportModal } from "@/components/csv-import-modal";
@@ -33,6 +34,8 @@ import { GettingStartedCard } from "@/components/getting-started";
 import { WeeklySummaryCard } from "@/components/dashboard/weekly-summary-card";
 import { ProactiveInsightBar } from "@/components/dashboard/proactive-insight-bar";
 import { PostTradePrompt } from "@/components/post-trade-prompt";
+import { LowContrastWarning } from "@/components/low-contrast-warning";
+import { DeleteTradeConfirmation } from "@/components/delete-trade-confirmation";
 import { useI18n } from "@/lib/i18n";
 import { useCosmetics } from "@/lib/cosmetics";
 import type { CosmeticRarity, UnlockCondition } from "@/lib/cosmetics/types";
@@ -45,13 +48,24 @@ export default function DashboardPage() {
   const [usingDemo, setUsingDemo] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [postTradeData, setPostTradeData] = useState<{ id: string; symbol: string; pnl: number } | null>(null);
+  const [deletingTrade, setDeletingTrade] = useState<Trade | null>(null);
   const { filterTrades } = useDateRange();
-  const { viewMode } = useTheme();
+  const { viewMode, setViewModeTo } = useTheme();
   const { t } = useI18n();
-  const { equipped, definitions } = useCosmetics();
+  const { equipped, definitions, getDefinition } = useCosmetics();
   const supabase = createClient();
 
-  // Resolve equipped title badge info
+  // Resolve equipped cosmetic CSS classes
+  const bannerCss = useMemo(() => {
+    if (!equipped.banner) return null;
+    return getDefinition(equipped.banner)?.css_class ?? null;
+  }, [equipped.banner, getDefinition]);
+
+  const nameStyleCss = useMemo(() => {
+    if (!equipped.name_style) return null;
+    return getDefinition(equipped.name_style)?.css_class ?? null;
+  }, [equipped.name_style, getDefinition]);
+
   const equippedTitle = useMemo(() => {
     if (!equipped.title_badge) return null;
     const def = definitions.find((d) => d.id === equipped.title_badge);
@@ -60,10 +74,16 @@ export default function DashboardPage() {
   }, [equipped.title_badge, definitions]);
 
   const fetchTrades = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("trades")
       .select("*")
       .order("open_timestamp", { ascending: false });
+
+    if (error) {
+      console.error("[Dashboard] fetchTrades error:", error.message);
+      setLoading(false);
+      return;
+    }
 
     const dbTrades = (data as Trade[]) ?? [];
 
@@ -88,7 +108,7 @@ export default function DashboardPage() {
   const equityData = useMemo(() => buildEquityCurve(dailyPnl), [dailyPnl]);
   const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades), [filteredTrades]);
   const adv = useMemo(() => viewMode === "full" ? calculateAdvancedStats(filteredTrades) : null, [viewMode, filteredTrades]);
-  const taxReport = useMemo(() => calculateTaxReport(trades, new Date().getFullYear()), [trades]);
+
 
   // Save sentiment for light theme candle background
   useEffect(() => {
@@ -140,19 +160,27 @@ export default function DashboardPage() {
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
 
+      {/* Asset Identity Badge */}
+      <div className="flex items-center justify-center py-1">
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20">
+          <Bitcoin size={18} className="text-amber-400" />
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-400">Crypto</span>
+        </div>
+      </div>
+
       {!usingDemo && <ProactiveInsightBar trades={filteredTrades} tiltSignals={tiltSignals} />}
 
       {/* Welcome greeting */}
       <div className="relative glass rounded-2xl border border-border/50 p-4 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-        {equipped.banner && (
-          <div className={`absolute inset-0 ${equipped.banner} opacity-20 pointer-events-none`} />
+        {bannerCss && (
+          <div className={`absolute inset-0 ${bannerCss} opacity-20 pointer-events-none`} />
         )}
         <div className="relative z-10">
           <p className="text-xs text-muted/60 uppercase tracking-widest font-semibold mb-1">
-            {t("dashboard.gm")}, <span className="text-foreground">{getDisplayName()}</span>
+            {t("dashboard.gm")}, <span className={`text-foreground ${nameStyleCss ?? ""}`}>{getDisplayName()}</span>
             {equippedTitle && (
               <span className={`ml-2 text-[10px] font-bold ${
-                ({ common: "text-gray-400", uncommon: "text-emerald-400", rare: "text-blue-400", epic: "text-purple-400", legendary: "text-amber-400" } as Record<CosmeticRarity, string>)[equippedTitle.rarity]
+                ({ common: "text-gray-400", uncommon: "text-emerald-400", rare: "text-blue-400", epic: "text-purple-400", legendary: "text-amber-400", mythic: "text-red-400" } as Record<CosmeticRarity, string>)[equippedTitle.rarity]
               }`}>
                 {equippedTitle.name}
               </span>
@@ -163,6 +191,8 @@ export default function DashboardPage() {
           </p>
         </div>
       </div>
+
+      <LowContrastWarning />
 
       {!usingDemo && <WeeklySummaryCard trades={trades} />}
 
@@ -191,6 +221,22 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* View mode toggle */}
+          <div className="inline-flex items-center rounded-xl bg-surface border border-border/50 p-0.5">
+            {(["simple", "full"] as ViewMode[]).map(mode => (
+              <button
+                key={mode}
+                onClick={() => setViewModeTo(mode)}
+                className={`flex items-center justify-center px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                  viewMode === mode
+                    ? "bg-accent/15 text-accent border border-accent/30"
+                    : "text-muted hover:text-foreground border border-transparent"
+                }`}
+              >
+                {mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
+              </button>
+            ))}
+          </div>
           <button
             onClick={() => setShowImport(true)}
             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
@@ -313,38 +359,74 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Quick Insight + Simulations & Tax links — always visible */}
+      {/* Quick Insight + Simulations — always visible */}
       <div id="tour-ai-summary">
         <AISummaryWidget trades={filteredTrades} />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-          <div className="flex items-center gap-2 mb-1">
-            <Dices size={14} className="text-accent" />
-            <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
-          </div>
-          <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
-        </Link>
-        {taxReport && (
-          <Link href="/dashboard/taxes" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-            <div className="flex items-center gap-2 mb-1">
-              <Receipt size={14} className="text-accent" />
-              <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">Tax {new Date().getFullYear()}</span>
-            </div>
-            <p className={`text-sm font-bold ${taxReport.netGainLoss >= 0 ? "text-win" : "text-loss"}`}>
-              {taxReport.netGainLoss >= 0 ? "+" : "-"}${Math.abs(taxReport.netGainLoss).toFixed(2)}
-            </p>
-          </Link>
-        )}
-      </div>
+      <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex items-center gap-2 mb-1">
+          <Dices size={14} className="text-accent" />
+          <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
+        </div>
+        <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
+      </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div id="tour-equity">
-          <EquityCurve data={equityData} />
-        </div>
-        <div id="tour-pnl-chart">
-          <PnlChart data={dailyPnl} />
-        </div>
+        <ExpandableChart
+          id="tour-equity"
+          title="Equity Curve"
+          titleExtra={
+            equityData.length > 0 ? (
+              <span
+                className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                  equityData[equityData.length - 1].equity >= 0
+                    ? "bg-win/10 text-win"
+                    : "bg-loss/10 text-loss"
+                }`}
+              >
+                {equityData[equityData.length - 1].equity >= 0 ? "+" : ""}$
+                {equityData[equityData.length - 1].equity.toFixed(2)}
+              </span>
+            ) : undefined
+          }
+          capabilities={{ zoom: true, chartSwitch: true, dataView: true, saveImage: true, defaultVariant: "area" }}
+          data={equityData}
+          columns={[
+            { key: "date", label: "Date" },
+            { key: "equity", label: "Equity", format: (v) => `$${Number(v).toFixed(2)}` },
+          ]}
+        >
+          {({ height, variant, zoomedData, isExpanded, zoomHandlers }) => (
+            <EquityCurve
+              data={(zoomedData as { date: string; equity: number }[]) ?? equityData}
+              height={height}
+              variant={variant}
+              showCard={!isExpanded}
+              zoomHandlers={zoomHandlers}
+            />
+          )}
+        </ExpandableChart>
+        <ExpandableChart
+          id="tour-pnl-chart"
+          title="Daily P&L"
+          capabilities={{ zoom: true, chartSwitch: true, dataView: true, saveImage: true, defaultVariant: "bar" }}
+          data={dailyPnl}
+          columns={[
+            { key: "date", label: "Date" },
+            { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
+            { key: "tradeCount", label: "Trades" },
+          ]}
+        >
+          {({ height, variant, zoomedData, isExpanded, zoomHandlers }) => (
+            <PnlChart
+              data={(zoomedData as typeof dailyPnl) ?? dailyPnl}
+              height={height}
+              variant={variant}
+              showCard={!isExpanded}
+              zoomHandlers={zoomHandlers}
+            />
+          )}
+        </ExpandableChart>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -363,7 +445,21 @@ export default function DashboardPage() {
         </div>
         <div className="space-y-6">
           <div id="tour-streak"><StreakWidget /></div>
-          <div id="tour-heatmap-mini"><CalendarHeatmap dailyPnl={dailyPnl} /></div>
+          <ExpandableChart
+            id="tour-heatmap-mini"
+            title="Calendar"
+            capabilities={{ zoom: false, chartSwitch: false, dataView: true, saveImage: true, defaultVariant: "bar" }}
+            data={dailyPnl}
+            columns={[
+              { key: "date", label: "Date" },
+              { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
+              { key: "tradeCount", label: "Trades" },
+            ]}
+          >
+            {({ isExpanded }) => (
+              <CalendarHeatmap dailyPnl={dailyPnl} showCard={!isExpanded} />
+            )}
+          </ExpandableChart>
         </div>
       </div>
 
@@ -380,6 +476,30 @@ export default function DashboardPage() {
             setEditTrade(null);
             setPostTradeData({ id: trade.id, symbol: trade.symbol, pnl: trade.pnl });
           }}
+          onDelete={editTrade ? () => {
+            const trade = editTrade;
+            setShowForm(false);
+            setEditTrade(null);
+            setDeletingTrade(trade);
+          } : undefined}
+        />
+      )}
+
+      {deletingTrade && (
+        <DeleteTradeConfirmation
+          symbol={deletingTrade.symbol}
+          onConfirm={async () => {
+            const { error } = await supabase
+              .from("trades")
+              .delete()
+              .eq("id", deletingTrade.id);
+            if (error) {
+              console.error("[Dashboard] delete error:", error.message);
+            }
+            setDeletingTrade(null);
+            fetchTrades();
+          }}
+          onCancel={() => setDeletingTrade(null)}
         />
       )}
 

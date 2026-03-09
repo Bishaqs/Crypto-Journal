@@ -62,6 +62,68 @@ const ko = {
     goToDashboard: "대시보드로 이동",
     skipOnboarding: "온보딩 건너뛰기",
     language: "언어",
+
+    // Guide speech (per step)
+    speech0: "Welcome to Stargate! I'm Nova, your trading companion. Let's get you set up.",
+    speech1WithName: "Nice to meet you, {name}! How long have you been trading?",
+    speech1NoName: "What should I call you?",
+    speech2: "How do you trade?",
+    speech3: "Where do you execute your trades?",
+    speech4: "What instruments do you trade?",
+    speech5: "What do you want to achieve with Stargate?",
+    speech6: "Almost done! Let's personalize your experience.",
+    speech7: "Last one — how did you find us?",
+
+    // Intro cinematic
+    welcomeTitle: "Welcome to Stargate",
+    tapToSkip: "tap to skip",
+
+    // Step indicator + navigation
+    stepOf: "Step {current} of {total}",
+    navBack: "Back",
+    navContinue: "Continue",
+    letsGo: "Let's Go",
+    letsGoFinal: "Let's Go!",
+
+    // Step 1: Experience
+    experienceLevel: "Experience Level",
+    newbie: "Newbie",
+    newbieDesc: "Just starting",
+    climbing: "Climbing",
+    climbingDesc: "1-2 years",
+    ninja: "Ninja",
+    ninjaDesc: "3-5 years",
+    monk: "Monk",
+    monkDesc: "5+ years",
+
+    // Step 2: Account type
+    personal: "Personal",
+    personalDesc: "Trading with your own capital",
+    propFirm: "Prop Firm",
+    propFirmDesc: "Trading a funded account",
+    notStarted: "Not Started",
+    notStartedDesc: "Still exploring trading",
+
+    // Step 3: Broker
+    selectBroker: "Select your broker",
+    otherBroker: "Other / Not listed",
+
+    // Step 5: Goals
+    journalTrades: "Journal Trades",
+    analyze: "Analyze",
+    backtest: "Backtest",
+    learn: "Learn",
+
+    // Step 6: Risk
+    riskTolerance: "Risk Tolerance",
+    safe: "Safe",
+    moderate: "Moderate",
+    aggressive: "Aggressive",
+    preferredAnalytics: "Preferred Analytics (optional)",
+
+    // Step 7: Referral
+    aFriend: "A Friend",
+    other: "Other",
   },
 
   sidebar: {
@@ -75,11 +137,14 @@ const ko = {
     watchlist: "관심 목록",
     settings: "설정",
     admin: "관리자",
+    quests: "퀘스트",
+    achievements: "업적",
     leaderboard: "리더보드",
     performanceAnalysis: "성과 및 분석",
     intelligence: "인텔리전스",
     marketTools: "마켓 및 도구",
     tools: "도구",
+    compete: "경쟁",
     discipline: "규율",
     reports: "보고서",
     performance: "성과",
@@ -139,6 +204,8 @@ const ko = {
     full: "고급",
     cryptoLabel: "암호화폐",
     stocksLabel: "주식",
+    commoditiesLabel: "원자재",
+    forexLabel: "외환",
     stockUpgradeMsg: "주식 트래킹은 주식 애드온 또는 Max 플랜이 필요합니다.",
     upgradeNow: "지금 업그레이드",
     logOutConfirmTitle: "로그아웃하시겠습니까?",
@@ -215,6 +282,54 @@ const ko = {
     goodToTrade: "트레이딩하기 좋은 상태",
     caution: "주의하며 진행",
     stepAway: "잠시 쉬기",
+  },
+
+  tours: {
+    skipTour: "Skip tour",
+    welcome: {
+      step0Title: "Ready for Liftoff?",
+      step0Content: "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
+      step1Title: "Welcome to Stargate!",
+      step1Content: "Hey! I'm Nova, your trading companion. Let me show you around. This takes about 2 minutes, and you can skip anytime.",
+      step2Title: "Dashboard",
+      step2Content: "This is home base. Your P&L, win rate, and equity curve all update live as you log trades.",
+      step3Title: "Trade Log",
+      step3Content: "Every trade lands here. You can filter by date, emotion, or coin. Click any row to see the full picture.",
+      step4Title: "Journal",
+      step4Content: "Write daily reflections. What went well, what went sideways. Over time you'll spot patterns in your own thinking.",
+      step5Title: "Calendar",
+      step5Content: "Green day, red day, at a glance. You'll quickly see if Mondays are good or Fridays are bad.",
+      step6Title: "Trade Plans",
+      step6Content: "Plan before you trade. Set your entry, target, and stop. After the trade, rate how well you followed the plan.",
+      step7Title: "Achievements",
+      step7Content: "Earn badges for your trading milestones — journal streaks, win rates, risk management. Track your growth as a trader.",
+      step8Title: "Analytics",
+      step8Content: "50+ metrics. P&L by hour, by setup, by pair. Stop guessing and start knowing where your edge is.",
+      step9Title: "Insights",
+      step9Content: "How do your emotions affect your P&L? Which moods lead to your best trades? This page has the answers.",
+      step10Title: "AI Coach",
+      step10Content: "Ask it anything about your trading. For a personal AI coach, connect your own API key in Settings — your data stays secure and private.",
+      step11Title: "Simple & Advanced Mode",
+      step11Content: "You're in Simple mode with 6 core tools. Switch to Advanced for prop firm tracking, Monte Carlo sims, heat maps, and more.",
+      step12Title: "Your Key Metrics",
+      step12Content: "Win rate, P&L, profit factor, max drawdown. These four numbers tell the whole story. They update as you trade.",
+      step13Title: "Equity Curve",
+      step13Content: "Your cumulative P&L over time. A rising line means you have an edge. Sharp drops show your drawdowns.",
+      step14Title: "Daily P&L",
+      step14Content: "Each bar is one day. Green above zero means profit. Small steady bars beat big volatile ones every time.",
+      step15Title: "Recent Trades",
+      step15Content: "Your latest trades with P&L and emotion tags. Click any row and notice the difference between calm and anxious trades.",
+      step16Title: "Journaling Streak",
+      step16Content: "Like a Duolingo streak, but for trading. Journal every day and watch the data compound.",
+      step17Title: "Calendar Heatmap",
+      step17Content: "Green means profit, red means loss, gray means no trades. You can spot hot streaks at a glance.",
+      step18Title: "AI Insights",
+      step18Content: "Nova summarizes your recent trading patterns: streaks, emotional tendencies, and hidden leaks. Check here for quick insights without asking.",
+      step19Title: "Apps",
+      step19Content: "15+ specialized tools — paper trading, strategy backtester, options analysis, seasonality charts, P&L deep dives, and more. All free.",
+      step20Title: "You're All Set!",
+      step20Content: "Hit Log Trade to record your first one. Every page has its own mini-tour on first visit. I'm Nova, click me anytime you need help. Now go trade!",
+    },
   },
 } as const;
 

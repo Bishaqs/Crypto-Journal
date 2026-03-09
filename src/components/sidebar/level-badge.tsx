@@ -45,22 +45,16 @@ export function LevelBadge() {
         {/* Flair effect layer (behind everything) */}
         {flairCss && (
           <div
-            className={`absolute rounded-full ${flairCss}`}
-            style={{
-              inset: -2,
-              zIndex: 0,
-            }}
+            className={flairCss}
+            style={{ position: "absolute", inset: 0, zIndex: 0 }}
           />
         )}
 
         {/* Frame effect layer */}
         {frameCss && (
           <div
-            className={`absolute rounded-full ${frameCss}`}
-            style={{
-              inset: 4,
-              zIndex: 1,
-            }}
+            className={frameCss}
+            style={{ position: "absolute", inset: 2, zIndex: 1 }}
           />
         )}
 

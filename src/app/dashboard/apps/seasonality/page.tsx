@@ -12,6 +12,8 @@ import MonthlyReturnsTab from "@/components/seasonality/monthly-returns-tab";
 import DayOfWeekTab from "@/components/seasonality/day-of-week-tab";
 import HeatmapTab from "@/components/seasonality/heatmap-tab";
 import YearComparisonTab from "@/components/seasonality/year-comparison-tab";
+import MarketOverview from "@/components/seasonality/market-overview";
+import CoinSelector from "@/components/seasonality/coin-selector";
 import {
   type SeasonalityData,
   type SeasonalityTab,
@@ -20,7 +22,6 @@ import {
   TAB_OPTIONS,
 } from "@/components/seasonality/seasonality-types";
 import { mapApiResponse, fetchSeasonalityDirect } from "@/components/seasonality/seasonality-utils";
-import SymbolSearch from "@/components/ui/symbol-search";
 
 export default function SeasonalityPage() {
   const { hasAccess, loading: subLoading } = useSubscription();
@@ -28,7 +29,7 @@ export default function SeasonalityPage() {
   const colors = getChartColors(theme);
 
   const [symbol, setSymbol] = useState("BTC");
-  const [lookback, setLookback] = useState<LookbackPeriod>("3Y");
+  const [lookback, setLookback] = useState<LookbackPeriod>("1Y");
   const [activeTab, setActiveTab] = useState<SeasonalityTab>("monthly");
   const [data, setData] = useState<SeasonalityData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +40,6 @@ export default function SeasonalityPage() {
     setLoading(true);
     setError(null);
     try {
-      // Try API route first (server-side, has CoinGecko API key)
       const res = await fetch(
         `/api/market/seasonality?symbol=${encodeURIComponent(sym)}&days=${days}`
       );
@@ -47,7 +47,6 @@ export default function SeasonalityPage() {
       const json = await res.json();
       setData(mapApiResponse(json));
     } catch {
-      // Fallback: direct CoinGecko fetch from browser
       try {
         const directData = await fetchSeasonalityDirect(sym, days);
         setData(directData);
@@ -73,7 +72,7 @@ export default function SeasonalityPage() {
   if (!hasAccess("advanced-analytics")) return <UpgradePrompt feature="advanced-analytics" requiredTier="pro" />;
 
   return (
-    <div className="space-y-5 mx-auto max-w-[1600px]">
+    <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
 
       {/* Title */}
@@ -88,93 +87,98 @@ export default function SeasonalityPage() {
         </p>
       </div>
 
-      {/* Symbol Search + Controls */}
-      <div className="flex flex-wrap gap-3 items-start">
-        <SymbolSearch
-          mode="crypto"
-          value={symbol}
-          onSelect={handleSymbolSelect}
-          placeholder="Search any crypto..."
-        />
+      {/* ── Market Overview (TradingView charts) ── */}
+      <MarketOverview />
 
-        {/* Lookback period */}
-        <div className="flex gap-1 rounded-xl border border-border/50 p-1 glass ml-auto">
-          {(["1Y", "2Y", "3Y", "5Y"] as LookbackPeriod[]).map((period) => (
+      {/* ── Coin Seasonality ── */}
+      <div className="border-t border-border/30 pt-6 space-y-5">
+        <h3 className="text-sm font-semibold text-muted uppercase tracking-wider">
+          Coin Seasonality
+        </h3>
+
+        {/* Coin selector + Lookback controls */}
+        <div className="flex flex-wrap gap-3 items-center">
+          <CoinSelector value={symbol} onSelect={handleSymbolSelect} />
+
+          {/* Lookback period */}
+          <div className="flex gap-1 rounded-xl border border-border/50 p-1 glass ml-auto">
+            {(["1Y", "2Y", "3Y", "5Y", "MAX"] as LookbackPeriod[]).map((period) => (
+              <button
+                key={period}
+                onClick={() => setLookback(period)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  lookback === period
+                    ? "bg-accent/10 text-accent shadow-sm"
+                    : "text-muted hover:text-foreground hover:bg-surface-hover"
+                }`}
+              >
+                {period}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex gap-1 rounded-xl border border-border/50 p-1 glass w-fit">
+          {TAB_OPTIONS.map((tab) => (
             <button
-              key={period}
-              onClick={() => setLookback(period)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                lookback === period
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === tab.value
                   ? "bg-accent/10 text-accent shadow-sm"
                   : "text-muted hover:text-foreground hover:bg-surface-hover"
               }`}
             >
-              {period}
+              {tab.label}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 rounded-xl border border-border/50 p-1 glass w-fit">
-        {TAB_OPTIONS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === tab.value
-                ? "bg-accent/10 text-accent shadow-sm"
-                : "text-muted hover:text-foreground hover:bg-surface-hover"
-            }`}
+        {/* Error */}
+        {error && (
+          <div className="rounded-xl border border-loss/20 bg-loss/5 p-3 text-sm text-loss">{error}</div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 size={24} className="animate-spin text-accent" />
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !data && !error && (
+          <div
+            className="glass rounded-2xl border border-border/50 p-12 flex flex-col items-center justify-center text-center"
+            style={{ boxShadow: "var(--shadow-card)" }}
           >
-            {tab.label}
-          </button>
-        ))}
+            <CalendarDays size={48} className="text-accent/30 mb-4" />
+            <h3 className="text-lg font-bold text-foreground mb-2">No Seasonality Data</h3>
+            <p className="text-sm text-muted max-w-xs">
+              Select a coin above to analyze historical return patterns.
+            </p>
+          </div>
+        )}
+
+        {/* Tab content */}
+        {!loading && data && (
+          <>
+            {activeTab === "monthly" && (
+              <MonthlyReturnsTab data={data.monthly} symbol={symbol} colors={colors} />
+            )}
+            {activeTab === "weekday" && (
+              <DayOfWeekTab data={data.weekday} symbol={symbol} colors={colors} />
+            )}
+            {activeTab === "heatmap" && (
+              <HeatmapTab data={data.monthlyByYear} symbol={symbol} />
+            )}
+            {activeTab === "comparison" && (
+              <YearComparisonTab data={data.yearlyPriceNormalized} symbol={symbol} colors={colors} />
+            )}
+          </>
+        )}
       </div>
-
-      {/* Error */}
-      {error && (
-        <div className="rounded-xl border border-loss/20 bg-loss/5 p-3 text-sm text-loss">{error}</div>
-      )}
-
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 size={24} className="animate-spin text-accent" />
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!loading && !data && !error && (
-        <div
-          className="glass rounded-2xl border border-border/50 p-12 flex flex-col items-center justify-center text-center"
-          style={{ boxShadow: "var(--shadow-card)" }}
-        >
-          <CalendarDays size={48} className="text-accent/30 mb-4" />
-          <h3 className="text-lg font-bold text-foreground mb-2">No Seasonality Data</h3>
-          <p className="text-sm text-muted max-w-xs">
-            Enter a symbol above to analyze historical return patterns.
-          </p>
-        </div>
-      )}
-
-      {/* Tab content */}
-      {!loading && data && (
-        <>
-          {activeTab === "monthly" && (
-            <MonthlyReturnsTab data={data.monthly} symbol={symbol} colors={colors} />
-          )}
-          {activeTab === "weekday" && (
-            <DayOfWeekTab data={data.weekday} symbol={symbol} colors={colors} />
-          )}
-          {activeTab === "heatmap" && (
-            <HeatmapTab data={data.monthlyByYear} symbol={symbol} />
-          )}
-          {activeTab === "comparison" && (
-            <YearComparisonTab data={data.yearlyPriceNormalized} symbol={symbol} colors={colors} />
-          )}
-        </>
-      )}
     </div>
   );
 }

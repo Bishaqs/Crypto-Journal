@@ -37,6 +37,8 @@ import { getChartColors } from "@/lib/chart-colors";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { FeatureInfoBox } from "@/components/ui/feature-info-box";
+import { FEATURE_INFO } from "@/lib/feature-info-content";
 
 interface SimSlot {
   id: number;
@@ -148,6 +150,8 @@ export default function MultiSimulatorPage() {
           Compare multiple Monte Carlo scenarios side by side
         </p>
       </div>
+
+      <FeatureInfoBox variant="dashboard" {...FEATURE_INFO["multi-simulator"]} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Controls */}

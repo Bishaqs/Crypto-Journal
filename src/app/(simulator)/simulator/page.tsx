@@ -4,6 +4,8 @@ import { useReducer, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, RotateCcw, Maximize2, PanelRight } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { FeatureInfoBox } from "@/components/ui/feature-info-box";
+import { FEATURE_INFO } from "@/lib/feature-info-content";
 import ChartContainer from "@/components/simulator/chart-container";
 import PlaybackControls from "@/components/simulator/playback-controls";
 import OrderPanel from "@/components/simulator/order-panel";
@@ -570,6 +572,8 @@ export default function PaperTradingPage() {
           </button>
         </div>
       </div>
+
+      <FeatureInfoBox variant="simulator" {...FEATURE_INFO["paper-trading"]} />
 
       {/* Main Content */}
       <div className="flex flex-1 min-h-0">

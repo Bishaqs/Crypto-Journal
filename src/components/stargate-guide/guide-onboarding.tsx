@@ -291,20 +291,20 @@ const REFERRAL_SOURCES = [
   { value: "Reddit", icon: RedditIcon },
   { value: "Google", icon: GoogleIcon },
   { value: "Discord", icon: DiscordIcon },
-  { value: "A Friend", lucideIcon: Users },
-  { value: "Other", lucideIcon: HelpCircle },
+  { value: "A Friend", lucideIcon: Users, labelKey: "onboarding.aFriend" },
+  { value: "Other", lucideIcon: HelpCircle, labelKey: "onboarding.other" },
 ] as const;
 
-/* ── Guide speech lines per step ────────────────── */
-const GUIDE_SPEECH = [
-  "Welcome to Stargate! I'm Nova, your trading companion. Let's get you set up.",
+/* ── Guide speech keys per step (resolved via i18n) ── */
+const GUIDE_SPEECH_KEYS = [
+  "onboarding.speech0",
   "", // dynamic — uses name
-  "How do you trade?",
-  "Where do you execute your trades?",
-  "What instruments do you trade?",
-  "What do you want to achieve with Stargate?",
-  "Almost done! Let's personalize your experience.",
-  "Last one — how did you find us?",
+  "onboarding.speech2",
+  "onboarding.speech3",
+  "onboarding.speech4",
+  "onboarding.speech5",
+  "onboarding.speech6",
+  "onboarding.speech7",
 ];
 
 /* ── Main Component ─────────────────────────────── */
@@ -403,10 +403,11 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
   function getSpeech(): string {
     if (step === 1) {
       return data.displayName.trim()
-        ? `Nice to meet you, ${data.displayName.trim()}! How long have you been trading?`
-        : "What should I call you?";
+        ? t("onboarding.speech1WithName", { name: data.displayName.trim() })
+        : t("onboarding.speech1NoName");
     }
-    return GUIDE_SPEECH[step];
+    const key = GUIDE_SPEECH_KEYS[step];
+    return key ? t(key) : "";
   }
 
   /* ── Step content (inside the speech bubble) ──── */
@@ -491,7 +492,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <label className="block text-xs text-muted mb-1.5 font-medium">
-                  Experience Level
+                  {t("onboarding.experienceLevel")}
                 </label>
                 <motion.div
                   className="grid grid-cols-2 gap-2"
@@ -500,10 +501,10 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                   animate="center"
                 >
                   {[
-                    { value: "beginner", label: "Newbie", desc: "Just starting", icon: Sprout },
-                    { value: "intermediate", label: "Climbing", desc: "1-2 years", icon: Mountain },
-                    { value: "advanced", label: "Ninja", desc: "3-5 years", icon: Swords },
-                    { value: "professional", label: "Monk", desc: "5+ years", icon: Brain },
+                    { value: "beginner", label: t("onboarding.newbie"), desc: t("onboarding.newbieDesc"), icon: Sprout },
+                    { value: "intermediate", label: t("onboarding.climbing"), desc: t("onboarding.climbingDesc"), icon: Mountain },
+                    { value: "advanced", label: t("onboarding.ninja"), desc: t("onboarding.ninjaDesc"), icon: Swords },
+                    { value: "professional", label: t("onboarding.monk"), desc: t("onboarding.monkDesc"), icon: Brain },
                   ].map((opt) => (
                     <motion.button
                       key={opt.value}
@@ -549,9 +550,9 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
             animate="center"
           >
             {[
-              { value: "personal", label: "Personal", desc: "Trading with your own capital", icon: User },
-              { value: "prop-firm", label: "Prop Firm", desc: "Trading a funded account", icon: Building },
-              { value: "exploring", label: "Not Started", desc: "Still exploring trading", icon: HelpCircle },
+              { value: "personal", label: t("onboarding.personal"), desc: t("onboarding.personalDesc"), icon: User },
+              { value: "prop-firm", label: t("onboarding.propFirm"), desc: t("onboarding.propFirmDesc"), icon: Building },
+              { value: "exploring", label: t("onboarding.notStarted"), desc: t("onboarding.notStartedDesc"), icon: HelpCircle },
             ].map((opt) => (
               <motion.button
                 key={opt.value}
@@ -592,7 +593,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
               className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-border bg-surface text-foreground text-xs focus:border-accent focus:outline-none transition-colors"
             >
               <span className={data.broker ? "text-foreground" : "text-muted"}>
-                {data.broker || "Select your broker"}
+                {data.broker || t("onboarding.selectBroker")}
               </span>
               <ChevronDown
                 size={14}
@@ -625,7 +626,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                   </div>
                 ))}
                 <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-muted/60 font-semibold">
-                  Other
+                  {t("onboarding.other")}
                 </div>
                 <button
                   onClick={() => {
@@ -634,7 +635,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                   }}
                   className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-accent/10 transition-colors"
                 >
-                  Other / Not listed
+                  {t("onboarding.otherBroker")}
                 </button>
               </div>
             )}
@@ -684,10 +685,10 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
             animate="center"
           >
             {[
-              { value: "journal", label: "Journal Trades", icon: BookOpen },
-              { value: "analyze", label: "Analyze", icon: BarChart3 },
-              { value: "backtest", label: "Backtest", icon: Target },
-              { value: "learn", label: "Learn", icon: GraduationCap },
+              { value: "journal", label: t("onboarding.journalTrades"), icon: BookOpen },
+              { value: "analyze", label: t("onboarding.analyze"), icon: BarChart3 },
+              { value: "backtest", label: t("onboarding.backtest"), icon: Target },
+              { value: "learn", label: t("onboarding.learn"), icon: GraduationCap },
             ].map((opt) => (
               <motion.button
                 key={opt.value}
@@ -726,7 +727,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
           <div className="space-y-4">
             <div>
               <label className="block text-xs text-muted mb-1.5 font-medium">
-                Risk Tolerance
+                {t("onboarding.riskTolerance")}
               </label>
               <motion.div
                 className="grid grid-cols-3 gap-2"
@@ -735,9 +736,9 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                 animate="center"
               >
                 {[
-                  { value: "conservative", label: "Safe", icon: Shield },
-                  { value: "moderate", label: "Moderate", icon: Gauge },
-                  { value: "aggressive", label: "Aggressive", icon: Flame },
+                  { value: "conservative", label: t("onboarding.safe"), icon: Shield },
+                  { value: "moderate", label: t("onboarding.moderate"), icon: Gauge },
+                  { value: "aggressive", label: t("onboarding.aggressive"), icon: Flame },
                 ].map((opt) => (
                   <motion.button
                     key={opt.value}
@@ -770,7 +771,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
             </div>
             <div>
               <label className="block text-xs text-muted mb-1.5 font-medium">
-                Preferred Analytics (optional)
+                {t("onboarding.preferredAnalytics")}
               </label>
               <motion.div
                 className="flex flex-wrap gap-1.5"
@@ -843,7 +844,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                       selected ? "text-accent" : "text-foreground"
                     }`}
                   >
-                    {src.value}
+                    {"labelKey" in src ? t(src.labelKey) : src.value}
                   </span>
                 </motion.button>
               );
@@ -965,7 +966,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                     className="mt-8"
                   >
                     <TypewriterText
-                      text="Welcome to Stargate"
+                      text={t("onboarding.welcomeTitle")}
                       speed={50}
                       className="text-2xl font-bold text-foreground text-center block"
                     />
@@ -975,7 +976,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                       transition={{ delay: 1.5 }}
                       className="text-xs text-muted text-center mt-3"
                     >
-                      tap to skip
+                      {t("onboarding.tapToSkip")}
                     </motion.p>
                   </motion.div>
                 )}
@@ -1012,7 +1013,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                   animate={{ opacity: 1, y: 0 }}
                   className="text-[10px] text-muted/50 text-center mb-4 uppercase tracking-wider font-semibold"
                 >
-                  Step {step + 1} of {TOTAL_STEPS}
+                  {t("onboarding.stepOf", { current: String(step + 1), total: String(TOTAL_STEPS) })}
                 </motion.p>
 
                 {/* Guide character — lively layered animations */}
@@ -1107,7 +1108,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                       className="flex items-center gap-2 text-sm text-muted hover:text-foreground transition-colors"
                     >
                       <ArrowLeft size={16} />
-                      Back
+                      {t("onboarding.navBack")}
                     </motion.button>
                   ) : (
                     <div />
@@ -1126,11 +1127,11 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
                     {isLast ? (
                       <>
                         <CheckCircle2 size={16} />
-                        Let&apos;s Go!
+                        {t("onboarding.letsGoFinal")}
                       </>
                     ) : (
                       <>
-                        {step === 0 ? "Let's Go" : "Continue"}
+                        {step === 0 ? t("onboarding.letsGo") : t("onboarding.navContinue")}
                         <ArrowRight size={16} />
                       </>
                     )}

@@ -149,8 +149,13 @@ export function Header() {
           >
             <Palette size={14} />
             <div
-              className="w-2.5 h-2.5 rounded-full border border-border/50"
-              style={{ background: currentTheme?.dot }}
+              className="w-2.5 h-2.5 rounded-full"
+              style={{
+                background: currentTheme?.dot,
+                border: (theme === "light" || theme === "dark-simple")
+                  ? "1.5px solid #888"
+                  : "1px solid rgba(255,255,255,0.15)",
+              }}
             />
           </button>
           {showThemes && (
@@ -180,8 +185,14 @@ export function Header() {
                       }`}
                     >
                       <div
-                        className="w-3 h-3 rounded-full border border-border/50 shrink-0"
-                        style={{ background: isLocked ? "#444" : t.dot, boxShadow: theme === t.value ? `0 0 8px ${t.dot}60` : "none" }}
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{
+                          background: isLocked ? "#444" : t.dot,
+                          border: (t.value === "light" || t.value === "dark-simple")
+                            ? "1.5px solid #888"
+                            : "1px solid rgba(255,255,255,0.15)",
+                          boxShadow: theme === t.value ? `0 0 8px ${t.dot}60` : "none",
+                        }}
                       />
                       {t.label}
                       {isLocked && <span className="text-[10px] text-amber-400/60 ml-auto">🔒 100%</span>}

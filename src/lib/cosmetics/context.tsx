@@ -52,6 +52,7 @@ const DEFAULT_EQUIPPED: EquippedCosmetics = {
   sidebar_flair: null,
   avatar_icon: null,
   theme_accent: null,
+  name_style: null,
 };
 
 const CosmeticContext = createContext<CosmeticContextType>({
@@ -91,7 +92,7 @@ export function CosmeticProvider({ children, userId: initialUserId }: { children
       // Fetch definitions (catalog)
       const { data: defs } = await supabase
         .from("cosmetic_definitions")
-        .select("id, name, type, rarity, icon, description, unlock_conditions")
+        .select("id, name, type, rarity, css_class, description, unlock_condition")
         .order("type")
         .order("rarity")
         .limit(500);
@@ -168,8 +169,13 @@ export function CosmeticProvider({ children, userId: initialUserId }: { children
 
   // Apply accent color globally whenever equipped accent changes
   useEffect(() => {
-    applyAccentOverride(equipped.theme_accent);
-  }, [equipped.theme_accent]);
+    if (equipped.theme_accent) {
+      const def = definitions.find((d) => d.id === equipped.theme_accent);
+      applyAccentOverride(def?.css_class ?? null);
+    } else {
+      applyAccentOverride(null);
+    }
+  }, [equipped.theme_accent, definitions]);
 
   const isOwned = useCallback(
     (cosmeticId: string) => isOwner || owned.some((o) => o.cosmetic_id === cosmeticId),

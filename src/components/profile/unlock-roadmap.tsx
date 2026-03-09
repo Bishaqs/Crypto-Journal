@@ -14,6 +14,7 @@ const RARITY_META: Record<CosmeticRarity, { label: string; text: string; dot: st
   rare: { label: "Rare", text: "text-blue-400", dot: "bg-blue-400" },
   epic: { label: "Epic", text: "text-purple-400", dot: "bg-purple-400" },
   legendary: { label: "Legendary", text: "text-amber-400", dot: "bg-amber-400" },
+  mythic: { label: "Mythic", text: "text-red-400", dot: "bg-red-400" },
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -23,6 +24,7 @@ const TYPE_LABEL: Record<string, string> = {
   sidebar_flair: "Flair",
   avatar_icon: "Icon",
   theme_accent: "Accent",
+  name_style: "Name",
 };
 
 type Filter = "all" | "owned" | "locked";
@@ -62,6 +64,12 @@ function CosmeticPreviewSmall({ cosmetic }: { cosmetic: CosmeticDefinition }) {
       return (
         <span className={`text-[10px] font-bold ${RARITY_META[cosmetic.rarity].text}`}>
           {cosmetic.name.slice(0, 6)}
+        </span>
+      );
+    case "name_style":
+      return (
+        <span className={`text-[10px] font-bold ${cosmetic.css_class ?? "text-foreground"}`}>
+          Aa
         </span>
       );
     default:

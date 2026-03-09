@@ -5013,6 +5013,90 @@ export const FAQ_ENTRIES: FaqEntry[] = [
     relatedIds: ["rm-stop-loss", "gl-slippage", "tj-edit-trade"],
   },
 
+  // ═══════════════════════════════════════════
+  // SUPPORT & CONTACT (NEW)
+  // ═══════════════════════════════════════════
+  {
+    id: "sup-human-support",
+    question: "Can I talk to a real person for support?",
+    answer: "Yes! Stargate offers live human support. Click the <strong>Nova</strong> guide (the floating circle in the bottom-right corner), then select <strong>Live Support</strong>. During support hours (12:00 PM – 10:00 PM CET, every day), you can start a real-time conversation and get a personal reply. Outside of those hours, you can leave a message and we'll respond when we're back online. You can also email us at <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a>.",
+    category: "getting-started",
+    tags: ["support", "human", "live chat", "contact", "help", "person", "real", "talk"],
+    relatedIds: ["sup-support-hours", "sup-email-support", "sup-nova-guide"],
+  },
+  {
+    id: "sup-support-hours",
+    question: "What are the support hours?",
+    answer: "Live support is available every day from <strong>12:00 PM to 10:00 PM CET</strong> (Central European Time). During these hours, you'll see a green dot on the Live Support option in Nova's menu, indicating that someone is online to help. Outside of these hours, you can still leave a message — we'll respond as soon as we're back.",
+    category: "getting-started",
+    tags: ["support hours", "availability", "time", "CET", "online", "offline", "when"],
+    relatedIds: ["sup-human-support", "sup-email-support"],
+  },
+  {
+    id: "sup-email-support",
+    question: "How do I contact support by email?",
+    answer: "You can email us any time at <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a>. We typically respond within 24 hours. For faster help during support hours (12:00 PM – 10:00 PM CET), use the Live Support chat in Nova's menu.",
+    category: "getting-started",
+    tags: ["email", "contact", "support", "help", "reach out"],
+    relatedIds: ["sup-human-support", "sup-support-hours"],
+  },
+  {
+    id: "sup-nova-guide",
+    question: "What is Nova and how do I use it?",
+    answer: "Nova is your personal trading companion — the floating guide character in the bottom-right corner of the dashboard. Click Nova to open the menu where you can:<ul><li><strong>Log a Feeling</strong> — Quick emotion tracking</li><li><strong>Log a Trade</strong> — Jump straight to trade entry</li><li><strong>Quick Chat</strong> — Ask questions about Stargate features</li><li><strong>Live Support</strong> — Chat with a real person during support hours</li><li><strong>Replay Tours</strong> — Re-learn any page with guided walkthroughs</li></ul>Nova also guides you through onboarding when you first join and highlights new features on each page.",
+    category: "getting-started",
+    tags: ["nova", "guide", "floating", "widget", "companion", "assistant", "bottom right"],
+    relatedIds: ["sup-human-support", "gs-onboarding", "gs-first-trade"],
+  },
+  {
+    id: "sup-submit-question",
+    question: "How do I suggest a new FAQ topic?",
+    answer: "If you ask a question in Nova's Quick Chat or the Help Center and we don't have an answer yet, you'll see a <strong>Submit this question to our team</strong> button. Click it and your question will be reviewed by our team. If it's a common question, we'll write an answer and add it to the FAQ so everyone benefits. You can also submit feature requests or general feedback via the <strong>Feedback</strong> page in the sidebar.",
+    category: "getting-started",
+    tags: ["suggest", "faq", "new question", "submit", "feedback", "request"],
+    relatedIds: ["sup-human-support", "sup-nova-guide"],
+  },
+  {
+    id: "gs-onboarding",
+    question: "I skipped the onboarding. Can I redo it?",
+    answer: "Yes! Click on Nova (the floating guide in the bottom-right corner) and select <strong>Replay Welcome Tour</strong> from the menu. This will walk you through the full dashboard introduction again. You can also replay individual page tours by clicking <strong>Replay Page Tour</strong> when you're on any page.",
+    category: "getting-started",
+    tags: ["onboarding", "redo", "replay", "tour", "welcome", "skipped", "missed"],
+    relatedIds: ["sup-nova-guide", "gs-first-trade"],
+  },
+  {
+    id: "gs-mobile-use",
+    question: "Can I use Stargate on my phone or tablet?",
+    answer: "Yes! Stargate is fully responsive and works in any mobile browser. Navigate to <strong>stargate-journal.vercel.app</strong> on your phone and log in. The interface automatically adjusts for smaller screens. For the best mobile experience, you can add Stargate to your home screen — in Safari, tap the Share button and select <strong>Add to Home Screen</strong>. On Android Chrome, tap the three-dot menu and select <strong>Add to Home Screen</strong>.",
+    category: "apps",
+    tags: ["mobile", "phone", "tablet", "responsive", "pwa", "home screen", "ios", "android"],
+    relatedIds: ["gs-create-account", "sup-human-support"],
+  },
+  {
+    id: "gs-data-export",
+    question: "Can I export my trading data?",
+    answer: "Currently, your trading data is stored securely in Stargate's database. Data export functionality is on our roadmap. If you need your data urgently, contact support at <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a> and we can help you get your data.",
+    category: "privacy-security",
+    tags: ["export", "download", "data", "csv", "backup", "privacy"],
+    relatedIds: ["sup-email-support", "sup-human-support"],
+  },
+  {
+    id: "gs-delete-account",
+    question: "How do I delete my account and data?",
+    answer: "To delete your account and all associated data, please email <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a> with the subject line <strong>Account Deletion Request</strong>. Include the email address associated with your account. We will process your request and permanently delete all your data within 30 days, in compliance with GDPR.",
+    category: "privacy-security",
+    tags: ["delete", "account", "data", "gdpr", "privacy", "remove", "close"],
+    relatedIds: ["gs-data-export", "sup-email-support"],
+  },
+  {
+    id: "bill-free-features",
+    question: "What features are included in the free plan?",
+    answer: "The free plan gives you access to core features including trade logging, basic analytics, the journal, calendar view, emotion tracking, and the AI Coach. Premium features like advanced analytics, behavioral insights, and extended chart data are available on paid tiers. Check the pricing page in Settings for full details on what's included in each plan.",
+    category: "billing",
+    tags: ["free", "plan", "features", "pricing", "tier", "included", "cost"],
+    relatedIds: ["sup-human-support"],
+  },
+
 ];
 
 export const FAQ_MAP: Record<string, FaqEntry> = Object.fromEntries(

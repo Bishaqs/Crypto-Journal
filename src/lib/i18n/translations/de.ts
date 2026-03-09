@@ -62,6 +62,68 @@ const de = {
     goToDashboard: "Zum Dashboard",
     skipOnboarding: "Einführung überspringen",
     language: "Sprache",
+
+    // Guide speech (per step)
+    speech0: "Willkommen bei Stargate! Ich bin Nova, dein Trading-Begleiter. Lass uns loslegen.",
+    speech1WithName: "Schön dich kennenzulernen, {name}! Wie lange tradest du schon?",
+    speech1NoName: "Wie soll ich dich nennen?",
+    speech2: "Wie tradest du?",
+    speech3: "Wo führst du deine Trades aus?",
+    speech4: "Welche Instrumente tradest du?",
+    speech5: "Was möchtest du mit Stargate erreichen?",
+    speech6: "Fast geschafft! Lass uns dein Erlebnis anpassen.",
+    speech7: "Letzte Frage — wie hast du uns gefunden?",
+
+    // Intro cinematic
+    welcomeTitle: "Willkommen bei Stargate",
+    tapToSkip: "Tippen zum Überspringen",
+
+    // Step indicator + navigation
+    stepOf: "Schritt {current} von {total}",
+    navBack: "Zurück",
+    navContinue: "Weiter",
+    letsGo: "Los geht's",
+    letsGoFinal: "Los geht's!",
+
+    // Step 1: Experience
+    experienceLevel: "Erfahrungsstufe",
+    newbie: "Neuling",
+    newbieDesc: "Gerade erst angefangen",
+    climbing: "Aufsteigend",
+    climbingDesc: "1-2 Jahre",
+    ninja: "Ninja",
+    ninjaDesc: "3-5 Jahre",
+    monk: "Meister",
+    monkDesc: "5+ Jahre",
+
+    // Step 2: Account type
+    personal: "Privat",
+    personalDesc: "Trading mit eigenem Kapital",
+    propFirm: "Prop Firm",
+    propFirmDesc: "Trading mit einem finanzierten Konto",
+    notStarted: "Noch nicht begonnen",
+    notStartedDesc: "Erkunde noch das Trading",
+
+    // Step 3: Broker
+    selectBroker: "Wähle deinen Broker",
+    otherBroker: "Andere / Nicht aufgeführt",
+
+    // Step 5: Goals
+    journalTrades: "Trades dokumentieren",
+    analyze: "Analysieren",
+    backtest: "Backtesting",
+    learn: "Lernen",
+
+    // Step 6: Risk
+    riskTolerance: "Risikotoleranz",
+    safe: "Sicher",
+    moderate: "Moderat",
+    aggressive: "Aggressiv",
+    preferredAnalytics: "Bevorzugte Analysen (optional)",
+
+    // Step 7: Referral
+    aFriend: "Ein Freund",
+    other: "Andere",
   },
 
   sidebar: {
@@ -75,11 +137,14 @@ const de = {
     watchlist: "Watchlist",
     settings: "Einstellungen",
     admin: "Administration",
+    quests: "Aufgaben",
+    achievements: "Erfolge",
     leaderboard: "Bestenliste",
     performanceAnalysis: "Performance & Analyse",
     intelligence: "Intelligenz",
     marketTools: "Markt & Werkzeuge",
     tools: "Werkzeuge",
+    compete: "Wettbewerb",
     discipline: "Disziplin",
     reports: "Berichte",
     performance: "Performance",
@@ -139,6 +204,8 @@ const de = {
     full: "Erweitert",
     cryptoLabel: "Crypto",
     stocksLabel: "Aktien",
+    commoditiesLabel: "Rohstoffe",
+    forexLabel: "Forex",
     stockUpgradeMsg: "Aktien-Tracking erfordert das Aktien-Add-on oder den Max-Plan.",
     upgradeNow: "Jetzt upgraden",
     logOutConfirmTitle: "Abmelden?",
@@ -215,6 +282,54 @@ const de = {
     goodToTrade: "Bereit zum Traden",
     caution: "Mit Vorsicht fortfahren",
     stepAway: "Abstand nehmen",
+  },
+
+  tours: {
+    skipTour: "Tour überspringen",
+    welcome: {
+      step0Title: "Bereit zum Abheben?",
+      step0Content: "Komm mit. Ich bin Nova und zeige dir alles, was du brauchst, um ein profitabler Trader zu werden.",
+      step1Title: "Willkommen bei Stargate!",
+      step1Content: "Hey! Ich bin Nova, dein Trading-Begleiter. Lass mich dir alles zeigen. Das dauert etwa 2 Minuten, und du kannst jederzeit überspringen.",
+      step2Title: "Dashboard",
+      step2Content: "Das ist deine Zentrale. P&L, Trefferquote und Equity-Kurve aktualisieren sich live, wenn du Trades erfasst.",
+      step3Title: "Trade-Protokoll",
+      step3Content: "Hier landen alle deine Trades. Filtere nach Datum, Emotion oder Coin. Klicke auf eine Zeile für das vollständige Bild.",
+      step4Title: "Journal",
+      step4Content: "Schreibe tägliche Reflexionen. Was gut lief, was schiefging. Mit der Zeit erkennst du Muster in deinem eigenen Denken.",
+      step5Title: "Kalender",
+      step5Content: "Grüner Tag, roter Tag, auf einen Blick. Du siehst schnell, ob Montage gut oder Freitage schlecht sind.",
+      step6Title: "Tradingpläne",
+      step6Content: "Plane vor dem Trade. Setze Einstieg, Ziel und Stop. Danach bewerte, wie gut du dem Plan gefolgt bist.",
+      step7Title: "Erfolge",
+      step7Content: "Verdiene Abzeichen für deine Trading-Meilensteine — Journal-Streaks, Trefferquoten, Risikomanagement. Verfolge dein Wachstum als Trader.",
+      step8Title: "Analysen",
+      step8Content: "50+ Kennzahlen. P&L nach Stunde, Setup und Paar. Hör auf zu raten und finde heraus, wo dein Vorteil liegt.",
+      step9Title: "Erkenntnisse",
+      step9Content: "Wie beeinflussen deine Emotionen dein P&L? Welche Stimmungen führen zu deinen besten Trades? Diese Seite hat die Antworten.",
+      step10Title: "KI-Coach",
+      step10Content: "Frag ihn alles über dein Trading. Für einen persönlichen KI-Coach verbinde deinen eigenen API-Key in den Einstellungen — deine Daten bleiben sicher und privat.",
+      step11Title: "Einfach- & Erweiterter Modus",
+      step11Content: "Du bist im Einfach-Modus mit 6 Kerntools. Wechsle zu Erweitert für Prop-Firm-Tracking, Monte-Carlo-Sims, Heatmaps und mehr.",
+      step12Title: "Deine Schlüsselkennzahlen",
+      step12Content: "Trefferquote, P&L, Gewinnfaktor, maximaler Drawdown. Diese vier Zahlen erzählen die ganze Geschichte. Sie aktualisieren sich beim Traden.",
+      step13Title: "Equity-Kurve",
+      step13Content: "Dein kumuliertes P&L über die Zeit. Eine steigende Linie bedeutet, du hast einen Vorteil. Scharfe Einbrüche zeigen deine Drawdowns.",
+      step14Title: "Tägliches P&L",
+      step14Content: "Jeder Balken ist ein Tag. Grün über null bedeutet Gewinn. Kleine, stetige Balken schlagen große, volatile — immer.",
+      step15Title: "Letzte Trades",
+      step15Content: "Deine letzten Trades mit P&L und Emotions-Tags. Klicke auf eine Zeile und bemerke den Unterschied zwischen ruhigen und ängstlichen Trades.",
+      step16Title: "Journal-Streak",
+      step16Content: "Wie ein Duolingo-Streak, aber fürs Trading. Journale jeden Tag und sieh zu, wie sich die Daten summieren.",
+      step17Title: "Kalender-Heatmap",
+      step17Content: "Grün bedeutet Gewinn, Rot bedeutet Verlust, Grau bedeutet keine Trades. Du erkennst heiße Phasen auf einen Blick.",
+      step18Title: "KI-Erkenntnisse",
+      step18Content: "Nova fasst deine letzten Trading-Muster zusammen: Streaks, emotionale Tendenzen und versteckte Lecks. Schau hier für schnelle Einblicke ohne zu fragen.",
+      step19Title: "Apps",
+      step19Content: "15+ spezialisierte Tools — Paper Trading, Strategie-Backtester, Optionsanalyse, Saisonalitäts-Charts, P&L-Detailanalysen und mehr. Alles kostenlos.",
+      step20Title: "Alles bereit!",
+      step20Content: "Klicke auf Trade erfassen, um deinen ersten aufzuzeichnen. Jede Seite hat eine eigene Mini-Tour beim ersten Besuch. Ich bin Nova, klick mich jederzeit an, wenn du Hilfe brauchst. Jetzt los — trade!",
+    },
   },
 } as const;
 export default de;

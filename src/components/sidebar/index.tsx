@@ -14,7 +14,8 @@ import {
   getResolvedCoreItems,
 } from "./sidebar-data";
 import { useTheme } from "@/lib/theme-context";
-import { hasStockAccess } from "@/lib/addons";
+import { hasStockAccess, hasCommodityAccess, hasForexAccess } from "@/lib/addons";
+import type { AssetContext } from "@/lib/addons";
 import { createClient } from "@/lib/supabase/client";
 import { clearSubscriptionCache } from "@/lib/use-subscription";
 import { useSubscriptionContext } from "@/lib/subscription-context";
@@ -30,7 +31,7 @@ export function Sidebar() {
   /* ── State ─────────────────────────────────────── */
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [assetContext, setAssetContext] = useState<"crypto" | "stocks">("crypto");
+  const [assetContext, setAssetContext] = useState<AssetContext>("crypto");
   const [showStockUpgrade, setShowStockUpgrade] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [sectionState, setSectionState] = useState<Record<string, boolean>>({});
@@ -104,25 +105,44 @@ export function Sidebar() {
   }, [sectionState, activeCategory]);
 
   /* ── Asset context ─────────────────────────────── */
-  function handleAssetToggle(context: "crypto" | "stocks") {
+  function handleAssetToggle(context: AssetContext) {
     if (context === "stocks" && !hasStockAccess()) {
+      setShowStockUpgrade(true);
+      return;
+    }
+    if (context === "commodities" && !hasCommodityAccess()) {
+      setShowStockUpgrade(true);
+      return;
+    }
+    if (context === "forex" && !hasForexAccess()) {
       setShowStockUpgrade(true);
       return;
     }
     setShowStockUpgrade(false);
     setAssetContext(context);
     localStorage.setItem("stargate-asset-context", context);
+
+    // Navigate to the new asset's dashboard
+    const dashboardMap: Record<AssetContext, string> = {
+      crypto: "/dashboard",
+      stocks: "/dashboard/stocks",
+      commodities: "/dashboard/commodities",
+      forex: "/dashboard/forex",
+    };
+    router.push(dashboardMap[context]);
   }
 
   /* ── Init from localStorage ────────────────────── */
   useEffect(() => {
-    const savedContext = localStorage.getItem("stargate-asset-context");
-    if (savedContext === "crypto" || savedContext === "stocks") {
-      if (savedContext === "stocks" && hasStockAccess()) {
-        setAssetContext("stocks");
-      } else if (savedContext === "crypto") {
-        setAssetContext("crypto");
-      }
+    const savedContext = localStorage.getItem("stargate-asset-context") as AssetContext | null;
+    if (savedContext === "stocks" && hasStockAccess()) {
+      setAssetContext("stocks");
+    } else if (savedContext === "commodities" && hasCommodityAccess()) {
+      setAssetContext("commodities");
+    } else if (savedContext === "forex" && hasForexAccess()) {
+      setAssetContext("forex");
+    } else {
+      setAssetContext("crypto");
     }
     setSectionState(loadSectionState());
   }, []);
@@ -187,8 +207,11 @@ export function Sidebar() {
         activeCategory={activeCategory}
         onCategoryClick={handleCategoryClick}
         onDirectNav={handleDirectNav}
+        onCloseDrawer={() => setActiveCategory(null)}
         onLogout={() => setShowLogoutConfirm(true)}
         isOwner={isOwner}
+        assetContext={assetContext}
+        onAssetToggle={handleAssetToggle}
       />
 
       {/* Desktop Drawer */}

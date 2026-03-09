@@ -19,9 +19,12 @@ import {
   BarChart3,
   Target,
   Briefcase,
+  Plus,
+  LineChart,
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { StockTradeForm } from "@/components/stock-trade-form";
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -226,6 +229,7 @@ const SECTOR_COLORS = [
 
 export default function StocksDashboardPage() {
   const [trades] = useState<StockTrade[]>(MOCK_STOCK_TRADES);
+  const [showForm, setShowForm] = useState(false);
   const session = getCurrentSession();
 
   // Closed trades only (have exit_price)
@@ -299,6 +303,14 @@ export default function StocksDashboardPage() {
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
 
+      {/* Asset Identity Badge */}
+      <div className="flex items-center justify-center py-1">
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-400/10 border border-blue-400/20">
+          <LineChart size={18} className="text-blue-400" />
+          <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Stocks</span>
+        </div>
+      </div>
+
       {/* Title & session indicator */}
       <div id="tour-stocks-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -314,6 +326,13 @@ export default function StocksDashboardPage() {
             {closedTrades.length} closed &middot; {openPositions} open
           </p>
         </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300 animate-[cosmic-pulse_3s_ease-in-out_infinite]"
+        >
+          <Plus size={18} />
+          Log Trade
+        </button>
       </div>
 
       {/* PDT Warning Banner */}
@@ -616,6 +635,14 @@ export default function StocksDashboardPage() {
           day trades in the current window.
         </p>
       </div>
+
+      {/* Stock trade form modal */}
+      {showForm && (
+        <StockTradeForm
+          onClose={() => setShowForm(false)}
+          onSaved={() => setShowForm(false)}
+        />
+      )}
     </div>
   );
 }

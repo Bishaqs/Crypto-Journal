@@ -68,6 +68,7 @@ export async function DELETE(req: NextRequest) {
     { table: "referral_links", column: "user_id" },
     { table: "referrals", column: "referrer_id" },
     { table: "referrals", column: "referred_user_id" },
+    { table: "discount_code_redemptions", column: "user_id" },
     { table: "invite_code_redemptions", column: "user_id" },
     { table: "user_templates", column: "user_id" },
     { table: "user_addons", column: "user_id" },
@@ -79,6 +80,8 @@ export async function DELETE(req: NextRequest) {
     { table: "account_snapshots", column: "user_id" },
     { table: "journal_notes", column: "user_id" },
     { table: "trades", column: "user_id" },
+    { table: "feedback_comments", column: "user_id" },
+    { table: "feedback", column: "user_id" },
     { table: "user_subscriptions", column: "user_id" },
   ];
 
@@ -89,8 +92,9 @@ export async function DELETE(req: NextRequest) {
     }
   }
 
-  // Nullify created_by on invite codes (don't delete the codes themselves)
+  // Nullify created_by on invite/discount codes (don't delete the codes themselves)
   await admin.from("invite_codes").update({ created_by: null }).eq("created_by", userId);
+  await admin.from("discount_codes").update({ created_by: null }).eq("created_by", userId);
 
   // Delete the auth user
   const { error } = await admin.auth.admin.deleteUser(userId);

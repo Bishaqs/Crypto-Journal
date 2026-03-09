@@ -2,22 +2,22 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 
-export type Theme = "dark" | "light" | "dark-simple" | "matrix" | "volcano" | "ocean" | "satoshi-gold";
+export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "midas";
 export type ViewMode = "simple" | "full";
 
 export const THEMES: { value: Theme; label: string; dot: string; locked?: boolean }[] = [
-  { value: "light", label: "Light", dot: "#eef0f4" },
-  { value: "dark-simple", label: "Dark", dot: "#1e1e1e" },
-  { value: "dark", label: "Space Purple", dot: "#8B5CF6" },
-  { value: "matrix", label: "Matrix", dot: "#22c55e" },
-  { value: "volcano", label: "Volcano", dot: "#f97316" },
-  { value: "ocean", label: "Deep Ocean", dot: "#0ea5e9" },
-  { value: "satoshi-gold", label: "Satoshi Gold", dot: "#f7931a", locked: true },
+  { value: "solara", label: "Solara", dot: "#eef0f4" },
+  { value: "obsidian", label: "Obsidian", dot: "#1e1e1e" },
+  { value: "nebula", label: "Nebula", dot: "#8B5CF6" },
+  { value: "cipher", label: "Cipher", dot: "#22c55e" },
+  { value: "vulcan", label: "Vulcan", dot: "#f97316" },
+  { value: "triton", label: "Triton", dot: "#0ea5e9" },
+  { value: "midas", label: "Midas", dot: "#f7931a", locked: true },
 ];
 
-export const FREE_THEMES: Theme[] = ["light", "dark-simple"];
-export const PRO_THEMES: Theme[] = ["dark", "matrix", "volcano", "ocean"];
-export const COMPLETIONIST_THEMES: Theme[] = ["satoshi-gold"];
+export const FREE_THEMES: Theme[] = ["solara", "obsidian"];
+export const PRO_THEMES: Theme[] = ["nebula", "cipher", "vulcan", "triton"];
+export const COMPLETIONIST_THEMES: Theme[] = ["midas"];
 
 export function isProTheme(theme: Theme): boolean {
   return PRO_THEMES.includes(theme);
@@ -41,7 +41,7 @@ type ThemeContextType = {
 };
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "dark",
+  theme: "obsidian",
   setTheme: () => {},
   toggleTheme: () => {},
   viewMode: "simple",
@@ -51,16 +51,33 @@ const ThemeContext = createContext<ThemeContextType>({
   setReducedMotion: () => {},
 });
 
-const ALL_THEME_CLASSES: Theme[] = ["dark", "light", "dark-simple", "matrix", "volcano", "ocean", "satoshi-gold"];
+const ALL_THEME_CLASSES: Theme[] = ["solara", "obsidian", "nebula", "cipher", "vulcan", "triton", "midas"];
+
+// Migration map for users with old theme names in localStorage
+const THEME_MIGRATION: Record<string, Theme> = {
+  "light": "solara",
+  "dark-simple": "obsidian",
+  "dark": "nebula",
+  "matrix": "cipher",
+  "volcano": "vulcan",
+  "ocean": "triton",
+  "satoshi-gold": "midas",
+};
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("obsidian");
   const [viewMode, setViewModeState] = useState<ViewMode>("simple");
   const [reducedMotion, setReducedMotionState] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("stargate-theme") as Theme | null;
-    if (saved && ALL_THEME_CLASSES.includes(saved)) setThemeState(saved);
+    const saved = localStorage.getItem("stargate-theme");
+    if (saved) {
+      const migrated = THEME_MIGRATION[saved] ?? saved;
+      if (ALL_THEME_CLASSES.includes(migrated as Theme)) {
+        setThemeState(migrated as Theme);
+        if (migrated !== saved) localStorage.setItem("stargate-theme", migrated);
+      }
+    }
     const savedMode = localStorage.getItem("stargate-mode") as string | null;
     if (savedMode === "advanced" || savedMode === "expert") {
       setViewModeState("full");

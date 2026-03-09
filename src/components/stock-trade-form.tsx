@@ -94,123 +94,127 @@ export function StockTradeForm({
     setErrors({});
     setSaving(true);
 
-    const formData = new FormData(e.currentTarget);
-    const raw = {
-      symbol: formData.get("symbol") as string,
-      asset_type: assetType,
-      position: formData.get("position") as string,
-      entry_price: formData.get("entry_price") as string,
-      exit_price: (formData.get("exit_price") as string) || undefined,
-      quantity: formData.get("quantity") as string,
-      fees: (formData.get("fees") as string) || "0",
-      open_timestamp: formData.get("open_timestamp") as string,
-      close_timestamp: (formData.get("close_timestamp") as string) || undefined,
-      sector: (formData.get("sector") as string) || undefined,
-      market_session: marketSession || undefined,
-      // Options fields
-      option_type: assetType === "option" ? optionType : undefined,
-      strike_price: assetType === "option" ? (formData.get("strike_price") as string) || undefined : undefined,
-      expiration_date: assetType === "option" ? (formData.get("expiration_date") as string) || undefined : undefined,
-      premium_per_contract: assetType === "option" ? (formData.get("premium_per_contract") as string) || undefined : undefined,
-      contracts: assetType === "option" ? (formData.get("contracts") as string) || undefined : undefined,
-      underlying_symbol: assetType === "option" ? (formData.get("underlying_symbol") as string) || undefined : undefined,
-      // Psychology
-      emotion: emotion || undefined,
-      confidence: confidence || undefined,
-      setup_type: setupType || undefined,
-      process_score: processScore || undefined,
-      checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
-      review: Object.values(review).some((v) => v.length > 0) ? review : undefined,
-      notes: (formData.get("notes") as string) || undefined,
-      tags,
-    };
+    try {
+      const formData = new FormData(e.currentTarget);
+      const raw = {
+        symbol: formData.get("symbol") as string,
+        asset_type: assetType,
+        position: formData.get("position") as string,
+        entry_price: formData.get("entry_price") as string,
+        exit_price: (formData.get("exit_price") as string) || undefined,
+        quantity: formData.get("quantity") as string,
+        fees: (formData.get("fees") as string) || "0",
+        open_timestamp: formData.get("open_timestamp") as string,
+        close_timestamp: (formData.get("close_timestamp") as string) || undefined,
+        sector: (formData.get("sector") as string) || undefined,
+        market_session: marketSession || undefined,
+        // Options fields
+        option_type: assetType === "option" ? optionType : undefined,
+        strike_price: assetType === "option" ? (formData.get("strike_price") as string) || undefined : undefined,
+        expiration_date: assetType === "option" ? (formData.get("expiration_date") as string) || undefined : undefined,
+        premium_per_contract: assetType === "option" ? (formData.get("premium_per_contract") as string) || undefined : undefined,
+        contracts: assetType === "option" ? (formData.get("contracts") as string) || undefined : undefined,
+        underlying_symbol: assetType === "option" ? (formData.get("underlying_symbol") as string) || undefined : undefined,
+        // Psychology
+        emotion: emotion || undefined,
+        confidence: confidence || undefined,
+        setup_type: setupType || undefined,
+        process_score: processScore || undefined,
+        checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
+        review: Object.values(review).some((v) => v.length > 0) ? review : undefined,
+        notes: (formData.get("notes") as string) || undefined,
+        tags,
+      };
 
-    const result = stockTradeSchema.safeParse(raw);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      for (const issue of result.error.issues) {
-        fieldErrors[issue.path[0] as string] = issue.message;
-      }
-      setErrors(fieldErrors);
-      setSaving(false);
-      return;
-    }
-
-    const data: StockTradeFormData = result.data;
-
-    let pnl: number | null = null;
-    if (data.exit_price && data.close_timestamp) {
-      pnl = calculatePnl(
-        data.position,
-        data.entry_price,
-        data.exit_price,
-        data.quantity,
-        data.fees,
-        data.asset_type === "option",
-        data.contracts,
-      );
-    }
-
-    const payload = {
-      symbol: data.symbol,
-      company_name: null,
-      asset_type: data.asset_type,
-      position: data.position,
-      entry_price: data.entry_price,
-      exit_price: data.exit_price ?? null,
-      quantity: data.quantity,
-      fees: data.fees,
-      open_timestamp: data.open_timestamp,
-      close_timestamp: data.close_timestamp ?? null,
-      sector: data.sector ?? null,
-      industry: null,
-      market_session: data.market_session ?? null,
-      option_type: data.option_type ?? null,
-      strike_price: data.strike_price ?? null,
-      expiration_date: data.expiration_date ?? null,
-      premium_per_contract: data.premium_per_contract ?? null,
-      contracts: data.contracts ?? null,
-      underlying_symbol: data.underlying_symbol ?? null,
-      emotion: data.emotion ?? null,
-      confidence: data.confidence ?? null,
-      setup_type: data.setup_type ?? null,
-      process_score: data.process_score ?? null,
-      checklist: data.checklist ?? null,
-      review: data.review ?? null,
-      notes: data.notes ?? null,
-      tags: data.tags,
-      pnl,
-    };
-
-    let error;
-    if (editTrade) {
-      ({ error } = await supabase
-        .from("stock_trades")
-        .update(payload)
-        .eq("id", editTrade.id));
-    } else {
-      ({ error } = await supabase.from("stock_trades").insert(payload));
-    }
-
-    if (error) {
-      setErrors({ _form: error.message });
-      setSaving(false);
-      return;
-    }
-
-    // Award XP for new stock trades
-    if (!editTrade) {
-      try {
-        const { awardXP } = await import("@/lib/xp/engine");
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await awardXP(supabase, user.id, payload.notes ? "trade_with_notes" : "trade_logged");
+      const result = stockTradeSchema.safeParse(raw);
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        for (const issue of result.error.issues) {
+          fieldErrors[issue.path[0] as string] = issue.message;
         }
-      } catch { /* XP tables may not exist yet */ }
-    }
+        setErrors(fieldErrors);
+        return;
+      }
 
-    onSaved();
-    onClose();
+      const data: StockTradeFormData = result.data;
+
+      let pnl: number | null = null;
+      if (data.exit_price && data.close_timestamp) {
+        pnl = calculatePnl(
+          data.position,
+          data.entry_price,
+          data.exit_price,
+          data.quantity,
+          data.fees,
+          data.asset_type === "option",
+          data.contracts,
+        );
+      }
+
+      const payload = {
+        symbol: data.symbol,
+        company_name: null,
+        asset_type: data.asset_type,
+        position: data.position,
+        entry_price: data.entry_price,
+        exit_price: data.exit_price ?? null,
+        quantity: data.quantity,
+        fees: data.fees,
+        open_timestamp: data.open_timestamp,
+        close_timestamp: data.close_timestamp ?? null,
+        sector: data.sector ?? null,
+        industry: null,
+        market_session: data.market_session ?? null,
+        option_type: data.option_type ?? null,
+        strike_price: data.strike_price ?? null,
+        expiration_date: data.expiration_date ?? null,
+        premium_per_contract: data.premium_per_contract ?? null,
+        contracts: data.contracts ?? null,
+        underlying_symbol: data.underlying_symbol ?? null,
+        emotion: data.emotion ?? null,
+        confidence: data.confidence ?? null,
+        setup_type: data.setup_type ?? null,
+        process_score: data.process_score ?? null,
+        checklist: data.checklist ?? null,
+        review: data.review ?? null,
+        notes: data.notes ?? null,
+        tags: data.tags,
+        pnl,
+      };
+
+      let dbError;
+      if (editTrade) {
+        ({ error: dbError } = await supabase
+          .from("stock_trades")
+          .update(payload)
+          .eq("id", editTrade.id));
+      } else {
+        ({ error: dbError } = await supabase.from("stock_trades").insert(payload));
+      }
+
+      if (dbError) {
+        setErrors({ _form: dbError.message });
+        return;
+      }
+
+      // Award XP for new stock trades
+      if (!editTrade) {
+        try {
+          const { awardXP } = await import("@/lib/xp/engine");
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await awardXP(supabase, user.id, payload.notes ? "trade_with_notes" : "trade_logged");
+          }
+        } catch { /* XP tables may not exist yet */ }
+      }
+
+      onSaved();
+      onClose();
+    } catch (err) {
+      setErrors({ _form: err instanceof Error ? err.message : "Failed to save trade. Please try again." });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/cosmetic-animations.css";
 
 /* Kill all CSS animations when OS-level "Reduce motion" is enabled or in-app toggle is on */
 @media (prefers-reduced-motion: reduce) {
@@ -16,8 +17,8 @@
   transition-duration: 0.001ms !important;
 }
 
-/* ===== Space Purple (default dark theme) — violet sci-fi ===== */
-.dark {
+/* ===== Nebula (Space Purple) — violet sci-fi ===== */
+.nebula {
   --background: #080c14;
   --surface: rgba(12, 18, 30, 0.85);
   --surface-hover: rgba(18, 26, 42, 0.9);
@@ -38,8 +39,8 @@
   --shadow-cosmic-hover: 0 0 8px rgba(139,92,246,0.5), 0 0 25px rgba(139,92,246,0.3), 0 0 60px rgba(139,92,246,0.15), 0 0 100px rgba(139,92,246,0.05);
 }
 
-/* Light theme — warmer, not so harsh white */
-.light {
+/* Solara — warm light theme */
+.solara {
   --background: #eef0f4;
   --surface: #f7f8fa;
   --surface-hover: #ebedf2;
@@ -60,8 +61,8 @@
   --shadow-cosmic-hover: 0 0 8px rgba(0,150,183,0.3), 0 0 20px rgba(0,150,183,0.15), 0 0 40px rgba(0,150,183,0.08);
 }
 
-/* Matrix — neon green hacker vibes (boosted contrast) */
-.matrix {
+/* Cipher — neon green hacker vibes (boosted contrast) */
+.cipher {
   --background: #000000;
   --surface: rgba(5, 15, 5, 0.92);
   --surface-hover: rgba(10, 25, 10, 0.94);
@@ -82,8 +83,8 @@
   --shadow-cosmic-hover: 0 0 8px rgba(34,197,94,0.5), 0 0 25px rgba(34,197,94,0.3), 0 0 60px rgba(34,197,94,0.15), 0 0 100px rgba(34,197,94,0.05);
 }
 
-/* Volcano — fiery eruption with ember glow */
-.volcano {
+/* Vulcan — fiery eruption with ember glow */
+.vulcan {
   --background: #0a0504;
   --surface: rgba(18, 10, 6, 0.85);
   --surface-hover: rgba(28, 16, 10, 0.9);
@@ -104,8 +105,8 @@
   --shadow-cosmic-hover: 0 0 12px rgba(249,115,22,0.6), 0 0 30px rgba(249,115,22,0.4), 0 0 70px rgba(249,115,22,0.2), 0 0 120px rgba(249,115,22,0.08);
 }
 
-/* Dark Simple — clean minimal dark for free plan */
-.dark-simple {
+/* Obsidian — clean minimal dark for free plan */
+.obsidian {
   --background: #121212;
   --surface: rgba(30, 30, 30, 0.9);
   --surface-hover: rgba(40, 40, 40, 0.92);
@@ -126,8 +127,8 @@
   --shadow-cosmic-hover: 0 0 8px rgba(96,165,250,0.3), 0 0 20px rgba(96,165,250,0.15), 0 0 40px rgba(96,165,250,0.08);
 }
 
-/* Ocean — deep sea bioluminescent */
-.ocean {
+/* Triton — deep sea bioluminescent */
+.triton {
   --background: #020817;
   --surface: rgba(4, 14, 30, 0.85);
   --surface-hover: rgba(8, 22, 42, 0.9);
@@ -148,8 +149,8 @@
   --shadow-cosmic-hover: 0 0 12px rgba(14,165,233,0.6), 0 0 30px rgba(14,165,233,0.4), 0 0 70px rgba(14,165,233,0.2), 0 0 120px rgba(14,165,233,0.08);
 }
 
-/* Satoshi Gold — completionist prestige theme (Bitcoin orange/gold) */
-.satoshi-gold {
+/* Midas — completionist prestige theme (Bitcoin orange/gold) */
+.midas {
   --background: #0a0806;
   --surface: rgba(20, 14, 6, 0.85);
   --surface-hover: rgba(30, 22, 10, 0.9);
@@ -268,10 +269,10 @@ body { background: var(--background); color: var(--foreground); font-family: var
   50% { background-position: 100% center; }
 }
 
-/* Cosmic pulse glow */
+/* Cosmic pulse glow — responds to equipped accent */
 @keyframes cosmic-pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(139,92,246,0.3), 0 0 15px rgba(139,92,246,0.15); }
-  50% { box-shadow: 0 0 10px rgba(139,92,246,0.5), 0 0 25px rgba(139,92,246,0.3), 0 0 50px rgba(139,92,246,0.15); }
+  0%, 100% { box-shadow: 0 0 5px rgba(var(--accent-rgb),0.3), 0 0 15px rgba(var(--accent-rgb),0.15); }
+  50% { box-shadow: 0 0 10px rgba(var(--accent-rgb),0.5), 0 0 25px rgba(var(--accent-rgb),0.3), 0 0 50px rgba(var(--accent-rgb),0.15); }
 }
 
 /* Starfield layers */
@@ -317,17 +318,17 @@ body { background: var(--background); color: var(--foreground); font-family: var
   animation: star-rise 70s linear infinite;
 }
 
-/* Space Purple shooting stars — violet trails */
+/* Shooting stars — responds to equipped accent */
 .shooting-star {
   position: absolute; width: 120px; height: 1px;
-  background: linear-gradient(90deg, rgba(139,92,246,0.8), transparent);
+  background: linear-gradient(90deg, rgba(var(--accent-rgb),0.8), transparent);
   border-radius: 999px; opacity: 0;
   animation: shoot 8s ease-in-out infinite;
 }
 .shooting-star::before {
   content: ''; position: absolute; width: 5px; height: 5px;
   border-radius: 50%; background: white;
-  box-shadow: 0 0 6px 2px rgba(139,92,246,0.5);
+  box-shadow: 0 0 6px 2px rgba(var(--accent-rgb),0.5);
   top: -2px; left: 0;
 }
 .shooting-star:nth-child(1) { top: 8%; left: 15%; animation-delay: 0s; }
@@ -341,7 +342,7 @@ body { background: var(--background); color: var(--foreground); font-family: var
 }
 .nebula-blob-1 {
   width: 500px; height: 500px; top: -150px; left: -100px;
-  background: rgba(139, 92, 246, 0.06);
+  background: rgba(var(--accent-rgb), 0.06);
   animation: float-blob-1 25s ease-in-out infinite;
 }
 .nebula-blob-2 {
@@ -461,40 +462,40 @@ body { background: var(--background); color: var(--foreground); font-family: var
 }
 
 /* ===== Glassmorphism ===== */
-.dark .glass {
+.nebula .glass {
   background: rgba(8, 12, 20, 0.70);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.light .glass {
+.solara .glass {
   background: rgba(247, 248, 250, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.matrix .glass {
+.cipher .glass {
   background: rgba(0, 8, 0, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.volcano .glass {
+.vulcan .glass {
   background: rgba(10, 5, 3, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.dark-simple .glass {
+.obsidian .glass {
   background: rgba(24, 24, 27, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.ocean .glass {
+.triton .glass {
   background: rgba(2, 8, 23, 0.70);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.satoshi-gold .glass {
+.midas .glass {
   background: rgba(10, 8, 4, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Tour highlight glow on sidebar/target items */
@@ -606,14 +607,14 @@ body { background: var(--background); color: var(--foreground); font-family: var
   color: var(--accent);
 }
 
-/* ===== MATRIX — Dense Binary Rain ===== */
+/* ===== CIPHER — Dense Binary Rain ===== */
 @keyframes matrix-rain {
   0% { transform: translateY(-100%); opacity: 0; }
   5% { opacity: 1; }
   95% { opacity: 0.8; }
   100% { transform: translateY(calc(100vh + 100%)); opacity: 0; }
 }
-.matrix-column {
+.cipher-column {
   position: absolute;
   top: 0;
   font-family: "Courier New", monospace;
@@ -623,8 +624,8 @@ body { background: var(--background); color: var(--foreground); font-family: var
   animation: matrix-rain var(--rain-duration, 8s) linear infinite;
   animation-delay: var(--rain-delay, 0s);
 }
-/* Green scan-line overlay for Matrix */
-.matrix-scanlines {
+/* Green scan-line overlay for Cipher */
+.cipher-scanlines {
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
@@ -637,7 +638,7 @@ body { background: var(--background); color: var(--foreground); font-family: var
   pointer-events: none;
 }
 
-/* ===== VOLCANO — Fiery Eruption ===== */
+/* ===== VULCAN — Fiery Eruption ===== */
 
 /* Embers floating upward */
 @keyframes ember-rise {
@@ -656,7 +657,7 @@ body { background: var(--background); color: var(--foreground); font-family: var
 
 /* (lava-pulse, eruption-burst, eruption-glow-pulse, smoke-rise removed — replaced by Canvas + GSAP in VolcanoBackground) */
 
-/* ===== OCEAN — Deep Sea ===== */
+/* ===== TRITON — Deep Sea ===== */
 
 /* Bioluminescent particles — multi-color */
 @keyframes bioluminescence {
@@ -678,7 +679,7 @@ body { background: var(--background); color: var(--foreground); font-family: var
   0%, 100% { transform: rotate(var(--ray-angle, 15deg)) scaleX(1); opacity: 0.3; }
   50% { transform: rotate(calc(var(--ray-angle, 15deg) + 3deg)) scaleX(1.1); opacity: 0.6; }
 }
-.ocean-ray {
+.triton-ray {
   position: absolute;
   top: -10%;
   pointer-events: none;
@@ -724,13 +725,13 @@ body { background: var(--background); color: var(--foreground); font-family: var
   97% { opacity: 1; }
   100% { right: 105%; opacity: 0; transform: translateY(0); }
 }
-.ocean-fish-right {
+.triton-fish-right {
   position: absolute;
   pointer-events: none;
   animation: swim-right var(--fish-duration, 30s) linear infinite;
   animation-delay: var(--fish-delay, 0s);
 }
-.ocean-fish-left {
+.triton-fish-left {
   position: absolute;
   pointer-events: none;
   animation: swim-left var(--fish-duration, 30s) linear infinite;
@@ -746,7 +747,7 @@ body { background: var(--background); color: var(--foreground); font-family: var
   99.5% { right: 110%; opacity: 0; }
   100% { right: -15%; opacity: 0; }
 }
-.ocean-big-fish {
+.triton-big-fish {
   position: absolute;
   top: 40%;
   pointer-events: none;
@@ -759,7 +760,7 @@ body { background: var(--background); color: var(--foreground); font-family: var
   0% { background-position: 0% 0%; }
   100% { background-position: 100% 100%; }
 }
-.ocean-caustics {
+.triton-caustics {
   position: absolute;
   top: 0;
   left: 0;
@@ -1044,3 +1045,14 @@ body { background: var(--background); color: var(--foreground); font-family: var
 .rarity-rare { color: #60a5fa; }
 .rarity-epic { color: #a78bfa; }
 .rarity-legendary { color: #fbbf24; }
+
+/* ===== Accessibility: Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

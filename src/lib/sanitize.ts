@@ -17,6 +17,7 @@ export function sanitizeHtml(dirty: string): string {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
     ALLOW_DATA_ATTR: false,
+    ADD_DATA_URI_TAGS: ["img"],
   });
 }
 
