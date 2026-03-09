@@ -23,10 +23,12 @@ export function CommodityTradeForm({
   onClose,
   onSaved,
   editTrade,
+  variant = "modal",
 }: {
   onClose: () => void;
   onSaved: () => void;
   editTrade?: CommodityTrade | null;
+  variant?: "modal" | "inline";
 }) {
   const supabase = createClient();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -240,9 +242,9 @@ export function CommodityTradeForm({
     }
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="glass border border-border/50 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+  const formContent = (
+    <>
+      {variant === "modal" && (
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">
             {editTrade ? "Edit Commodity Trade" : "Log Commodity Trade"}
@@ -254,6 +256,7 @@ export function CommodityTradeForm({
             <X size={20} />
           </button>
         </div>
+      )}
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* Contract Type Toggle: Spot / Futures / Options */}
@@ -643,6 +646,21 @@ export function CommodityTradeForm({
             {saving ? "Saving..." : editTrade ? "Update Trade" : "Log Trade"}
           </button>
         </form>
+    </>
+  );
+
+  if (variant === "inline") {
+    return (
+      <div className="glass border border-border/50 rounded-xl w-full">
+        {formContent}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="glass border border-border/50 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        {formContent}
       </div>
     </div>
   );

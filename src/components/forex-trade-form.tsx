@@ -38,10 +38,12 @@ export function ForexTradeForm({
   onClose,
   onSaved,
   editTrade,
+  variant = "modal",
 }: {
   onClose: () => void;
   onSaved: () => void;
   editTrade?: ForexTrade | null;
+  variant?: "modal" | "inline";
 }) {
   const supabase = createClient();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -159,13 +161,9 @@ export function ForexTradeForm({
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm p-4">
-      <div
-        className="glass border border-border/50 rounded-2xl w-full max-w-2xl my-8"
-        style={{ boxShadow: "var(--shadow-card)" }}
-      >
-        {/* Header */}
+  const formContent = (
+    <>
+      {variant === "modal" && (
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
           <h2 className="text-lg font-bold text-foreground">
             {editTrade ? "Edit Forex Trade" : "Log Forex Trade"}
@@ -174,6 +172,7 @@ export function ForexTradeForm({
             <X size={20} />
           </button>
         </div>
+      )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 max-h-[calc(100vh-12rem)] overflow-y-auto">
@@ -396,6 +395,21 @@ export function ForexTradeForm({
             </button>
           </div>
         </form>
+    </>
+  );
+
+  if (variant === "inline") {
+    return (
+      <div className="glass border border-border/50 rounded-2xl w-full" style={{ boxShadow: "var(--shadow-card)" }}>
+        {formContent}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm p-4">
+      <div className="glass border border-border/50 rounded-2xl w-full max-w-2xl my-8" style={{ boxShadow: "var(--shadow-card)" }}>
+        {formContent}
       </div>
     </div>
   );
