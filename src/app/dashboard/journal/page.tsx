@@ -13,12 +13,19 @@ import {
   Settings,
   FileText,
   Star,
+  Pencil,
+  Trash2,
+  X,
+  Calendar,
 } from "lucide-react";
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { getTagColor } from "@/lib/tag-colors";
+import { ImageLightbox } from "@/components/image-lightbox";
 
 type NoteTypeFilter = "all" | "trade" | "daily" | "other" | "favorites";
+type DateRange = "all" | "today" | "yesterday" | "7d" | "this-month" | "last-month" | "this-year";
 
 const NOTE_TYPE_OPTIONS: { value: NoteTypeFilter; label: string }[] = [
   { value: "all", label: "All Notes" },
@@ -28,6 +35,53 @@ const NOTE_TYPE_OPTIONS: { value: NoteTypeFilter; label: string }[] = [
   { value: "favorites", label: "Favorites" },
 ];
 
+const DATE_RANGE_OPTIONS: { value: DateRange; label: string }[] = [
+  { value: "all", label: "All Time" },
+  { value: "today", label: "Today" },
+  { value: "yesterday", label: "Yesterday" },
+  { value: "7d", label: "Last 7 Days" },
+  { value: "this-month", label: "This Month" },
+  { value: "last-month", label: "Last Month" },
+  { value: "this-year", label: "This Year" },
+];
+
+function getDateRangeBounds(range: DateRange): { from: Date | null; to: Date | null } {
+  if (range === "all") return { from: null, to: null };
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  switch (range) {
+    case "today":
+      return { from: todayStart, to: null };
+    case "yesterday": {
+      const yesterdayStart = new Date(todayStart);
+      yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+      return { from: yesterdayStart, to: todayStart };
+    }
+    case "7d": {
+      const weekAgo = new Date(todayStart);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return { from: weekAgo, to: null };
+    }
+    case "this-month": {
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { from: monthStart, to: null };
+    }
+    case "last-month": {
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { from: lastMonthStart, to: lastMonthEnd };
+    }
+    case "this-year": {
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      return { from: yearStart, to: null };
+    }
+    default:
+      return { from: null, to: null };
+  }
+}
+
 export default function JournalPage() {
   const searchParams = useSearchParams();
   const [notes, setNotes] = useState<JournalNote[]>([]);
@@ -36,11 +90,12 @@ export default function JournalPage() {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [noteTypeFilter, setNoteTypeFilter] = useState<NoteTypeFilter>("all");
+  const [dateRange, setDateRange] = useState<DateRange>("all");
   const [editNote, setEditNote] = useState<JournalNote | null>(null);
-  const [expandedNote, setExpandedNote] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("free");
   const [showTagManager, setShowTagManager] = useState(false);
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const supabase = createClient();
 
   const fetchNotes = useCallback(async () => {
@@ -86,16 +141,17 @@ export default function JournalPage() {
   const allTags = Array.from(new Set(notes.flatMap((n) => n.tags)));
 
   const filtered = notes.filter((n) => {
-    // Search filter
     const matchesSearch =
       !search ||
       n.content.toLowerCase().includes(search.toLowerCase()) ||
       n.title?.toLowerCase().includes(search.toLowerCase());
 
-    // Tag filter
-    const matchesTag = !activeTag || n.tags.includes(activeTag);
+    const matchesTag =
+      !activeTag ||
+      (activeTag === "__untagged__"
+        ? n.tags.length === 0
+        : n.tags.includes(activeTag));
 
-    // Note type filter
     let matchesType = true;
     switch (noteTypeFilter) {
       case "trade":
@@ -112,7 +168,11 @@ export default function JournalPage() {
         break;
     }
 
-    return matchesSearch && matchesTag && matchesType;
+    const { from, to } = getDateRangeBounds(dateRange);
+    const noteDate = new Date(n.note_date ?? n.created_at);
+    const matchesDate = (!from || noteDate >= from) && (!to || noteDate < to);
+
+    return matchesSearch && matchesTag && matchesType && matchesDate;
   });
 
   function openEditor(template?: string) {
@@ -127,7 +187,6 @@ export default function JournalPage() {
   }
 
   async function toggleFavorite(noteId: string, currentValue: boolean) {
-    // Optimistic update
     setNotes((prev) =>
       prev.map((n) => (n.id === noteId ? { ...n, is_favorite: !currentValue } : n))
     );
@@ -136,10 +195,16 @@ export default function JournalPage() {
       .update({ is_favorite: !currentValue })
       .eq("id", noteId);
     if (error) {
-      // Revert on error
       setNotes((prev) =>
         prev.map((n) => (n.id === noteId ? { ...n, is_favorite: currentValue } : n))
       );
+    }
+  }
+
+  function handleContentClick(e: React.MouseEvent<HTMLDivElement>) {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "IMG") {
+      setLightboxSrc((target as HTMLImageElement).src);
     }
   }
 
@@ -170,9 +235,9 @@ export default function JournalPage() {
         </button>
       </div>
 
-      {/* Search + Tag filter + Manage tags */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+      {/* Filters: Search + Date Range + Tag + Manage tags */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
           <input
             value={search}
@@ -183,23 +248,45 @@ export default function JournalPage() {
         </div>
         <div className="relative">
           <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value as DateRange)}
+            className="appearance-none pl-9 pr-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all cursor-pointer min-w-[140px]"
+          >
+            {DATE_RANGE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+        </div>
+        <div className="relative">
+          <select
             value={activeTag ?? ""}
             onChange={(e) => setActiveTag(e.target.value || null)}
             className="appearance-none pl-9 pr-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all cursor-pointer min-w-[160px]"
           >
             <option value="">All Tags</option>
+            <option value="__untagged__">No Tag</option>
             {allTags.map((tag) => (
               <option key={tag} value={tag}>{tag}</option>
             ))}
           </select>
           <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
         </div>
+        {activeTag && (
+          <button
+            onClick={() => setActiveTag(null)}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-accent/10 text-accent text-xs font-medium border border-accent/20 hover:bg-accent/20 transition-all"
+          >
+            <X size={12} />
+            {activeTag === "__untagged__" ? "No Tag" : activeTag}
+          </button>
+        )}
         <button
           onClick={() => setShowTagManager(true)}
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border bg-surface text-sm text-muted hover:text-foreground hover:border-accent/30 transition-all whitespace-nowrap"
         >
           <Settings size={14} />
-          Manage Note Tags
+          Manage Tags
         </button>
       </div>
 
@@ -253,58 +340,85 @@ export default function JournalPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((note) => {
-            const isExpanded = expandedNote === note.id;
             const isFavorite = note.is_favorite === true;
             return (
               <div
                 key={note.id}
-                onClick={() => setExpandedNote(isExpanded ? null : note.id)}
-                className={`bg-surface border border-border rounded-2xl p-5 hover:border-accent/30 transition-all duration-300 cursor-pointer group flex flex-col ${
-                  isExpanded ? "lg:col-span-3 md:col-span-2" : ""
-                }`}
+                className="bg-surface border border-border rounded-2xl hover:border-accent/30 transition-all duration-300 flex flex-col overflow-hidden"
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  {note.title ? (
-                    <h3 className="font-semibold text-foreground text-sm group-hover:text-accent transition-colors flex-1">
-                      {note.title}
-                    </h3>
-                  ) : (
-                    <div className="flex-1" />
-                  )}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleFavorite(note.id, isFavorite); }}
-                    className={`shrink-0 p-1 rounded transition-all ${
-                      isFavorite
-                        ? "text-yellow-400"
-                        : "text-muted/30 hover:text-yellow-400/60"
-                    }`}
-                    title={isFavorite ? "Unfavorite" : "Favorite"}
-                  >
-                    <Star size={16} fill={isFavorite ? "currentColor" : "none"} />
-                  </button>
+                {/* Header: title + action buttons */}
+                <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-0">
+                  <div className="flex-1 min-w-0">
+                    {note.title && (
+                      <h3 className="font-semibold text-foreground text-sm mb-1 truncate">
+                        {note.title}
+                      </h3>
+                    )}
+                    {note.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {note.tags.map((tag) => {
+                          const color = getTagColor(tag);
+                          return (
+                            <button
+                              key={tag}
+                              onClick={() => setActiveTag(tag)}
+                              className="text-[10px] px-2 py-0.5 rounded-md font-medium border hover:opacity-80 transition-opacity cursor-pointer"
+                              style={{
+                                backgroundColor: color.bg,
+                                color: color.text,
+                                borderColor: color.border,
+                              }}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button
+                      onClick={() => toggleFavorite(note.id, isFavorite)}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        isFavorite ? "text-yellow-400" : "text-muted/40 hover:text-yellow-400/60"
+                      }`}
+                      title={isFavorite ? "Unfavorite" : "Favorite"}
+                    >
+                      <Star size={14} fill={isFavorite ? "currentColor" : "none"} />
+                    </button>
+                    <button
+                      onClick={() => { setEditNote(note); setShowEditor(true); }}
+                      className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
+                      title="Edit"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => deleteNote(note.id)}
+                      className="p-1.5 rounded-lg text-muted/40 hover:text-loss hover:bg-loss/10 transition-all"
+                      title="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
+
+                {/* Scrollable content */}
                 <div
-                  className={`text-sm text-muted leading-relaxed flex-1 note-content [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_h2]:text-foreground [&_h2]:font-semibold [&_h2]:text-sm [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-0.5 [&_strong]:text-foreground ${
-                    isExpanded ? "max-h-[60vh] overflow-y-auto" : "line-clamp-4"
-                  }`}
+                  className="text-sm text-muted leading-relaxed flex-1 px-4 pt-2 note-content max-h-[400px] overflow-y-auto [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_img]:cursor-pointer [&_h2]:text-foreground [&_h2]:font-semibold [&_h2]:text-sm [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-0.5 [&_strong]:text-foreground"
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
+                  onClick={handleContentClick}
                 />
-                {note.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {note.tags.map((tag) => (
-                      <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-accent/8 text-accent font-medium">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center justify-between text-xs text-muted mt-3 pt-2 border-t border-border/50">
-                  <span>{new Date(note.note_date ?? note.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={(e) => { e.stopPropagation(); setEditNote(note); setShowEditor(true); }} className="hover:text-accent transition-colors px-2 py-0.5 rounded hover:bg-accent/10">Edit</button>
-                    <button onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }} className="hover:text-loss transition-colors px-2 py-0.5 rounded hover:bg-loss/10">Delete</button>
-                  </div>
+
+                {/* Footer: date */}
+                <div className="px-4 py-2 text-xs text-muted border-t border-border/50 mt-auto">
+                  {new Date(note.note_date ?? note.created_at).toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </div>
               </div>
             );
@@ -330,6 +444,10 @@ export default function JournalPage() {
           onClose={() => setShowTagManager(false)}
           onUpdate={() => { fetchNotes(); fetchTrades(); }}
         />
+      )}
+
+      {lightboxSrc && (
+        <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
       )}
     </div>
   );
