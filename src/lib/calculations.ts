@@ -20,8 +20,9 @@ export function calculateTradePnl(trade: Trade): number | null {
  * Calculate all dashboard statistics from a list of trades.
  */
 export function calculateStats(trades: Trade[]): DashboardStats {
-  const closedTrades = trades.filter((t) => t.close_timestamp !== null);
-  const openTrades = trades.filter((t) => t.close_timestamp === null);
+  const isClosed = (t: Trade) => t.close_timestamp !== null || t.exit_price !== null || t.pnl !== null;
+  const closedTrades = trades.filter(isClosed);
+  const openTrades = trades.filter((t) => !isClosed(t));
 
   const pnls = closedTrades.map((t) => t.pnl ?? calculateTradePnl(t) ?? 0);
   const wins = pnls.filter((p) => p > 0);
@@ -60,11 +61,13 @@ export function calculateStats(trades: Trade[]): DashboardStats {
  * Used for the calendar heatmap and daily P&L bar chart.
  */
 export function calculateDailyPnl(trades: Trade[]): DailyPnl[] {
-  const closedTrades = trades.filter((t) => t.close_timestamp !== null);
+  const closedTrades = trades.filter(
+    (t) => t.close_timestamp !== null || t.exit_price !== null || t.pnl !== null,
+  );
   const dailyMap = new Map<string, { pnl: number; count: number }>();
 
   for (const trade of closedTrades) {
-    const date = trade.close_timestamp!.split("T")[0];
+    const date = (trade.close_timestamp ?? trade.open_timestamp).split("T")[0];
     const existing = dailyMap.get(date) ?? { pnl: 0, count: 0 };
     const tradePnl = trade.pnl ?? calculateTradePnl(trade) ?? 0;
     dailyMap.set(date, {
