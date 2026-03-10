@@ -73,6 +73,8 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
         wallet_address: null,
         gas_fee: 0,
         gas_fee_native: 0,
+        stop_loss: null,
+        profit_target: null,
       };
 
       const { error: dbError } = await supabase.from("trades").insert(payload);

@@ -110,6 +110,8 @@ export function ForexTradeForm({
         review: Object.keys(review).length > 0 ? review : undefined,
         notes: formData.get("notes") || undefined,
         tags,
+        stop_loss: formData.get("stop_loss") || undefined,
+        profit_target: formData.get("profit_target") || undefined,
       };
 
       const parsed = forexTradeSchema.safeParse(rawData);
@@ -143,6 +145,8 @@ export function ForexTradeForm({
         user_id: user.id,
         ...data,
         pnl,
+        stop_loss: data.stop_loss ?? null,
+        profit_target: data.profit_target ?? null,
       };
 
       if (editTrade) {
@@ -270,6 +274,18 @@ export function ForexTradeForm({
               <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Fees</label>
               <input name="fees" type="number" step="any" defaultValue={editTrade?.fees ?? "0"}
                 className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
+            </div>
+          </div>
+
+          {/* Trade Planning */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Stop Loss <span className="text-muted/60">(optional)</span></label>
+              <input name="stop_loss" type="number" step="any" defaultValue={editTrade?.stop_loss ?? ""} placeholder="0.00" className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Profit Target <span className="text-muted/60">(optional)</span></label>
+              <input name="profit_target" type="number" step="any" defaultValue={editTrade?.profit_target ?? ""} placeholder="0.00" className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
             </div>
           </div>
 

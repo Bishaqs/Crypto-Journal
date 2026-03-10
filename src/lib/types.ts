@@ -10,6 +10,8 @@ export type Trade = {
   position: "long" | "short";
   entry_price: number;
   exit_price: number | null;
+  stop_loss: number | null;
+  profit_target: number | null;
   quantity: number;
   fees: number;
   open_timestamp: string;
@@ -204,6 +206,8 @@ export type StockTrade = {
   position: "long" | "short";
   entry_price: number;
   exit_price: number | null;
+  stop_loss: number | null;
+  profit_target: number | null;
   quantity: number;
   fees: number;
   open_timestamp: string;
@@ -369,6 +373,8 @@ export type CommodityTrade = {
   position: "long" | "short";
   entry_price: number;
   exit_price: number | null;
+  stop_loss: number | null;
+  profit_target: number | null;
   quantity: number;
   contract_size: number | null;
   tick_size: number | null;
@@ -462,6 +468,8 @@ export type ForexTrade = {
   position: "long" | "short";
   entry_price: number;
   exit_price: number | null;
+  stop_loss: number | null;
+  profit_target: number | null;
   fees: number;
   open_timestamp: string;
   close_timestamp: string | null;

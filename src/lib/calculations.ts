@@ -726,3 +726,47 @@ export function getReturnPct(trade: { entry_price: number; exit_price: number | 
   const pct = ((trade.exit_price - trade.entry_price) / trade.entry_price) * 100 * direction;
   return `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
 }
+
+/* ── R-Multiple calculation ──────────────────────────────────── */
+
+const LOT_MULTIPLIERS: Record<string, number> = {
+  standard: 100000,
+  mini: 10000,
+  micro: 1000,
+};
+
+export function calculateRMultiple(trade: {
+  entry_price: number;
+  stop_loss: number | null;
+  pnl: number | null;
+  exit_price: number | null;
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  tick_size?: number | null;
+  tick_value?: number | null;
+}): number | null {
+  if (trade.stop_loss === null || trade.pnl === null || trade.exit_price === null) return null;
+
+  const priceDiff = Math.abs(trade.entry_price - trade.stop_loss);
+  if (priceDiff === 0) return null;
+
+  let initialRisk: number;
+
+  if (trade.tick_size && trade.tick_value && trade.tick_size > 0) {
+    initialRisk = (priceDiff / trade.tick_size) * trade.tick_value * (trade.quantity ?? 1);
+  } else if (trade.lot_size !== undefined && trade.lot_type) {
+    const multiplier = LOT_MULTIPLIERS[trade.lot_type] ?? 100000;
+    initialRisk = priceDiff * trade.lot_size * multiplier;
+  } else {
+    initialRisk = priceDiff * (trade.quantity ?? 1);
+  }
+
+  if (initialRisk === 0) return null;
+  return trade.pnl / initialRisk;
+}
+
+export function formatRMultiple(r: number | null): string | null {
+  if (r === null) return null;
+  return `${r >= 0 ? "+" : ""}${r.toFixed(2)}R`;
+}

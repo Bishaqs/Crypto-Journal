@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTrades } from "@/hooks/use-trades";
 import { useTheme } from "@/lib/theme-context";
-import { calculateTradePnl, formatDuration, getReturnPct } from "@/lib/calculations";
+import { calculateTradePnl, formatDuration, getReturnPct, calculateRMultiple, formatRMultiple } from "@/lib/calculations";
 import { CHAINS } from "@/lib/types";
 import { DemoBanner } from "@/components/demo-banner";
 import { Header } from "@/components/header";
@@ -38,6 +38,9 @@ const COLUMNS: { key: SortKey | null; label: string; className: string; simple?:
   { key: "fees", label: "Fees", className: "min-w-[70px] text-right" },
   { key: null, label: "Duration", className: "min-w-[80px]" },
   { key: null, label: "Return", className: "min-w-[70px] text-right" },
+  { key: null, label: "SL", className: "min-w-[80px] text-right" },
+  { key: null, label: "TP", className: "min-w-[80px] text-right" },
+  { key: null, label: "R", className: "min-w-[60px] text-right" },
   { key: "pnl", label: "P&L", className: "min-w-[90px] text-right", simple: true },
   { key: "emotion", label: "Emotion", className: "min-w-[80px]" },
   { key: "confidence", label: "Conf.", className: "min-w-[50px] text-right" },
@@ -261,6 +264,26 @@ export default function ExecutionsPage() {
                             {ret}
                           </span>
                         );
+                      })()}
+                    </td>
+                    )}
+                    {visibleLabels.has("SL") && (
+                    <td className="px-3 py-2 text-right text-muted tabular-nums">
+                      {trade.stop_loss !== null ? `$${trade.stop_loss.toFixed(2)}` : "\u2014"}
+                    </td>
+                    )}
+                    {visibleLabels.has("TP") && (
+                    <td className="px-3 py-2 text-right text-muted tabular-nums">
+                      {trade.profit_target !== null ? `$${trade.profit_target.toFixed(2)}` : "\u2014"}
+                    </td>
+                    )}
+                    {visibleLabels.has("R") && (
+                    <td className="px-3 py-2 text-right">
+                      {(() => {
+                        const r = calculateRMultiple(trade);
+                        const fmt = formatRMultiple(r);
+                        if (!fmt) return <span className="text-muted/30">{"\u2014"}</span>;
+                        return <span className={`font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
                       })()}
                     </td>
                     )}

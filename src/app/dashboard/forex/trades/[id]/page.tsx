@@ -33,7 +33,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Confident", confidence: 8, setup_type: "Trend Follow",
     process_score: 9, checklist: null, review: null,
     notes: "Clean trend continuation.", tags: ["trend", "major"],
-    pnl: 693, created_at: "2026-02-20T08:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 693, created_at: "2026-02-20T08:00:00Z",
   },
 ];
 

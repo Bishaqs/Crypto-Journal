@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { formatDuration, getReturnPct } from "@/lib/calculations";
+import { formatDuration, getReturnPct, calculateRMultiple, formatRMultiple } from "@/lib/calculations";
 import type { CommodityTrade } from "@/lib/types";
 import { CommodityTradeForm } from "@/components/commodity-trade-form";
 
@@ -38,7 +38,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Confident", confidence: 8, setup_type: "Trend Follow",
     process_score: 9, checklist: null, review: null,
     notes: "Gold breaking above resistance.", tags: ["momentum", "metals"],
-    pnl: 5528, created_at: "2026-02-20T09:00:00Z",
+    stop_loss: 2325.00, profit_target: 2375.00, pnl: 5528, created_at: "2026-02-20T09:00:00Z",
   },
   {
     id: "ct-2", user_id: "u1", symbol: "CL", commodity_name: "Crude Oil (WTI)",
@@ -53,7 +53,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Breakout",
     process_score: 8, checklist: null, review: null,
     notes: "Short crude on inventory build.", tags: ["energy", "news"],
-    pnl: 6732, created_at: "2026-02-19T08:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 6732, created_at: "2026-02-19T08:30:00Z",
   },
   {
     id: "ct-3", user_id: "u1", symbol: "ZW", commodity_name: "Wheat",
@@ -68,7 +68,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Anxious", confidence: 5, setup_type: "Reversal",
     process_score: 4, checklist: null, review: null,
     notes: "Wheat reversal, stopped out.", tags: ["grains"],
-    pnl: -381, created_at: "2026-02-18T10:00:00Z",
+    stop_loss: null, profit_target: null, pnl: -381, created_at: "2026-02-18T10:00:00Z",
   },
   {
     id: "ct-4", user_id: "u1", symbol: "NG", commodity_name: "Natural Gas",
@@ -83,7 +83,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Excited", confidence: 7, setup_type: "News",
     process_score: 7, checklist: null, review: null,
     notes: "Cold weather forecast driving nat gas.", tags: ["energy", "weather"],
-    pnl: 13475, created_at: "2026-02-17T09:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 13475, created_at: "2026-02-17T09:30:00Z",
   },
   {
     id: "ct-5", user_id: "u1", symbol: "ZC", commodity_name: "Corn",
@@ -98,7 +98,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Confident", confidence: 7, setup_type: "Breakdown",
     process_score: null, checklist: null, review: null,
     notes: "Short corn on weak demand.", tags: ["grains", "swing"],
-    pnl: null, created_at: "2026-02-21T10:00:00Z",
+    stop_loss: null, profit_target: null, pnl: null, created_at: "2026-02-21T10:00:00Z",
   },
 ];
 
@@ -126,6 +126,9 @@ const COMMODITY_COLUMNS: { key: SortKey | null; label: string; simple?: boolean 
   { key: null, label: "Exit", simple: true },
   { key: null, label: "Duration" },
   { key: null, label: "Return" },
+  { key: null, label: "SL" },
+  { key: null, label: "TP" },
+  { key: null, label: "R" },
   { key: "pnl", label: "P&L", simple: true },
 ];
 
@@ -453,6 +456,26 @@ export default function CommodityTradesPage() {
                             {ret}
                           </span>
                         );
+                      })()}
+                    </td>
+                    )}
+                    {visibleLabels.has("SL") && (
+                    <td className="px-3 py-2 text-right text-muted tabular-nums">
+                      {trade.stop_loss !== null ? `$${trade.stop_loss.toFixed(2)}` : "\u2014"}
+                    </td>
+                    )}
+                    {visibleLabels.has("TP") && (
+                    <td className="px-3 py-2 text-right text-muted tabular-nums">
+                      {trade.profit_target !== null ? `$${trade.profit_target.toFixed(2)}` : "\u2014"}
+                    </td>
+                    )}
+                    {visibleLabels.has("R") && (
+                    <td className="px-3 py-2 text-right">
+                      {(() => {
+                        const r = calculateRMultiple({ ...trade, tick_size: trade.tick_size, tick_value: trade.tick_value });
+                        const fmt = formatRMultiple(r);
+                        if (!fmt) return <span className="text-muted/30">{"\u2014"}</span>;
+                        return <span className={`font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
                       })()}
                     </td>
                     )}
