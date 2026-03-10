@@ -40,6 +40,7 @@ export type Trade = {
   price_mae: number | null;
   price_mfe: number | null;
   mfe_timestamp: string | null;
+  mae_timestamp: string | null;
   created_at: string;
 };
 
@@ -242,6 +243,7 @@ export type StockTrade = {
   price_mae: number | null;
   price_mfe: number | null;
   mfe_timestamp: string | null;
+  mae_timestamp: string | null;
   created_at: string;
 };
 
@@ -414,6 +416,7 @@ export type CommodityTrade = {
   price_mae: number | null;
   price_mfe: number | null;
   mfe_timestamp: string | null;
+  mae_timestamp: string | null;
   created_at: string;
 };
 
@@ -507,6 +510,7 @@ export type ForexTrade = {
   price_mae: number | null;
   price_mfe: number | null;
   mfe_timestamp: string | null;
+  mae_timestamp: string | null;
   created_at: string;
 };
 

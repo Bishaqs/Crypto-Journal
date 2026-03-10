@@ -152,6 +152,7 @@ export function TradeForm({
         price_mae: formData.get("price_mae") as string || undefined,
         price_mfe: formData.get("price_mfe") as string || undefined,
         mfe_timestamp: formData.get("mfe_timestamp") as string || undefined,
+        mae_timestamp: formData.get("mae_timestamp") as string || undefined,
       };
 
       const result = tradeSchema.safeParse(raw);
@@ -206,6 +207,7 @@ export function TradeForm({
         price_mae: data.price_mae ?? null,
         price_mfe: data.price_mfe ?? null,
         mfe_timestamp: data.mfe_timestamp ?? null,
+        mae_timestamp: data.mae_timestamp ?? null,
       };
 
       let dbError;
@@ -476,9 +478,15 @@ export function TradeForm({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs text-muted mb-1">MFE Timestamp <span className="text-muted/60">(optional)</span></label>
-            <input name="mfe_timestamp" type="datetime-local" defaultValue={editTrade?.mfe_timestamp ? editTrade.mfe_timestamp.slice(0, 16) : ""} className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-muted mb-1">MFE Timestamp <span className="text-muted/60">(optional)</span></label>
+              <input name="mfe_timestamp" type="datetime-local" defaultValue={editTrade?.mfe_timestamp ? editTrade.mfe_timestamp.slice(0, 16) : ""} className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+            </div>
+            <div>
+              <label className="block text-xs text-muted mb-1">MAE Timestamp <span className="text-muted/60">(optional)</span></label>
+              <input name="mae_timestamp" type="datetime-local" defaultValue={editTrade?.mae_timestamp ? editTrade.mae_timestamp.slice(0, 16) : ""} className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+            </div>
           </div>
 
           {/* Quantity & Fees */}
