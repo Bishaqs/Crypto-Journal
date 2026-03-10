@@ -182,6 +182,8 @@ export function StockTradeForm({
         notes: data.notes ?? null,
         tags: data.tags,
         pnl,
+        stop_loss: data.stop_loss ?? null,
+        profit_target: data.profit_target ?? null,
       };
 
       let dbError;
@@ -322,6 +324,18 @@ export function StockTradeForm({
                 onChange={(e) => setHasExit(!!e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
+            </div>
+          </div>
+
+          {/* Trade Planning */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-muted mb-1">Stop Loss <span className="text-muted/60">(optional)</span></label>
+              <input name="stop_loss" type="number" step="any" defaultValue={editTrade?.stop_loss ?? ""} placeholder="0.00" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+            </div>
+            <div>
+              <label className="block text-xs text-muted mb-1">Profit Target <span className="text-muted/60">(optional)</span></label>
+              <input name="profit_target" type="number" step="any" defaultValue={editTrade?.profit_target ?? ""} placeholder="0.00" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
             </div>
           </div>
 

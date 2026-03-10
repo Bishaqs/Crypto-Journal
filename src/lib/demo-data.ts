@@ -37,7 +37,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 9,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Held through the pullback without panicking", improve: "Could have added to the position at the retest" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: 95500, profit_target: 98500, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(14),
   },
   {
@@ -60,7 +60,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 3,
     checklist: { on_plan: true, stop_loss: true, invalidation: false, not_reacting: false },
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Respected the stop loss", improve: "Wait for candle close confirmation before entry" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: 3350, profit_target: 3550, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(13),
   },
   {
@@ -83,7 +83,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 8,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Great entry timing on the pullback", improve: "Could have trailed stop tighter" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: 180, profit_target: 200, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(11),
   },
   {
@@ -106,7 +106,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 8,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Patient entry at the double top", improve: "Nothing major" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(10),
   },
   {
@@ -129,7 +129,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 4,
     checklist: { on_plan: false, stop_loss: true, invalidation: false, not_reacting: false },
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Cut the loss quickly", improve: "Check BTC trend before entering alts" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(9),
   },
   {
@@ -152,7 +152,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 9,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Waited for the 200MA reclaim confirmation", improve: "Size was a bit small for the confidence level" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(7),
   },
   {
@@ -175,7 +175,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 7,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Good volume confirmation", improve: "Could have let it run a bit more" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(6),
   },
   {
@@ -198,7 +198,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 3,
     checklist: { on_plan: false, stop_loss: true, invalidation: false, not_reacting: false },
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Respected the stop", improve: "Don't fight the trend. Wait for confirmation." },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(5),
   },
   {
@@ -221,7 +221,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 6,
     checklist: { on_plan: false, stop_loss: true, invalidation: false, not_reacting: false },
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Took profits instead of getting greedy", improve: "This wasn't on my plan — got lucky" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(3),
   },
   {
@@ -244,7 +244,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 9,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Perfect execution of the plan", improve: "Nothing — this is how every trade should go" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(2),
   },
   {
@@ -267,7 +267,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 8,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Let the winner run", improve: "Could have scaled in more aggressively" },
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(1),
   },
   {
@@ -290,7 +290,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: null,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: null,
-    sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     created_at: daysAgo(0),
   },
   // DEX trades
@@ -314,7 +314,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 8,
     checklist: { on_plan: true, stop_loss: true, invalidation: true, not_reacting: true },
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Used limit order on DEX", improve: "Could have split across pools for less slippage" },
-    sector: null, trade_source: "dex", chain: "base", dex_protocol: "Uniswap V3", tx_hash: "0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890", wallet_address: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD38", gas_fee: 0.12, gas_fee_native: 0.00004,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "dex", chain: "base", dex_protocol: "Uniswap V3", tx_hash: "0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890", wallet_address: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD38", gas_fee: 0.12, gas_fee_native: 0.00004,
     created_at: daysAgo(4),
   },
   {
@@ -337,7 +337,7 @@ export const DEMO_TRADES: Trade[] = [
     process_score: 4,
     checklist: { on_plan: false, stop_loss: false, invalidation: false, not_reacting: false },
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Cut the loss", improve: "Set max slippage tolerance. Check for MEV before swapping large amounts" },
-    sector: null, trade_source: "dex", chain: "solana", dex_protocol: "Jupiter", tx_hash: "5KtPn1LGuxhFiwjxErkxTb3XwEHgyQSRTAoKJKPv8sFBcrXAhVcBmR1wVNFRXuFJZWToMh", wallet_address: "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", gas_fee: 0.008, gas_fee_native: 0.000005,
+    stop_loss: null, profit_target: null, sector: null, trade_source: "dex", chain: "solana", dex_protocol: "Jupiter", tx_hash: "5KtPn1LGuxhFiwjxErkxTb3XwEHgyQSRTAoKJKPv8sFBcrXAhVcBmR1wVNFRXuFJZWToMh", wallet_address: "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", gas_fee: 0.008, gas_fee_native: 0.000005,
     created_at: daysAgo(3),
   },
 ];
@@ -365,6 +365,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Bought the dip at support", improve: "Could have held longer" },
     notes: "AAPL bouncing off 50-day MA. Clean entry.",
     tags: ["tech", "swing"],
+    stop_loss: null, profit_target: null,
     pnl: (235.80 - 228.50) * 50,
     created_at: daysAgo(10),
   },
@@ -390,6 +391,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Cut the loss", improve: "Don't chase TSLA gap-ups" },
     notes: "Chased the gap up. Got burned.",
     tags: ["mistake", "ev"],
+    stop_loss: null, profit_target: null,
     pnl: (328.50 - 342.20) * 25,
     created_at: daysAgo(8),
   },
@@ -415,6 +417,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Perfect AI narrative play", improve: "Nothing — held through the consolidation" },
     notes: "AI spending thesis intact. NVDA holding above all MAs.",
     tags: ["ai", "semiconductor"],
+    stop_loss: null, profit_target: null,
     pnl: (920.50 - 875.00) * 10,
     created_at: daysAgo(6),
   },
@@ -440,6 +443,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Good timing on the breakout", improve: "Could have rolled up for more leverage" },
     notes: "NVDA calls before earnings run-up. Quick 126% gain.",
     tags: ["options", "earnings", "ai"],
+    stop_loss: null, profit_target: null,
     pnl: (28.30 - 12.50) * 5 * 100 - 1.30,
     created_at: daysAgo(5),
   },
@@ -465,6 +469,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Caught the pre-market earnings move", improve: "Size was conservative" },
     notes: "JPM earnings beat. Pre-market entry on the gap-up.",
     tags: ["earnings", "financials"],
+    stop_loss: null, profit_target: null,
     pnl: (255.10 - 248.30) * 30,
     created_at: daysAgo(4),
   },
@@ -490,6 +495,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     review: null,
     notes: "MSFT breakout above $440 resistance. Holding for $460 target.",
     tags: ["tech", "swing"],
+    stop_loss: null, profit_target: null,
     pnl: null,
     created_at: daysAgo(1),
   },

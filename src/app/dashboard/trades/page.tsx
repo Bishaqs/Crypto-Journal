@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
-import { calculateTradePnl, formatDuration, getReturnPct } from "@/lib/calculations";
+import { calculateTradePnl, formatDuration, getReturnPct, calculateRMultiple, formatRMultiple } from "@/lib/calculations";
 import { CHAINS } from "@/lib/types";
 import { useTheme } from "@/lib/theme-context";
 import {
@@ -36,6 +36,9 @@ const TRADE_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] 
   { key: null, label: "Exit" },
   { key: null, label: "Duration" },
   { key: null, label: "Return" },
+  { key: null, label: "SL" },
+  { key: null, label: "TP" },
+  { key: null, label: "R" },
   { key: "pnl", label: "P&L", simple: true },
   { key: "emotion", label: "Emotion" },
   { key: "process_score", label: "Process" },
@@ -346,6 +349,26 @@ export default function TradesPage() {
                                 {ret}
                               </span>
                             );
+                          })()}
+                        </div>
+                        )}
+                        {visibleLabels.has("SL") && (
+                        <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50 text-right">
+                          {trade.stop_loss !== null ? `$${trade.stop_loss.toFixed(2)}` : "\u2014"}
+                        </div>
+                        )}
+                        {visibleLabels.has("TP") && (
+                        <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50 text-right">
+                          {trade.profit_target !== null ? `$${trade.profit_target.toFixed(2)}` : "\u2014"}
+                        </div>
+                        )}
+                        {visibleLabels.has("R") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right">
+                          {(() => {
+                            const r = calculateRMultiple(trade);
+                            const fmt = formatRMultiple(r);
+                            if (!fmt) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={`font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
                           })()}
                         </div>
                         )}

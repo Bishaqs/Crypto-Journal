@@ -4,7 +4,7 @@ import { Trade } from "@/lib/types";
 import { useState } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
-import { formatDuration } from "@/lib/calculations";
+import { formatDuration, calculateRMultiple, formatRMultiple } from "@/lib/calculations";
 
 type SortKey = "open_timestamp" | "close_timestamp" | "symbol" | "pnl" | "entry_price" | "fees";
 type SortDir = "asc" | "desc";
@@ -113,6 +113,15 @@ export function TradesTable({
                     Setup
                   </th>
                 )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">SL</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">TP</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">R</th>
+                )}
                 <SortHeader label="P&L" field="pnl" />
                 {onEdit && <th className="px-4 py-2.5" />}
               </tr>
@@ -120,7 +129,7 @@ export function TradesTable({
             <tbody className="divide-y divide-border/50">
               {sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={isFull ? 14 : 7} className="px-4 py-10 text-center text-muted text-sm">
+                  <td colSpan={isFull ? 17 : 7} className="px-4 py-10 text-center text-muted text-sm">
                     No positions. Log your first trade.
                   </td>
                 </tr>
@@ -214,6 +223,26 @@ export function TradesTable({
                       {isFull && (
                         <td className="px-4 py-2.5 text-xs text-muted">
                           {trade.setup_type ?? "\u2014"}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          {trade.stop_loss !== null ? `$${trade.stop_loss.toFixed(2)}` : "\u2014"}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          {trade.profit_target !== null ? `$${trade.profit_target.toFixed(2)}` : "\u2014"}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-right">
+                          {(() => {
+                            const r = calculateRMultiple(trade);
+                            const fmt = formatRMultiple(r);
+                            if (!fmt) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={`font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
+                          })()}
                         </td>
                       )}
                       <td className="px-4 py-2.5">

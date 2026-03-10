@@ -35,7 +35,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Confident", confidence: 8, setup_type: "Trend Follow",
     process_score: 9, checklist: null, review: null,
     notes: "Gold breaking above resistance.", tags: ["momentum", "metals"],
-    pnl: 5528, created_at: "2026-02-20T09:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 5528, created_at: "2026-02-20T09:00:00Z",
   },
 ];
 
