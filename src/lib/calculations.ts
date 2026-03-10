@@ -696,3 +696,33 @@ export function calculateGasImpact(trades: Trade[]): GasImpact {
     netPnlAfterGas: grossPnl - totalGasFees,
   };
 }
+
+/* ── Computed column helpers (for Full-mode trade tables) ──────── */
+
+export function formatDuration(openTs: string, closeTs: string | null): string {
+  const open = new Date(openTs).getTime();
+  const close = closeTs ? new Date(closeTs).getTime() : Date.now();
+  const ms = close - open;
+  if (ms < 0) return "\u2014";
+
+  const mins = Math.floor(ms / 60000);
+  const hours = Math.floor(mins / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) {
+    const remHours = hours % 24;
+    return remHours > 0 ? `${days}d ${remHours}h` : `${days}d`;
+  }
+  if (hours > 0) {
+    const remMins = mins % 60;
+    return remMins > 0 ? `${hours}h ${remMins}m` : `${hours}h`;
+  }
+  return `${mins}m`;
+}
+
+export function getReturnPct(trade: { entry_price: number; exit_price: number | null; position: "long" | "short" }): string | null {
+  if (trade.exit_price === null || trade.entry_price === 0) return null;
+  const direction = trade.position === "long" ? 1 : -1;
+  const pct = ((trade.exit_price - trade.entry_price) / trade.entry_price) * 100 * direction;
+  return `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
+}
