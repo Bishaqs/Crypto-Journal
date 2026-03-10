@@ -175,6 +175,28 @@
   --shadow-cosmic-hover: 0 0 12px rgba(247, 147, 26, 0.6), 0 0 30px rgba(247, 147, 26, 0.4), 0 0 70px rgba(247, 147, 26, 0.2), 0 0 120px rgba(247, 147, 26, 0.08);
 }
 
+/* Synthwave — retro 80s neon grid */
+.synthwave {
+  --background: #0a0015;
+  --surface: rgba(20, 5, 40, 0.85);
+  --surface-hover: rgba(35, 10, 60, 0.9);
+  --border: rgba(255, 100, 255, 0.1);
+  --foreground: #f0e6ff;
+  --muted: #b8a0d4;
+  --accent: #ff2d95;
+  --accent-hover: #ff6eb4;
+  --accent-glow: rgba(255, 45, 149, 0.4);
+  --accent-rgb: 255, 45, 149;
+  --win: #00ffcc;
+  --win-glow: rgba(0, 255, 204, 0.3);
+  --loss: #ff3366;
+  --loss-glow: rgba(255, 51, 102, 0.3);
+  --shadow-card: 0 2px 12px rgba(255, 45, 149, 0.08);
+  --shadow-glow: 0 0 20px rgba(255, 45, 149, 0.15);
+  --shadow-cosmic: 0 0 30px rgba(255, 45, 149, 0.2), 0 0 60px rgba(180, 0, 255, 0.1);
+  --shadow-cosmic-hover: 0 0 40px rgba(255, 45, 149, 0.3), 0 0 80px rgba(180, 0, 255, 0.15);
+}
+
 :root {
   --font-geist-sans: "Geist", sans-serif;
   --font-geist-mono: "Geist Mono", monospace;
@@ -797,6 +819,12 @@ body {
   -webkit-backdrop-filter: blur(8px);
 }
 
+.synthwave .glass {
+  background: rgba(15, 5, 30, 0.78);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 45, 149, 0.08);
+}
+
 /* Tour highlight glow on sidebar/target items */
 .tour-highlight {
   box-shadow:
@@ -1038,19 +1066,53 @@ body {
 }
 
 @keyframes swim-right {
-  0% { left: -8%; opacity: 0; }
-  3% { opacity: 1; }
-  50% { transform: translateY(-12px); }
-  97% { opacity: 1; }
-  100% { left: 105%; opacity: 0; transform: translateY(0); }
+  0% {
+    left: -8%;
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+
+  97% {
+    opacity: 1;
+  }
+
+  100% {
+    left: 105%;
+    opacity: 0;
+    transform: translateY(0);
+  }
 }
 
 @keyframes swim-left {
-  0% { right: -8%; opacity: 0; }
-  3% { opacity: 1; }
-  50% { transform: translateY(10px); }
-  97% { opacity: 1; }
-  100% { right: 105%; opacity: 0; transform: translateY(0); }
+  0% {
+    right: -8%;
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(10px);
+  }
+
+  97% {
+    opacity: 1;
+  }
+
+  100% {
+    right: 105%;
+    opacity: 0;
+    transform: translateY(0);
+  }
 }
 
 .triton-fish-right {
@@ -1068,12 +1130,35 @@ body {
 }
 
 @keyframes big-fish-pass {
-  0%, 95% { right: -15%; opacity: 0; }
-  96% { opacity: 0.5; }
-  98% { opacity: 0.5; }
-  99% { right: 110%; opacity: 0.5; }
-  99.5% { right: 110%; opacity: 0; }
-  100% { right: -15%; opacity: 0; }
+
+  0%,
+  95% {
+    right: -15%;
+    opacity: 0;
+  }
+
+  96% {
+    opacity: 0.5;
+  }
+
+  98% {
+    opacity: 0.5;
+  }
+
+  99% {
+    right: 110%;
+    opacity: 0.5;
+  }
+
+  99.5% {
+    right: 110%;
+    opacity: 0;
+  }
+
+  100% {
+    right: -15%;
+    opacity: 0;
+  }
 }
 
 .triton-big-fish {
@@ -1085,8 +1170,13 @@ body {
 }
 
 @keyframes caustic-shift {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 100% 100%; }
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
+  }
 }
 
 .triton-caustics {

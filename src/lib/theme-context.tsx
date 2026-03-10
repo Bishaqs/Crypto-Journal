@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 
-export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "satoshi";
+export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "satoshi" | "synthwave";
 export type ViewMode = "simple" | "full";
 
 export const THEMES: { value: Theme; label: string; dot: string; locked?: boolean }[] = [
@@ -13,6 +13,7 @@ export const THEMES: { value: Theme; label: string; dot: string; locked?: boolea
   { value: "vulcan", label: "Vulcan", dot: "#f97316" },
   { value: "triton", label: "Triton", dot: "#0ea5e9" },
   { value: "satoshi", label: "Satoshi", dot: "#f7931a", locked: true },
+  { value: "synthwave", label: "Synthwave", dot: "#ff2d95", locked: true },
 ];
 
 export const FREE_THEMES: Theme[] = ["solara", "obsidian"];
@@ -25,6 +26,15 @@ export function isProTheme(theme: Theme): boolean {
 
 export function isLevel500Theme(theme: Theme): boolean {
   return LEVEL_500_THEMES.includes(theme);
+}
+
+// Free-tier themes gated by player level (not subscription)
+export const LEVEL_GATED_THEMES: Partial<Record<Theme, number>> = {
+  synthwave: 50,
+};
+
+export function getLevelRequirement(theme: Theme): number | null {
+  return LEVEL_GATED_THEMES[theme] ?? null;
 }
 
 const VIEW_MODE_ORDER: ViewMode[] = ["simple", "full"];
@@ -51,7 +61,7 @@ const ThemeContext = createContext<ThemeContextType>({
   setReducedMotion: () => { },
 });
 
-const ALL_THEME_CLASSES: Theme[] = ["solara", "obsidian", "nebula", "cipher", "vulcan", "triton", "satoshi"];
+const ALL_THEME_CLASSES: Theme[] = ["solara", "obsidian", "nebula", "cipher", "vulcan", "triton", "satoshi", "synthwave"];
 
 // Migration map for users with old theme names in localStorage
 const THEME_MIGRATION: Record<string, Theme> = {

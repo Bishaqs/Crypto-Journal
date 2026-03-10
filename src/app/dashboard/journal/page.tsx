@@ -18,16 +18,24 @@ import {
   X,
   Calendar,
   ArrowUpDown,
+  LayoutGrid,
+  List,
+  AlignJustify,
+  Link2,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { getTagColor } from "@/lib/tag-colors";
 import { ImageLightbox } from "@/components/image-lightbox";
+import { CustomSelect } from "@/components/ui/custom-select";
 
 type NoteTypeFilter = "all" | "trade" | "daily" | "other" | "favorites";
 type DateRange = "all" | "today" | "yesterday" | "7d" | "this-month" | "last-month" | "this-year";
 type SortOption = "created-newest" | "created-oldest" | "newest" | "oldest" | "name-asc" | "name-desc";
+type LayoutMode = "grid" | "list" | "compact";
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "created-newest", label: "Recently Added" },
@@ -93,6 +101,13 @@ function getDateRangeBounds(range: DateRange): { from: Date | null; to: Date | n
   }
 }
 
+function formatTitle(title: string): string {
+  return title.replace(
+    /^([A-Z]{2,10})(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/,
+    "$1 — $2"
+  );
+}
+
 export default function JournalPage() {
   const searchParams = useSearchParams();
   const [notes, setNotes] = useState<JournalNote[]>([]);
@@ -108,6 +123,14 @@ export default function JournalPage() {
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("created-newest");
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("stargate-journal-layout") as LayoutMode) || "grid";
+    }
+    return "grid";
+  });
+  const [linkingNoteId, setLinkingNoteId] = useState<string | null>(null);
+  const [linkSearch, setLinkSearch] = useState("");
   const supabase = createClient();
 
   const fetchNotes = useCallback(async () => {
@@ -168,10 +191,10 @@ export default function JournalPage() {
     let matchesType = true;
     switch (noteTypeFilter) {
       case "trade":
-        matchesType = n.trade_id !== null;
+        matchesType = n.trade_id !== null || n.note_type === "trade";
         break;
       case "daily":
-        matchesType = n.trade_id === null;
+        matchesType = n.note_type === "daily";
         break;
       case "other":
         matchesType = n.note_type === "other" || (!n.note_type && n.trade_id === null);
@@ -240,6 +263,33 @@ export default function JournalPage() {
     }
   }
 
+  async function syncTradeToNote(noteId: string, tradeId: string) {
+    // 1. Link journal entry to trade
+    await supabase
+      .from("journal_notes")
+      .update({ trade_id: tradeId, note_type: "trade" })
+      .eq("id", noteId);
+
+    // 2. Non-destructive psychology merge: copy if trade fields are empty
+    const note = notes.find((n) => n.id === noteId);
+    const trade = allTrades.find((t) => t.id === tradeId);
+    if (note?.structured_data && trade) {
+      const sd = note.structured_data as Record<string, string | number | boolean | null>;
+      const update: Record<string, unknown> = {};
+      if (!trade.emotion && sd.emotion) update.emotion = sd.emotion;
+      if (!trade.confidence && sd.confidence) update.confidence = sd.confidence;
+      if (!trade.setup_type && sd.setup_type) update.setup_type = sd.setup_type;
+      if (Object.keys(update).length > 0) {
+        await supabase.from("trades").update(update).eq("id", tradeId);
+      }
+    }
+
+    setLinkingNoteId(null);
+    setLinkSearch("");
+    fetchNotes();
+    fetchTrades();
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -278,44 +328,31 @@ export default function JournalPage() {
             className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm placeholder-muted focus:outline-none focus:border-accent/50 focus:shadow-[0_0_0_3px_rgba(0,180,216,0.1)] transition-all duration-300"
           />
         </div>
-        <div className="relative">
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as DateRange)}
-            className="appearance-none pl-9 pr-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all cursor-pointer min-w-[140px]"
-          >
-            {DATE_RANGE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-        </div>
-        <div className="relative">
-          <select
-            value={activeTag ?? ""}
-            onChange={(e) => setActiveTag(e.target.value || null)}
-            className="appearance-none pl-9 pr-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all cursor-pointer min-w-[160px]"
-          >
-            <option value="">All Tags</option>
-            <option value="__untagged__">No Tag</option>
-            {allTags.map((tag) => (
-              <option key={tag} value={tag}>{tag}</option>
-            ))}
-          </select>
-          <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-        </div>
-        <div className="relative">
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="appearance-none pl-9 pr-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all cursor-pointer min-w-[160px]"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <ArrowUpDown size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-        </div>
+        <CustomSelect
+          value={dateRange}
+          onChange={(v) => setDateRange(v as DateRange)}
+          options={DATE_RANGE_OPTIONS}
+          icon={<Calendar size={14} />}
+          minWidth="150px"
+        />
+        <CustomSelect
+          value={activeTag ?? ""}
+          onChange={(v) => setActiveTag(v || null)}
+          options={[
+            { value: "", label: "All Tags" },
+            { value: "__untagged__", label: "No Tag" },
+            ...allTags.map((tag) => ({ value: tag, label: tag })),
+          ]}
+          icon={<Filter size={14} />}
+          minWidth="160px"
+        />
+        <CustomSelect
+          value={sortBy}
+          onChange={(v) => setSortBy(v as SortOption)}
+          options={SORT_OPTIONS}
+          icon={<ArrowUpDown size={14} />}
+          minWidth="170px"
+        />
         {activeTag && (
           <button
             onClick={() => setActiveTag(null)}
@@ -332,6 +369,29 @@ export default function JournalPage() {
           <Settings size={14} />
           Manage Tags
         </button>
+        <div className="flex rounded-xl border border-border/50 p-0.5 bg-surface">
+          {([
+            { mode: "grid" as LayoutMode, icon: LayoutGrid, title: "Grid" },
+            { mode: "list" as LayoutMode, icon: List, title: "List" },
+            { mode: "compact" as LayoutMode, icon: AlignJustify, title: "Timeline" },
+          ]).map(({ mode, icon: Icon, title }) => (
+            <button
+              key={mode}
+              onClick={() => {
+                setLayoutMode(mode);
+                localStorage.setItem("stargate-journal-layout", mode);
+              }}
+              className={`p-2 rounded-lg transition-all ${
+                layoutMode === mode
+                  ? "bg-accent/10 text-accent"
+                  : "text-muted hover:text-foreground"
+              }`}
+              title={title}
+            >
+              <Icon size={14} />
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Note type filter */}
@@ -382,92 +442,299 @@ export default function JournalPage() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sorted.map((note) => {
-            const isFavorite = note.is_favorite === true;
-            return (
-              <div
-                key={note.id}
-                className="bg-surface border border-border rounded-2xl hover:border-accent/30 transition-all duration-300 flex flex-col overflow-hidden"
-                style={{ boxShadow: "var(--shadow-card)" }}
-              >
-                {/* Header: title + action buttons */}
-                <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-0">
-                  <div className="flex-1 min-w-0">
-                    {note.title && (
-                      <h3 className="font-semibold text-foreground text-sm mb-1 truncate">
-                        {note.title}
-                      </h3>
-                    )}
-                    {note.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {note.tags.map((tag) => {
-                          const color = getTagColor(tag);
-                          return (
-                            <button
-                              key={tag}
-                              onClick={() => setActiveTag(tag)}
-                              className="text-[10px] px-2 py-0.5 rounded-md font-medium border hover:opacity-80 transition-opacity cursor-pointer"
-                              style={{
-                                backgroundColor: color.bg,
-                                color: color.text,
-                                borderColor: color.border,
-                              }}
-                            >
-                              {tag}
-                            </button>
-                          );
-                        })}
+        <>
+          {/* ── Grid View ── */}
+          {layoutMode === "grid" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sorted.map((note) => {
+                const isFavorite = note.is_favorite === true;
+                return (
+                  <div
+                    key={note.id}
+                    className="bg-surface border border-border rounded-2xl hover:border-accent/30 transition-all duration-300 flex flex-col overflow-hidden"
+                    style={{ boxShadow: "var(--shadow-card)" }}
+                  >
+                    <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-0">
+                      <div className="flex-1 min-w-0">
+                        {note.title && (
+                          <h3 className="font-semibold text-foreground text-sm mb-1 truncate">
+                            {formatTitle(note.title)}
+                          </h3>
+                        )}
+                        {note.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {note.tags.map((tag) => {
+                              const color = getTagColor(tag);
+                              return (
+                                <button
+                                  key={tag}
+                                  onClick={() => setActiveTag(tag)}
+                                  className="text-[10px] px-2 py-0.5 rounded-md font-medium border hover:opacity-80 transition-opacity cursor-pointer"
+                                  style={{
+                                    backgroundColor: color.bg,
+                                    color: color.text,
+                                    borderColor: color.border,
+                                  }}
+                                >
+                                  {tag}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-                    )}
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          onClick={() => toggleFavorite(note.id, isFavorite)}
+                          className={`p-1.5 rounded-lg transition-all ${
+                            isFavorite ? "text-yellow-400" : "text-muted/40 hover:text-yellow-400/60"
+                          }`}
+                          title={isFavorite ? "Unfavorite" : "Favorite"}
+                        >
+                          <Star size={14} fill={isFavorite ? "currentColor" : "none"} />
+                        </button>
+                        {!note.trade_id ? (
+                          <button
+                            onClick={() => { setLinkingNoteId(note.id); setLinkSearch(""); }}
+                            className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
+                            title="Link to Trade"
+                          >
+                            <Link2 size={14} />
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-accent font-medium px-1.5" title="Linked to trade">
+                            <Link2 size={12} className="inline" />
+                          </span>
+                        )}
+                        <button
+                          onClick={() => { setEditNote(note); setShowEditor(true); }}
+                          className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
+                          title="Edit"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => deleteNote(note.id)}
+                          className="p-1.5 rounded-lg text-muted/40 hover:text-loss hover:bg-loss/10 transition-all"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      className="text-sm text-muted leading-relaxed flex-1 px-4 pt-2 note-content max-h-[400px] overflow-y-auto [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_img]:cursor-pointer [&_h2]:text-foreground [&_h2]:font-semibold [&_h2]:text-sm [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-0.5 [&_strong]:text-foreground"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
+                      onClick={handleContentClick}
+                    />
+                    <div className="px-4 py-2 text-xs text-muted border-t border-border/50 mt-auto">
+                      {new Date(note.note_date ?? note.created_at).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-0.5 shrink-0">
-                    <button
-                      onClick={() => toggleFavorite(note.id, isFavorite)}
-                      className={`p-1.5 rounded-lg transition-all ${
-                        isFavorite ? "text-yellow-400" : "text-muted/40 hover:text-yellow-400/60"
-                      }`}
-                      title={isFavorite ? "Unfavorite" : "Favorite"}
-                    >
-                      <Star size={14} fill={isFavorite ? "currentColor" : "none"} />
-                    </button>
-                    <button
-                      onClick={() => { setEditNote(note); setShowEditor(true); }}
-                      className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
-                      title="Edit"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => deleteNote(note.id)}
-                      className="p-1.5 rounded-lg text-muted/40 hover:text-loss hover:bg-loss/10 transition-all"
-                      title="Delete"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── List View ── */}
+          {layoutMode === "list" && (
+            <div className="space-y-1">
+              {sorted.map((note) => {
+                const isFavorite = note.is_favorite === true;
+                const noteDate = new Date(note.note_date ?? note.created_at);
+                return (
+                  <div
+                    key={note.id}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-surface border border-border/50 hover:border-accent/30 hover:bg-surface-hover transition-all cursor-pointer group"
+                    onClick={() => { setEditNote(note); setShowEditor(true); }}
+                  >
+                    {/* Tags */}
+                    <div className="flex gap-1 shrink-0 min-w-[80px] max-w-[200px] overflow-hidden">
+                      {note.tags.slice(0, 3).map((tag) => {
+                        const color = getTagColor(tag);
+                        return (
+                          <span
+                            key={tag}
+                            className="text-[9px] px-1.5 py-0.5 rounded font-medium border truncate"
+                            style={{
+                              backgroundColor: color.bg,
+                              color: color.text,
+                              borderColor: color.border,
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        );
+                      })}
+                      {note.tags.length > 3 && (
+                        <span className="text-[9px] text-muted">+{note.tags.length - 3}</span>
+                      )}
+                    </div>
+
+                    {/* Title */}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-foreground font-medium truncate block">
+                        {note.title ? formatTitle(note.title) : "Untitled"}
+                      </span>
+                    </div>
+
+                    {/* Date */}
+                    <span className="text-xs text-muted shrink-0 whitespace-nowrap">
+                      {noteDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleFavorite(note.id, isFavorite); }}
+                        className={`p-1.5 rounded-lg transition-all ${
+                          isFavorite ? "text-yellow-400 opacity-100" : "text-muted/40 hover:text-yellow-400/60"
+                        }`}
+                        title={isFavorite ? "Unfavorite" : "Favorite"}
+                      >
+                        <Star size={13} fill={isFavorite ? "currentColor" : "none"} />
+                      </button>
+                      {!note.trade_id ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setLinkingNoteId(note.id); setLinkSearch(""); }}
+                          className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
+                          title="Link to Trade"
+                        >
+                          <Link2 size={13} />
+                        </button>
+                      ) : (
+                        <span className="text-accent px-1" title="Linked to trade">
+                          <Link2 size={11} />
+                        </span>
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }}
+                        className="p-1.5 rounded-lg text-muted/40 hover:text-loss hover:bg-loss/10 transition-all"
+                        title="Delete"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                );
+              })}
+            </div>
+          )}
 
-                {/* Scrollable content */}
-                <div
-                  className="text-sm text-muted leading-relaxed flex-1 px-4 pt-2 note-content max-h-[400px] overflow-y-auto [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_img]:cursor-pointer [&_h2]:text-foreground [&_h2]:font-semibold [&_h2]:text-sm [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-0.5 [&_strong]:text-foreground"
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
-                  onClick={handleContentClick}
-                />
+          {/* ── Compact / Timeline View ── */}
+          {layoutMode === "compact" && (() => {
+            const groups = new Map<string, JournalNote[]>();
+            for (const note of sorted) {
+              const d = new Date(note.note_date ?? note.created_at);
+              const key = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+              if (!groups.has(key)) groups.set(key, []);
+              groups.get(key)!.push(note);
+            }
+            return (
+              <div className="space-y-4">
+                {Array.from(groups.entries()).map(([dateLabel, dateNotes]) => (
+                  <div key={dateLabel}>
+                    {/* Date header */}
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="h-px flex-1 bg-border/50" />
+                      <span className="text-[11px] font-semibold text-muted uppercase tracking-wider whitespace-nowrap">
+                        {dateLabel}
+                      </span>
+                      <div className="h-px flex-1 bg-border/50" />
+                    </div>
+                    {/* Entries */}
+                    <div className="space-y-0.5 pl-2">
+                      {dateNotes.map((note) => {
+                        const isFavorite = note.is_favorite === true;
+                        const time = new Date(note.note_date ?? note.created_at).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        });
+                        return (
+                          <div
+                            key={note.id}
+                            className="flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-surface-hover transition-colors cursor-pointer group"
+                            onClick={() => { setEditNote(note); setShowEditor(true); }}
+                          >
+                            {/* Time */}
+                            <span className="text-[11px] text-muted/60 font-mono w-[72px] shrink-0">
+                              {time}
+                            </span>
 
-                {/* Footer: date */}
-                <div className="px-4 py-2 text-xs text-muted border-t border-border/50 mt-auto">
-                  {new Date(note.note_date ?? note.created_at).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </div>
+                            {/* Title */}
+                            <span className="text-sm text-foreground truncate flex-1 min-w-0">
+                              {note.title ? formatTitle(note.title) : "Untitled"}
+                            </span>
+
+                            {/* Tags */}
+                            <div className="flex gap-1 shrink-0">
+                              {note.tags.slice(0, 2).map((tag) => {
+                                const color = getTagColor(tag);
+                                return (
+                                  <span
+                                    key={tag}
+                                    className="text-[9px] px-1.5 py-0.5 rounded font-medium border"
+                                    style={{
+                                      backgroundColor: color.bg,
+                                      color: color.text,
+                                      borderColor: color.border,
+                                    }}
+                                  >
+                                    {tag}
+                                  </span>
+                                );
+                              })}
+                              {note.tags.length > 2 && (
+                                <span className="text-[9px] text-muted">+{note.tags.length - 2}</span>
+                              )}
+                            </div>
+
+                            {/* Favorite indicator + actions */}
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              {isFavorite && (
+                                <Star size={11} className="text-yellow-400" fill="currentColor" />
+                              )}
+                              {note.trade_id ? (
+                                <span className="text-accent px-0.5" title="Linked to trade">
+                                  <Link2 size={10} />
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setLinkingNoteId(note.id); setLinkSearch(""); }}
+                                  className="p-1 rounded text-muted/30 hover:text-accent opacity-0 group-hover:opacity-100 transition-all"
+                                  title="Link to Trade"
+                                >
+                                  <Link2 size={12} />
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }}
+                                className="p-1 rounded text-muted/30 hover:text-loss opacity-0 group-hover:opacity-100 transition-all"
+                                title="Delete"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             );
-          })}
-        </div>
+          })()}
+        </>
       )}
 
       {showEditor && (
@@ -492,6 +759,67 @@ export default function JournalPage() {
 
       {lightboxSrc && (
         <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+      )}
+
+      {/* Trade Picker Modal for "Sync to Trade" */}
+      {linkingNoteId && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setLinkingNoteId(null); setLinkSearch(""); }}>
+          <div className="glass border border-border/50 rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="text-sm font-bold text-foreground">Link to Trade</h3>
+              <button onClick={() => { setLinkingNoteId(null); setLinkSearch(""); }} className="p-1 rounded-lg text-muted hover:text-foreground transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="relative mb-3">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                <input
+                  type="text"
+                  value={linkSearch}
+                  onChange={(e) => setLinkSearch(e.target.value)}
+                  placeholder="Search by symbol or date..."
+                  autoFocus
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
+                />
+              </div>
+              <div className="max-h-64 overflow-y-auto space-y-0.5">
+                {allTrades.length === 0 ? (
+                  <p className="text-sm text-muted text-center py-4">No trades found</p>
+                ) : (
+                  allTrades
+                    .filter((t) => {
+                      if (!linkSearch) return true;
+                      const q = linkSearch.toLowerCase();
+                      return t.symbol.toLowerCase().includes(q) || t.open_timestamp.includes(q) || t.position.includes(q);
+                    })
+                    .slice(0, 12)
+                    .map((trade) => (
+                      <button
+                        key={trade.id}
+                        onClick={() => syncTradeToNote(linkingNoteId, trade.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left hover:bg-accent/10 transition-colors"
+                      >
+                        {trade.pnl !== null && trade.pnl >= 0 ? (
+                          <TrendingUp size={13} className="text-win shrink-0" />
+                        ) : (
+                          <TrendingDown size={13} className="text-loss shrink-0" />
+                        )}
+                        <span className="text-sm font-medium text-foreground">{trade.symbol}</span>
+                        <span className="text-xs text-muted capitalize">{trade.position}</span>
+                        <span className="text-xs text-muted">
+                          {new Date(trade.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </span>
+                        <span className={`text-xs font-medium ml-auto ${trade.pnl !== null && trade.pnl >= 0 ? "text-win" : "text-loss"}`}>
+                          {trade.pnl !== null ? (trade.pnl >= 0 ? `+$${trade.pnl.toFixed(2)}` : `-$${Math.abs(trade.pnl).toFixed(2)}`) : "Open"}
+                        </span>
+                      </button>
+                    ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

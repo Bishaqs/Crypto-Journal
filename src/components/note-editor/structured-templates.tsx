@@ -10,9 +10,27 @@ type FieldDef =
   | { type: "emotion"; key: string; label?: string }
   | { type: "confidence"; key: string }
   | { type: "process-score"; key: string }
-  | { type: "setup-type"; key: string };
+  | { type: "setup-type"; key: string }
+  | { type: "checklist"; key: string; label: string; items: string[] };
 
 const TEMPLATE_FIELDS: Record<string, FieldDef[]> = {
+  "trade-entry": [
+    { type: "emotion", key: "emotion", label: "How are you feeling right now?" },
+    { type: "confidence", key: "confidence" },
+    { type: "setup-type", key: "setup_type" },
+    { type: "textarea", key: "trade_thesis", label: "Trade Thesis / Rationale", placeholder: "Why are you taking this trade? What's the setup?" },
+    { type: "textarea", key: "risk_plan", label: "Risk Plan", placeholder: "Where's your stop loss? What's your R:R? Max position size?" },
+    { type: "checklist", key: "entry_criteria", label: "Entry Criteria Checklist", items: [
+      "Setup matches trading plan",
+      "Risk/reward is acceptable (2R+)",
+      "Position size within limits",
+      "Not revenge trading",
+      "Emotionally calm / disciplined",
+      "Market conditions support the trade",
+    ] },
+    { type: "textarea", key: "market_conditions", label: "Market Conditions", placeholder: "Overall trend, key levels, news/events, sentiment..." },
+    { type: "textarea", key: "additional_notes", label: "Additional Notes", placeholder: "Anything else on your mind..." },
+  ],
   "trade-review": [
     { type: "emotion", key: "emotion", label: "How were you feeling?" },
     { type: "setup-type", key: "setup_type" },
@@ -67,6 +85,12 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
 
   function update(key: string, value: string | number | null) {
     onChange({ ...data, [key]: value });
+  }
+
+  function updateChecklist(key: string, item: string, checked: boolean) {
+    const current: Record<string, boolean> = data[key] ? JSON.parse(data[key] as string) : {};
+    const updated = { ...current, [item]: checked };
+    onChange({ ...data, [key]: JSON.stringify(updated) });
   }
 
   return (
@@ -154,6 +178,47 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
                 </div>
               </div>
             );
+          case "checklist": {
+            const checkState: Record<string, boolean> = data[field.key]
+              ? JSON.parse(data[field.key] as string)
+              : {};
+            return (
+              <div key={field.key}>
+                <label className="block text-[11px] text-muted mb-2 font-medium">{field.label}</label>
+                <div className="space-y-1.5">
+                  {field.items.map((item) => (
+                    <label
+                      key={item}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl border cursor-pointer transition-all ${
+                        checkState[item]
+                          ? "border-accent/40 bg-accent/5"
+                          : "border-border bg-background hover:border-border/80"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checkState[item] ?? false}
+                        onChange={(e) => updateChecklist(field.key, item, e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                        checkState[item]
+                          ? "bg-accent border-accent text-background"
+                          : "border-muted/40"
+                      }`}>
+                        {checkState[item] && (
+                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                            <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-sm text-foreground">{item}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            );
+          }
         }
       })}
     </div>
@@ -204,6 +269,16 @@ export function serializeToHtml(templateId: string, data: Record<string, string 
         label = field.label;
         displayValue = field.prefix ? `${field.prefix}${value}` : String(value);
         break;
+      case "checklist": {
+        label = field.label;
+        const checks: Record<string, boolean> = JSON.parse(value as string);
+        const items = field.items.map((item) => {
+          const checked = checks[item] ?? false;
+          return `<li>${checked ? "\u2705" : "\u274c"} ${item}</li>`;
+        });
+        displayValue = `<ul>${items.join("")}</ul>`;
+        break;
+      }
     }
 
     parts.push(`<h2>${label}</h2><p>${displayValue}</p>`);

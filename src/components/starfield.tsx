@@ -8,6 +8,7 @@ import { CandleBackground } from "./candle-background";
 import { RealisticBlackHole } from "./realistic-black-hole";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { SatoshiBackground } from "./satoshi-background";
+import { SynthwaveBackground } from "./synthwave-background";
 
 /* ================================================================
    MATRIX — Dense binary rain covering the entire screen
@@ -1540,6 +1541,7 @@ export function Starfield() {
       vulcan: "linear-gradient(180deg, #1a0a00 0%, #0d0500 40%, #0a0300 100%)",
       triton: "linear-gradient(180deg, #020a18 0%, #001020 50%, #020a18 100%)",
       satoshi: "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
+      synthwave: "#0a0015",
     };
     return (
       <div
@@ -1650,6 +1652,15 @@ export function Starfield() {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <SatoshiBackground reducedMotion={reducedMotion} />
+      </div>
+    );
+  }
+
+  // Synthwave mode
+  if (theme === "synthwave") {
+    return (
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <SynthwaveBackground />
       </div>
     );
   }
