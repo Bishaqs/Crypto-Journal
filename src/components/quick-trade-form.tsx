@@ -75,6 +75,9 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
         gas_fee_native: 0,
         stop_loss: null,
         profit_target: null,
+        price_mae: null,
+        price_mfe: null,
+        mfe_timestamp: null,
       };
 
       const { error: dbError } = await supabase.from("trades").insert(payload);

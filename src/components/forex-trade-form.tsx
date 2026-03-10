@@ -112,6 +112,9 @@ export function ForexTradeForm({
         tags,
         stop_loss: formData.get("stop_loss") || undefined,
         profit_target: formData.get("profit_target") || undefined,
+        price_mae: formData.get("price_mae") as string || undefined,
+        price_mfe: formData.get("price_mfe") as string || undefined,
+        mfe_timestamp: formData.get("mfe_timestamp") as string || undefined,
       };
 
       const parsed = forexTradeSchema.safeParse(rawData);
@@ -147,6 +150,9 @@ export function ForexTradeForm({
         pnl,
         stop_loss: data.stop_loss ?? null,
         profit_target: data.profit_target ?? null,
+        price_mae: data.price_mae ?? null,
+        price_mfe: data.price_mfe ?? null,
+        mfe_timestamp: data.mfe_timestamp ?? null,
       };
 
       if (editTrade) {
@@ -287,6 +293,23 @@ export function ForexTradeForm({
               <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Profit Target <span className="text-muted/60">(optional)</span></label>
               <input name="profit_target" type="number" step="any" defaultValue={editTrade?.profit_target ?? ""} placeholder="0.00" className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
             </div>
+          </div>
+
+          {/* MAE / MFE */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Price MAE <span className="text-muted/60">(optional)</span></label>
+              <input name="price_mae" type="number" step="any" defaultValue={editTrade?.price_mae ?? ""} placeholder="Worst price" className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Price MFE <span className="text-muted/60">(optional)</span></label>
+              <input name="price_mfe" type="number" step="any" defaultValue={editTrade?.price_mfe ?? ""} placeholder="Best price" className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">MFE Timestamp <span className="text-muted/60">(optional)</span></label>
+            <input name="mfe_timestamp" type="datetime-local" defaultValue={editTrade?.mfe_timestamp ? editTrade.mfe_timestamp.slice(0, 16) : ""} className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
           </div>
 
           {/* Timestamps */}
