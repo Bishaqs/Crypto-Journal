@@ -17,6 +17,7 @@ import {
   Trash2,
   X,
   Calendar,
+  ArrowUpDown,
 } from "lucide-react";
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
@@ -26,6 +27,16 @@ import { ImageLightbox } from "@/components/image-lightbox";
 
 type NoteTypeFilter = "all" | "trade" | "daily" | "other" | "favorites";
 type DateRange = "all" | "today" | "yesterday" | "7d" | "this-month" | "last-month" | "this-year";
+type SortOption = "created-newest" | "created-oldest" | "newest" | "oldest" | "name-asc" | "name-desc";
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "created-newest", label: "Recently Added" },
+  { value: "created-oldest", label: "Oldest Added" },
+  { value: "newest", label: "Date (Newest)" },
+  { value: "oldest", label: "Date (Oldest)" },
+  { value: "name-asc", label: "Name (A-Z)" },
+  { value: "name-desc", label: "Name (Z-A)" },
+];
 
 const NOTE_TYPE_OPTIONS: { value: NoteTypeFilter; label: string }[] = [
   { value: "all", label: "All Notes" },
@@ -36,13 +47,13 @@ const NOTE_TYPE_OPTIONS: { value: NoteTypeFilter; label: string }[] = [
 ];
 
 const DATE_RANGE_OPTIONS: { value: DateRange; label: string }[] = [
-  { value: "all", label: "All Time" },
   { value: "today", label: "Today" },
   { value: "yesterday", label: "Yesterday" },
   { value: "7d", label: "Last 7 Days" },
   { value: "this-month", label: "This Month" },
   { value: "last-month", label: "Last Month" },
   { value: "this-year", label: "This Year" },
+  { value: "all", label: "All Time" },
 ];
 
 function getDateRangeBounds(range: DateRange): { from: Date | null; to: Date | null } {
@@ -96,13 +107,15 @@ export default function JournalPage() {
   const [showTagManager, setShowTagManager] = useState(false);
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>("created-newest");
   const supabase = createClient();
 
   const fetchNotes = useCallback(async () => {
     const { data, error } = await supabase
       .from("journal_notes")
       .select("*")
-      .order("note_date", { ascending: false });
+      .order("note_date", { ascending: false })
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("[Journal] fetchNotes error:", error.message);
@@ -173,6 +186,25 @@ export default function JournalPage() {
     const matchesDate = (!from || noteDate >= from) && (!to || noteDate < to);
 
     return matchesSearch && matchesTag && matchesType && matchesDate;
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case "newest":
+        return new Date(b.note_date ?? b.created_at).getTime() - new Date(a.note_date ?? a.created_at).getTime();
+      case "oldest":
+        return new Date(a.note_date ?? a.created_at).getTime() - new Date(b.note_date ?? b.created_at).getTime();
+      case "created-newest":
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case "created-oldest":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case "name-asc":
+        return (a.title ?? "").localeCompare(b.title ?? "");
+      case "name-desc":
+        return (b.title ?? "").localeCompare(a.title ?? "");
+      default:
+        return 0;
+    }
   });
 
   function openEditor(template?: string) {
@@ -272,6 +304,18 @@ export default function JournalPage() {
           </select>
           <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
         </div>
+        <div className="relative">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="appearance-none pl-9 pr-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all cursor-pointer min-w-[160px]"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <ArrowUpDown size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+        </div>
         {activeTag && (
           <button
             onClick={() => setActiveTag(null)}
@@ -311,7 +355,7 @@ export default function JournalPage() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {sorted.length === 0 ? (
         <div className="text-center py-16">
           <FileText size={48} className="text-accent/20 mx-auto mb-4" />
           <p className="text-lg font-semibold text-foreground mb-2">
@@ -339,7 +383,7 @@ export default function JournalPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((note) => {
+          {sorted.map((note) => {
             const isFavorite = note.is_favorite === true;
             return (
               <div

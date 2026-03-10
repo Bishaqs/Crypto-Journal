@@ -74,6 +74,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(editNote?.tags?.[0] ?? null);
   const [allExistingTags, setAllExistingTags] = useState<string[]>([]);
+  const [title, setTitle] = useState(editNote?.title ?? "");
   const [appliedTemplate, setAppliedTemplate] = useState(initialTemplate);
   const [structuredData, setStructuredData] = useState<Record<string, string | number | null>>({});
   const [noteDate, setNoteDate] = useState<string>(
@@ -193,6 +194,22 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
     }
   }
 
+  function handleTradeLink(tradeId: string | null) {
+    setLinkedTradeId(tradeId);
+    if (tradeId && !title.trim()) {
+      const trade = trades.find((t) => t.id === tradeId);
+      if (trade) {
+        const date = new Date(trade.open_timestamp).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+        const pos = trade.position ? ` — ${trade.position.charAt(0).toUpperCase() + trade.position.slice(1)}` : "";
+        setTitle(`${trade.symbol}${pos} — ${date}`);
+      }
+    }
+  }
+
   async function saveNote(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -281,7 +298,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Title</label>
-                <input name="title" defaultValue={editNote?.title ?? ""} placeholder="Note Title" className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm font-semibold focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50" />
+                <input name="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Note Title" className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm font-semibold focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50" />
               </div>
               <div>
                 <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Tag</label>
@@ -309,6 +326,19 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all"
             />
           </div>
+
+          {/* Link Trade */}
+          {trades.length > 0 && (
+            <div className="px-5 pt-3 shrink-0">
+              <TradeLinker
+                trades={trades}
+                selectedTradeId={linkedTradeId}
+                onSelect={handleTradeLink}
+                autoLinkOnImport={autoLinkOnImport}
+                onAutoLinkChange={setAutoLinkOnImport}
+              />
+            </div>
+          )}
 
           {/* Template selector */}
           {!editNote && (
@@ -367,16 +397,6 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
                   {uploading ? "Uploading image..." : "Paste images from clipboard or drag & drop screenshots"}
                 </p>
               </>
-            )}
-
-            {trades.length > 0 && (
-              <TradeLinker
-                trades={trades}
-                selectedTradeId={linkedTradeId}
-                onSelect={setLinkedTradeId}
-                autoLinkOnImport={autoLinkOnImport}
-                onAutoLinkChange={setAutoLinkOnImport}
-              />
             )}
 
             {error && (
