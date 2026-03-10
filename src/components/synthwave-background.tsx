@@ -100,11 +100,12 @@ export function SynthwaveBackground() {
             <div
                 className="absolute rounded-[100%]"
                 style={{
-                    left: "50%",
-                    top: "42%",
+                    left: 0,
+                    right: 0,
+                    margin: "0 auto",
+                    top: "21%",
                     width: "40vw",
                     height: "25vh",
-                    transform: "translate(-50%, -50%)",
                     background: "radial-gradient(ellipse, rgba(255, 45, 149, 0.3) 0%, rgba(180, 0, 255, 0.1) 50%, transparent 100%)",
                     animation: "synthwave-glow-pulse 8s ease-in-out infinite",
                     zIndex: 1
@@ -115,11 +116,12 @@ export function SynthwaveBackground() {
             <div
                 className="absolute"
                 style={{
-                    left: "50%",
-                    top: "40%",
+                    left: 0,
+                    right: 0,
+                    margin: "0 auto",
+                    top: "18%",
                     width: "28vw",
                     height: "28vw",
-                    transform: "translate(-50%, -50%)",
                     transformOrigin: "center center",
                     animation: "synthwave-sun-breathe 12s ease-in-out infinite",
                     zIndex: 2,
@@ -152,15 +154,14 @@ export function SynthwaveBackground() {
 
             {/* Mountains */}
             <div className="absolute top-0 left-0 w-full h-full" style={{ zIndex: 3 }}>
-                <svg width="100%" height="100%" preserveAspectRatio="none">
-                    <polyline
-                        points="0,55 5,50 15,48 25,52 35,47 45,51 55,49 65,48 75,51 85,47 95,50 100,55"
+                <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100">
+                    <polygon
+                        points="0,55 5,50 15,48 25,52 35,47 45,51 55,49 65,48 75,51 85,47 95,50 100,55 100,100 0,100"
                         stroke="#6366f1"
                         strokeWidth="1px"
-                        fill="none"
-                        opacity="0.3"
+                        fill="#0a0015"
+                        strokeOpacity="0.3"
                         vectorEffect="non-scaling-stroke"
-                        transform="scale(100, 1)"
                     />
                 </svg>
                 <svg
@@ -168,20 +169,20 @@ export function SynthwaveBackground() {
                     preserveAspectRatio="none"
                     className="absolute top-[35%] w-full h-[20%]"
                 >
-                    <polyline
+                    <polygon
                         points="0,100 8,85 18,75 25,90 35,65 42,80 52,60 65,85 75,65 85,85 92,70 100,100"
                         stroke="#6366f1"
                         strokeWidth="1.5px"
-                        fill="none"
-                        opacity="0.3"
+                        fill="#0a0015"
+                        strokeOpacity="0.3"
                         vectorEffect="non-scaling-stroke"
                     />
-                    <polyline
+                    <polygon
                         points="0,100 10,75 20,55 30,85 40,45 50,70 60,40 70,80 80,55 90,85 95,65 100,100"
                         stroke="#7c3aed"
                         strokeWidth="2px"
-                        fill="none"
-                        opacity="0.6"
+                        fill="#0a0015"
+                        strokeOpacity="0.6"
                         vectorEffect="non-scaling-stroke"
                     />
                 </svg>

@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { validateImportData, type ImportResult } from "@/lib/csv-import";
+import { parseFileToCSV, isAcceptedFileType } from "@/lib/file-parser";
 import {
   Upload,
   FileText,
@@ -46,16 +47,16 @@ export function UploadFileTab() {
     }
   }
 
-  const processFile = useCallback((file: File) => {
-    if (!file.name.endsWith(".csv")) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const validationResult = validateImportData(text);
+  const processFile = useCallback(async (file: File) => {
+    if (!isAcceptedFileType(file.name)) return;
+    try {
+      const { csvText } = await parseFileToCSV(file);
+      const validationResult = validateImportData(csvText);
       setResult(validationResult);
       setStep("preview");
-    };
-    reader.readAsText(file);
+    } catch {
+      setResult(null);
+    }
   }, []);
 
   function handleDrop(e: React.DragEvent) {
@@ -167,13 +168,13 @@ export function UploadFileTab() {
             >
               <FileText size={36} className="text-accent/40 mx-auto mb-3" />
               <p className="text-sm font-medium text-foreground mb-1">
-                Drop your CSV file here
+                Drop your CSV or Excel file here
               </p>
               <p className="text-xs text-muted mb-3">or click to browse</p>
               <p className="text-[10px] text-muted/50">
                 Supports 13+ crypto exchanges, 6 stock brokers, and DEX exports
               </p>
-              <input ref={fileRef} type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
+              <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} className="hidden" />
             </div>
 
             {/* Advanced settings */}

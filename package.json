@@ -30,6 +30,7 @@
     "react-sparklines": "^1.7.0",
     "recharts": "^3.7.0",
     "resend": "^6.9.3",
+    "xlsx": "^0.18.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {

@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { validateNoteImportData } from "@/lib/note-import";
 import type { ImportResult } from "@/lib/csv-import";
+import { parseFileToCSV, isAcceptedFileType } from "@/lib/file-parser";
 import {
   Upload,
   FileText,
@@ -28,16 +29,16 @@ export function NoteImportTab() {
   const fileRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
-  const processFile = useCallback((file: File) => {
-    if (!file.name.endsWith(".csv")) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const validationResult = validateNoteImportData(text);
+  const processFile = useCallback(async (file: File) => {
+    if (!isAcceptedFileType(file.name)) return;
+    try {
+      const { csvText } = await parseFileToCSV(file);
+      const validationResult = validateNoteImportData(csvText);
       setResult(validationResult);
       setStep("preview");
-    };
-    reader.readAsText(file);
+    } catch {
+      setResult(null);
+    }
   }, []);
 
   function handleDrop(e: React.DragEvent) {
@@ -126,10 +127,10 @@ export function NoteImportTab() {
             >
               <FileText size={36} className="text-accent/40 mx-auto mb-3" />
               <p className="text-sm font-medium text-foreground mb-1">
-                Drop your CSV file here
+                Drop your CSV or Excel file here
               </p>
               <p className="text-xs text-muted">or click to browse</p>
-              <input ref={fileRef} type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
+              <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} className="hidden" />
             </div>
           </div>
         )}

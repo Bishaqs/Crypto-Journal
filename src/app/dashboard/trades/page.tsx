@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { Fragment, useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "@/lib/theme-context";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
@@ -335,6 +336,7 @@ const TABLE_CONFIG: TableConfig<Trade> = {
 
 export default function TradesPage() {
   const router = useRouter();
+  const { viewMode } = useTheme();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -342,6 +344,13 @@ export default function TradesPage() {
   const supabase = createClient();
 
   const { state, visibleColumns, paginatedData, sortedFilteredData, totalItems, totalPages, actions } = useTableState(TABLE_CONFIG, trades);
+
+  // Show all columns when in advanced/full mode
+  useEffect(() => {
+    if (viewMode === "full") {
+      actions.showAllColumns();
+    }
+  }, [viewMode]);
 
   const fetchTrades = useCallback(async () => {
     const { data } = await supabase
@@ -490,7 +499,7 @@ export default function TradesPage() {
         {/* Table area */}
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="overflow-x-auto flex-1">
-            <table className="w-full text-sm">
+            <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
                   {/* Selection checkbox header */}
@@ -521,105 +530,102 @@ export default function TradesPage() {
                   const isExpanded = expandedId === trade.id;
                   const isSelected = state.selectedIds.has(trade.id);
                   return (
-                    <tr key={trade.id} className={`group ${isSelected ? "bg-accent/5" : ""}`}>
-                      <td colSpan={visibleColumns.length + 1} className="p-0">
-                        <div
-                          className="grid cursor-pointer hover:bg-surface-hover transition-colors"
-                          style={{ gridTemplateColumns: `40px repeat(${visibleColumns.length}, auto)` }}
-                          onClick={() => router.push(`/dashboard/trades/${trade.id}`)}
-                        >
-                          {/* Row checkbox */}
-                          <div className="px-3 py-3 border-b border-border/50 flex items-center" onClick={(e) => e.stopPropagation()}>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => actions.toggleRow(trade.id)}
-                              className="w-3.5 h-3.5 rounded border-border text-accent focus:ring-accent/30 bg-background"
-                            />
-                          </div>
-                          {/* Data cells */}
-                          {visibleColumns.map((col) => (
-                            <div
-                              key={col.id}
-                              className={`px-4 py-3 border-b border-border/50 ${col.align === "right" ? "text-right" : ""}`}
-                            >
-                              {col.renderCell(trade)}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Expanded details */}
-                        {isExpanded && (
-                          <div className="px-4 py-4 bg-background/50 border-b border-border/50 space-y-3">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                              <div>
-                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Quantity</span>
-                                <p className="text-foreground font-medium mt-0.5">{trade.quantity}</p>
-                              </div>
-                              <div>
-                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Fees</span>
-                                <p className="text-foreground font-medium mt-0.5">${trade.fees.toFixed(2)}</p>
-                              </div>
-                              <div>
-                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Confidence</span>
-                                <p className="text-foreground font-medium mt-0.5">{trade.confidence !== null ? `${trade.confidence}/10` : "\u2014"}</p>
-                              </div>
-                              <div>
-                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Setup</span>
-                                <p className="text-foreground font-medium mt-0.5">{trade.setup_type ?? "\u2014"}</p>
-                              </div>
-                            </div>
-                            {trade.trade_source === "dex" && (
+                    <Fragment key={trade.id}>
+                      <tr
+                        className={`border-b border-border/50 cursor-pointer hover:bg-surface-hover transition-colors ${isSelected ? "bg-accent/5" : ""}`}
+                        onClick={() => router.push(`/dashboard/trades/${trade.id}`)}
+                      >
+                        <td className="w-10 px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => actions.toggleRow(trade.id)}
+                            className="w-3.5 h-3.5 rounded border-border text-accent focus:ring-accent/30 bg-background"
+                          />
+                        </td>
+                        {visibleColumns.map((col) => (
+                          <td
+                            key={col.id}
+                            className={`px-4 py-3 whitespace-nowrap ${col.align === "right" ? "text-right" : ""}`}
+                          >
+                            {col.renderCell(trade)}
+                          </td>
+                        ))}
+                      </tr>
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={visibleColumns.length + 1} className="p-0">
+                            <div className="px-4 py-4 bg-background/50 border-b border-border/50 space-y-3">
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                                 <div>
-                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Chain</span>
-                                  <p className="text-foreground font-medium mt-0.5">
-                                    {CHAINS.find((c) => c.id === trade.chain)?.label ?? trade.chain ?? "\u2014"}
-                                  </p>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Quantity</span>
+                                  <p className="text-foreground font-medium mt-0.5">{trade.quantity}</p>
                                 </div>
                                 <div>
-                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Protocol</span>
-                                  <p className="text-foreground font-medium mt-0.5">{trade.dex_protocol ?? "\u2014"}</p>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Fees</span>
+                                  <p className="text-foreground font-medium mt-0.5">${trade.fees.toFixed(2)}</p>
                                 </div>
                                 <div>
-                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Gas Fee</span>
-                                  <p className="text-foreground font-medium mt-0.5 flex items-center gap-1">
-                                    <Fuel size={10} className="text-muted/60" />
-                                    ${(trade.gas_fee ?? 0).toFixed(2)}
-                                  </p>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Confidence</span>
+                                  <p className="text-foreground font-medium mt-0.5">{trade.confidence !== null ? `${trade.confidence}/10` : "\u2014"}</p>
                                 </div>
                                 <div>
-                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Tx Hash</span>
-                                  {trade.tx_hash ? (() => {
-                                    const explorer = CHAINS.find((c) => c.id === trade.chain)?.explorer ?? "";
-                                    return (
-                                      <a
-                                        href={`${explorer}${trade.tx_hash}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-accent hover:text-accent-hover font-medium mt-0.5 flex items-center gap-1 transition-colors"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        {trade.tx_hash.slice(0, 8)}...{trade.tx_hash.slice(-6)}
-                                        <ExternalLink size={10} />
-                                      </a>
-                                    );
-                                  })() : (
-                                    <p className="text-foreground font-medium mt-0.5">{"\u2014"}</p>
-                                  )}
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Setup</span>
+                                  <p className="text-foreground font-medium mt-0.5">{trade.setup_type ?? "\u2014"}</p>
                                 </div>
                               </div>
-                            )}
-                            {trade.notes && (
-                              <div>
-                                <span className="text-muted/60 uppercase tracking-wider text-[10px]">Notes</span>
-                                <p className="text-xs text-muted mt-0.5 leading-relaxed">{trade.notes}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                              {trade.trade_source === "dex" && (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Chain</span>
+                                    <p className="text-foreground font-medium mt-0.5">
+                                      {CHAINS.find((c) => c.id === trade.chain)?.label ?? trade.chain ?? "\u2014"}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Protocol</span>
+                                    <p className="text-foreground font-medium mt-0.5">{trade.dex_protocol ?? "\u2014"}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Gas Fee</span>
+                                    <p className="text-foreground font-medium mt-0.5 flex items-center gap-1">
+                                      <Fuel size={10} className="text-muted/60" />
+                                      ${(trade.gas_fee ?? 0).toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Tx Hash</span>
+                                    {trade.tx_hash ? (() => {
+                                      const explorer = CHAINS.find((c) => c.id === trade.chain)?.explorer ?? "";
+                                      return (
+                                        <a
+                                          href={`${explorer}${trade.tx_hash}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-accent hover:text-accent-hover font-medium mt-0.5 flex items-center gap-1 transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {trade.tx_hash.slice(0, 8)}...{trade.tx_hash.slice(-6)}
+                                          <ExternalLink size={10} />
+                                        </a>
+                                      );
+                                    })() : (
+                                      <p className="text-foreground font-medium mt-0.5">{"\u2014"}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {trade.notes && (
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Notes</span>
+                                  <p className="text-xs text-muted mt-0.5 leading-relaxed">{trade.notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
                 {paginatedData.length === 0 && (

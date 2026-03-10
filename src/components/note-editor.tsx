@@ -9,7 +9,8 @@ import { EditorToolbar } from "@/components/note-editor/editor-toolbar";
 import { TemplateSelector } from "@/components/note-editor/template-selector";
 import { TradeLinker } from "@/components/note-editor/trade-linker";
 import { getCustomTagPresets } from "@/lib/tag-manager";
-import { isStructuredTemplate, StructuredTemplateForm, serializeToHtml } from "@/components/note-editor/structured-templates";
+import { isStructuredTemplate, StructuredTemplateForm, serializeToHtml, serializePsychToHtml } from "@/components/note-editor/structured-templates";
+import { EmotionPicker, ConfidenceSlider, ProcessScoreInput } from "@/components/psychology-inputs";
 import {
   X,
   FileText,
@@ -17,6 +18,8 @@ import {
   AlertTriangle,
   Calendar,
   Crosshair,
+  Brain,
+  ChevronDown,
 } from "lucide-react";
 
 type Template = {
@@ -91,6 +94,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
       ? editNote.note_date.slice(0, 16)
       : new Date().toISOString().slice(0, 16)
   );
+  const [showPsychInsights, setShowPsychInsights] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const supabase = createClient();
@@ -102,9 +106,21 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
   // Initialize contentEditable content ONCE on mount
   useEffect(() => {
     if (!initialized.current && contentRef.current) {
-      const initial = editNote?.content ?? (TEMPLATES.find((t) => t.id === initialTemplate)?.content ?? "");
+      let initial = editNote?.content ?? (TEMPLATES.find((t) => t.id === initialTemplate)?.content ?? "");
+      // Strip previously prepended psychology block to avoid duplication on re-save
+      initial = initial.replace(/<div class="psych-insights-block">[\s\S]*?<\/div>(<hr[^>]*>)?/g, "");
       contentRef.current.innerHTML = sanitizeHtml(initial);
       initialized.current = true;
+    }
+  }, []);
+
+  // Auto-open psychology insights if editing a free-form note that has psychology data
+  useEffect(() => {
+    if (editNote && !useStructured && editNote.structured_data) {
+      const sd = editNote.structured_data as Record<string, string | number | null>;
+      if (sd.emotion || sd.confidence != null || sd.process_score != null) {
+        setShowPsychInsights(true);
+      }
     }
   }, []);
 
@@ -228,9 +244,27 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
 
     try {
       const formData = new FormData(e.currentTarget);
-      const htmlContent = useStructured
+      let htmlContent = useStructured
         ? serializeToHtml(appliedTemplate, structuredData)
         : sanitizeHtml(contentRef.current?.innerHTML ?? "");
+
+      // Check if free-form note has psychology insights to save
+      const psychKeys = ["emotion", "confidence", "process_score"] as const;
+      const hasPsychInsights = !useStructured && showPsychInsights &&
+        psychKeys.some((k) => structuredData[k] != null);
+
+      // Prepend psychology HTML for display in note cards
+      if (hasPsychInsights) {
+        const psychHtml = serializePsychToHtml(structuredData);
+        if (psychHtml) {
+          htmlContent = psychHtml + "<hr>" + htmlContent;
+        }
+      }
+
+      // Build psychology-only structured_data for free-form notes
+      const psychData = hasPsychInsights
+        ? Object.fromEntries(psychKeys.filter((k) => structuredData[k] != null).map((k) => [k, structuredData[k]]))
+        : null;
 
       // Determine note_type automatically
       let noteType = "other";
@@ -250,7 +284,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
         auto_link_on_import: autoLinkOnImport,
         note_type: noteType,
         note_date: noteDate ? new Date(noteDate).toISOString() : new Date().toISOString(),
-        structured_data: useStructured ? structuredData : null,
+        structured_data: useStructured ? structuredData : psychData,
         template_id: useStructured ? appliedTemplate : null,
       };
 
@@ -402,6 +436,61 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
                   isFullscreen={isFullscreen}
                   onToggleFullscreen={() => setIsFullscreen((f) => !f)}
                 />
+
+                {/* Psychology insights toggle */}
+                <div className="border border-border/50 rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPsychInsights((v) => {
+                        if (v) {
+                          // Clearing: remove psychology keys
+                          setStructuredData((prev) => {
+                            const next = { ...prev };
+                            delete next.emotion;
+                            delete next.confidence;
+                            delete next.process_score;
+                            return next;
+                          });
+                        }
+                        return !v;
+                      });
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+                  >
+                    <Brain size={16} className={showPsychInsights ? "text-accent" : ""} />
+                    <span>Add Psychological Insights</span>
+                    <ChevronDown
+                      size={14}
+                      className={`ml-auto transition-transform duration-300 ${
+                        showPsychInsights ? "rotate-180 text-accent" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <div
+                    className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+                    style={{ gridTemplateRows: showPsychInsights ? "1fr" : "0fr" }}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="px-4 py-4 space-y-4 border-t border-border/50">
+                        <EmotionPicker
+                          value={(structuredData.emotion as string) ?? null}
+                          onChange={(v) => setStructuredData((prev) => ({ ...prev, emotion: v }))}
+                          label="How are you feeling?"
+                        />
+                        <ConfidenceSlider
+                          value={(structuredData.confidence as number) ?? null}
+                          onChange={(v) => setStructuredData((prev) => ({ ...prev, confidence: v }))}
+                        />
+                        <ProcessScoreInput
+                          value={(structuredData.process_score as number) ?? null}
+                          onChange={(v) => setStructuredData((prev) => ({ ...prev, process_score: v }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <div
                   ref={contentRef}

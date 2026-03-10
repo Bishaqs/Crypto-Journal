@@ -89,9 +89,15 @@ export type TiltSignal = {
   trades: string[];
 };
 
-export function detectTiltSignals(trades: Trade[]): TiltSignal[] {
+export function detectTiltSignals(
+  trades: Trade[],
+  options?: { excludeImported?: boolean },
+): TiltSignal[] {
   const signals: TiltSignal[] = [];
-  const sorted = [...trades]
+  const base = options?.excludeImported
+    ? trades.filter((t) => !t.tags?.includes("csv-import"))
+    : trades;
+  const sorted = [...base]
     .filter((t) => t.open_timestamp)
     .sort((a, b) => new Date(a.open_timestamp).getTime() - new Date(b.open_timestamp).getTime());
 

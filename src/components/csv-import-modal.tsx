@@ -3,6 +3,9 @@
 import { useState, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { validateImportData, ImportResult } from "@/lib/csv-import";
+import { parseFileToCSV, isAcceptedFileType } from "@/lib/file-parser";
+import { calculateStats, detectTiltSignals, type TiltSignal } from "@/lib/calculations";
+import type { Trade, DashboardStats } from "@/lib/types";
 import {
   X,
   Upload,
@@ -62,19 +65,23 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
   const [importedCount, setImportedCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
+  const [importSummary, setImportSummary] = useState<{
+    stats: DashboardStats;
+    tiltCount: number;
+  } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
-  const processFile = useCallback((file: File) => {
-    if (!file.name.endsWith(".csv")) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const validationResult = validateImportData(text);
+  const processFile = useCallback(async (file: File) => {
+    if (!isAcceptedFileType(file.name)) return;
+    try {
+      const { csvText } = await parseFileToCSV(file);
+      const validationResult = validateImportData(csvText);
       setResult(validationResult);
       setStep("preview");
-    };
-    reader.readAsText(file);
+    } catch {
+      setResult(null);
+    }
   }, []);
 
   function handleDrop(e: React.DragEvent) {
@@ -112,6 +119,20 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
       setImportProgress(Math.round(((i + 1) / chunks.length) * 100));
       setImportedCount(success);
       setFailedCount(failed);
+    }
+
+    // Compute import summary from parsed payloads
+    if (success > 0 && result.validRows.length > 0) {
+      const pseudoTrades = result.validRows.map((r, i) => ({
+        ...r.parsed,
+        id: `import-${i}`,
+        user_id: "",
+        fees: (r.parsed?.fees as number) ?? 0,
+        tags: (r.parsed?.tags as string[]) ?? [],
+      })) as unknown as Trade[];
+      const stats = calculateStats(pseudoTrades);
+      const tiltSignals = detectTiltSignals(pseudoTrades);
+      setImportSummary({ stats, tiltCount: tiltSignals.length });
     }
 
     setStep("done");
@@ -180,7 +201,7 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
               >
                 <FileText size={40} className="text-accent/40 mx-auto mb-4" />
                 <p className="text-sm font-medium text-foreground mb-1">
-                  Drop your CSV file here
+                  Drop your CSV or Excel file here
                 </p>
                 <p className="text-xs text-muted mb-4">
                   or click to browse
@@ -188,7 +209,7 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
                 <p className="text-[10px] text-muted/50">
                   Supports 13+ exchanges, 6 stock brokers, and DEX exports
                 </p>
-                <input ref={fileRef} type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
+                <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} className="hidden" />
               </div>
             </div>
           )}
@@ -319,7 +340,7 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
 
           {/* Step: Done */}
           {step === "done" && (
-            <div className="text-center py-12">
+            <div className="text-center py-8">
               <div className="w-16 h-16 rounded-2xl bg-win/10 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 size={28} className="text-win" />
               </div>
@@ -333,9 +354,47 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
                   {failedCount} failed to insert
                 </p>
               )}
+
+              {/* Import Summary */}
+              {importSummary && importedCount > 0 && (
+                <div className="mt-4 text-left space-y-3 px-2">
+                  <p className="text-[10px] text-muted uppercase tracking-wider font-semibold">Import Summary</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-lg bg-surface border border-border/50 p-3 text-center">
+                      <p className="text-[10px] text-muted">Win Rate</p>
+                      <p className={`text-sm font-bold ${importSummary.stats.winRate >= 50 ? "text-win" : "text-loss"}`}>
+                        {importSummary.stats.winRate.toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-surface border border-border/50 p-3 text-center">
+                      <p className="text-[10px] text-muted">Total P&L</p>
+                      <p className={`text-sm font-bold ${importSummary.stats.closedPnl >= 0 ? "text-win" : "text-loss"}`}>
+                        {importSummary.stats.closedPnl >= 0 ? "+" : ""}${importSummary.stats.closedPnl.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-surface border border-border/50 p-3 text-center">
+                      <p className="text-[10px] text-muted">Avg Return</p>
+                      <p className={`text-sm font-bold ${importSummary.stats.avgTradePnl >= 0 ? "text-win" : "text-loss"}`}>
+                        {importSummary.stats.avgTradePnl >= 0 ? "+" : ""}${importSummary.stats.avgTradePnl.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  {importSummary.tiltCount > 0 && (
+                    <div className="rounded-lg bg-amber-500/5 border border-amber-500/20 p-3">
+                      <p className="text-xs text-amber-400 font-medium">
+                        {importSummary.tiltCount} behavioral pattern{importSummary.tiltCount !== 1 ? "s" : ""} detected
+                      </p>
+                      <p className="text-[10px] text-muted mt-1">
+                        Historical patterns are not shown on the dashboard since they are not actionable retroactively.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <button
                 onClick={onClose}
-                className="mt-4 px-6 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all"
+                className="mt-6 px-6 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all"
               >
                 Done
               </button>

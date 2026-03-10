@@ -106,7 +106,7 @@ export default function DashboardPage() {
   const stats = useMemo(() => calculateStats(filteredTrades), [filteredTrades]);
   const dailyPnl = useMemo(() => calculateDailyPnl(filteredTrades), [filteredTrades]);
   const equityData = useMemo(() => buildEquityCurve(dailyPnl), [dailyPnl]);
-  const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades), [filteredTrades]);
+  const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades, { excludeImported: true }), [filteredTrades]);
   const adv = useMemo(() => viewMode === "full" ? calculateAdvancedStats(filteredTrades) : null, [viewMode, filteredTrades]);
 
 
@@ -264,10 +264,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <TiltWarnings signals={tiltSignals} />
       <div id="tour-stats">
         <StatsCards stats={stats} />
       </div>
+      <TiltWarnings signals={tiltSignals} />
 
       {/* Advanced mode stats — appears right below basic stats with smooth animation */}
       <div className={`transition-all duration-500 ease-in-out overflow-hidden ${

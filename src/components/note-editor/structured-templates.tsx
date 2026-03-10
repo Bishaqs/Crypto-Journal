@@ -139,6 +139,7 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
                   onChange={(html) => update(field.key, html)}
                   placeholder={field.placeholder}
                   minHeight="120px"
+                  showToolbar
                 />
               </div>
             );
@@ -223,6 +224,24 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
       })}
     </div>
   );
+}
+
+export function serializePsychToHtml(data: Record<string, string | number | null>): string {
+  const parts: string[] = [];
+
+  if (data.emotion) {
+    const emoji = EMOTION_CONFIG[data.emotion as string]?.emoji ?? "";
+    parts.push(`<p><strong>Emotion:</strong> ${emoji} ${data.emotion}</p>`);
+  }
+  if (data.confidence != null) {
+    parts.push(`<p><strong>Confidence:</strong> ${data.confidence}/10</p>`);
+  }
+  if (data.process_score != null) {
+    parts.push(`<p><strong>Process Score:</strong> ${data.process_score}/10</p>`);
+  }
+
+  if (parts.length === 0) return "";
+  return `<div class="psych-insights-block">${parts.join("")}</div>`;
 }
 
 export function serializeToHtml(templateId: string, data: Record<string, string | number | null>): string {

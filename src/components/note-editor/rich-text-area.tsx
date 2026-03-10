@@ -3,18 +3,22 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { uploadJournalImage } from "@/lib/image-upload";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { CompactToolbar } from "@/components/note-editor/compact-toolbar";
 
 interface RichTextAreaProps {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
   minHeight?: string;
+  showToolbar?: boolean;
 }
 
-export function RichTextArea({ value, onChange, placeholder, minHeight = "120px" }: RichTextAreaProps) {
+export function RichTextArea({ value, onChange, placeholder, minHeight = "120px", showToolbar = false }: RichTextAreaProps) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const [uploading, setUploading] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   // Initialize content once on mount
   useEffect(() => {
@@ -56,6 +60,17 @@ export function RichTextArea({ value, onChange, placeholder, minHeight = "120px"
     setUploading(false);
   }
 
+  function handleImageUpload() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) insertImage(file);
+    };
+    input.click();
+  }
+
   function handlePaste(e: React.ClipboardEvent) {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -80,8 +95,29 @@ export function RichTextArea({ value, onChange, placeholder, minHeight = "120px"
     }
   }
 
+  function handleFocus() {
+    setFocused(true);
+  }
+
+  function handleBlur(e: React.FocusEvent) {
+    // If focus moved to a toolbar button inside our wrapper, stay focused
+    if (wrapperRef.current?.contains(e.relatedTarget as Node)) {
+      return;
+    }
+    setFocused(false);
+  }
+
+  const toolbarVisible = showToolbar && focused;
+
   return (
-    <div className="relative">
+    <div ref={wrapperRef} className="relative">
+      {toolbarVisible && (
+        <CompactToolbar
+          contentRef={contentRef}
+          onImageUpload={handleImageUpload}
+          uploading={uploading}
+        />
+      )}
       <div
         ref={contentRef}
         contentEditable
@@ -90,7 +126,11 @@ export function RichTextArea({ value, onChange, placeholder, minHeight = "120px"
         onPaste={handlePaste}
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        className="w-full overflow-y-auto px-4 py-3 rounded-xl bg-background border border-border ring-1 ring-white/5 text-foreground text-sm leading-relaxed focus:outline-none focus:border-accent/50 transition-all note-content [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2"
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        className={`w-full overflow-y-auto px-4 py-3 bg-background border border-border ring-1 ring-white/5 text-foreground text-sm leading-relaxed focus:outline-none focus:border-accent/50 transition-all note-content [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 ${
+          toolbarVisible ? "rounded-b-xl rounded-t-none" : "rounded-xl"
+        }`}
         style={{ minHeight }}
         data-placeholder={placeholder}
       />

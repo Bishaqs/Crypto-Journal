@@ -3,6 +3,7 @@
 import { Trade } from "@/lib/types";
 import { useMemo } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useTheme } from "@/lib/theme-context";
 import {
   formatDuration, calculateRMultiple, formatRMultiple, getTotalCommitment,
   getQuarterLabel, calculateTradeMAE, calculateTradeMFE, getMfeMaeRatio,
@@ -250,12 +251,14 @@ export function TradesTable({
   trades: Trade[];
   onEdit?: (trade: Trade) => void;
 }) {
-  const { visibleColumns, paginatedData, totalItems, totalPages, state, actions } = useTableState(TABLE_CONFIG, trades);
+  const { viewMode } = useTheme();
+  const { paginatedData, totalItems, totalPages, state, actions } = useTableState(TABLE_CONFIG, trades);
 
-  const sortedColumns = useMemo(() => {
-    // The "edit" column is tacked on at the end if onEdit is provided
-    return visibleColumns;
-  }, [visibleColumns]);
+  // Derive columns directly from viewMode — no localStorage race condition
+  const displayColumns = useMemo(() =>
+    viewMode === "full" ? POSITIONS_COLUMNS : POSITIONS_COLUMNS.filter(c => c.defaultVisible),
+    [viewMode]
+  );
 
   return (
     <div className="glass rounded-2xl border border-border/50 overflow-hidden flex flex-col" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -268,7 +271,7 @@ export function TradesTable({
           <table className="w-full">
             <thead className="bg-background/30 sticky top-0 z-10">
               <tr>
-                {sortedColumns.map((col) => (
+                {displayColumns.map((col) => (
                   <th
                     key={col.id}
                     onClick={() => col.sortKey && actions.toggleSort(col.sortKey)}
@@ -283,14 +286,14 @@ export function TradesTable({
             <tbody className="divide-y divide-border/50">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={sortedColumns.length + (onEdit ? 1 : 0)} className="px-4 py-10 text-center text-muted text-sm">
+                  <td colSpan={displayColumns.length + (onEdit ? 1 : 0)} className="px-4 py-10 text-center text-muted text-sm">
                     No positions. Log your first trade.
                   </td>
                 </tr>
               ) : (
                 paginatedData.map((trade) => (
                   <tr key={trade.id} className="hover:bg-surface-hover/50 transition-colors">
-                    {sortedColumns.map((col) => (
+                    {displayColumns.map((col) => (
                       <td key={col.id} className={`px-4 py-2.5 ${col.align === "right" ? "text-right" : ""}`}>
                         {col.renderCell(trade)}
                       </td>

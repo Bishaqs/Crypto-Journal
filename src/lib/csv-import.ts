@@ -114,9 +114,14 @@ const HEADER_ALIASES: Record<string, string> = {
   filled_total: "pnl",
 
   // Bitget / MEXC / HTX
+  futures: "symbol",
   trade_price: "entry_price",
   filled_qty: "quantity",
   trade_fee: "fees",
+  executed: "quantity",
+  order_amount: "quantity",
+  netprofits: "pnl",
+  realized_p_l: "pnl",
 
   // Crypto.com / Gemini
   native_amount: "quantity",
@@ -137,7 +142,7 @@ const HEADER_ALIASES: Record<string, string> = {
 const REQUIRED_FIELDS = ["symbol", "position", "entry_price", "quantity"];
 
 function resolveHeader(raw: string): string {
-  const normalized = raw.toLowerCase().trim().replace(/[\s-]+/g, "_");
+  const normalized = raw.toLowerCase().trim().replace(/[\s\-\/]+/g, "_");
   return HEADER_ALIASES[normalized] ?? normalized;
 }
 
@@ -150,8 +155,12 @@ function parseNumeric(val: string): number | null {
 
 function parsePosition(val: string): string | null {
   const lower = val.toLowerCase().trim();
+  // Exact matches
   if (["long", "buy", "b", "bought", "bot"].includes(lower)) return "long";
   if (["short", "sell", "s", "sold", "sld"].includes(lower)) return "short";
+  // Compound values (e.g., Bitget "Buy/Long", "Sell/Short")
+  if (lower.includes("long") || lower.includes("buy")) return "long";
+  if (lower.includes("short") || lower.includes("sell")) return "short";
   return null;
 }
 
@@ -174,12 +183,18 @@ export function validateImportData(csvText: string): ImportResult {
     // Re-key the data using mapped headers
     const mapped: Record<string, string> = {};
     for (const [key, val] of Object.entries(raw)) {
-      mapped[resolveHeader(key)] = val;
+      const field = resolveHeader(key);
+      // Don't overwrite a non-empty value with an empty one
+      if (!mapped[field] || val) {
+        mapped[field] = val;
+      }
     }
 
-    // Validate required fields
+    // Validate required fields (entry_price/quantity default to 0 in buildPayload)
     for (const field of REQUIRED_FIELDS) {
-      if (!mapped[field]) errors.push(`Missing ${field}`);
+      if (!mapped[field] && field !== "entry_price" && field !== "quantity") {
+        errors.push(`Missing ${field}`);
+      }
     }
 
     // Validate position
@@ -214,17 +229,32 @@ function detectDexSource(mapped: Record<string, string>): boolean {
 
 function buildPayload(mapped: Record<string, string>): Record<string, unknown> {
   const isDex = detectDexSource(mapped);
+  const entryPrice = parseNumeric(mapped.entry_price) ?? 0;
+  const exitPrice = parseNumeric(mapped.exit_price);
+  const quantity = parseNumeric(mapped.quantity) ?? 0;
+  const fees = parseNumeric(mapped.fees) ?? 0;
+  const position = parsePosition(mapped.position) ?? "long";
+
+  // Use explicit PnL from CSV, or calculate from prices if available
+  let pnl = parseNumeric(mapped.pnl);
+  if (pnl === null && exitPrice !== null && entryPrice > 0) {
+    const direction = position === "long" ? 1 : -1;
+    pnl = (exitPrice - entryPrice) * direction * quantity - fees;
+  }
+
+  const userTags = mapped.tags ? mapped.tags.split(";").map((t) => t.trim()).filter(Boolean) : [];
+
   return {
     symbol: mapped.symbol?.toUpperCase(),
-    position: parsePosition(mapped.position) ?? "long",
-    entry_price: parseNumeric(mapped.entry_price) ?? 0,
-    exit_price: parseNumeric(mapped.exit_price),
-    quantity: parseNumeric(mapped.quantity) ?? 0,
-    fees: parseNumeric(mapped.fees) ?? 0,
+    position,
+    entry_price: entryPrice,
+    exit_price: exitPrice,
+    quantity,
+    fees,
     open_timestamp: mapped.open_timestamp || new Date().toISOString(),
     close_timestamp: mapped.close_timestamp || null,
-    pnl: parseNumeric(mapped.pnl),
-    tags: mapped.tags ? mapped.tags.split(";").map((t) => t.trim()).filter(Boolean) : [],
+    pnl,
+    tags: [...userTags, "csv-import"],
     notes: mapped.notes || null,
     emotion: mapped.emotion || null,
     confidence: parseNumeric(mapped.confidence),
