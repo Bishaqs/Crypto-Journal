@@ -1,6 +1,7 @@
 "use client";
 
 import { EmotionPicker, ConfidenceSlider, ProcessScoreInput, SetupTypePicker, EMOTION_CONFIG } from "@/components/psychology-inputs";
+import { RichTextArea } from "@/components/note-editor/rich-text-area";
 
 type FieldDef =
   | { type: "textarea"; key: string; label: string; placeholder?: string }
@@ -108,20 +109,19 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
           case "textarea":
             return (
               <div key={field.key}>
-                <label className="block text-xs text-muted mb-1.5 font-medium">{field.label}</label>
-                <textarea
+                <label className="block text-[11px] text-muted mb-1.5 font-medium">{field.label}</label>
+                <RichTextArea
                   value={(data[field.key] as string) ?? ""}
-                  onChange={(e) => update(field.key, e.target.value)}
+                  onChange={(html) => update(field.key, html)}
                   placeholder={field.placeholder}
-                  rows={3}
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm leading-relaxed focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 resize-none"
+                  minHeight="120px"
                 />
               </div>
             );
           case "text":
             return (
               <div key={field.key}>
-                <label className="block text-xs text-muted mb-1.5 font-medium">{field.label}</label>
+                <label className="block text-[11px] text-muted mb-1.5 font-medium">{field.label}</label>
                 <div className="relative">
                   {field.prefix && (
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted">{field.prefix}</span>
@@ -139,7 +139,7 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
           case "number":
             return (
               <div key={field.key}>
-                <label className="block text-xs text-muted mb-1.5 font-medium">{field.label}</label>
+                <label className="block text-[11px] text-muted mb-1.5 font-medium">{field.label}</label>
                 <div className="relative">
                   {field.prefix && (
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted">{field.prefix}</span>
@@ -194,7 +194,7 @@ export function serializeToHtml(templateId: string, data: Record<string, string 
         break;
       case "textarea":
         label = field.label;
-        displayValue = String(value).replace(/\n/g, "<br>");
+        displayValue = String(value);
         break;
       case "text":
         label = field.label;

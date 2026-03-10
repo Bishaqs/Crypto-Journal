@@ -26,6 +26,7 @@ export function ManageExportTab() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [exportingNotes, setExportingNotes] = useState(false);
   const [exportHistory, setExportHistory] = useState<ExportRecord[]>(() => {
     try {
       const raw = localStorage.getItem("stargate-export-history");
@@ -93,6 +94,42 @@ export function ManageExportTab() {
       }
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleExportNotes() {
+    setExportingNotes(true);
+    try {
+      const { data, error } = await supabase
+        .from("journal_notes")
+        .select("*")
+        .order("note_date", { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        setExportingNotes(false);
+        return;
+      }
+
+      const cleanedData = data.map(({ user_id, ...rest }: Record<string, unknown>) => rest);
+      const date = new Date().toISOString().split("T")[0];
+      const filename = `journal_notes_${date}.${format}`;
+      const content = format === "csv" ? exportToCSV(cleanedData) : exportToJSON(cleanedData);
+      const mimeType = format === "csv" ? "text/csv;charset=utf-8" : "application/json";
+      downloadFile(filename, content, mimeType);
+
+      const record: ExportRecord = {
+        filename,
+        table: "journal_notes",
+        rowCount: cleanedData.length,
+        timestamp: new Date().toISOString(),
+      };
+      const updatedHistory = [record, ...exportHistory].slice(0, 20);
+      setExportHistory(updatedHistory);
+      try {
+        localStorage.setItem("stargate-export-history", JSON.stringify(updatedHistory));
+      } catch { /* full storage */ }
+    } finally {
+      setExportingNotes(false);
     }
   }
 
@@ -207,6 +244,34 @@ export function ManageExportTab() {
             )}
           </button>
         </div>
+      </div>
+
+      {/* Export Journal Notes */}
+      <div className="glass border border-border/50 rounded-2xl p-5">
+        <h3 className="text-base font-semibold text-foreground mb-1 flex items-center gap-2">
+          <FileText size={16} className="text-accent" />
+          Export Journal Notes
+        </h3>
+        <p className="text-xs text-muted mb-4">
+          Download your journal notes as {format.toUpperCase()}.
+        </p>
+        <button
+          onClick={handleExportNotes}
+          disabled={exportingNotes}
+          className="w-full py-3 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+        >
+          {exportingNotes ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <Download size={16} />
+              Download Notes
+            </>
+          )}
+        </button>
       </div>
 
       {/* Export history */}

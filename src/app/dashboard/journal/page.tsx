@@ -4,9 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { JournalNote } from "@/lib/types";
-import { DEMO_JOURNAL_NOTES } from "@/lib/demo-data";
 import { sanitizeHtml } from "@/lib/sanitize";
-import { DemoBanner } from "@/components/demo-banner";
 import { NoteEditor, TEMPLATES } from "@/components/note-editor";
 import {
   Plus,
@@ -18,7 +16,6 @@ import {
 } from "lucide-react";
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 type NoteTypeFilter = "all" | "trade" | "daily" | "other" | "favorites";
@@ -35,7 +32,6 @@ export default function JournalPage() {
   const searchParams = useSearchParams();
   const [notes, setNotes] = useState<JournalNote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [usingDemo, setUsingDemo] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
@@ -51,7 +47,7 @@ export default function JournalPage() {
     const { data, error } = await supabase
       .from("journal_notes")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("note_date", { ascending: false });
 
     if (error) {
       console.error("[Journal] fetchNotes error:", error.message);
@@ -59,13 +55,7 @@ export default function JournalPage() {
       return;
     }
 
-    const dbNotes = (data as JournalNote[]) ?? [];
-    if (dbNotes.length === 0) {
-      setNotes(DEMO_JOURNAL_NOTES);
-      setUsingDemo(true);
-    } else {
-      setNotes(dbNotes);
-    }
+    setNotes((data as JournalNote[]) ?? []);
     setLoading(false);
   }, [supabase]);
 
@@ -78,8 +68,7 @@ export default function JournalPage() {
       console.error("[Journal] fetchTrades error:", error.message);
       return;
     }
-    const dbTrades = (data as Trade[]) ?? [];
-    setAllTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
+    setAllTrades((data as Trade[]) ?? []);
   }, [supabase]);
 
   useEffect(() => {
@@ -133,13 +122,11 @@ export default function JournalPage() {
   }
 
   async function deleteNote(id: string) {
-    if (usingDemo) return;
     await supabase.from("journal_notes").delete().eq("id", id);
     fetchNotes();
   }
 
   async function toggleFavorite(noteId: string, currentValue: boolean) {
-    if (usingDemo) return;
     // Optimistic update
     setNotes((prev) =>
       prev.map((n) => (n.id === noteId ? { ...n, is_favorite: !currentValue } : n))
@@ -170,7 +157,7 @@ export default function JournalPage() {
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">Journal <InfoTooltip text="Write daily reflections, tag trades, and track your mental state over time" /></h2>
           <p className="text-sm text-muted mt-0.5">
-            {usingDemo ? "Sample entries" : `${notes.length} notes`}
+            {`${notes.length} notes`}
           </p>
         </div>
         <button
@@ -182,7 +169,6 @@ export default function JournalPage() {
           New Note
         </button>
       </div>
-      {usingDemo && <DemoBanner feature="journal" />}
 
       {/* Search + Tag filter + Manage tags */}
       <div className="flex items-center gap-2">
@@ -300,7 +286,7 @@ export default function JournalPage() {
                 </div>
                 <div
                   className={`text-sm text-muted leading-relaxed flex-1 note-content [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_h2]:text-foreground [&_h2]:font-semibold [&_h2]:text-sm [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-0.5 [&_strong]:text-foreground ${
-                    isExpanded ? "" : "line-clamp-4"
+                    isExpanded ? "max-h-[60vh] overflow-y-auto" : "line-clamp-4"
                   }`}
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
                 />
@@ -314,12 +300,10 @@ export default function JournalPage() {
                   </div>
                 )}
                 <div className="flex items-center justify-between text-xs text-muted mt-3 pt-2 border-t border-border/50">
-                  <span>{new Date(note.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                  <span>{new Date(note.note_date ?? note.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={(e) => { e.stopPropagation(); setEditNote(note); setShowEditor(true); }} className="hover:text-accent transition-colors px-2 py-0.5 rounded hover:bg-accent/10">Edit</button>
-                    {!usingDemo && (
-                      <button onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }} className="hover:text-loss transition-colors px-2 py-0.5 rounded hover:bg-loss/10">Delete</button>
-                    )}
+                    <button onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }} className="hover:text-loss transition-colors px-2 py-0.5 rounded hover:bg-loss/10">Delete</button>
                   </div>
                 </div>
               </div>

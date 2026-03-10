@@ -47,6 +47,7 @@ export type JournalNote = {
   auto_link_on_import?: boolean;
   note_type?: string;
   is_favorite?: boolean;
+  note_date?: string;
   created_at: string;
   updated_at: string;
 };

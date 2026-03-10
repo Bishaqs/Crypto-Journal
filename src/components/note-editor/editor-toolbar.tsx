@@ -86,7 +86,7 @@ export function EditorToolbar({ contentRef, onImageUpload, uploading, isFullscre
   ];
 
   return (
-    <div className="flex items-center gap-1 p-2 rounded-xl bg-background border border-border flex-wrap">
+    <div className="flex items-center gap-1 p-2 rounded-xl bg-background border border-border ring-1 ring-white/5 flex-wrap">
       {groups.map((group, gi) => (
         <div key={gi} className="flex items-center gap-0.5">
           {gi > 0 && <div className="w-px h-5 bg-border mx-1" />}
@@ -95,7 +95,7 @@ export function EditorToolbar({ contentRef, onImageUpload, uploading, isFullscre
               key={btn.title}
               type="button"
               onClick={btn.action}
-              className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+              className="p-2 rounded-lg text-foreground/50 hover:text-foreground hover:bg-surface-hover transition-all"
               title={btn.title}
             >
               <btn.icon size={16} />
@@ -107,7 +107,7 @@ export function EditorToolbar({ contentRef, onImageUpload, uploading, isFullscre
       <button
         type="button"
         onClick={onToggleFullscreen}
-        className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-surface-hover transition-all ml-auto"
+        className="p-2 rounded-lg text-foreground/50 hover:text-foreground hover:bg-surface-hover transition-all ml-auto"
         title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
       >
         {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
