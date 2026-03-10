@@ -252,7 +252,7 @@ function buildPayload(mapped: Record<string, string>): Record<string, unknown> {
     quantity,
     fees,
     open_timestamp: mapped.open_timestamp || new Date().toISOString(),
-    close_timestamp: mapped.close_timestamp || null,
+    close_timestamp: mapped.close_timestamp || ((exitPrice !== null || pnl !== null) ? (mapped.open_timestamp || new Date().toISOString()) : null),
     pnl,
     tags: [...userTags, "csv-import"],
     notes: mapped.notes || null,
