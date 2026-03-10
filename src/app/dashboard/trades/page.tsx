@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
-import { calculateTradePnl } from "@/lib/calculations";
+import { calculateTradePnl, formatDuration, getReturnPct } from "@/lib/calculations";
 import { CHAINS } from "@/lib/types";
 import { useTheme } from "@/lib/theme-context";
 import {
@@ -34,6 +34,8 @@ const TRADE_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] 
   { key: null, label: "Side", simple: true },
   { key: null, label: "Entry" },
   { key: null, label: "Exit" },
+  { key: null, label: "Duration" },
+  { key: null, label: "Return" },
   { key: "pnl", label: "P&L", simple: true },
   { key: "emotion", label: "Emotion" },
   { key: "process_score", label: "Process" },
@@ -326,6 +328,25 @@ export default function TradesPage() {
                         {visibleLabels.has("Exit") && (
                         <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50">
                           {trade.exit_price !== null ? `$${trade.exit_price.toFixed(2)}` : "—"}
+                        </div>
+                        )}
+                        {visibleLabels.has("Duration") && (
+                        <div className="px-4 py-3 text-muted whitespace-nowrap border-b border-border/50">
+                          {formatDuration(trade.open_timestamp, trade.close_timestamp)}
+                          {!trade.close_timestamp && <span className="text-accent/60 text-[10px]"> (open)</span>}
+                        </div>
+                        )}
+                        {visibleLabels.has("Return") && (
+                        <div className="px-4 py-3 tabular-nums border-b border-border/50">
+                          {(() => {
+                            const ret = getReturnPct(trade);
+                            if (!ret) return <span className="text-muted/30">—</span>;
+                            return (
+                              <span className={`font-semibold ${ret.startsWith("+") ? "text-win" : "text-loss"}`}>
+                                {ret}
+                              </span>
+                            );
+                          })()}
                         </div>
                         )}
                         {visibleLabels.has("P&L") && (

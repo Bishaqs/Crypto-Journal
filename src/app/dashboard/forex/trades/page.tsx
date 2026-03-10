@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { formatDuration, getReturnPct } from "@/lib/calculations";
 import type { ForexTrade } from "@/lib/types";
 import { ForexTradeForm } from "@/components/forex-trade-form";
 
@@ -104,6 +105,8 @@ const FOREX_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] 
   { key: "session", label: "Session" },
   { key: null, label: "Entry", simple: true },
   { key: null, label: "Exit", simple: true },
+  { key: null, label: "Duration" },
+  { key: null, label: "Return" },
   { key: "pnl", label: "P&L", simple: true },
 ];
 
@@ -403,6 +406,25 @@ export default function ForexTradesPage() {
                     {visibleLabels.has("Exit") && (
                     <td className="px-4 py-3 text-muted tabular-nums">
                       {trade.exit_price !== null ? trade.exit_price : "\u2014"}
+                    </td>
+                    )}
+                    {visibleLabels.has("Duration") && (
+                    <td className="px-4 py-3 text-muted whitespace-nowrap">
+                      {formatDuration(trade.open_timestamp, trade.close_timestamp)}
+                      {!trade.close_timestamp && <span className="text-accent/60 text-[10px]"> (open)</span>}
+                    </td>
+                    )}
+                    {visibleLabels.has("Return") && (
+                    <td className="px-4 py-3 tabular-nums">
+                      {(() => {
+                        const ret = getReturnPct(trade);
+                        if (!ret) return <span className="text-muted/30">&mdash;</span>;
+                        return (
+                          <span className={`font-semibold ${ret.startsWith("+") ? "text-win" : "text-loss"}`}>
+                            {ret}
+                          </span>
+                        );
+                      })()}
                     </td>
                     )}
                     {visibleLabels.has("P&L") && (

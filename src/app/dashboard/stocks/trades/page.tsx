@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { formatDuration, getReturnPct } from "@/lib/calculations";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -158,6 +159,8 @@ const STOCK_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] 
   { key: "session", label: "Session" },
   { key: null, label: "Entry", simple: true },
   { key: null, label: "Exit", simple: true },
+  { key: null, label: "Duration" },
+  { key: null, label: "Return" },
   { key: "pnl", label: "P&L", simple: true },
 ];
 
@@ -532,6 +535,29 @@ export default function StockTradesPage() {
                         {visibleLabels.has("Exit") && (
                         <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50">
                           {trade.exit_price !== null ? `$${trade.exit_price.toFixed(2)}` : "\u2014"}
+                        </div>
+                        )}
+
+                        {/* Duration */}
+                        {visibleLabels.has("Duration") && (
+                        <div className="px-4 py-3 text-muted whitespace-nowrap border-b border-border/50">
+                          {formatDuration(trade.open_timestamp, trade.close_timestamp)}
+                          {!trade.close_timestamp && <span className="text-accent/60 text-[10px]"> (open)</span>}
+                        </div>
+                        )}
+
+                        {/* Return */}
+                        {visibleLabels.has("Return") && (
+                        <div className="px-4 py-3 tabular-nums border-b border-border/50">
+                          {(() => {
+                            const ret = getReturnPct(trade);
+                            if (!ret) return <span className="text-muted/30">&mdash;</span>;
+                            return (
+                              <span className={`font-semibold ${ret.startsWith("+") ? "text-win" : "text-loss"}`}>
+                                {ret}
+                              </span>
+                            );
+                          })()}
                         </div>
                         )}
 
