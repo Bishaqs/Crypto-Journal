@@ -207,10 +207,34 @@ Each theme also has a `.glass` utility:
 > **Gemini**: Replace the placeholder below with your redesigned Solara theme. Include the complete CSS block with all 18 variables + the glass rule.
 
 ```css
-/* TODO: Gemini outputs redesigned Solara CSS here */
+.solara {
+  --background: #faf8f5;
+  --surface: rgba(255, 255, 255, 0.85);
+  --surface-hover: rgba(255, 255, 255, 1);
+  --border: rgba(0, 0, 0, 0.08);
+  --foreground: #2c2a27;
+  --muted: #7a756d;
+  --accent: #c2410c;
+  --accent-hover: #a3360a;
+  --accent-glow: rgba(194, 65, 12, 0.1);
+  --accent-rgb: 194, 65, 12;
+  --win: #059669;
+  --win-glow: rgba(5, 150, 105, 0.08);
+  --loss: #dc2626;
+  --loss-glow: rgba(220, 38, 38, 0.08);
+  --shadow-card: 0 4px 12px rgba(138, 115, 99, 0.08);
+  --shadow-glow: 0 0 16px rgba(194, 65, 12, 0.12);
+  --shadow-cosmic: 0 4px 12px rgba(194, 65, 12, 0.15), 0 0 24px rgba(194, 65, 12, 0.08);
+  --shadow-cosmic-hover: 0 8px 24px rgba(194, 65, 12, 0.2), 0 0 32px rgba(194, 65, 12, 0.12), 0 0 64px rgba(194, 65, 12, 0.06);
+}
+.solara .glass {
+  background: rgba(253, 252, 251, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
 ```
 
-**Solara color rationale**: _(Gemini: explain your color choices in 2-3 sentences)_
+**Solara color rationale**: We shifted the palette away from sterile B2B grays toward warm, pearlescent off-whites (`#faf8f5`) to evoke soft morning sunlight. The accent was redefined to a rich, deep sunset orange (`#c2410c`) which delivers premium contrast, while a distinct emerald green handles win states for clear cognitive separation.
 
 ---
 
@@ -219,10 +243,35 @@ Each theme also has a `.glass` utility:
 > **Gemini**: Replace the placeholder below with your redesigned Obsidian theme. Include the complete CSS block with all 18 variables + the glass rule.
 
 ```css
-/* TODO: Gemini outputs redesigned Obsidian CSS here */
+.obsidian {
+  --background: #0a0a0c;
+  --surface: rgba(20, 20, 24, 0.85);
+  --surface-hover: rgba(30, 30, 36, 0.9);
+  --border: rgba(255, 255, 255, 0.06);
+  --foreground: #f4f4f5;
+  --muted: #a1a1aa;
+  --accent: #67e8f9;
+  --accent-hover: #22d3ee;
+  --accent-glow: rgba(103, 232, 249, 0.12);
+  --accent-rgb: 103, 232, 249;
+  --win: #34d399;
+  --win-glow: rgba(52, 211, 153, 0.1);
+  --loss: #fb7185;
+  --loss-glow: rgba(251, 113, 133, 0.1);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 16px rgba(103, 232, 249, 0.1);
+  --shadow-cosmic: 0 0 12px rgba(103, 232, 249, 0.15), 0 0 30px rgba(103, 232, 249, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  --shadow-cosmic-hover: 0 0 16px rgba(103, 232, 249, 0.25), 0 0 40px rgba(103, 232, 249, 0.15), 0 0 80px rgba(103, 232, 249, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+.obsidian .glass {
+  background: rgba(14, 14, 18, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05); /* Simulates glass edge lighting */
+}
 ```
 
-**Obsidian color rationale**: _(Gemini: explain your color choices in 2-3 sentences)_
+**Obsidian color rationale**: The base canvas drops to a near-absolute black (`#0a0a0c`) with ultra-subtle cool undertones, mimicking the bottomless depth of polished volcanic rock. Against this, an iridescent silver-cyan accent (`#67e8f9`) cuts through the darkness like the sharp, light-catching edge of a freshly broken obsidian blade, anchored by multi-layered floating shadows instead of flat borders.
 
 ---
 
@@ -230,9 +279,9 @@ Each theme also has a `.glass` utility:
 
 > **Gemini**: If you have ideas for subtle background animations or effects that would enhance these themes, describe them here in words. Do NOT write code — just describe the visual effect, motion, and feel. Claude will implement them.
 
-**Solara animation idea**: _(describe the visual effect)_
+**Solara animation idea**: A very slow, imperceptible "golden hour" radial gradient that lazily shifts its focal point across the background canvas, replicating the sun traversing a bright, clean room. Hovering over cards causes a soft, diffused bloom to silently expand outward from the cursor, behaving exactly like warm sunlight catching the frosted edge of a glass pane.
 
-**Obsidian animation idea**: _(describe the visual effect)_
+**Obsidian animation idea**: A faint, slow-moving iridescent shimmer (tracing subtle purples and cyans) masked deeply within the bottom-most background layer, only visible peripherally. Upon hovering interactive elements, a razor-thin, crystalline glint slides immediately along the card's top border, emulating light striking the microscopic sharp edge of black glass.
 
 ---
 
@@ -243,23 +292,23 @@ Each theme also has a `.glass` utility:
 ```typescript
 // Solara chart colors
 {
-  win: "???",
-  loss: "???",
-  accent: "???",
-  grid: "???",       // Chart grid line color (very subtle)
-  tick: "???",        // Axis label text color
-  tooltipBg: "???",  // Tooltip background (rgba)
-  tooltipBorder: "???", // Tooltip border (full CSS value like "1px solid rgba(...)")
+  win: "#059669",
+  loss: "#dc2626",
+  accent: "#c2410c",
+  grid: "rgba(0, 0, 0, 0.04)",       // Chart grid line color (very subtle)
+  tick: "#7a756d",        // Axis label text color
+  tooltipBg: "rgba(253, 252, 251, 0.95)",  // Tooltip background (rgba)
+  tooltipBorder: "1px solid rgba(0, 0, 0, 0.08)", // Tooltip border (full CSS value like "1px solid rgba(...)")
 }
 
 // Obsidian chart colors
 {
-  win: "???",
-  loss: "???",
-  accent: "???",
-  grid: "???",
-  tick: "???",
-  tooltipBg: "???",
-  tooltipBorder: "???",
+  win: "#34d399",
+  loss: "#fb7185",
+  accent: "#67e8f9",
+  grid: "rgba(255, 255, 255, 0.03)",
+  tick: "#a1a1aa",
+  tooltipBg: "rgba(20, 20, 24, 0.95)",
+  tooltipBorder: "1px solid rgba(255, 255, 255, 0.06)",
 }
 ```
