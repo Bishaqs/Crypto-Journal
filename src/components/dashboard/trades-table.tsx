@@ -3,8 +3,10 @@
 import { Trade } from "@/lib/types";
 import { useState } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useTheme } from "@/lib/theme-context";
+import { formatDuration } from "@/lib/calculations";
 
-type SortKey = "open_timestamp" | "close_timestamp" | "symbol" | "pnl";
+type SortKey = "open_timestamp" | "close_timestamp" | "symbol" | "pnl" | "entry_price" | "fees";
 type SortDir = "asc" | "desc";
 
 export function TradesTable({
@@ -14,6 +16,8 @@ export function TradesTable({
   trades: Trade[];
   onEdit?: (trade: Trade) => void;
 }) {
+  const { viewMode } = useTheme();
+  const isFull = viewMode === "full";
   const [sortKey, setSortKey] = useState<SortKey>("open_timestamp");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -27,6 +31,9 @@ export function TradesTable({
   }
 
   const sorted = [...trades].sort((a, b) => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    if (sortKey === "entry_price") return dir * (a.entry_price - b.entry_price);
+    if (sortKey === "fees") return dir * (a.fees - b.fees);
     const aVal = a[sortKey] ?? "";
     const bVal = b[sortKey] ?? "";
     const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
@@ -74,11 +81,38 @@ export function TradesTable({
                 <th className="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-widest font-semibold">
                   Side
                 </th>
+                {isFull && <SortHeader label="Entry" field="entry_price" />}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">
+                    Exit
+                  </th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">
+                    Qty
+                  </th>
+                )}
                 <SortHeader label="Opened" field="open_timestamp" />
                 <SortHeader label="Closed" field="close_timestamp" />
+                {isFull && (
+                  <th className="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-widest font-semibold">
+                    Duration
+                  </th>
+                )}
                 <th className="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-widest font-semibold">
                   Return
                 </th>
+                {isFull && <SortHeader label="Fees" field="fees" />}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-widest font-semibold">
+                    Emotion
+                  </th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-widest font-semibold">
+                    Setup
+                  </th>
+                )}
                 <SortHeader label="P&L" field="pnl" />
                 {onEdit && <th className="px-4 py-2.5" />}
               </tr>
@@ -86,7 +120,7 @@ export function TradesTable({
             <tbody className="divide-y divide-border/50">
               {sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-muted text-sm">
+                  <td colSpan={isFull ? 14 : 7} className="px-4 py-10 text-center text-muted text-sm">
                     No positions. Log your first trade.
                   </td>
                 </tr>
@@ -119,12 +153,33 @@ export function TradesTable({
                           {trade.position.toUpperCase()}
                         </span>
                       </td>
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          ${trade.entry_price.toFixed(2)}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          {trade.exit_price !== null ? `$${trade.exit_price.toFixed(2)}` : "\u2014"}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          {trade.quantity}
+                        </td>
+                      )}
                       <td className="px-4 py-2.5 text-xs text-muted">
                         {formatDate(trade.open_timestamp)}
                       </td>
                       <td className="px-4 py-2.5 text-xs text-muted">
                         {formatDate(trade.close_timestamp)}
                       </td>
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted whitespace-nowrap">
+                          {formatDuration(trade.open_timestamp, trade.close_timestamp)}
+                          {!trade.close_timestamp && <span className="text-accent/60"> (open)</span>}
+                        </td>
+                      )}
                       <td className="px-4 py-2.5">
                         {returnPct ? (
                           <span
@@ -137,9 +192,30 @@ export function TradesTable({
                             {returnPct}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-muted/50">\u2014</span>
+                          <span className="text-[10px] text-muted/50">{"\u2014"}</span>
                         )}
                       </td>
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          ${trade.fees.toFixed(2)}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5">
+                          {trade.emotion ? (
+                            <span className="px-1.5 py-0.5 rounded-md bg-accent/10 text-accent text-[10px]">
+                              {trade.emotion}
+                            </span>
+                          ) : (
+                            <span className="text-muted/30">{"\u2014"}</span>
+                          )}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted">
+                          {trade.setup_type ?? "\u2014"}
+                        </td>
+                      )}
                       <td className="px-4 py-2.5">
                         {trade.pnl !== null ? (
                           <span
