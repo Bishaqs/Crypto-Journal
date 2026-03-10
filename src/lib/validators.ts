@@ -100,6 +100,10 @@ export const tradeSchema = z.object({
   wallet_address: z.string().optional(),
   gas_fee: z.coerce.number().min(0).default(0),
   gas_fee_native: z.coerce.number().min(0).default(0),
+  // MAE/MFE fields
+  price_mae: z.coerce.number().positive().optional(),
+  price_mfe: z.coerce.number().positive().optional(),
+  mfe_timestamp: z.string().optional(),
 });
 
 export type TradeFormData = z.infer<typeof tradeSchema>;
@@ -136,6 +140,10 @@ export const stockTradeSchema = z.object({
   review: z.record(z.string(), z.string()).optional(),
   notes: z.string().optional(),
   tags: z.array(z.string()).default([]),
+  // MAE/MFE fields
+  price_mae: z.coerce.number().positive().optional(),
+  price_mfe: z.coerce.number().positive().optional(),
+  mfe_timestamp: z.string().optional(),
 });
 
 export type StockTradeFormData = z.infer<typeof stockTradeSchema>;
@@ -195,6 +203,10 @@ export const commodityTradeSchema = z.object({
   review: z.record(z.string(), z.string()).optional(),
   notes: z.string().optional(),
   tags: z.array(z.string()).default([]),
+  // MAE/MFE fields
+  price_mae: z.coerce.number().positive().optional(),
+  price_mfe: z.coerce.number().positive().optional(),
+  mfe_timestamp: z.string().optional(),
 });
 
 export type CommodityTradeFormData = z.infer<typeof commodityTradeSchema>;
@@ -243,6 +255,10 @@ export const forexTradeSchema = z.object({
   review: z.record(z.string(), z.string()).optional(),
   notes: z.string().optional(),
   tags: z.array(z.string()).default([]),
+  // MAE/MFE fields
+  price_mae: z.coerce.number().positive().optional(),
+  price_mfe: z.coerce.number().positive().optional(),
+  mfe_timestamp: z.string().optional(),
 });
 
 export type ForexTradeFormData = z.infer<typeof forexTradeSchema>;

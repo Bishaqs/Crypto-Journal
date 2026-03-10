@@ -4,7 +4,7 @@ import { Trade } from "@/lib/types";
 import { useState } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
-import { formatDuration, calculateRMultiple, formatRMultiple } from "@/lib/calculations";
+import { formatDuration, calculateRMultiple, formatRMultiple, getTotalCommitment, getQuarterLabel, calculateTradeMAE, calculateTradeMFE, getMfeMaeRatio, getPriceMfePct, calculateBestExitPnl, calculateExitEfficiency, calculateBestExitR } from "@/lib/calculations";
 
 type SortKey = "open_timestamp" | "close_timestamp" | "symbol" | "pnl" | "entry_price" | "fees";
 type SortDir = "asc" | "desc";
@@ -122,6 +122,42 @@ export function TradesTable({
                 {isFull && (
                   <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">R</th>
                 )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-widest font-semibold">Notes</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">Commit</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-widest font-semibold">Quarter</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">MAE $</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">MFE $</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">Price MAE</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">Price MFE</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">MFE/MAE</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">MFE %</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">Best Exit</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">Efficiency</th>
+                )}
+                {isFull && (
+                  <th className="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-widest font-semibold">Best R</th>
+                )}
                 <SortHeader label="P&L" field="pnl" />
                 {onEdit && <th className="px-4 py-2.5" />}
               </tr>
@@ -129,7 +165,7 @@ export function TradesTable({
             <tbody className="divide-y divide-border/50">
               {sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={isFull ? 17 : 7} className="px-4 py-10 text-center text-muted text-sm">
+                  <td colSpan={isFull ? 29 : 7} className="px-4 py-10 text-center text-muted text-sm">
                     No positions. Log your first trade.
                   </td>
                 </tr>
@@ -242,6 +278,95 @@ export function TradesTable({
                             const fmt = formatRMultiple(r);
                             if (!fmt) return <span className="text-muted/30">{"\u2014"}</span>;
                             return <span className={`font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
+                          })()}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted">
+                          {trade.notes ? trade.notes.slice(0, 30) + (trade.notes.length > 30 ? "..." : "") : "\u2014"}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          ${getTotalCommitment(trade).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted">
+                          {getQuarterLabel(trade.close_timestamp) ?? "\u2014"}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs tabular-nums text-right">
+                          {(() => {
+                            const mae = calculateTradeMAE(trade);
+                            if (mae === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className="text-loss">${mae.toFixed(2)}</span>;
+                          })()}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs tabular-nums text-right">
+                          {(() => {
+                            const mfe = calculateTradeMFE(trade);
+                            if (mfe === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className="text-win">${mfe.toFixed(2)}</span>;
+                          })()}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          {trade.price_mae !== null && trade.price_mae !== undefined ? `$${trade.price_mae.toFixed(2)}` : "\u2014"}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs text-muted tabular-nums text-right">
+                          {trade.price_mfe !== null && trade.price_mfe !== undefined ? `$${trade.price_mfe.toFixed(2)}` : "\u2014"}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs tabular-nums text-right">
+                          {(() => {
+                            const ratio = getMfeMaeRatio(trade);
+                            if (ratio === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className="text-muted">{ratio.toFixed(2)}</span>;
+                          })()}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs tabular-nums text-right">
+                          {(() => {
+                            const pct = getPriceMfePct(trade);
+                            if (pct === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={pct >= 0 ? "text-win" : "text-loss"}>{pct >= 0 ? "+" : ""}{pct.toFixed(2)}%</span>;
+                          })()}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs tabular-nums text-right">
+                          {(() => {
+                            const best = calculateBestExitPnl(trade);
+                            if (best === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={`font-semibold ${best >= 0 ? "text-win" : "text-loss"}`}>${best.toFixed(2)}</span>;
+                          })()}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-xs tabular-nums text-right">
+                          {(() => {
+                            const eff = calculateExitEfficiency(trade);
+                            if (eff === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className="text-muted">{eff.toFixed(1)}%</span>;
+                          })()}
+                        </td>
+                      )}
+                      {isFull && (
+                        <td className="px-4 py-2.5 text-right">
+                          {(() => {
+                            const bestR = calculateBestExitR(trade);
+                            const fmt = formatRMultiple(bestR);
+                            if (!fmt) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={`font-semibold ${bestR! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
                           })()}
                         </td>
                       )}

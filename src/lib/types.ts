@@ -36,6 +36,10 @@ export type Trade = {
   wallet_address: string | null;
   gas_fee: number;
   gas_fee_native: number;
+  // MAE/MFE fields
+  price_mae: number | null;
+  price_mfe: number | null;
+  mfe_timestamp: string | null;
   created_at: string;
 };
 
@@ -50,6 +54,8 @@ export type JournalNote = {
   note_type?: string;
   is_favorite?: boolean;
   note_date?: string;
+  structured_data?: Record<string, string | number | boolean | null> | null;
+  template_id?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -232,6 +238,10 @@ export type StockTrade = {
   notes: string | null;
   tags: string[];
   pnl: number | null;
+  // MAE/MFE fields
+  price_mae: number | null;
+  price_mfe: number | null;
+  mfe_timestamp: string | null;
   created_at: string;
 };
 
@@ -400,6 +410,10 @@ export type CommodityTrade = {
   notes: string | null;
   tags: string[];
   pnl: number | null;
+  // MAE/MFE fields
+  price_mae: number | null;
+  price_mfe: number | null;
+  mfe_timestamp: string | null;
   created_at: string;
 };
 
@@ -489,6 +503,10 @@ export type ForexTrade = {
   notes: string | null;
   tags: string[];
   pnl: number | null;
+  // MAE/MFE fields
+  price_mae: number | null;
+  price_mfe: number | null;
+  mfe_timestamp: string | null;
   created_at: string;
 };
 
