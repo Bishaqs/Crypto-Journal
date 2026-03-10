@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
-import { calculateTradePnl, formatDuration, getReturnPct, calculateRMultiple, formatRMultiple } from "@/lib/calculations";
+import { calculateTradePnl, formatDuration, getReturnPct, calculateRMultiple, formatRMultiple, getTotalCommitment, getQuarterLabel, calculateTradeMAE, calculateTradeMFE, getMfeMaeRatio, getPriceMfePct, calculateBestExitPnl, calculateExitEfficiency, calculateBestExitR } from "@/lib/calculations";
 import { CHAINS } from "@/lib/types";
 import { useTheme } from "@/lib/theme-context";
 import {
@@ -43,6 +43,18 @@ const TRADE_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] 
   { key: "emotion", label: "Emotion" },
   { key: "process_score", label: "Process" },
   { key: null, label: "Tags" },
+  { key: null, label: "Notes" },
+  { key: null, label: "Commit" },
+  { key: null, label: "Quarter" },
+  { key: null, label: "MAE $" },
+  { key: null, label: "MFE $" },
+  { key: null, label: "Pr. MAE" },
+  { key: null, label: "Pr. MFE" },
+  { key: null, label: "MFE/MAE" },
+  { key: null, label: "MFE %" },
+  { key: null, label: "Best Exit" },
+  { key: null, label: "Effic." },
+  { key: null, label: "Best R" },
 ];
 
 export default function TradesPage() {
@@ -411,6 +423,95 @@ export default function TradesPage() {
                               <span className="text-[10px] text-muted/40">+{trade.tags!.length - 3}</span>
                             )}
                           </div>
+                        </div>
+                        )}
+                        {visibleLabels.has("Notes") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-xs text-muted">
+                          {trade.notes ? trade.notes.slice(0, 30) + (trade.notes.length > 30 ? "..." : "") : <span className="text-muted/30">{"\u2014"}</span>}
+                        </div>
+                        )}
+                        {visibleLabels.has("Commit") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums text-muted">
+                          ${getTotalCommitment(trade).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </div>
+                        )}
+                        {visibleLabels.has("Quarter") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-muted">
+                          {getQuarterLabel(trade.close_timestamp) ?? <span className="text-muted/30">{"\u2014"}</span>}
+                        </div>
+                        )}
+                        {visibleLabels.has("MAE $") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums">
+                          {(() => {
+                            const mae = calculateTradeMAE(trade);
+                            if (mae === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className="text-loss">${mae.toFixed(2)}</span>;
+                          })()}
+                        </div>
+                        )}
+                        {visibleLabels.has("MFE $") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums">
+                          {(() => {
+                            const mfe = calculateTradeMFE(trade);
+                            if (mfe === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className="text-win">${mfe.toFixed(2)}</span>;
+                          })()}
+                        </div>
+                        )}
+                        {visibleLabels.has("Pr. MAE") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums text-muted">
+                          {trade.price_mae !== null && trade.price_mae !== undefined ? `$${trade.price_mae.toFixed(2)}` : <span className="text-muted/30">{"\u2014"}</span>}
+                        </div>
+                        )}
+                        {visibleLabels.has("Pr. MFE") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums text-muted">
+                          {trade.price_mfe !== null && trade.price_mfe !== undefined ? `$${trade.price_mfe.toFixed(2)}` : <span className="text-muted/30">{"\u2014"}</span>}
+                        </div>
+                        )}
+                        {visibleLabels.has("MFE/MAE") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums">
+                          {(() => {
+                            const ratio = getMfeMaeRatio(trade);
+                            if (ratio === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className="text-muted">{ratio.toFixed(2)}</span>;
+                          })()}
+                        </div>
+                        )}
+                        {visibleLabels.has("MFE %") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums">
+                          {(() => {
+                            const pct = getPriceMfePct(trade);
+                            if (pct === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={pct >= 0 ? "text-win" : "text-loss"}>{pct >= 0 ? "+" : ""}{pct.toFixed(2)}%</span>;
+                          })()}
+                        </div>
+                        )}
+                        {visibleLabels.has("Best Exit") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums">
+                          {(() => {
+                            const best = calculateBestExitPnl(trade);
+                            if (best === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={`font-semibold ${best >= 0 ? "text-win" : "text-loss"}`}>${best.toFixed(2)}</span>;
+                          })()}
+                        </div>
+                        )}
+                        {visibleLabels.has("Effic.") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right tabular-nums">
+                          {(() => {
+                            const eff = calculateExitEfficiency(trade);
+                            if (eff === null) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={eff >= 80 ? "text-win" : eff < 50 ? "text-loss" : "text-muted"}>{eff.toFixed(1)}%</span>;
+                          })()}
+                        </div>
+                        )}
+                        {visibleLabels.has("Best R") && (
+                        <div className="px-4 py-3 border-b border-border/50 text-right">
+                          {(() => {
+                            const bestR = calculateBestExitR(trade);
+                            const fmt = formatRMultiple(bestR);
+                            if (!fmt) return <span className="text-muted/30">{"\u2014"}</span>;
+                            return <span className={`font-semibold ${bestR! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
+                          })()}
                         </div>
                         )}
                       </div>

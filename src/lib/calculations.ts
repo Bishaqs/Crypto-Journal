@@ -770,3 +770,207 @@ export function formatRMultiple(r: number | null): string | null {
   if (r === null) return null;
   return `${r >= 0 ? "+" : ""}${r.toFixed(2)}R`;
 }
+
+/* ── New computed column helpers (TradeZella parity) ──────── */
+
+/**
+ * Total commitment = entry_price * quantity, adjusted per asset type.
+ */
+export function getTotalCommitment(trade: {
+  entry_price: number;
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  contract_size?: number | null;
+}): number {
+  if (trade.lot_size !== undefined && trade.lot_type) {
+    const multiplier = LOT_MULTIPLIERS[trade.lot_type] ?? 100000;
+    return trade.entry_price * trade.lot_size * multiplier;
+  }
+  if (trade.contract_size) {
+    return trade.entry_price * (trade.quantity ?? 1) * trade.contract_size;
+  }
+  return trade.entry_price * (trade.quantity ?? 1);
+}
+
+/**
+ * Quarter label from a timestamp, e.g. "Q1 '26".
+ */
+export function getQuarterLabel(timestamp: string | null): string | null {
+  if (!timestamp) return null;
+  const d = new Date(timestamp);
+  const q = Math.ceil((d.getMonth() + 1) / 3);
+  const yr = String(d.getFullYear()).slice(-2);
+  return `Q${q} '${yr}`;
+}
+
+/**
+ * Trade MAE in $ — maximum adverse excursion dollar amount.
+ * For longs: (entry - price_mae) * qty. For shorts: (price_mae - entry) * qty.
+ */
+export function calculateTradeMAE(trade: {
+  entry_price: number;
+  price_mae: number | null;
+  position: "long" | "short";
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  contract_size?: number | null;
+  tick_size?: number | null;
+  tick_value?: number | null;
+}): number | null {
+  if (trade.price_mae === null) return null;
+  const diff = trade.position === "long"
+    ? trade.entry_price - trade.price_mae
+    : trade.price_mae - trade.entry_price;
+  return Math.abs(diff) * getPositionSize(trade);
+}
+
+/**
+ * Trade MFE in $ — maximum favorable excursion dollar amount.
+ */
+export function calculateTradeMFE(trade: {
+  entry_price: number;
+  price_mfe: number | null;
+  position: "long" | "short";
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  contract_size?: number | null;
+  tick_size?: number | null;
+  tick_value?: number | null;
+}): number | null {
+  if (trade.price_mfe === null) return null;
+  const diff = trade.position === "long"
+    ? trade.price_mfe - trade.entry_price
+    : trade.entry_price - trade.price_mfe;
+  return Math.abs(diff) * getPositionSize(trade);
+}
+
+/**
+ * MFE / MAE ratio.
+ */
+export function getMfeMaeRatio(trade: {
+  entry_price: number;
+  price_mae: number | null;
+  price_mfe: number | null;
+  position: "long" | "short";
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  contract_size?: number | null;
+  tick_size?: number | null;
+  tick_value?: number | null;
+}): number | null {
+  const mae = calculateTradeMAE(trade);
+  const mfe = calculateTradeMFE(trade);
+  if (mae === null || mfe === null || mae === 0) return null;
+  return mfe / mae;
+}
+
+/**
+ * Price MFE as percentage of entry price (directional).
+ */
+export function getPriceMfePct(trade: {
+  entry_price: number;
+  price_mfe: number | null;
+  position: "long" | "short";
+}): number | null {
+  if (trade.price_mfe === null || trade.entry_price === 0) return null;
+  const direction = trade.position === "long" ? 1 : -1;
+  return ((trade.price_mfe - trade.entry_price) / trade.entry_price) * 100 * direction;
+}
+
+/**
+ * Best exit P&L — P&L if the trade was closed at MFE price.
+ */
+export function calculateBestExitPnl(trade: {
+  entry_price: number;
+  price_mfe: number | null;
+  position: "long" | "short";
+  fees: number;
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  contract_size?: number | null;
+  tick_size?: number | null;
+  tick_value?: number | null;
+}): number | null {
+  if (trade.price_mfe === null) return null;
+  const direction = trade.position === "long" ? 1 : -1;
+  const priceDiff = (trade.price_mfe - trade.entry_price) * direction;
+  return priceDiff * getPositionSize(trade) - trade.fees;
+}
+
+/**
+ * Exit efficiency = (actual P&L / best exit P&L) * 100.
+ */
+export function calculateExitEfficiency(trade: {
+  entry_price: number;
+  price_mfe: number | null;
+  pnl: number | null;
+  position: "long" | "short";
+  fees: number;
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  contract_size?: number | null;
+  tick_size?: number | null;
+  tick_value?: number | null;
+}): number | null {
+  if (trade.pnl === null) return null;
+  const bestPnl = calculateBestExitPnl(trade);
+  if (bestPnl === null || bestPnl === 0) return null;
+  return (trade.pnl / bestPnl) * 100;
+}
+
+/**
+ * Best exit R-value — R-multiple at MFE.
+ */
+export function calculateBestExitR(trade: {
+  entry_price: number;
+  stop_loss: number | null;
+  price_mfe: number | null;
+  position: "long" | "short";
+  fees: number;
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  contract_size?: number | null;
+  tick_size?: number | null;
+  tick_value?: number | null;
+}): number | null {
+  if (trade.stop_loss === null || trade.price_mfe === null) return null;
+  const bestPnl = calculateBestExitPnl(trade);
+  if (bestPnl === null) return null;
+
+  const priceDiff = Math.abs(trade.entry_price - trade.stop_loss);
+  if (priceDiff === 0) return null;
+
+  const initialRisk = priceDiff * getPositionSize(trade);
+  if (initialRisk === 0) return null;
+
+  return bestPnl / initialRisk;
+}
+
+/** Internal: get effective position size for $ calculations. */
+function getPositionSize(trade: {
+  quantity?: number;
+  lot_size?: number;
+  lot_type?: string;
+  contract_size?: number | null;
+  tick_size?: number | null;
+  tick_value?: number | null;
+}): number {
+  if (trade.tick_size && trade.tick_value && trade.tick_size > 0) {
+    return (1 / trade.tick_size) * trade.tick_value * (trade.quantity ?? 1);
+  }
+  if (trade.lot_size !== undefined && trade.lot_type) {
+    const multiplier = LOT_MULTIPLIERS[trade.lot_type] ?? 100000;
+    return trade.lot_size * multiplier;
+  }
+  if (trade.contract_size) {
+    return (trade.quantity ?? 1) * trade.contract_size;
+  }
+  return trade.quantity ?? 1;
+}

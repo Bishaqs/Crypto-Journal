@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { formatDuration, getReturnPct, calculateRMultiple, formatRMultiple } from "@/lib/calculations";
+import { formatDuration, getReturnPct, calculateRMultiple, formatRMultiple, getTotalCommitment, getQuarterLabel, calculateTradeMAE, calculateTradeMFE, getMfeMaeRatio, getPriceMfePct, calculateBestExitPnl, calculateExitEfficiency, calculateBestExitR } from "@/lib/calculations";
 import type { ForexTrade } from "@/lib/types";
 import { ForexTradeForm } from "@/components/forex-trade-form";
 
@@ -36,7 +36,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Confident", confidence: 8, setup_type: "Trend Follow",
     process_score: 9, checklist: null, review: null,
     notes: "Clean trend continuation.", tags: ["trend", "major"],
-    stop_loss: 1.0810, profit_target: 1.0950, pnl: 693, created_at: "2026-02-20T08:00:00Z",
+    stop_loss: 1.0810, profit_target: 1.0950, pnl: 693, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-20T08:00:00Z",
   },
   {
     id: "fx-2", user_id: "u1", pair: "GBP/USD", base_currency: "GBP", quote_currency: "USD",
@@ -49,7 +49,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Breakout",
     process_score: 8, checklist: null, review: null,
     notes: "GBP weakness on data.", tags: ["news", "major"],
-    stop_loss: null, profit_target: null, pnl: 1186, created_at: "2026-02-19T13:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 1186, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-19T13:00:00Z",
   },
   {
     id: "fx-3", user_id: "u1", pair: "USD/JPY", base_currency: "USD", quote_currency: "JPY",
@@ -62,7 +62,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Anxious", confidence: 5, setup_type: "Reversal",
     process_score: 4, checklist: null, review: null,
     notes: "Tried to catch falling knife.", tags: ["reversal"],
-    stop_loss: null, profit_target: null, pnl: -207, created_at: "2026-02-18T01:00:00Z",
+    stop_loss: null, profit_target: null, pnl: -207, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-18T01:00:00Z",
   },
   {
     id: "fx-4", user_id: "u1", pair: "EUR/GBP", base_currency: "EUR", quote_currency: "GBP",
@@ -75,7 +75,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Range",
     process_score: 7, checklist: null, review: null,
     notes: "Range trade. Clean entry.", tags: ["range", "minor"],
-    stop_loss: null, profit_target: null, pnl: 492, created_at: "2026-02-19T08:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 492, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-19T08:30:00Z",
   },
 ];
 
@@ -111,6 +111,21 @@ const FOREX_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] 
   { key: null, label: "TP" },
   { key: null, label: "R" },
   { key: "pnl", label: "P&L", simple: true },
+  { key: null, label: "Tags" },
+  { key: null, label: "Emotion" },
+  { key: null, label: "Process" },
+  { key: null, label: "Notes" },
+  { key: null, label: "Commit" },
+  { key: null, label: "Quarter" },
+  { key: null, label: "MAE $" },
+  { key: null, label: "MFE $" },
+  { key: null, label: "Pr. MAE" },
+  { key: null, label: "Pr. MFE" },
+  { key: null, label: "MFE/MAE" },
+  { key: null, label: "MFE %" },
+  { key: null, label: "Best Exit" },
+  { key: null, label: "Effic." },
+  { key: null, label: "Best R" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -453,6 +468,135 @@ export default function ForexTradesPage() {
                     {visibleLabels.has("P&L") && (
                     <td className={`px-4 py-3 font-semibold tabular-nums ${isOpen ? "text-accent" : pnl >= 0 ? "text-win" : "text-loss"}`}>
                       {isOpen ? "Open" : `${pnl >= 0 ? "+" : "-"}$${Math.abs(pnl).toFixed(2)}`}
+                    </td>
+                    )}
+                    {visibleLabels.has("Tags") && (
+                    <td className="px-3 py-2">
+                      {trade.tags && trade.tags.length > 0 ? (
+                        <div className="flex gap-1 flex-wrap">
+                          {trade.tags.slice(0, 2).map((tag) => (
+                            <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-border/50 text-muted">{tag}</span>
+                          ))}
+                          {trade.tags.length > 2 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-border/50 text-muted">+{trade.tags.length - 2}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted/30">&mdash;</span>
+                      )}
+                    </td>
+                    )}
+                    {visibleLabels.has("Emotion") && (
+                    <td className="px-3 py-2">
+                      {trade.emotion ? (
+                        <span className="px-1.5 py-0.5 rounded-md bg-accent/10 text-accent text-[10px]">{trade.emotion}</span>
+                      ) : (
+                        <span className="text-muted/30">&mdash;</span>
+                      )}
+                    </td>
+                    )}
+                    {visibleLabels.has("Process") && (
+                    <td className="px-3 py-2">
+                      {trade.process_score !== null ? (
+                        <span className={`text-xs font-semibold tabular-nums ${trade.process_score >= 7 ? "text-win" : trade.process_score >= 4 ? "text-amber-400" : "text-loss"}`}>
+                          {trade.process_score}/10
+                        </span>
+                      ) : (
+                        <span className="text-muted/30">&mdash;</span>
+                      )}
+                    </td>
+                    )}
+                    {visibleLabels.has("Notes") && (
+                    <td className="px-3 py-2">
+                      {trade.notes ? (
+                        <span className="text-xs text-muted">{trade.notes.length > 30 ? trade.notes.slice(0, 30) + "\u2026" : trade.notes}</span>
+                      ) : (
+                        <span className="text-muted/30">&mdash;</span>
+                      )}
+                    </td>
+                    )}
+                    {visibleLabels.has("Commit") && (
+                    <td className="px-3 py-2 text-xs tabular-nums text-muted">
+                      ${getTotalCommitment(trade).toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                    </td>
+                    )}
+                    {visibleLabels.has("Quarter") && (
+                    <td className="px-3 py-2 text-xs text-muted">
+                      {getQuarterLabel(trade.open_timestamp) ?? "\u2014"}
+                    </td>
+                    )}
+                    {visibleLabels.has("MAE $") && (
+                    <td className="px-3 py-2">
+                      {(() => {
+                        const mae = calculateTradeMAE(trade);
+                        if (mae === null) return <span className="text-muted/30">&mdash;</span>;
+                        return <span className="text-xs tabular-nums text-loss">${mae.toFixed(2)}</span>;
+                      })()}
+                    </td>
+                    )}
+                    {visibleLabels.has("MFE $") && (
+                    <td className="px-3 py-2">
+                      {(() => {
+                        const mfe = calculateTradeMFE(trade);
+                        if (mfe === null) return <span className="text-muted/30">&mdash;</span>;
+                        return <span className="text-xs tabular-nums text-win">${mfe.toFixed(2)}</span>;
+                      })()}
+                    </td>
+                    )}
+                    {visibleLabels.has("Pr. MAE") && (
+                    <td className="px-3 py-2 text-xs tabular-nums text-muted">
+                      {trade.price_mae !== null ? trade.price_mae : "\u2014"}
+                    </td>
+                    )}
+                    {visibleLabels.has("Pr. MFE") && (
+                    <td className="px-3 py-2 text-xs tabular-nums text-muted">
+                      {trade.price_mfe !== null ? trade.price_mfe : "\u2014"}
+                    </td>
+                    )}
+                    {visibleLabels.has("MFE/MAE") && (
+                    <td className="px-3 py-2">
+                      {(() => {
+                        const ratio = getMfeMaeRatio(trade);
+                        if (ratio === null) return <span className="text-muted/30">&mdash;</span>;
+                        return <span className="text-xs tabular-nums text-muted">{ratio.toFixed(2)}</span>;
+                      })()}
+                    </td>
+                    )}
+                    {visibleLabels.has("MFE %") && (
+                    <td className="px-3 py-2">
+                      {(() => {
+                        const pct = getPriceMfePct(trade);
+                        if (pct === null) return <span className="text-muted/30">&mdash;</span>;
+                        return <span className={`text-xs tabular-nums font-semibold ${pct >= 0 ? "text-win" : "text-loss"}`}>{pct >= 0 ? "+" : ""}{pct.toFixed(2)}%</span>;
+                      })()}
+                    </td>
+                    )}
+                    {visibleLabels.has("Best Exit") && (
+                    <td className="px-3 py-2">
+                      {(() => {
+                        const best = calculateBestExitPnl(trade);
+                        if (best === null) return <span className="text-muted/30">&mdash;</span>;
+                        return <span className={`text-xs tabular-nums font-semibold ${best >= 0 ? "text-win" : "text-loss"}`}>{best >= 0 ? "+" : "-"}${Math.abs(best).toFixed(2)}</span>;
+                      })()}
+                    </td>
+                    )}
+                    {visibleLabels.has("Effic.") && (
+                    <td className="px-3 py-2">
+                      {(() => {
+                        const eff = calculateExitEfficiency(trade);
+                        if (eff === null) return <span className="text-muted/30">&mdash;</span>;
+                        return <span className={`text-xs tabular-nums font-semibold ${eff >= 80 ? "text-win" : eff < 50 ? "text-loss" : "text-muted"}`}>{eff.toFixed(1)}%</span>;
+                      })()}
+                    </td>
+                    )}
+                    {visibleLabels.has("Best R") && (
+                    <td className="px-3 py-2">
+                      {(() => {
+                        const r = calculateBestExitR(trade);
+                        const fmt = formatRMultiple(r);
+                        if (!fmt) return <span className="text-muted/30">&mdash;</span>;
+                        return <span className={`text-xs tabular-nums font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
+                      })()}
                     </td>
                     )}
                   </tr>
