@@ -16,6 +16,7 @@ import {
   ClipboardList,
   AlertTriangle,
   Calendar,
+  Crosshair,
 } from "lucide-react";
 
 type Template = {
@@ -27,6 +28,12 @@ type Template = {
 
 const TEMPLATES: Template[] = [
   { id: "free", label: "Free-form", icon: FileText, content: "" },
+  {
+    id: "trade-entry",
+    label: "Trade Entry",
+    icon: Crosshair,
+    content: "",
+  },
   {
     id: "trade-review",
     label: "Trade Review",
@@ -75,8 +82,10 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
   const [selectedTag, setSelectedTag] = useState<string | null>(editNote?.tags?.[0] ?? null);
   const [allExistingTags, setAllExistingTags] = useState<string[]>([]);
   const [title, setTitle] = useState(editNote?.title ?? "");
-  const [appliedTemplate, setAppliedTemplate] = useState(initialTemplate);
-  const [structuredData, setStructuredData] = useState<Record<string, string | number | null>>({});
+  const [appliedTemplate, setAppliedTemplate] = useState(editNote?.template_id ?? initialTemplate);
+  const [structuredData, setStructuredData] = useState<Record<string, string | number | null>>(
+    (editNote?.structured_data as Record<string, string | number | null>) ?? {}
+  );
   const [noteDate, setNoteDate] = useState<string>(
     editNote?.note_date
       ? editNote.note_date.slice(0, 16)
@@ -86,7 +95,9 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
   const initialized = useRef(false);
   const supabase = createClient();
 
-  const useStructured = !editNote && isStructuredTemplate(appliedTemplate);
+  const useStructured = isStructuredTemplate(appliedTemplate) && (
+    !editNote || (editNote.template_id != null && isStructuredTemplate(editNote.template_id))
+  );
 
   // Initialize contentEditable content ONCE on mount
   useEffect(() => {
@@ -225,6 +236,8 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
       let noteType = "other";
       if (linkedTradeId) {
         noteType = "trade";
+      } else if (appliedTemplate === "trade-entry") {
+        noteType = "trade";
       } else if (appliedTemplate === "morning-plan") {
         noteType = "daily";
       }
@@ -237,6 +250,8 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
         auto_link_on_import: autoLinkOnImport,
         note_type: noteType,
         note_date: noteDate ? new Date(noteDate).toISOString() : new Date().toISOString(),
+        structured_data: useStructured ? structuredData : null,
+        template_id: useStructured ? appliedTemplate : null,
       };
 
       if (!payload.content || payload.content === "<br>") {
@@ -341,7 +356,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
           )}
 
           {/* Template selector */}
-          {!editNote && (
+          {!editNote ? (
             <div className="px-5 pt-3 shrink-0">
               <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Template</label>
               <TemplateSelector
@@ -355,7 +370,14 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
                 Note: Applying a note template removes all contents of the current note.
               </p>
             </div>
-          )}
+          ) : editNote.template_id && isStructuredTemplate(editNote.template_id) ? (
+            <div className="px-5 pt-3 shrink-0">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-accent/20 bg-accent/5 text-sm text-accent">
+                <Crosshair size={14} />
+                <span className="font-medium">{TEMPLATES.find((t) => t.id === editNote.template_id)?.label ?? "Structured Template"}</span>
+              </div>
+            </div>
+          ) : null}
 
           {/* Editor area */}
           <div className="px-5 pt-3 pb-5 space-y-3 overflow-y-auto flex-1">

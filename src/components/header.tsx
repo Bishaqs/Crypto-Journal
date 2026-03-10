@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme, THEMES, isProTheme, isLevel500Theme } from "@/lib/theme-context";
+import { useTheme, THEMES, isProTheme, isLevel500Theme, getLevelRequirement } from "@/lib/theme-context";
 import { useLevel } from "@/lib/xp";
 import { useSubscriptionContext } from "@/lib/subscription-context";
 import { useDateRange, DATE_RANGES } from "@/lib/date-range-context";
@@ -183,20 +183,23 @@ export function Header() {
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
                 {THEMES.map((t) => {
+                  const levelReq = getLevelRequirement(t.value);
+                  const isLevelGated = levelReq !== null && level < levelReq && !isOwner;
                   const isLocked = isLevel500Theme(t.value) && !hasLevel500Access && !isOwner;
                   const isProLocked = isProTheme(t.value) && tier === "free" && !isOwner;
+                  const isAnyLocked = isLocked || isProLocked || isLevelGated;
                   return (
                     <button
                       key={t.value}
                       onClick={() => {
-                        if (isProLocked || isLocked) return;
+                        if (isAnyLocked) return;
                         setTheme(t.value);
                         setShowThemes(false);
                       }}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-3 ${
                         theme === t.value
                           ? "text-accent bg-accent/10"
-                          : isLocked
+                          : isAnyLocked
                             ? "text-muted/40 cursor-not-allowed"
                             : "text-muted hover:text-foreground hover:bg-surface-hover"
                       }`}
@@ -204,7 +207,7 @@ export function Header() {
                       <div
                         className="w-3 h-3 rounded-full shrink-0"
                         style={{
-                          background: isLocked ? "#444" : t.dot,
+                          background: isAnyLocked ? "#444" : t.dot,
                           border: ((t.value as string) === "solara" || (t.value as string) === "obsidian")
                             ? "1.5px solid #888"
                             : "1px solid rgba(255,255,255,0.15)",
@@ -213,6 +216,7 @@ export function Header() {
                       />
                       {t.label}
                       {isLocked && <span className="text-[10px] text-amber-400/60 ml-auto">🔒 Lv.500</span>}
+                      {isLevelGated && <span className="text-[10px] text-pink-400/60 ml-auto">🔒 Lv.{levelReq}</span>}
                     </button>
                   );
                 })}

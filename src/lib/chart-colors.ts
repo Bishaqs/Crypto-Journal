@@ -46,6 +46,11 @@ const CHART_COLORS: Record<Theme, ChartColors> = {
     grid: "#3d2e12", tick: "#b8965a",
     tooltipBg: "rgba(10, 8, 6, 0.9)", tooltipBorder: "1px solid rgba(247, 147, 26, 0.2)",
   },
+  synthwave: {
+    win: "#00ffcc", loss: "#ff3366", accent: "#ff2d95",
+    grid: "rgba(255, 45, 149, 0.08)", tick: "#b8a0d4",
+    tooltipBg: "rgba(15, 5, 30, 0.9)", tooltipBorder: "1px solid rgba(255, 45, 149, 0.2)",
+  },
 };
 
 export function getChartColors(theme: Theme) {
