@@ -8,6 +8,7 @@ import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { calculateTradePnl } from "@/lib/calculations";
 import { CHAINS } from "@/lib/types";
+import { useTheme } from "@/lib/theme-context";
 import {
   Table2,
   Search,
@@ -27,8 +28,21 @@ type SortDir = "asc" | "desc";
 
 const EMOTION_OPTIONS = ["All", "Calm", "Confident", "Excited", "Anxious", "FOMO", "Frustrated", "Revenge", "Bored"];
 
+const TRADE_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] = [
+  { key: "date", label: "Date", simple: true },
+  { key: "symbol", label: "Symbol", simple: true },
+  { key: null, label: "Side", simple: true },
+  { key: null, label: "Entry" },
+  { key: null, label: "Exit" },
+  { key: "pnl", label: "P&L", simple: true },
+  { key: "emotion", label: "Emotion" },
+  { key: "process_score", label: "Process" },
+  { key: null, label: "Tags" },
+];
+
 export default function TradesPage() {
   const router = useRouter();
+  const { viewMode } = useTheme();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -39,6 +53,20 @@ export default function TradesPage() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const supabase = createClient();
+
+  const visibleColumns = viewMode === "simple"
+    ? TRADE_COLUMNS.filter((c) => c.simple)
+    : TRADE_COLUMNS;
+  const visibleLabels = new Set(visibleColumns.map((c) => c.label));
+
+  // Reset sort if current sort column is hidden
+  useEffect(() => {
+    if (sortKey === "date") return;
+    const col = TRADE_COLUMNS.find((c) => c.key === sortKey);
+    if (col && !visibleLabels.has(col.label)) {
+      setSortKey("date");
+    }
+  }, [viewMode]);
 
   const fetchTrades = useCallback(async () => {
     const { data } = await supabase
@@ -238,17 +266,7 @@ export default function TradesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                {[
-                  { key: "date" as SortKey, label: "Date" },
-                  { key: "symbol" as SortKey, label: "Symbol" },
-                  { key: null, label: "Side" },
-                  { key: null, label: "Entry" },
-                  { key: null, label: "Exit" },
-                  { key: "pnl" as SortKey, label: "P&L" },
-                  { key: "emotion" as SortKey, label: "Emotion" },
-                  { key: "process_score" as SortKey, label: "Process" },
-                  { key: null, label: "Tags" },
-                ].map((col) => (
+                {visibleColumns.map((col) => (
                   <th
                     key={col.label}
                     className={`text-left text-[10px] uppercase tracking-wider text-muted/60 font-semibold px-4 py-3 ${col.key ? "cursor-pointer hover:text-muted select-none" : ""}`}
@@ -268,15 +286,18 @@ export default function TradesPage() {
                 const isExpanded = expandedId === trade.id;
                 return (
                   <tr key={trade.id} className="group">
-                    <td colSpan={9} className="p-0">
+                    <td colSpan={visibleColumns.length} className="p-0">
                       <div
                         className="grid cursor-pointer hover:bg-surface-hover transition-colors"
-                        style={{ gridTemplateColumns: "repeat(9, auto)" }}
+                        style={{ gridTemplateColumns: `repeat(${visibleColumns.length}, auto)` }}
                         onClick={() => router.push(`/dashboard/trades/${trade.id}`)}
                       >
+                        {visibleLabels.has("Date") && (
                         <div className="px-4 py-3 text-muted whitespace-nowrap border-b border-border/50">
                           {new Date(trade.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </div>
+                        )}
+                        {visibleLabels.has("Symbol") && (
                         <div className="px-4 py-3 font-semibold text-foreground border-b border-border/50">
                           <div className="flex items-center gap-1.5">
                             {trade.symbol}
@@ -287,6 +308,8 @@ export default function TradesPage() {
                             )}
                           </div>
                         </div>
+                        )}
+                        {visibleLabels.has("Side") && (
                         <div className="px-4 py-3 border-b border-border/50">
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${
                             trade.position === "long" ? "bg-win/10 text-win" : "bg-loss/10 text-loss"
@@ -294,15 +317,23 @@ export default function TradesPage() {
                             {trade.position.toUpperCase()}
                           </span>
                         </div>
+                        )}
+                        {visibleLabels.has("Entry") && (
                         <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50">
                           ${trade.entry_price.toFixed(2)}
                         </div>
+                        )}
+                        {visibleLabels.has("Exit") && (
                         <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50">
                           {trade.exit_price !== null ? `$${trade.exit_price.toFixed(2)}` : "—"}
                         </div>
+                        )}
+                        {visibleLabels.has("P&L") && (
                         <div className={`px-4 py-3 font-semibold tabular-nums border-b border-border/50 ${pnl >= 0 ? "text-win" : "text-loss"}`}>
                           {trade.exit_price !== null ? `$${pnl.toFixed(2)}` : "Open"}
                         </div>
+                        )}
+                        {visibleLabels.has("Emotion") && (
                         <div className="px-4 py-3 border-b border-border/50">
                           {trade.emotion ? (
                             <span className="text-xs px-2 py-0.5 rounded-md bg-accent/10 text-accent">
@@ -312,6 +343,8 @@ export default function TradesPage() {
                             <span className="text-muted/30">—</span>
                           )}
                         </div>
+                        )}
+                        {visibleLabels.has("Process") && (
                         <div className="px-4 py-3 border-b border-border/50">
                           {trade.process_score !== null ? (
                             <span className={`text-xs font-semibold ${trade.process_score >= 7 ? "text-win" : trade.process_score >= 4 ? "text-amber-400" : "text-loss"}`}>
@@ -321,6 +354,8 @@ export default function TradesPage() {
                             <span className="text-muted/30">—</span>
                           )}
                         </div>
+                        )}
+                        {visibleLabels.has("Tags") && (
                         <div className="px-4 py-3 border-b border-border/50">
                           <div className="flex gap-1 flex-wrap">
                             {trade.tags?.slice(0, 3).map((tag) => (
@@ -333,6 +368,7 @@ export default function TradesPage() {
                             )}
                           </div>
                         </div>
+                        )}
                       </div>
 
                       {/* Expanded details */}
@@ -441,7 +477,7 @@ export default function TradesPage() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-muted">
+                  <td colSpan={visibleColumns.length} className="px-4 py-12 text-center text-muted">
                     No trades match your filters
                   </td>
                 </tr>

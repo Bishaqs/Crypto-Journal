@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "@/lib/theme-context";
 import {
   Table2,
   Search,
@@ -149,12 +150,24 @@ const SESSION_LABELS: Record<string, string> = {
 type SortKey = "date" | "symbol" | "pnl" | "sector" | "session";
 type SortDir = "asc" | "desc";
 
+const STOCK_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] = [
+  { key: "date", label: "Date", simple: true },
+  { key: "symbol", label: "Symbol", simple: true },
+  { key: "sector", label: "Sector" },
+  { key: null, label: "Type" },
+  { key: "session", label: "Session" },
+  { key: null, label: "Entry", simple: true },
+  { key: null, label: "Exit", simple: true },
+  { key: "pnl", label: "P&L", simple: true },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export default function StockTradesPage() {
   const router = useRouter();
+  const { viewMode } = useTheme();
   const [trades] = useState<StockTrade[]>(MOCK_STOCK_TRADES);
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState("All");
@@ -162,6 +175,19 @@ export default function StockTradesPage() {
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const visibleColumns = viewMode === "simple"
+    ? STOCK_COLUMNS.filter((c) => c.simple)
+    : STOCK_COLUMNS;
+  const visibleLabels = new Set(visibleColumns.map((c) => c.label));
+
+  useEffect(() => {
+    if (sortKey === "date") return;
+    const col = STOCK_COLUMNS.find((c) => c.key === sortKey);
+    if (col && !visibleLabels.has(col.label)) {
+      setSortKey("date");
+    }
+  }, [viewMode]);
 
   const filtered = useMemo(() => {
     let result = trades;
@@ -385,16 +411,7 @@ export default function StockTradesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                {[
-                  { key: "date" as SortKey, label: "Date" },
-                  { key: "symbol" as SortKey, label: "Symbol" },
-                  { key: "sector" as SortKey, label: "Sector" },
-                  { key: null, label: "Type" },
-                  { key: "session" as SortKey, label: "Session" },
-                  { key: null, label: "Entry" },
-                  { key: null, label: "Exit" },
-                  { key: "pnl" as SortKey, label: "P&L" },
-                ].map((col) => (
+                {visibleColumns.map((col) => (
                   <th
                     key={col.label}
                     className={`text-left text-[10px] uppercase tracking-wider text-muted/60 font-semibold px-4 py-3 ${
@@ -417,29 +434,34 @@ export default function StockTradesPage() {
                 const isExpanded = expandedId === trade.id;
                 return (
                   <tr key={trade.id} className="group">
-                    <td colSpan={8} className="p-0">
+                    <td colSpan={visibleColumns.length} className="p-0">
                       <div
                         className="grid cursor-pointer hover:bg-surface-hover transition-colors"
-                        style={{ gridTemplateColumns: "repeat(8, auto)" }}
+                        style={{ gridTemplateColumns: `repeat(${visibleColumns.length}, auto)` }}
                         onClick={() => router.push(`/dashboard/stocks/trades/${trade.id}`)}
                       >
                         {/* Date */}
+                        {visibleLabels.has("Date") && (
                         <div className="px-4 py-3 text-muted whitespace-nowrap border-b border-border/50">
                           {new Date(trade.open_timestamp).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                           })}
                         </div>
+                        )}
 
                         {/* Symbol */}
+                        {visibleLabels.has("Symbol") && (
                         <div className="px-4 py-3 border-b border-border/50">
                           <span className="font-semibold text-foreground">{trade.symbol}</span>
                           {trade.company_name && (
                             <span className="text-[10px] text-muted/50 ml-1.5">{trade.company_name}</span>
                           )}
                         </div>
+                        )}
 
                         {/* Sector */}
+                        {visibleLabels.has("Sector") && (
                         <div className="px-4 py-3 border-b border-border/50">
                           {trade.sector ? (
                             <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-accent/10 text-accent">
@@ -449,8 +471,10 @@ export default function StockTradesPage() {
                             <span className="text-muted/30">&mdash;</span>
                           )}
                         </div>
+                        )}
 
                         {/* Type */}
+                        {visibleLabels.has("Type") && (
                         <div className="px-4 py-3 border-b border-border/50">
                           <span
                             className={`text-xs font-medium px-2 py-0.5 rounded-md ${
@@ -469,8 +493,10 @@ export default function StockTradesPage() {
                             </span>
                           )}
                         </div>
+                        )}
 
                         {/* Session */}
+                        {visibleLabels.has("Session") && (
                         <div className="px-4 py-3 border-b border-border/50">
                           {trade.market_session ? (
                             <span
@@ -488,8 +514,10 @@ export default function StockTradesPage() {
                             <span className="text-muted/30">&mdash;</span>
                           )}
                         </div>
+                        )}
 
                         {/* Entry */}
+                        {visibleLabels.has("Entry") && (
                         <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50">
                           ${trade.entry_price.toFixed(2)}
                           {trade.asset_type === "option" && trade.premium_per_contract && (
@@ -498,13 +526,17 @@ export default function StockTradesPage() {
                             </span>
                           )}
                         </div>
+                        )}
 
                         {/* Exit */}
+                        {visibleLabels.has("Exit") && (
                         <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50">
                           {trade.exit_price !== null ? `$${trade.exit_price.toFixed(2)}` : "\u2014"}
                         </div>
+                        )}
 
                         {/* P&L */}
+                        {visibleLabels.has("P&L") && (
                         <div
                           className={`px-4 py-3 font-semibold tabular-nums border-b border-border/50 ${
                             isOpen ? "text-accent" : pnl >= 0 ? "text-win" : "text-loss"
@@ -514,6 +546,7 @@ export default function StockTradesPage() {
                             ? "Open"
                             : `${pnl >= 0 ? "+" : "-"}$${Math.abs(pnl).toFixed(2)}`}
                         </div>
+                        )}
                       </div>
 
                       {/* Expanded Details */}
@@ -629,7 +662,7 @@ export default function StockTradesPage() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-muted">
+                  <td colSpan={visibleColumns.length} className="px-4 py-12 text-center text-muted">
                     No trades match your filters
                   </td>
                 </tr>

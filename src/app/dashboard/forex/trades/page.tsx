@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useTheme } from "@/lib/theme-context";
 import {
   Table2,
   Search,
@@ -95,12 +96,24 @@ const SESSION_LABELS: Record<string, string> = {
 type SortKey = "date" | "pair" | "pnl" | "category" | "session";
 type SortDir = "asc" | "desc";
 
+const FOREX_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] = [
+  { key: "date", label: "Date", simple: true },
+  { key: "pair", label: "Pair", simple: true },
+  { key: "category", label: "Category" },
+  { key: null, label: "Lot" },
+  { key: "session", label: "Session" },
+  { key: null, label: "Entry", simple: true },
+  { key: null, label: "Exit", simple: true },
+  { key: "pnl", label: "P&L", simple: true },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export default function ForexTradesPage() {
   const router = useRouter();
+  const { viewMode } = useTheme();
   const supabase = createClient();
   const [trades, setTrades] = useState<ForexTrade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +124,19 @@ export default function ForexTradesPage() {
   const [sessionFilter, setSessionFilter] = useState("All");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  const visibleColumns = viewMode === "simple"
+    ? FOREX_COLUMNS.filter((c) => c.simple)
+    : FOREX_COLUMNS;
+  const visibleLabels = new Set(visibleColumns.map((c) => c.label));
+
+  useEffect(() => {
+    if (sortKey === "date") return;
+    const col = FOREX_COLUMNS.find((c) => c.key === sortKey);
+    if (col && !visibleLabels.has(col.label)) {
+      setSortKey("date");
+    }
+  }, [viewMode]);
 
   const fetchTrades = useCallback(async () => {
     const { data, error } = await supabase
@@ -316,16 +342,7 @@ export default function ForexTradesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                {[
-                  { key: "date" as SortKey, label: "Date" },
-                  { key: "pair" as SortKey, label: "Pair" },
-                  { key: "category" as SortKey, label: "Category" },
-                  { key: null, label: "Lot" },
-                  { key: "session" as SortKey, label: "Session" },
-                  { key: null, label: "Entry" },
-                  { key: null, label: "Exit" },
-                  { key: "pnl" as SortKey, label: "P&L" },
-                ].map((col) => (
+                {visibleColumns.map((col) => (
                   <th
                     key={col.label}
                     className={`text-left text-[10px] uppercase tracking-wider text-muted/60 font-semibold px-4 py-3 ${col.key ? "cursor-pointer hover:text-muted select-none" : ""}`}
@@ -349,10 +366,15 @@ export default function ForexTradesPage() {
                     className="border-b border-border/50 cursor-pointer hover:bg-surface-hover transition-colors"
                     onClick={() => router.push(`/dashboard/forex/trades/${trade.id}`)}
                   >
+                    {visibleLabels.has("Date") && (
                     <td className="px-4 py-3 text-muted whitespace-nowrap">
                       {new Date(trade.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </td>
+                    )}
+                    {visibleLabels.has("Pair") && (
                     <td className="px-4 py-3 font-semibold text-foreground">{trade.pair}</td>
+                    )}
+                    {visibleLabels.has("Category") && (
                     <td className="px-4 py-3">
                       {trade.pair_category ? (
                         <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-accent/10 text-accent">
@@ -360,9 +382,13 @@ export default function ForexTradesPage() {
                         </span>
                       ) : <span className="text-muted/30">&mdash;</span>}
                     </td>
+                    )}
+                    {visibleLabels.has("Lot") && (
                     <td className="px-4 py-3 text-xs text-muted">
                       {trade.lot_size} {trade.lot_type}
                     </td>
+                    )}
+                    {visibleLabels.has("Session") && (
                     <td className="px-4 py-3">
                       {trade.session ? (
                         <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400">
@@ -370,19 +396,26 @@ export default function ForexTradesPage() {
                         </span>
                       ) : <span className="text-muted/30">&mdash;</span>}
                     </td>
+                    )}
+                    {visibleLabels.has("Entry") && (
                     <td className="px-4 py-3 text-muted tabular-nums">{trade.entry_price}</td>
+                    )}
+                    {visibleLabels.has("Exit") && (
                     <td className="px-4 py-3 text-muted tabular-nums">
                       {trade.exit_price !== null ? trade.exit_price : "\u2014"}
                     </td>
+                    )}
+                    {visibleLabels.has("P&L") && (
                     <td className={`px-4 py-3 font-semibold tabular-nums ${isOpen ? "text-accent" : pnl >= 0 ? "text-win" : "text-loss"}`}>
                       {isOpen ? "Open" : `${pnl >= 0 ? "+" : "-"}$${Math.abs(pnl).toFixed(2)}`}
                     </td>
+                    )}
                   </tr>
                 );
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-muted">No trades match your filters</td>
+                  <td colSpan={visibleColumns.length} className="px-4 py-12 text-center text-muted">No trades match your filters</td>
                 </tr>
               )}
             </tbody>
