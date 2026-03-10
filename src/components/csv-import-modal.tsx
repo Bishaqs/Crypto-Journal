@@ -65,6 +65,7 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
   const [importedCount, setImportedCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
+  const [skippedCount, setSkippedCount] = useState(0);
   const [importSummary, setImportSummary] = useState<{
     stats: DashboardStats;
     tiltCount: number;
@@ -102,9 +103,29 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
     let success = 0;
     let failed = 0;
 
+    const allPayloads = result.validRows.map((r) => r.parsed!);
+
+    // Dedup: fetch existing trades and skip duplicates
+    const { data: existing } = await supabase
+      .from("trades")
+      .select("symbol, position, entry_price, quantity, open_timestamp");
+
+    const existingSet = new Set(
+      (existing ?? []).map((t: Record<string, unknown>) =>
+        `${t.symbol}|${t.position}|${t.entry_price}|${t.quantity}|${t.open_timestamp}`,
+      ),
+    );
+
+    const payloads = allPayloads.filter((p) => {
+      const sig = `${p.symbol}|${p.position}|${p.entry_price}|${p.quantity}|${p.open_timestamp}`;
+      return !existingSet.has(sig);
+    });
+
+    const skipped = allPayloads.length - payloads.length;
+    setSkippedCount(skipped);
+
     // Batch insert in chunks of 20
     const chunks: Record<string, unknown>[][] = [];
-    const payloads = result.validRows.map((r) => r.parsed!);
     for (let i = 0; i < payloads.length; i += 20) {
       chunks.push(payloads.slice(i, i + 20));
     }
@@ -348,6 +369,11 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
               <p className="text-sm text-muted mb-1">
                 {importedCount} trade{importedCount !== 1 ? "s" : ""} imported successfully
               </p>
+              {skippedCount > 0 && (
+                <p className="text-xs text-muted mb-1">
+                  {skippedCount} duplicate{skippedCount !== 1 ? "s" : ""} skipped
+                </p>
+              )}
               {failedCount > 0 && (
                 <p className="text-sm text-loss flex items-center justify-center gap-1.5 mb-4">
                   <AlertTriangle size={14} />
