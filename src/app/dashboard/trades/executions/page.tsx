@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTrades } from "@/hooks/use-trades";
 import { useTheme } from "@/lib/theme-context";
-import { calculateTradePnl } from "@/lib/calculations";
+import { calculateTradePnl, formatDuration, getReturnPct } from "@/lib/calculations";
 import { CHAINS } from "@/lib/types";
 import { DemoBanner } from "@/components/demo-banner";
 import { Header } from "@/components/header";
@@ -36,6 +36,8 @@ const COLUMNS: { key: SortKey | null; label: string; className: string; simple?:
   { key: null, label: "Exit", className: "min-w-[90px] text-right", simple: true },
   { key: "quantity", label: "Qty", className: "min-w-[70px] text-right" },
   { key: "fees", label: "Fees", className: "min-w-[70px] text-right" },
+  { key: null, label: "Duration", className: "min-w-[80px]" },
+  { key: null, label: "Return", className: "min-w-[70px] text-right" },
   { key: "pnl", label: "P&L", className: "min-w-[90px] text-right", simple: true },
   { key: "emotion", label: "Emotion", className: "min-w-[80px]" },
   { key: "confidence", label: "Conf.", className: "min-w-[50px] text-right" },
@@ -241,6 +243,25 @@ export default function ExecutionsPage() {
                     {visibleLabels.has("Fees") && (
                     <td className="px-3 py-2 text-right text-muted tabular-nums">
                       ${trade.fees.toFixed(2)}
+                    </td>
+                    )}
+                    {visibleLabels.has("Duration") && (
+                    <td className="px-3 py-2 text-muted whitespace-nowrap">
+                      {formatDuration(trade.open_timestamp, trade.close_timestamp)}
+                      {!trade.close_timestamp && <span className="text-accent/60 text-[10px]"> (open)</span>}
+                    </td>
+                    )}
+                    {visibleLabels.has("Return") && (
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      {(() => {
+                        const ret = getReturnPct(trade);
+                        if (!ret) return <span className="text-muted/30">—</span>;
+                        return (
+                          <span className={`font-semibold ${ret.startsWith("+") ? "text-win" : "text-loss"}`}>
+                            {ret}
+                          </span>
+                        );
+                      })()}
                     </td>
                     )}
                     {visibleLabels.has("P&L") && (

@@ -9,6 +9,7 @@ import {
   addCustomTagPreset,
   removeCustomTagPreset,
 } from "@/lib/tag-manager";
+import { getTagColor, setTagColor, TAG_PALETTE } from "@/lib/tag-colors";
 
 type TagCount = { tag: string; count: number };
 
@@ -26,6 +27,12 @@ export function TagManager({
   const [presets, setPresets] = useState<string[]>([]);
   const [newPreset, setNewPreset] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmRemovePreset, setConfirmRemovePreset] = useState<string | null>(null);
+  const [colorPickerTag, setColorPickerTag] = useState<string | null>(null);
+  const [pendingPresetColor, setPendingPresetColor] = useState<number | null>(null);
+  // Force re-render when colors change
+  const [colorVersion, setColorVersion] = useState(0);
 
   useEffect(() => {
     setPresets(getCustomTagPresets());
@@ -54,6 +61,11 @@ export function TagManager({
     const trimmed = newPreset.trim().toLowerCase();
     if (!trimmed) return;
     const updated = addCustomTagPreset(trimmed);
+    if (pendingPresetColor !== null) {
+      setTagColor(trimmed, pendingPresetColor);
+      setPendingPresetColor(null);
+      setColorVersion((v) => v + 1);
+    }
     setPresets(updated);
     setNewPreset("");
   }
@@ -61,13 +73,13 @@ export function TagManager({
   function handleRemovePreset(tag: string) {
     const updated = removeCustomTagPreset(tag);
     setPresets(updated);
+    setConfirmRemovePreset(null);
   }
 
   async function handleDeleteTag(tag: string) {
     setDeleting(tag);
     const supabase = createClient();
 
-    // Remove from trades
     const { data: matchingTrades } = await supabase
       .from("trades")
       .select("id, tags")
@@ -80,7 +92,6 @@ export function TagManager({
       }
     }
 
-    // Remove from journal notes
     const { data: matchingNotes } = await supabase
       .from("journal_notes")
       .select("id, tags")
@@ -96,9 +107,9 @@ export function TagManager({
       }
     }
 
-    // Also remove from presets if it exists there
     handleRemovePreset(tag);
     setDeleting(null);
+    setConfirmDelete(null);
     onUpdate?.();
   }
 
@@ -107,6 +118,32 @@ export function TagManager({
       e.preventDefault();
       handleAddPreset();
     }
+  }
+
+  function handleColorPick(tag: string, colorIndex: number) {
+    setTagColor(tag, colorIndex);
+    setColorVersion((v) => v + 1);
+    setColorPickerTag(null);
+  }
+
+  function ColorDots({ selectedTag, onPick }: { selectedTag: string; onPick: (idx: number) => void }) {
+    return (
+      <div className="flex items-center gap-1.5 py-1">
+        {TAG_PALETTE.map((c, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onPick(i)}
+            className="w-5 h-5 rounded-full border-2 transition-all hover:scale-110"
+            style={{
+              backgroundColor: c.text,
+              borderColor: getTagColor(selectedTag).text === c.text ? "#fff" : "transparent",
+            }}
+            title={`Color ${i + 1}`}
+          />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -148,7 +185,7 @@ export function TagManager({
               </p>
 
               {/* Add new */}
-              <div className="flex gap-2 mb-3">
+              <div className="flex gap-2 mb-2">
                 <input
                   type="text"
                   value={newPreset}
@@ -166,29 +203,103 @@ export function TagManager({
                 </button>
               </div>
 
+              {/* Color picker for new preset */}
+              {newPreset.trim() && (
+                <div className="mb-3">
+                  <p className="text-[10px] text-muted mb-1">Pick a color (optional):</p>
+                  <div className="flex items-center gap-1.5">
+                    {TAG_PALETTE.map((c, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setPendingPresetColor(pendingPresetColor === i ? null : i)}
+                        className="w-5 h-5 rounded-full border-2 transition-all hover:scale-110"
+                        style={{
+                          backgroundColor: c.text,
+                          borderColor: pendingPresetColor === i ? "#fff" : "transparent",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Preset chips */}
               {presets.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
-                  {presets.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-accent/10 text-accent text-xs font-medium border border-accent/20"
-                    >
-                      {tag}
-                      <button
-                        onClick={() => handleRemovePreset(tag)}
-                        className="text-accent/50 hover:text-accent transition-colors"
+                  {presets.map((tag) => {
+                    const color = getTagColor(tag);
+
+                    // Confirmation state — show remove confirmation
+                    if (confirmRemovePreset === tag) {
+                      return (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs font-medium border border-loss/30 bg-loss/10"
+                        >
+                          <span className="text-loss">Remove &quot;{tag}&quot;?</span>
+                          <button
+                            onClick={() => setConfirmRemovePreset(null)}
+                            className="text-muted hover:text-foreground transition-colors text-[10px]"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleRemovePreset(tag)}
+                            className="text-loss hover:text-loss/80 transition-colors text-[10px] font-bold"
+                          >
+                            Remove
+                          </button>
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border cursor-pointer"
+                        style={{
+                          backgroundColor: color.bg,
+                          color: color.text,
+                          borderColor: color.border,
+                        }}
+                        onClick={() => setColorPickerTag(colorPickerTag === tag ? null : tag)}
+                        title="Click to change color"
                       >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
+                        {tag}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmRemovePreset(tag);
+                          }}
+                          className="hover:opacity-70 transition-opacity ml-0.5"
+                          style={{ color: color.text }}
+                          title="Remove preset"
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-[11px] text-muted/50 italic">
                   No presets yet. Add tags above to create quick-access
                   suggestions.
                 </p>
+              )}
+
+              {/* Inline color picker for existing preset */}
+              {colorPickerTag && presets.includes(colorPickerTag) && (
+                <div className="mt-2 px-2 py-2 rounded-lg bg-background border border-border/50">
+                  <p className="text-[10px] text-muted mb-1.5">
+                    Color for &quot;{colorPickerTag}&quot;:
+                  </p>
+                  <ColorDots
+                    selectedTag={colorPickerTag}
+                    onPick={(idx) => handleColorPick(colorPickerTag, idx)}
+                  />
+                </div>
               )}
             </div>
 
@@ -203,33 +314,85 @@ export function TagManager({
 
               {tagCounts.length > 0 ? (
                 <div className="space-y-1">
-                  {tagCounts.map(({ tag, count }) => (
-                    <div
-                      key={tag}
-                      className="flex items-center justify-between px-3 py-2 rounded-lg bg-background hover:bg-surface-hover transition-colors group"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-foreground font-medium">
-                          {tag}
-                        </span>
-                        <span className="text-[9px] text-muted px-1.5 py-0.5 rounded-full bg-surface-hover">
-                          {count}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => handleDeleteTag(tag)}
-                        disabled={deleting === tag}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded text-muted hover:text-loss transition-all"
-                        title={`Remove "${tag}" from all trades & notes`}
-                      >
-                        {deleting === tag ? (
-                          <span className="text-[10px]">...</span>
-                        ) : (
-                          <Trash2 size={12} />
+                  {tagCounts.map(({ tag, count }) => {
+                    const color = getTagColor(tag);
+
+                    // Confirmation state — full-width confirmation bar
+                    if (confirmDelete === tag) {
+                      return (
+                        <div
+                          key={tag}
+                          className="flex items-center justify-between px-3 py-2 rounded-lg bg-loss/10 border border-loss/20"
+                        >
+                          <span className="text-xs text-loss font-medium">
+                            Remove &quot;{tag}&quot; from all trades & notes?
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setConfirmDelete(null)}
+                              className="text-[10px] text-muted hover:text-foreground transition-colors px-2 py-0.5 rounded"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTag(tag)}
+                              disabled={deleting === tag}
+                              className="text-[10px] text-loss font-bold hover:text-loss/80 transition-colors px-2 py-0.5 rounded bg-loss/10"
+                            >
+                              {deleting === tag ? "..." : "Remove"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={tag}>
+                        <div
+                          className="flex items-center justify-between px-3 py-2 rounded-lg bg-background hover:bg-surface-hover transition-colors group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="text-xs px-2 py-0.5 rounded-md font-medium border cursor-pointer"
+                              style={{
+                                backgroundColor: color.bg,
+                                color: color.text,
+                                borderColor: color.border,
+                              }}
+                              onClick={() => setColorPickerTag(colorPickerTag === tag ? null : tag)}
+                              title="Click to change color"
+                            >
+                              {tag}
+                            </span>
+                            <span className="text-[9px] text-muted px-1.5 py-0.5 rounded-full bg-surface-hover">
+                              {count}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setConfirmDelete(tag)}
+                            disabled={deleting === tag}
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded text-muted hover:text-loss transition-all"
+                            title={`Remove "${tag}" from all trades & notes`}
+                          >
+                            {deleting === tag ? (
+                              <span className="text-[10px]">...</span>
+                            ) : (
+                              <Trash2 size={12} />
+                            )}
+                          </button>
+                        </div>
+                        {/* Inline color picker */}
+                        {colorPickerTag === tag && (
+                          <div className="px-3 py-1.5">
+                            <ColorDots
+                              selectedTag={tag}
+                              onPick={(idx) => handleColorPick(tag, idx)}
+                            />
+                          </div>
                         )}
-                      </button>
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-[11px] text-muted/50 italic">
