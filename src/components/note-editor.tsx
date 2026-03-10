@@ -76,6 +76,11 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
   const [allExistingTags, setAllExistingTags] = useState<string[]>([]);
   const [appliedTemplate, setAppliedTemplate] = useState(initialTemplate);
   const [structuredData, setStructuredData] = useState<Record<string, string | number | null>>({});
+  const [noteDate, setNoteDate] = useState<string>(
+    editNote?.note_date
+      ? editNote.note_date.slice(0, 16)
+      : new Date().toISOString().slice(0, 16)
+  );
   const contentRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const supabase = createClient();
@@ -214,6 +219,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
         trade_id: linkedTradeId,
         auto_link_on_import: autoLinkOnImport,
         note_type: noteType,
+        note_date: noteDate ? new Date(noteDate).toISOString() : new Date().toISOString(),
       };
 
       if (!payload.content || payload.content === "<br>") {
@@ -260,7 +266,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
       <div className={`glass border border-border/50 rounded-2xl shadow-2xl flex flex-col transition-all duration-300 ${
         isFullscreen
           ? "w-full h-full max-w-full max-h-full rounded-none"
-          : "w-full max-w-2xl max-h-[90vh]"
+          : "w-full max-w-4xl max-h-[90vh]"
       }`}>
         <div className="flex items-center justify-between p-5 border-b border-border shrink-0">
           <h2 className="text-lg font-bold">{editNote ? "Edit Note" : "New Note"}</h2>
@@ -274,11 +280,11 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
           <div className="px-5 pt-4 shrink-0">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Title</label>
+                <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Title</label>
                 <input name="title" defaultValue={editNote?.title ?? ""} placeholder="Note Title" className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm font-semibold focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50" />
               </div>
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Tag</label>
+                <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Tag</label>
                 <select
                   value={selectedTag ?? ""}
                   onChange={(e) => setSelectedTag(e.target.value || null)}
@@ -293,10 +299,21 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
             </div>
           </div>
 
+          {/* Note Date */}
+          <div className="px-5 pt-3 shrink-0">
+            <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Date</label>
+            <input
+              type="datetime-local"
+              value={noteDate}
+              onChange={(e) => setNoteDate(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all"
+            />
+          </div>
+
           {/* Template selector */}
           {!editNote && (
             <div className="px-5 pt-3 shrink-0">
-              <label className="block text-[10px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Template</label>
+              <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Template</label>
               <TemplateSelector
                 templates={TEMPLATE_LIST}
                 contentRef={contentRef}
@@ -314,7 +331,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
           <div className="px-5 pt-3 pb-5 space-y-3 overflow-y-auto flex-1">
             {useStructured ? (
               <>
-                <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold">
+                <label className="block text-[11px] uppercase tracking-wider text-muted font-semibold">
                   {TEMPLATES.find((t) => t.id === appliedTemplate)?.label ?? "Template"}
                 </label>
                 <StructuredTemplateForm
@@ -325,7 +342,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
               </>
             ) : (
               <>
-                <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold">Notes</label>
+                <label className="block text-[11px] uppercase tracking-wider text-muted font-semibold">Notes</label>
                 <EditorToolbar
                   contentRef={contentRef}
                   onImageUpload={handleImageUpload}

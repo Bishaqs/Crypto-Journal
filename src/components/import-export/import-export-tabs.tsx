@@ -4,6 +4,7 @@ import type { ImportExportTab } from "@/lib/import-export-types";
 import {
   Upload,
   PenLine,
+  FileText,
   Link2,
   Activity,
   Download,
@@ -12,6 +13,7 @@ import {
 const TABS: { id: ImportExportTab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
   { id: "upload", label: "Upload File", icon: Upload },
   { id: "manual", label: "Manual Entry", icon: PenLine },
+  { id: "notes", label: "Import Notes", icon: FileText },
   { id: "add-sync", label: "Add Auto-sync", icon: Link2 },
   { id: "connections", label: "Connections", icon: Activity },
   { id: "export", label: "Manage & Export", icon: Download },

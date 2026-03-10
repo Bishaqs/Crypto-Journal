@@ -67,4 +67,4 @@ export type ExportOptions = {
   currency: "base" | "native";
 };
 
-export type ImportExportTab = "upload" | "manual" | "add-sync" | "connections" | "export";
+export type ImportExportTab = "upload" | "manual" | "notes" | "add-sync" | "connections" | "export";
