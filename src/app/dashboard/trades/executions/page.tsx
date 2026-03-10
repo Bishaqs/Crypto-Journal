@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTrades } from "@/hooks/use-trades";
+import { useTheme } from "@/lib/theme-context";
 import { calculateTradePnl } from "@/lib/calculations";
 import { CHAINS } from "@/lib/types";
 import { DemoBanner } from "@/components/demo-banner";
@@ -27,15 +28,15 @@ type SortKey =
   | "confidence";
 type SortDir = "asc" | "desc";
 
-const COLUMNS: { key: SortKey | null; label: string; className: string }[] = [
-  { key: "date", label: "Date", className: "min-w-[100px]" },
-  { key: "symbol", label: "Symbol", className: "min-w-[100px]" },
-  { key: null, label: "Side", className: "min-w-[60px]" },
-  { key: null, label: "Entry", className: "min-w-[90px] text-right" },
-  { key: null, label: "Exit", className: "min-w-[90px] text-right" },
+const COLUMNS: { key: SortKey | null; label: string; className: string; simple?: boolean }[] = [
+  { key: "date", label: "Date", className: "min-w-[100px]", simple: true },
+  { key: "symbol", label: "Symbol", className: "min-w-[100px]", simple: true },
+  { key: null, label: "Side", className: "min-w-[60px]", simple: true },
+  { key: null, label: "Entry", className: "min-w-[90px] text-right", simple: true },
+  { key: null, label: "Exit", className: "min-w-[90px] text-right", simple: true },
   { key: "quantity", label: "Qty", className: "min-w-[70px] text-right" },
   { key: "fees", label: "Fees", className: "min-w-[70px] text-right" },
-  { key: "pnl", label: "P&L", className: "min-w-[90px] text-right" },
+  { key: "pnl", label: "P&L", className: "min-w-[90px] text-right", simple: true },
   { key: "emotion", label: "Emotion", className: "min-w-[80px]" },
   { key: "confidence", label: "Conf.", className: "min-w-[50px] text-right" },
   { key: "process_score", label: "Process", className: "min-w-[60px] text-right" },
@@ -47,9 +48,24 @@ const COLUMNS: { key: SortKey | null; label: string; className: string }[] = [
 export default function ExecutionsPage() {
   const router = useRouter();
   const { trades, loading, usingDemo } = useTrades();
+  const { viewMode } = useTheme();
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  const visibleColumns = viewMode === "simple"
+    ? COLUMNS.filter((c) => c.simple)
+    : COLUMNS;
+  const visibleLabels = new Set(visibleColumns.map((c) => c.label));
+
+  // Reset sort if current sort column is hidden
+  useEffect(() => {
+    if (sortKey === "date") return;
+    const col = COLUMNS.find((c) => c.key === sortKey);
+    if (col && !visibleLabels.has(col.label)) {
+      setSortKey("date");
+    }
+  }, [viewMode]);
 
   const filtered = useMemo(() => {
     let result = trades;
@@ -155,7 +171,7 @@ export default function ExecutionsPage() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border">
-                {COLUMNS.map((col) => (
+                {visibleColumns.map((col) => (
                   <th
                     key={col.label}
                     className={`text-left text-[10px] uppercase tracking-wider text-muted/60 font-semibold px-3 py-2.5 ${col.className} ${col.key ? "cursor-pointer hover:text-muted select-none" : ""}`}
@@ -178,12 +194,15 @@ export default function ExecutionsPage() {
                     onClick={() => router.push(`/dashboard/trades/${trade.id}`)}
                     className="border-b border-border/30 hover:bg-surface-hover cursor-pointer transition-colors"
                   >
+                    {visibleLabels.has("Date") && (
                     <td className="px-3 py-2 text-muted whitespace-nowrap">
                       {new Date(trade.open_timestamp).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}
                     </td>
+                    )}
+                    {visibleLabels.has("Symbol") && (
                     <td className="px-3 py-2 font-semibold text-foreground">
                       <span className="flex items-center gap-1">
                         {trade.symbol}
@@ -194,6 +213,8 @@ export default function ExecutionsPage() {
                         )}
                       </span>
                     </td>
+                    )}
+                    {visibleLabels.has("Side") && (
                     <td className="px-3 py-2">
                       <span
                         className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${trade.position === "long" ? "bg-win/10 text-win" : "bg-loss/10 text-loss"}`}
@@ -201,23 +222,35 @@ export default function ExecutionsPage() {
                         {trade.position.toUpperCase()}
                       </span>
                     </td>
+                    )}
+                    {visibleLabels.has("Entry") && (
                     <td className="px-3 py-2 text-right text-muted tabular-nums">
                       ${trade.entry_price.toFixed(2)}
                     </td>
+                    )}
+                    {visibleLabels.has("Exit") && (
                     <td className="px-3 py-2 text-right text-muted tabular-nums">
                       {trade.exit_price !== null ? `$${trade.exit_price.toFixed(2)}` : "—"}
                     </td>
+                    )}
+                    {visibleLabels.has("Qty") && (
                     <td className="px-3 py-2 text-right text-muted tabular-nums">
                       {trade.quantity}
                     </td>
+                    )}
+                    {visibleLabels.has("Fees") && (
                     <td className="px-3 py-2 text-right text-muted tabular-nums">
                       ${trade.fees.toFixed(2)}
                     </td>
+                    )}
+                    {visibleLabels.has("P&L") && (
                     <td
                       className={`px-3 py-2 text-right font-semibold tabular-nums ${pnl >= 0 ? "text-win" : "text-loss"}`}
                     >
                       {trade.exit_price !== null ? `$${pnl.toFixed(2)}` : "Open"}
                     </td>
+                    )}
+                    {visibleLabels.has("Emotion") && (
                     <td className="px-3 py-2">
                       {trade.emotion ? (
                         <span className="px-1.5 py-0.5 rounded-md bg-accent/10 text-accent text-[10px]">
@@ -227,9 +260,13 @@ export default function ExecutionsPage() {
                         <span className="text-muted/30">—</span>
                       )}
                     </td>
+                    )}
+                    {visibleLabels.has("Conf.") && (
                     <td className="px-3 py-2 text-right text-muted tabular-nums">
                       {trade.confidence !== null ? `${trade.confidence}` : "—"}
                     </td>
+                    )}
+                    {visibleLabels.has("Process") && (
                     <td className="px-3 py-2 text-right">
                       {trade.process_score !== null ? (
                         <span
@@ -241,7 +278,11 @@ export default function ExecutionsPage() {
                         <span className="text-muted/30">—</span>
                       )}
                     </td>
+                    )}
+                    {visibleLabels.has("Setup") && (
                     <td className="px-3 py-2 text-muted">{trade.setup_type ?? "—"}</td>
+                    )}
+                    {visibleLabels.has("Tags") && (
                     <td className="px-3 py-2">
                       <div className="flex gap-1 flex-wrap">
                         {trade.tags?.slice(0, 2).map((tag) => (
@@ -259,15 +300,18 @@ export default function ExecutionsPage() {
                         )}
                       </div>
                     </td>
+                    )}
+                    {visibleLabels.has("Source") && (
                     <td className="px-3 py-2 text-muted uppercase text-[10px]">
                       {trade.trade_source}
                     </td>
+                    )}
                   </tr>
                 );
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={14} className="px-3 py-12 text-center text-muted">
+                  <td colSpan={visibleColumns.length} className="px-3 py-12 text-center text-muted">
                     No trades match your search
                   </td>
                 </tr>
