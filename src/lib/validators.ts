@@ -104,6 +104,7 @@ export const tradeSchema = z.object({
   price_mae: z.coerce.number().positive().optional(),
   price_mfe: z.coerce.number().positive().optional(),
   mfe_timestamp: z.string().optional(),
+  mae_timestamp: z.string().optional(),
 });
 
 export type TradeFormData = z.infer<typeof tradeSchema>;
@@ -144,6 +145,7 @@ export const stockTradeSchema = z.object({
   price_mae: z.coerce.number().positive().optional(),
   price_mfe: z.coerce.number().positive().optional(),
   mfe_timestamp: z.string().optional(),
+  mae_timestamp: z.string().optional(),
 });
 
 export type StockTradeFormData = z.infer<typeof stockTradeSchema>;
@@ -207,6 +209,7 @@ export const commodityTradeSchema = z.object({
   price_mae: z.coerce.number().positive().optional(),
   price_mfe: z.coerce.number().positive().optional(),
   mfe_timestamp: z.string().optional(),
+  mae_timestamp: z.string().optional(),
 });
 
 export type CommodityTradeFormData = z.infer<typeof commodityTradeSchema>;
@@ -259,6 +262,7 @@ export const forexTradeSchema = z.object({
   price_mae: z.coerce.number().positive().optional(),
   price_mfe: z.coerce.number().positive().optional(),
   mfe_timestamp: z.string().optional(),
+  mae_timestamp: z.string().optional(),
 });
 
 export type ForexTradeFormData = z.infer<typeof forexTradeSchema>;

@@ -974,3 +974,78 @@ function getPositionSize(trade: {
   }
   return trade.quantity ?? 1;
 }
+
+// --- Phase 4: Additional MAE/MFE calculations ---
+
+export function getPriceMaePct(trade: {
+  entry_price: number;
+  price_mae: number | null;
+  position: "long" | "short";
+}): number | null {
+  if (trade.price_mae === null) return null;
+  if (trade.entry_price === 0) return null;
+  const diff = trade.position === "long"
+    ? trade.entry_price - trade.price_mae
+    : trade.price_mae - trade.entry_price;
+  return (diff / trade.entry_price) * 100;
+}
+
+export function getTickMfe(trade: {
+  entry_price: number;
+  price_mfe: number | null;
+  tick_size?: number | null;
+  position: "long" | "short";
+}): number | null {
+  if (trade.price_mfe === null || !trade.tick_size || trade.tick_size === 0) return null;
+  const diff = trade.position === "long"
+    ? trade.price_mfe - trade.entry_price
+    : trade.entry_price - trade.price_mfe;
+  return diff / trade.tick_size;
+}
+
+export function getTickMae(trade: {
+  entry_price: number;
+  price_mae: number | null;
+  tick_size?: number | null;
+  position: "long" | "short";
+}): number | null {
+  if (trade.price_mae === null || !trade.tick_size || trade.tick_size === 0) return null;
+  const diff = trade.position === "long"
+    ? trade.entry_price - trade.price_mae
+    : trade.price_mae - trade.entry_price;
+  return diff / trade.tick_size;
+}
+
+export function getTimeTillMfe(trade: { open_timestamp: string; mfe_timestamp: string | null }): number | null {
+  if (!trade.mfe_timestamp) return null;
+  return new Date(trade.mfe_timestamp).getTime() - new Date(trade.open_timestamp).getTime();
+}
+
+export function getTimeTillMae(trade: { open_timestamp: string; mae_timestamp: string | null }): number | null {
+  if (!trade.mae_timestamp) return null;
+  return new Date(trade.mae_timestamp).getTime() - new Date(trade.open_timestamp).getTime();
+}
+
+export function getTimeAfterMfe(trade: { close_timestamp: string | null; mfe_timestamp: string | null }): number | null {
+  if (!trade.close_timestamp || !trade.mfe_timestamp) return null;
+  return new Date(trade.close_timestamp).getTime() - new Date(trade.mfe_timestamp).getTime();
+}
+
+export function getTimeAfterMae(trade: { close_timestamp: string | null; mae_timestamp: string | null }): number | null {
+  if (!trade.close_timestamp || !trade.mae_timestamp) return null;
+  return new Date(trade.close_timestamp).getTime() - new Date(trade.mae_timestamp).getTime();
+}
+
+/** Format ms duration to readable string like "1D 5H 30M" */
+export function formatDurationMs(ms: number | null): string {
+  if (ms === null || ms < 0) return "\u2014";
+  const totalSeconds = Math.floor(ms / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (days > 0) return `${days}D ${hours}H ${minutes}M`;
+  if (hours > 0) return `${hours}H ${minutes}M ${seconds}S`;
+  if (minutes > 0) return `${minutes}M ${seconds}S`;
+  return `${seconds} Secs`;
+}

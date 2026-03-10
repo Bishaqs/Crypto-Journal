@@ -1,24 +1,26 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "@/lib/theme-context";
 import {
-  Table2,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  ArrowUpDown,
-  Plus,
-  X,
-  Filter,
+  Table2, Search, ChevronUp, ChevronDown, ArrowUpDown, Plus, X,
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { formatDuration, getReturnPct, calculateRMultiple, formatRMultiple, getTotalCommitment, getQuarterLabel, calculateTradeMAE, calculateTradeMFE, getMfeMaeRatio, getPriceMfePct, calculateBestExitPnl, calculateExitEfficiency, calculateBestExitR } from "@/lib/calculations";
+import {
+  formatDuration, getReturnPct, calculateRMultiple, formatRMultiple,
+  getTotalCommitment, getQuarterLabel, calculateTradeMAE, calculateTradeMFE,
+  getMfeMaeRatio, getPriceMfePct, calculateBestExitPnl, calculateExitEfficiency,
+  calculateBestExitR, getPriceMaePct, formatDurationMs, getTimeTillMfe,
+  getTimeTillMae, getTimeAfterMfe, getTimeAfterMae,
+} from "@/lib/calculations";
+import {
+  useTableState, Pagination, ViewTabs, TableSidebar,
+  type TradeTableColumn, type FilterDef, type TableConfig,
+} from "@/components/trade-table";
 
 // ---------------------------------------------------------------------------
-// Types
+// Types (local — stock trades don't yet import from @/lib/types)
 // ---------------------------------------------------------------------------
 
 interface StockTrade {
@@ -57,6 +59,7 @@ interface StockTrade {
   price_mae: number | null;
   price_mfe: number | null;
   mfe_timestamp: string | null;
+  mae_timestamp: string | null;
   created_at: string;
 }
 
@@ -74,8 +77,8 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     expiration_date: null, premium_per_contract: null, contracts: null,
     underlying_symbol: null, emotion: "Confident", confidence: 8,
     setup_type: "Breakout", process_score: 9, checklist: null, review: null,
-    notes: "Clean breakout above 178 resistance. Volume confirmed the move. Exited near close for solid gain.",
-    tags: ["momentum"], stop_loss: 175.00, profit_target: 188.00, pnl: 334.00, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-20T10:30:00Z",
+    notes: "Clean breakout above 178 resistance. Volume confirmed the move.",
+    tags: ["momentum"], stop_loss: 175.00, profit_target: 188.00, pnl: 334.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-20T10:30:00Z",
   },
   {
     id: "st-2", user_id: "u1", symbol: "TSLA", company_name: "Tesla Inc.",
@@ -86,8 +89,8 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     expiration_date: "2026-02-28", premium_per_contract: 4.20, contracts: 10,
     underlying_symbol: "TSLA", emotion: "Excited", confidence: 7,
     setup_type: "Earnings Play", process_score: 7, checklist: null, review: null,
-    notes: "Weekly calls on TSLA pre-earnings momentum. IV was reasonable, exited before theta decay kicked in.",
-    tags: ["options", "earnings"], stop_loss: null, profit_target: null, pnl: 2593.50, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-19T09:35:00Z",
+    notes: "Weekly calls on TSLA pre-earnings momentum.",
+    tags: ["options", "earnings"], stop_loss: null, profit_target: null, pnl: 2593.50, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-19T09:35:00Z",
   },
   {
     id: "st-3", user_id: "u1", symbol: "NVDA", company_name: "NVIDIA Corp.",
@@ -98,8 +101,8 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     expiration_date: null, premium_per_contract: null, contracts: null,
     underlying_symbol: null, emotion: "Anxious", confidence: 5,
     setup_type: "Gap Fill", process_score: 4, checklist: null, review: null,
-    notes: "Pre-market gap down play. Got stopped out right before the reversal. Need better stops in pre-market.",
-    tags: ["gap"], stop_loss: null, profit_target: null, pnl: -128.00, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-18T07:15:00Z",
+    notes: "Pre-market gap down play. Got stopped out right before the reversal.",
+    tags: ["gap"], stop_loss: null, profit_target: null, pnl: -128.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-18T07:15:00Z",
   },
   {
     id: "st-4", user_id: "u1", symbol: "JPM", company_name: "JPMorgan Chase",
@@ -111,8 +114,8 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Calm", confidence: 8,
     setup_type: "Support Bounce", process_score: 8, checklist: null,
     review: { what_went_well: "Perfect entry at 50 DMA", lesson: "Financials respond well to support levels" },
-    notes: "Bounce off 50 DMA with strong volume. Textbook support bounce.",
-    tags: ["support"], stop_loss: null, profit_target: null, pnl: 140.00, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-18T10:00:00Z",
+    notes: "Bounce off 50 DMA with strong volume.",
+    tags: ["support"], stop_loss: null, profit_target: null, pnl: 140.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-18T10:00:00Z",
   },
   {
     id: "st-5", user_id: "u1", symbol: "AMZN", company_name: "Amazon.com",
@@ -123,8 +126,8 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     expiration_date: null, premium_per_contract: null, contracts: null,
     underlying_symbol: null, emotion: "Confident", confidence: 7,
     setup_type: "Breakdown", process_score: 8, checklist: null, review: null,
-    notes: "After-hours short on weak guidance. Covered before close for a quick scalp.",
-    tags: ["short", "after-hours"], stop_loss: null, profit_target: null, pnl: 81.50, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-17T16:05:00Z",
+    notes: "After-hours short on weak guidance.",
+    tags: ["short", "after-hours"], stop_loss: null, profit_target: null, pnl: 81.50, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-17T16:05:00Z",
   },
   {
     id: "st-6", user_id: "u1", symbol: "MSFT", company_name: "Microsoft Corp.",
@@ -135,8 +138,8 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     expiration_date: "2026-02-21", premium_per_contract: 3.10, contracts: 5,
     underlying_symbol: "MSFT", emotion: "FOMO", confidence: 4,
     setup_type: "Speculative", process_score: 3, checklist: null, review: null,
-    notes: "Chased put entry on MSFT weakness. Bad timing, MSFT reversed hard. FOMO trade.",
-    tags: ["options"], stop_loss: null, profit_target: null, pnl: -653.25, price_mae: null, price_mfe: null, mfe_timestamp: null, created_at: "2026-02-17T10:15:00Z",
+    notes: "Chased put entry on MSFT weakness. Bad timing, MSFT reversed hard.",
+    tags: ["options"], stop_loss: null, profit_target: null, pnl: -653.25, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-17T10:15:00Z",
   },
 ];
 
@@ -144,147 +147,323 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
 // Constants
 // ---------------------------------------------------------------------------
 
-const SECTOR_OPTIONS = ["All", "Technology", "Financials", "Healthcare", "Energy", "Consumer Discretionary"];
-const SESSION_OPTIONS = ["All", "pre_market", "regular", "after_hours"];
-
 const SESSION_LABELS: Record<string, string> = {
-  pre_market: "Pre-Market",
-  regular: "Regular",
-  after_hours: "After-Hours",
+  pre_market: "Pre-Market", regular: "Regular", after_hours: "After-Hours",
 };
 
-type SortKey = "date" | "symbol" | "pnl" | "sector" | "session";
-type SortDir = "asc" | "desc";
+const DASH = <span className="text-muted/30">{"\u2014"}</span>;
 
-const STOCK_COLUMNS: { key: SortKey | null; label: string; simple?: boolean }[] = [
-  { key: "date", label: "Date", simple: true },
-  { key: "symbol", label: "Symbol", simple: true },
-  { key: "sector", label: "Sector" },
-  { key: null, label: "Type" },
-  { key: "session", label: "Session" },
-  { key: null, label: "Entry", simple: true },
-  { key: null, label: "Exit", simple: true },
-  { key: null, label: "Duration" },
-  { key: null, label: "Return" },
-  { key: null, label: "SL" },
-  { key: null, label: "TP" },
-  { key: null, label: "R" },
-  { key: "pnl", label: "P&L", simple: true },
-  { key: null, label: "Tags" },
-  { key: null, label: "Emotion" },
-  { key: null, label: "Process" },
-  { key: null, label: "Notes" },
-  { key: null, label: "Commit" },
-  { key: null, label: "Quarter" },
-  { key: null, label: "MAE $" },
-  { key: null, label: "MFE $" },
-  { key: null, label: "Pr. MAE" },
-  { key: null, label: "Pr. MFE" },
-  { key: null, label: "MFE/MAE" },
-  { key: null, label: "MFE %" },
-  { key: null, label: "Best Exit" },
-  { key: null, label: "Effic." },
-  { key: null, label: "Best R" },
+// ---------------------------------------------------------------------------
+// Column definitions
+// ---------------------------------------------------------------------------
+
+const STOCK_COLUMNS: TradeTableColumn<StockTrade>[] = [
+  {
+    id: "date", label: "Date", group: "Core", sortKey: "date", defaultVisible: true,
+    sortFn: (a, b) => a.open_timestamp.localeCompare(b.open_timestamp),
+    renderCell: (t) => (
+      <span className="text-muted whitespace-nowrap">
+        {new Date(t.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+      </span>
+    ),
+  },
+  {
+    id: "symbol", label: "Symbol", group: "Core", sortKey: "symbol", defaultVisible: true,
+    sortFn: (a, b) => a.symbol.localeCompare(b.symbol),
+    renderCell: (t) => (
+      <span>
+        <span className="font-semibold text-foreground">{t.symbol}</span>
+        {t.company_name && <span className="text-[10px] text-muted/50 ml-1.5">{t.company_name}</span>}
+      </span>
+    ),
+  },
+  {
+    id: "sector", label: "Sector", group: "Core",
+    renderCell: (t) => t.sector
+      ? <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-accent/10 text-accent">{t.sector}</span>
+      : DASH,
+  },
+  {
+    id: "type", label: "Type", group: "Core",
+    renderCell: (t) => (
+      <span>
+        <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${t.asset_type === "option" ? "bg-blue-500/10 text-blue-400" : "bg-border/50 text-muted"}`}>
+          {t.asset_type === "option" ? `${t.option_type?.toUpperCase()} $${t.strike_price}` : "Stock"}
+        </span>
+        {t.asset_type === "option" && t.expiration_date && (
+          <span className="text-[10px] text-muted/40 ml-1.5">exp {new Date(t.expiration_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+        )}
+      </span>
+    ),
+  },
+  {
+    id: "session", label: "Session", group: "Core",
+    renderCell: (t) => t.market_session
+      ? <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${t.market_session === "pre_market" ? "bg-amber-500/10 text-amber-400" : t.market_session === "after_hours" ? "bg-purple-500/10 text-purple-400" : "bg-win/10 text-win"}`}>
+          {SESSION_LABELS[t.market_session]}
+        </span>
+      : DASH,
+  },
+  {
+    id: "side", label: "Side", group: "Core", defaultVisible: true,
+    renderCell: (t) => (
+      <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${t.position === "long" ? "bg-win/10 text-win" : "bg-loss/10 text-loss"}`}>
+        {t.position.toUpperCase()}
+      </span>
+    ),
+  },
+  {
+    id: "entry", label: "Entry", group: "Core", defaultVisible: true,
+    renderCell: (t) => (
+      <span className="text-muted tabular-nums">
+        ${t.entry_price.toFixed(2)}
+        {t.asset_type === "option" && t.contracts && (
+          <span className="text-[10px] text-muted/40 ml-1">({t.contracts}x)</span>
+        )}
+      </span>
+    ),
+  },
+  {
+    id: "exit", label: "Exit", group: "Core", defaultVisible: true,
+    renderCell: (t) => <span className="text-muted tabular-nums">{t.exit_price !== null ? `$${t.exit_price.toFixed(2)}` : "\u2014"}</span>,
+  },
+  {
+    id: "duration", label: "Duration", group: "Core",
+    renderCell: (t) => (
+      <span className="text-muted whitespace-nowrap">
+        {formatDuration(t.open_timestamp, t.close_timestamp)}
+        {!t.close_timestamp && <span className="text-accent/60 text-[10px]"> (open)</span>}
+      </span>
+    ),
+  },
+  {
+    id: "return", label: "Return", group: "Core",
+    renderCell: (t) => {
+      const ret = getReturnPct(t);
+      if (!ret) return DASH;
+      return <span className={`font-semibold ${ret.startsWith("+") ? "text-win" : "text-loss"}`}>{ret}</span>;
+    },
+  },
+  {
+    id: "sl", label: "SL", group: "Planning", align: "right",
+    renderCell: (t) => <span className="text-muted tabular-nums">{t.stop_loss !== null ? `$${t.stop_loss.toFixed(2)}` : "\u2014"}</span>,
+  },
+  {
+    id: "tp", label: "TP", group: "Planning", align: "right",
+    renderCell: (t) => <span className="text-muted tabular-nums">{t.profit_target !== null ? `$${t.profit_target.toFixed(2)}` : "\u2014"}</span>,
+  },
+  {
+    id: "r", label: "R", group: "Planning", align: "right",
+    renderCell: (t) => {
+      const r = calculateRMultiple(t);
+      const fmt = formatRMultiple(r);
+      if (!fmt) return DASH;
+      return <span className={`font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
+    },
+  },
+  {
+    id: "pnl", label: "P&L", group: "Core", sortKey: "pnl", defaultVisible: true,
+    sortFn: (a, b) => (a.pnl ?? 0) - (b.pnl ?? 0),
+    renderCell: (t) => {
+      const pnl = t.pnl ?? 0;
+      const isOpen = t.exit_price === null;
+      return (
+        <span className={`font-semibold tabular-nums ${isOpen ? "text-accent" : pnl >= 0 ? "text-win" : "text-loss"}`}>
+          {isOpen ? "Open" : `${pnl >= 0 ? "+" : "-"}$${Math.abs(pnl).toFixed(2)}`}
+        </span>
+      );
+    },
+  },
+  {
+    id: "tags", label: "Tags", group: "Meta",
+    renderCell: (t) => (
+      <div className="flex gap-1 flex-wrap">
+        {t.tags?.slice(0, 2).map((tag) => (
+          <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-border/50 text-muted">{tag}</span>
+        ))}
+        {(t.tags?.length ?? 0) > 2 && <span className="text-[10px] text-muted/40">+{t.tags!.length - 2}</span>}
+      </div>
+    ),
+  },
+  {
+    id: "emotion", label: "Emotion", group: "Psychology",
+    renderCell: (t) => t.emotion
+      ? <span className="text-xs px-2 py-0.5 rounded-md bg-accent/10 text-accent">{t.emotion}</span>
+      : DASH,
+  },
+  {
+    id: "process", label: "Process", group: "Psychology",
+    renderCell: (t) => t.process_score !== null
+      ? <span className={`text-xs font-semibold ${t.process_score >= 7 ? "text-win" : t.process_score >= 4 ? "text-amber-400" : "text-loss"}`}>{t.process_score}/10</span>
+      : DASH,
+  },
+  {
+    id: "notes", label: "Notes", group: "Meta",
+    renderCell: (t) => t.notes
+      ? <span className="text-xs text-muted">{t.notes.slice(0, 30)}{t.notes.length > 30 ? "..." : ""}</span>
+      : DASH,
+  },
+  {
+    id: "commit", label: "Commit", group: "Metrics", align: "right",
+    renderCell: (t) => <span className="tabular-nums text-muted">${getTotalCommitment(t).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>,
+  },
+  {
+    id: "quarter", label: "Quarter", group: "Meta",
+    renderCell: (t) => {
+      const q = getQuarterLabel(t.open_timestamp);
+      return q ? <span className="text-muted">{q}</span> : DASH;
+    },
+  },
+  // MAE/MFE
+  {
+    id: "mae_dollar", label: "MAE $", group: "MAE/MFE", align: "right",
+    renderCell: (t) => { const v = calculateTradeMAE(t); return v === null ? DASH : <span className="text-loss">${v.toFixed(2)}</span>; },
+  },
+  {
+    id: "mfe_dollar", label: "MFE $", group: "MAE/MFE", align: "right",
+    renderCell: (t) => { const v = calculateTradeMFE(t); return v === null ? DASH : <span className="text-win">${v.toFixed(2)}</span>; },
+  },
+  {
+    id: "price_mae", label: "Pr. MAE", group: "MAE/MFE", align: "right",
+    renderCell: (t) => t.price_mae != null ? <span className="text-muted tabular-nums">${t.price_mae.toFixed(2)}</span> : DASH,
+  },
+  {
+    id: "price_mfe", label: "Pr. MFE", group: "MAE/MFE", align: "right",
+    renderCell: (t) => t.price_mfe != null ? <span className="text-muted tabular-nums">${t.price_mfe.toFixed(2)}</span> : DASH,
+  },
+  {
+    id: "mfe_mae_ratio", label: "MFE/MAE", group: "MAE/MFE", align: "right",
+    renderCell: (t) => { const v = getMfeMaeRatio(t); return v === null ? DASH : <span className="text-muted">{v.toFixed(2)}</span>; },
+  },
+  {
+    id: "mfe_pct", label: "MFE %", group: "MAE/MFE", align: "right",
+    renderCell: (t) => { const v = getPriceMfePct(t); return v === null ? DASH : <span className={v >= 0 ? "text-win" : "text-loss"}>{v >= 0 ? "+" : ""}{v.toFixed(2)}%</span>; },
+  },
+  {
+    id: "mae_pct", label: "MAE %", group: "MAE/MFE", align: "right",
+    renderCell: (t) => { const v = getPriceMaePct(t); return v === null ? DASH : <span className="text-loss">{v.toFixed(2)}%</span>; },
+  },
+  {
+    id: "time_till_mfe", label: "Time till MFE", group: "MAE/MFE",
+    renderCell: (t) => <span className="text-muted whitespace-nowrap">{formatDurationMs(getTimeTillMfe(t))}</span>,
+  },
+  {
+    id: "time_till_mae", label: "Time till MAE", group: "MAE/MFE",
+    renderCell: (t) => <span className="text-muted whitespace-nowrap">{formatDurationMs(getTimeTillMae(t))}</span>,
+  },
+  {
+    id: "time_after_mfe", label: "Time after MFE", group: "MAE/MFE",
+    renderCell: (t) => <span className="text-muted whitespace-nowrap">{formatDurationMs(getTimeAfterMfe(t))}</span>,
+  },
+  {
+    id: "time_after_mae", label: "Time after MAE", group: "MAE/MFE",
+    renderCell: (t) => <span className="text-muted whitespace-nowrap">{formatDurationMs(getTimeAfterMae(t))}</span>,
+  },
+  // Exit Quality
+  {
+    id: "best_exit", label: "Best Exit", group: "Exit Quality", align: "right",
+    renderCell: (t) => { const v = calculateBestExitPnl(t); return v === null ? DASH : <span className={`font-semibold ${v >= 0 ? "text-win" : "text-loss"}`}>${v.toFixed(2)}</span>; },
+  },
+  {
+    id: "efficiency", label: "Effic.", group: "Exit Quality", align: "right",
+    renderCell: (t) => { const v = calculateExitEfficiency(t); return v === null ? DASH : <span className={v >= 80 ? "text-win" : v < 50 ? "text-loss" : "text-muted"}>{v.toFixed(1)}%</span>; },
+  },
+  {
+    id: "best_r", label: "Best R", group: "Exit Quality", align: "right",
+    renderCell: (t) => { const v = calculateBestExitR(t); const f = formatRMultiple(v); return !f ? DASH : <span className={`font-semibold ${v! >= 0 ? "text-win" : "text-loss"}`}>{f}</span>; },
+  },
 ];
 
 // ---------------------------------------------------------------------------
-// Component
+// Filters
+// ---------------------------------------------------------------------------
+
+const STOCK_FILTERS: FilterDef<StockTrade>[] = [
+  {
+    id: "sector", label: "Sector", type: "select",
+    options: [
+      { value: "All", label: "All Sectors" },
+      { value: "Technology", label: "Technology" },
+      { value: "Financials", label: "Financials" },
+      { value: "Healthcare", label: "Healthcare" },
+      { value: "Energy", label: "Energy" },
+      { value: "Consumer Discretionary", label: "Consumer Disc." },
+    ],
+    filterFn: (t, val) => val === "All" || t.sector === val,
+  },
+  {
+    id: "session", label: "Session", type: "select",
+    options: [
+      { value: "All", label: "All Sessions" },
+      { value: "pre_market", label: "Pre-Market" },
+      { value: "regular", label: "Regular" },
+      { value: "after_hours", label: "After-Hours" },
+    ],
+    filterFn: (t, val) => val === "All" || t.market_session === val,
+  },
+  {
+    id: "asset_type", label: "Asset Type", type: "select",
+    options: [
+      { value: "All", label: "All Types" },
+      { value: "stock", label: "Stock" },
+      { value: "option", label: "Option" },
+    ],
+    filterFn: (t, val) => val === "All" || t.asset_type === val,
+  },
+  {
+    id: "emotion", label: "Emotion", type: "select",
+    options: ["All", "Calm", "Confident", "Excited", "Anxious", "FOMO", "Frustrated"].map((e) => ({ value: e, label: e === "All" ? "All Emotions" : e })),
+    filterFn: (t, val) => val === "All" || t.emotion === val,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Table config
+// ---------------------------------------------------------------------------
+
+const TABLE_CONFIG: TableConfig<StockTrade> = {
+  columns: STOCK_COLUMNS,
+  filters: STOCK_FILTERS,
+  storageKey: "stargate-stock-table",
+  tableName: "stock_trades",
+  getId: (t) => t.id,
+  getSymbol: (t) => t.symbol,
+  getDate: (t) => t.open_timestamp.slice(0, 10),
+  isOpen: (t) => t.exit_price === null,
+  defaultSortKey: "date",
+  defaultSortDir: "desc",
+  defaultPageSize: 50,
+};
+
+// ---------------------------------------------------------------------------
+// Page
 // ---------------------------------------------------------------------------
 
 export default function StockTradesPage() {
   const router = useRouter();
-  const { viewMode } = useTheme();
   const [trades] = useState<StockTrade[]>(MOCK_STOCK_TRADES);
-  const [search, setSearch] = useState("");
-  const [sectorFilter, setSectorFilter] = useState("All");
-  const [sessionFilter, setSessionFilter] = useState("All");
-  const [sortKey, setSortKey] = useState<SortKey>("date");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const visibleColumns = viewMode === "simple"
-    ? STOCK_COLUMNS.filter((c) => c.simple)
-    : STOCK_COLUMNS;
-  const visibleLabels = new Set(visibleColumns.map((c) => c.label));
+  const { state, visibleColumns, paginatedData, sortedFilteredData, totalItems, totalPages, actions } = useTableState(TABLE_CONFIG, trades);
 
-  useEffect(() => {
-    if (sortKey === "date") return;
-    const col = STOCK_COLUMNS.find((c) => c.key === sortKey);
-    if (col && !visibleLabels.has(col.label)) {
-      setSortKey("date");
-    }
-  }, [viewMode]);
+  const exportData = useMemo(() => sortedFilteredData.map((t) => ({
+    symbol: t.symbol, company_name: t.company_name, asset_type: t.asset_type,
+    position: t.position, entry_price: t.entry_price, exit_price: t.exit_price,
+    pnl: t.pnl, sector: t.sector, market_session: t.market_session,
+    open_timestamp: t.open_timestamp, close_timestamp: t.close_timestamp,
+    emotion: t.emotion, tags: t.tags?.join(", "), notes: t.notes,
+  })), [sortedFilteredData]);
 
-  const filtered = useMemo(() => {
-    let result = trades;
+  const openCount = useMemo(() => trades.filter((t) => t.exit_price === null).length, [trades]);
 
-    // Search
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (t) =>
-          t.symbol.toLowerCase().includes(q) ||
-          t.company_name?.toLowerCase().includes(q) ||
-          t.notes?.toLowerCase().includes(q) ||
-          t.tags?.some((tag) => tag.toLowerCase().includes(q))
-      );
-    }
-
-    // Sector
-    if (sectorFilter !== "All") {
-      result = result.filter((t) => t.sector === sectorFilter);
-    }
-
-    // Session
-    if (sessionFilter !== "All") {
-      result = result.filter((t) => t.market_session === sessionFilter);
-    }
-
-    // Sort
-    result = [...result].sort((a, b) => {
-      const dir = sortDir === "asc" ? 1 : -1;
-      switch (sortKey) {
-        case "date":
-          return dir * a.open_timestamp.localeCompare(b.open_timestamp);
-        case "symbol":
-          return dir * a.symbol.localeCompare(b.symbol);
-        case "pnl":
-          return dir * ((a.pnl ?? 0) - (b.pnl ?? 0));
-        case "sector":
-          return dir * ((a.sector ?? "").localeCompare(b.sector ?? ""));
-        case "session":
-          return dir * ((a.market_session ?? "").localeCompare(b.market_session ?? ""));
-        default:
-          return 0;
-      }
-    });
-
-    return result;
-  }, [trades, search, sectorFilter, sessionFilter, sortKey, sortDir]);
-
-  function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
-    } else {
-      setSortKey(key);
-      setSortDir("desc");
-    }
-  }
-
-  function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return <ArrowUpDown size={12} className="text-muted/40" />;
-    return sortDir === "asc" ? (
-      <ChevronUp size={12} className="text-accent" />
-    ) : (
-      <ChevronDown size={12} className="text-accent" />
-    );
+  function SortIcon({ sortKey }: { sortKey: string }) {
+    if (state.sortKey !== sortKey) return <ArrowUpDown size={12} className="text-muted/40" />;
+    return state.sortDir === "asc" ? <ChevronUp size={12} className="text-accent" /> : <ChevronDown size={12} className="text-accent" />;
   }
 
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
 
-      {/* Title */}
       <div id="tour-stock-trades-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
@@ -293,7 +472,7 @@ export default function StockTradesPage() {
             <InfoTooltip text="Complete log of your stock trades — filter, sort, and review" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
-            {filtered.length} of {trades.length} trades
+            {totalItems} of {trades.length} trades
           </p>
         </div>
         <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300">
@@ -302,73 +481,44 @@ export default function StockTradesPage() {
         </button>
       </div>
 
-      {/* Filter Bar */}
+      {/* View Tabs + Search */}
       <div id="tour-stock-trades-filters" className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <ViewTabs
+          activeTab={state.activeTab}
+          onTabChange={actions.setActiveTab}
+          counts={{ trades: trades.length, open: openCount }}
+        />
+        <div className="flex-1" />
+        <div className="relative min-w-[200px] max-w-sm">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/40" />
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search symbol, company, notes..."
+            value={state.search}
+            onChange={(e) => actions.setSearch(e.target.value)}
+            placeholder="Search symbol, company..."
             className="w-full bg-surface border border-border rounded-xl pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all"
           />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
-            >
+          {state.search && (
+            <button onClick={() => actions.setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground">
               <X size={14} />
             </button>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
-          <Filter size={14} className="text-muted/40" />
-          <select
-            value={sectorFilter}
-            onChange={(e) => setSectorFilter(e.target.value)}
-            className="bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
-          >
-            {SECTOR_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s === "All" ? "All Sectors" : s}
-              </option>
-            ))}
-          </select>
-        </div>
-        <select
-          value={sessionFilter}
-          onChange={(e) => setSessionFilter(e.target.value)}
-          className="bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
-        >
-          {SESSION_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s === "All" ? "All Sessions" : SESSION_LABELS[s] ?? s}
-            </option>
-          ))}
-        </select>
       </div>
 
-      {/* Mobile Card Layout */}
+      {/* Mobile card layout */}
       <div className="md:hidden space-y-3">
-        {filtered.map((trade) => {
+        {paginatedData.map((trade) => {
           const pnl = trade.pnl ?? 0;
           const isOpen = trade.exit_price === null;
           return (
-            <div
-              key={trade.id}
-              className="glass rounded-xl border border-border/50 p-4"
-              style={{ boxShadow: "var(--shadow-card)" }}
+            <div key={trade.id} className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}
               onClick={() => router.push(`/dashboard/stocks/trades/${trade.id}`)}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">{trade.symbol}</span>
-                  <span
-                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
-                      trade.position === "long" ? "bg-win/10 text-win" : "bg-loss/10 text-loss"
-                    }`}
-                  >
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${trade.position === "long" ? "bg-win/10 text-win" : "bg-loss/10 text-loss"}`}>
                     {trade.position.toUpperCase()}
                   </span>
                   {trade.asset_type === "option" && (
@@ -377,533 +527,106 @@ export default function StockTradesPage() {
                     </span>
                   )}
                 </div>
-                <span
-                  className={`text-sm font-bold ${
-                    isOpen ? "text-accent" : pnl >= 0 ? "text-win" : "text-loss"
-                  }`}
-                >
+                <span className={`text-sm font-bold ${isOpen ? "text-accent" : pnl >= 0 ? "text-win" : "text-loss"}`}>
                   {isOpen ? "Open" : `$${pnl.toFixed(2)}`}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs text-muted">
-                <span>
-                  {new Date(trade.open_timestamp).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
+                <span>{new Date(trade.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                 <div className="flex items-center gap-2">
                   {trade.sector && (
-                    <span className="px-1.5 py-0.5 rounded-md bg-accent/10 text-accent text-[10px]">
-                      {trade.sector}
-                    </span>
+                    <span className="px-1.5 py-0.5 rounded-md bg-accent/10 text-accent text-[10px]">{trade.sector}</span>
                   )}
                   {trade.market_session && (
-                    <span
-                      className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                        trade.market_session === "pre_market"
-                          ? "bg-amber-500/10 text-amber-400"
-                          : trade.market_session === "after_hours"
-                          ? "bg-purple-500/10 text-purple-400"
-                          : "bg-win/10 text-win"
-                      }`}
-                    >
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${trade.market_session === "pre_market" ? "bg-amber-500/10 text-amber-400" : trade.market_session === "after_hours" ? "bg-purple-500/10 text-purple-400" : "bg-win/10 text-win"}`}>
                       {SESSION_LABELS[trade.market_session]}
                     </span>
                   )}
                 </div>
               </div>
-              {expandedId === trade.id && trade.notes && (
-                <div className="mt-3 pt-3 border-t border-border/30">
-                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Notes</span>
-                  <p className="text-xs text-muted mt-0.5 leading-relaxed">{trade.notes}</p>
-                </div>
-              )}
             </div>
           );
         })}
-        {filtered.length === 0 && (
-          <div className="text-center py-12 text-muted">No trades match your filters</div>
-        )}
+        {paginatedData.length === 0 && <div className="text-center py-12 text-muted">No trades match your filters</div>}
+        <Pagination page={state.page} pageSize={state.pageSize} totalItems={totalItems} totalPages={totalPages} onPageChange={actions.setPage} onPageSizeChange={actions.setPageSize} />
       </div>
 
-      {/* Desktop Table */}
-      <div
-        id="tour-stock-trades-table"
-        className="hidden md:block bg-surface rounded-2xl border border-border overflow-hidden"
-        style={{ boxShadow: "var(--shadow-card)" }}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border">
-                {visibleColumns.map((col) => (
-                  <th
-                    key={col.label}
-                    className={`text-left text-[10px] uppercase tracking-wider text-muted/60 font-semibold px-4 py-3 ${
-                      col.key ? "cursor-pointer hover:text-muted select-none" : ""
-                    }`}
-                    onClick={() => col.key && toggleSort(col.key)}
-                  >
-                    <span className="flex items-center gap-1">
-                      {col.label}
-                      {col.key && <SortIcon col={col.key} />}
-                    </span>
+      {/* Desktop table + sidebar */}
+      <div id="tour-stock-trades-table" className="hidden md:flex bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="w-10 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={state.selectedIds.size > 0 && state.selectedIds.size === paginatedData.length}
+                      onChange={() => state.selectedIds.size === paginatedData.length ? actions.deselectAll() : actions.selectAll()}
+                      className="w-3.5 h-3.5 rounded border-border text-accent focus:ring-accent/30 bg-background"
+                    />
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((trade) => {
-                const pnl = trade.pnl ?? 0;
-                const isOpen = trade.exit_price === null;
-                const isExpanded = expandedId === trade.id;
-                return (
-                  <tr key={trade.id} className="group">
-                    <td colSpan={visibleColumns.length} className="p-0">
-                      <div
-                        className="grid cursor-pointer hover:bg-surface-hover transition-colors"
-                        style={{ gridTemplateColumns: `repeat(${visibleColumns.length}, auto)` }}
-                        onClick={() => router.push(`/dashboard/stocks/trades/${trade.id}`)}
-                      >
-                        {/* Date */}
-                        {visibleLabels.has("Date") && (
-                        <div className="px-4 py-3 text-muted whitespace-nowrap border-b border-border/50">
-                          {new Date(trade.open_timestamp).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </div>
-                        )}
-
-                        {/* Symbol */}
-                        {visibleLabels.has("Symbol") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          <span className="font-semibold text-foreground">{trade.symbol}</span>
-                          {trade.company_name && (
-                            <span className="text-[10px] text-muted/50 ml-1.5">{trade.company_name}</span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Sector */}
-                        {visibleLabels.has("Sector") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {trade.sector ? (
-                            <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-accent/10 text-accent">
-                              {trade.sector}
-                            </span>
-                          ) : (
-                            <span className="text-muted/30">&mdash;</span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Type */}
-                        {visibleLabels.has("Type") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          <span
-                            className={`text-xs font-medium px-2 py-0.5 rounded-md ${
-                              trade.asset_type === "option"
-                                ? "bg-blue-500/10 text-blue-400"
-                                : "bg-border/50 text-muted"
-                            }`}
-                          >
-                            {trade.asset_type === "option"
-                              ? `${trade.option_type?.toUpperCase()} $${trade.strike_price}`
-                              : "Stock"}
-                          </span>
-                          {trade.asset_type === "option" && trade.expiration_date && (
-                            <span className="text-[10px] text-muted/40 ml-1.5">
-                              exp {new Date(trade.expiration_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                            </span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Session */}
-                        {visibleLabels.has("Session") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {trade.market_session ? (
-                            <span
-                              className={`text-xs font-medium px-2 py-0.5 rounded-md ${
-                                trade.market_session === "pre_market"
-                                  ? "bg-amber-500/10 text-amber-400"
-                                  : trade.market_session === "after_hours"
-                                  ? "bg-purple-500/10 text-purple-400"
-                                  : "bg-win/10 text-win"
-                              }`}
-                            >
-                              {SESSION_LABELS[trade.market_session]}
-                            </span>
-                          ) : (
-                            <span className="text-muted/30">&mdash;</span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Entry */}
-                        {visibleLabels.has("Entry") && (
-                        <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50">
-                          ${trade.entry_price.toFixed(2)}
-                          {trade.asset_type === "option" && trade.premium_per_contract && (
-                            <span className="text-[10px] text-muted/40 ml-1">
-                              ({trade.contracts}x)
-                            </span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Exit */}
-                        {visibleLabels.has("Exit") && (
-                        <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50">
-                          {trade.exit_price !== null ? `$${trade.exit_price.toFixed(2)}` : "\u2014"}
-                        </div>
-                        )}
-
-                        {/* Duration */}
-                        {visibleLabels.has("Duration") && (
-                        <div className="px-4 py-3 text-muted whitespace-nowrap border-b border-border/50">
-                          {formatDuration(trade.open_timestamp, trade.close_timestamp)}
-                          {!trade.close_timestamp && <span className="text-accent/60 text-[10px]"> (open)</span>}
-                        </div>
-                        )}
-
-                        {/* Return */}
-                        {visibleLabels.has("Return") && (
-                        <div className="px-4 py-3 tabular-nums border-b border-border/50">
-                          {(() => {
-                            const ret = getReturnPct(trade);
-                            if (!ret) return <span className="text-muted/30">&mdash;</span>;
-                            return (
-                              <span className={`font-semibold ${ret.startsWith("+") ? "text-win" : "text-loss"}`}>
-                                {ret}
-                              </span>
-                            );
-                          })()}
-                        </div>
-                        )}
-
-                        {/* SL */}
-                        {visibleLabels.has("SL") && (
-                        <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50 text-right">
-                          {trade.stop_loss !== null ? `$${trade.stop_loss.toFixed(2)}` : "\u2014"}
-                        </div>
-                        )}
-
-                        {/* TP */}
-                        {visibleLabels.has("TP") && (
-                        <div className="px-4 py-3 text-muted tabular-nums border-b border-border/50 text-right">
-                          {trade.profit_target !== null ? `$${trade.profit_target.toFixed(2)}` : "\u2014"}
-                        </div>
-                        )}
-
-                        {/* R */}
-                        {visibleLabels.has("R") && (
-                        <div className="px-4 py-3 border-b border-border/50 text-right">
-                          {(() => {
-                            const r = calculateRMultiple(trade);
-                            const fmt = formatRMultiple(r);
-                            if (!fmt) return <span className="text-muted/30">{"\u2014"}</span>;
-                            return <span className={`font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
-                          })()}
-                        </div>
-                        )}
-
-                        {/* P&L */}
-                        {visibleLabels.has("P&L") && (
-                        <div
-                          className={`px-4 py-3 font-semibold tabular-nums border-b border-border/50 ${
-                            isOpen ? "text-accent" : pnl >= 0 ? "text-win" : "text-loss"
-                          }`}
-                        >
-                          {isOpen
-                            ? "Open"
-                            : `${pnl >= 0 ? "+" : "-"}$${Math.abs(pnl).toFixed(2)}`}
-                        </div>
-                        )}
-
-                        {/* Tags */}
-                        {visibleLabels.has("Tags") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {trade.tags && trade.tags.length > 0 ? (
-                            <div className="flex gap-1 flex-wrap">
-                              {trade.tags.slice(0, 2).map((tag) => (
-                                <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-border/50 text-muted">{tag}</span>
-                              ))}
-                              {trade.tags.length > 2 && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-border/50 text-muted">+{trade.tags.length - 2}</span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted/30">&mdash;</span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Emotion */}
-                        {visibleLabels.has("Emotion") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {trade.emotion ? (
-                            <span className="px-1.5 py-0.5 rounded-md bg-accent/10 text-accent text-[10px]">{trade.emotion}</span>
-                          ) : (
-                            <span className="text-muted/30">&mdash;</span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Process */}
-                        {visibleLabels.has("Process") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {trade.process_score !== null ? (
-                            <span className={`text-xs font-semibold tabular-nums ${trade.process_score >= 7 ? "text-win" : trade.process_score >= 4 ? "text-amber-400" : "text-loss"}`}>
-                              {trade.process_score}/10
-                            </span>
-                          ) : (
-                            <span className="text-muted/30">&mdash;</span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Notes */}
-                        {visibleLabels.has("Notes") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {trade.notes ? (
-                            <span className="text-xs text-muted">{trade.notes.length > 30 ? trade.notes.slice(0, 30) + "\u2026" : trade.notes}</span>
-                          ) : (
-                            <span className="text-muted/30">&mdash;</span>
-                          )}
-                        </div>
-                        )}
-
-                        {/* Commit */}
-                        {visibleLabels.has("Commit") && (
-                        <div className="px-4 py-3 text-xs tabular-nums text-muted border-b border-border/50">
-                          ${getTotalCommitment(trade).toLocaleString("en-US", { maximumFractionDigits: 0 })}
-                        </div>
-                        )}
-
-                        {/* Quarter */}
-                        {visibleLabels.has("Quarter") && (
-                        <div className="px-4 py-3 text-xs text-muted border-b border-border/50">
-                          {getQuarterLabel(trade.open_timestamp) ?? <span className="text-muted/30">&mdash;</span>}
-                        </div>
-                        )}
-
-                        {/* MAE $ */}
-                        {visibleLabels.has("MAE $") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {(() => {
-                            const mae = calculateTradeMAE(trade);
-                            if (mae === null) return <span className="text-muted/30">&mdash;</span>;
-                            return <span className="text-xs tabular-nums text-loss">${mae.toFixed(2)}</span>;
-                          })()}
-                        </div>
-                        )}
-
-                        {/* MFE $ */}
-                        {visibleLabels.has("MFE $") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {(() => {
-                            const mfe = calculateTradeMFE(trade);
-                            if (mfe === null) return <span className="text-muted/30">&mdash;</span>;
-                            return <span className="text-xs tabular-nums text-win">${mfe.toFixed(2)}</span>;
-                          })()}
-                        </div>
-                        )}
-
-                        {/* Pr. MAE */}
-                        {visibleLabels.has("Pr. MAE") && (
-                        <div className="px-4 py-3 text-xs tabular-nums text-muted border-b border-border/50">
-                          {trade.price_mae !== null ? `$${trade.price_mae.toFixed(2)}` : <span className="text-muted/30">&mdash;</span>}
-                        </div>
-                        )}
-
-                        {/* Pr. MFE */}
-                        {visibleLabels.has("Pr. MFE") && (
-                        <div className="px-4 py-3 text-xs tabular-nums text-muted border-b border-border/50">
-                          {trade.price_mfe !== null ? `$${trade.price_mfe.toFixed(2)}` : <span className="text-muted/30">&mdash;</span>}
-                        </div>
-                        )}
-
-                        {/* MFE/MAE */}
-                        {visibleLabels.has("MFE/MAE") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {(() => {
-                            const ratio = getMfeMaeRatio(trade);
-                            if (ratio === null) return <span className="text-muted/30">&mdash;</span>;
-                            return <span className="text-xs tabular-nums text-muted">{ratio.toFixed(2)}</span>;
-                          })()}
-                        </div>
-                        )}
-
-                        {/* MFE % */}
-                        {visibleLabels.has("MFE %") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {(() => {
-                            const pct = getPriceMfePct(trade);
-                            if (pct === null) return <span className="text-muted/30">&mdash;</span>;
-                            return <span className={`text-xs tabular-nums font-semibold ${pct >= 0 ? "text-win" : "text-loss"}`}>{pct >= 0 ? "+" : ""}{pct.toFixed(2)}%</span>;
-                          })()}
-                        </div>
-                        )}
-
-                        {/* Best Exit */}
-                        {visibleLabels.has("Best Exit") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {(() => {
-                            const best = calculateBestExitPnl(trade);
-                            if (best === null) return <span className="text-muted/30">&mdash;</span>;
-                            return <span className={`text-xs tabular-nums font-semibold ${best >= 0 ? "text-win" : "text-loss"}`}>{best >= 0 ? "+" : "-"}${Math.abs(best).toFixed(2)}</span>;
-                          })()}
-                        </div>
-                        )}
-
-                        {/* Effic. */}
-                        {visibleLabels.has("Effic.") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {(() => {
-                            const eff = calculateExitEfficiency(trade);
-                            if (eff === null) return <span className="text-muted/30">&mdash;</span>;
-                            return <span className={`text-xs tabular-nums font-semibold ${eff >= 80 ? "text-win" : eff < 50 ? "text-loss" : "text-muted"}`}>{eff.toFixed(1)}%</span>;
-                          })()}
-                        </div>
-                        )}
-
-                        {/* Best R */}
-                        {visibleLabels.has("Best R") && (
-                        <div className="px-4 py-3 border-b border-border/50">
-                          {(() => {
-                            const r = calculateBestExitR(trade);
-                            const fmt = formatRMultiple(r);
-                            if (!fmt) return <span className="text-muted/30">&mdash;</span>;
-                            return <span className={`text-xs tabular-nums font-semibold ${r! >= 0 ? "text-win" : "text-loss"}`}>{fmt}</span>;
-                          })()}
-                        </div>
-                        )}
-                      </div>
-
-                      {/* Expanded Details */}
-                      {isExpanded && (
-                        <div className="px-4 py-4 bg-background/50 border-b border-border/50 space-y-3">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                            <div>
-                              <span className="text-muted/60 uppercase tracking-wider text-[10px]">
-                                Position
-                              </span>
-                              <p className="text-foreground font-medium mt-0.5">
-                                <span
-                                  className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                                    trade.position === "long" ? "bg-win/10 text-win" : "bg-loss/10 text-loss"
-                                  }`}
-                                >
-                                  {trade.position.toUpperCase()}
-                                </span>
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-muted/60 uppercase tracking-wider text-[10px]">
-                                Quantity
-                              </span>
-                              <p className="text-foreground font-medium mt-0.5">
-                                {trade.asset_type === "option"
-                                  ? `${trade.contracts} contracts`
-                                  : `${trade.quantity} shares`}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-muted/60 uppercase tracking-wider text-[10px]">
-                                Fees
-                              </span>
-                              <p className="text-foreground font-medium mt-0.5">${trade.fees.toFixed(2)}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted/60 uppercase tracking-wider text-[10px]">
-                                Setup
-                              </span>
-                              <p className="text-foreground font-medium mt-0.5">
-                                {trade.setup_type ?? "\u2014"}
-                              </p>
-                            </div>
-                          </div>
-
-                          {trade.asset_type === "option" && (
-                            <div className="flex flex-wrap gap-2">
-                              <span className="text-[10px] px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                {trade.option_type?.toUpperCase()} | Strike: ${trade.strike_price} | Exp: {trade.expiration_date} | Premium: ${trade.premium_per_contract?.toFixed(2)}
-                              </span>
-                            </div>
-                          )}
-
-                          {trade.notes && (
-                            <div>
-                              <span className="text-muted/60 uppercase tracking-wider text-[10px]">
-                                Notes
-                              </span>
-                              <p className="text-xs text-muted mt-0.5 leading-relaxed">{trade.notes}</p>
-                            </div>
-                          )}
-
-                          {trade.review && Object.keys(trade.review).length > 0 && (
-                            <div>
-                              <span className="text-muted/60 uppercase tracking-wider text-[10px]">
-                                Post-Trade Review
-                              </span>
-                              <div className="mt-1 space-y-1">
-                                {Object.entries(trade.review).map(([key, val]) => (
-                                  <div key={key} className="text-xs">
-                                    <span className="text-muted">{key.replace(/_/g, " ")}: </span>
-                                    <span className="text-foreground">{val}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {trade.emotion && (
-                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-accent/10 text-accent">
-                                {trade.emotion}
-                              </span>
-                            )}
-                            {trade.process_score !== null && (
-                              <span
-                                className={`text-[10px] font-semibold ${
-                                  trade.process_score >= 7
-                                    ? "text-win"
-                                    : trade.process_score >= 4
-                                    ? "text-amber-400"
-                                    : "text-loss"
-                                }`}
-                              >
-                                Process: {trade.process_score}/10
-                              </span>
-                            )}
-                            {trade.tags?.map((tag) => (
-                              <span
-                                key={tag}
-                                className="text-[10px] px-1.5 py-0.5 rounded bg-border/50 text-muted"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={visibleColumns.length} className="px-4 py-12 text-center text-muted">
-                    No trades match your filters
-                  </td>
+                  {visibleColumns.map((col) => (
+                    <th
+                      key={col.id}
+                      className={`text-left text-[10px] uppercase tracking-wider text-muted/60 font-semibold px-4 py-3 whitespace-nowrap ${col.sortKey ? "cursor-pointer hover:text-muted select-none" : ""} ${col.align === "right" ? "text-right" : ""}`}
+                      onClick={() => col.sortKey && actions.toggleSort(col.sortKey)}
+                    >
+                      <span className="flex items-center gap-1">
+                        {col.label}
+                        {col.sortKey && <SortIcon sortKey={col.sortKey} />}
+                      </span>
+                    </th>
+                  ))}
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {paginatedData.map((trade) => {
+                  const isSelected = state.selectedIds.has(trade.id);
+                  return (
+                    <tr key={trade.id} className={`border-b border-border/50 cursor-pointer hover:bg-surface-hover transition-colors ${isSelected ? "bg-accent/5" : ""}`}
+                      onClick={() => router.push(`/dashboard/stocks/trades/${trade.id}`)}
+                    >
+                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                        <input type="checkbox" checked={isSelected} onChange={() => actions.toggleRow(trade.id)}
+                          className="w-3.5 h-3.5 rounded border-border text-accent focus:ring-accent/30 bg-background" />
+                      </td>
+                      {visibleColumns.map((col) => (
+                        <td key={col.id} className={`px-4 py-3 ${col.align === "right" ? "text-right" : ""}`}>
+                          {col.renderCell(trade)}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+                {paginatedData.length === 0 && (
+                  <tr><td colSpan={visibleColumns.length + 1} className="px-4 py-12 text-center text-muted">No trades match your filters</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination page={state.page} pageSize={state.pageSize} totalItems={totalItems} totalPages={totalPages} onPageChange={actions.setPage} onPageSizeChange={actions.setPageSize} />
         </div>
+        <TableSidebar
+          activeTab={state.sidebarTab}
+          onToggleTab={actions.toggleSidebarTab}
+          columns={TABLE_CONFIG.columns}
+          visibleColumnIds={state.visibleColumnIds}
+          onToggleColumn={actions.toggleColumn}
+          onShowAll={actions.showAllColumns}
+          onHideAll={actions.hideAllColumns}
+          filters={STOCK_FILTERS}
+          filterValues={state.filters}
+          onSetFilter={actions.setFilter}
+          onClearFilters={actions.clearFilters}
+          selectedCount={state.selectedIds.size}
+          totalCount={totalItems}
+          onSelectAll={actions.selectAll}
+          onDeselectAll={actions.deselectAll}
+          onResetTable={actions.resetTable}
+          allData={exportData as Record<string, unknown>[]}
+          exportFileName="stock-trades"
+        />
       </div>
     </div>
   );
