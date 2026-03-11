@@ -37,6 +37,7 @@ export type TourStep = {
   presentation?: "centered" | "attached"; // legacy — mapped to layout
   transitionEffect?: "star-warp";
   logoSize?: number;
+  bubbleAlign?: "left" | "center";
 };
 
 export type TourDef = {
@@ -207,8 +208,30 @@ export function TourProvider({ children }: { children: ReactNode }) {
       await sleep(300);
     }
     if (step.sidebarCategory) {
+      const existingPanel = document.querySelector("#tour-drawer-panel");
+
       window.dispatchEvent(new CustomEvent("tour-sidebar", { detail: { expand: true, category: step.sidebarCategory } }));
+
+      if (existingPanel) {
+        // Wait for old drawer to unmount (AnimatePresence exit animation)
+        await new Promise<void>((resolve) => {
+          let timer: ReturnType<typeof setTimeout>;
+          const observer = new MutationObserver(() => {
+            if (!document.contains(existingPanel)) {
+              observer.disconnect();
+              clearTimeout(timer);
+              resolve();
+            }
+          });
+          observer.observe(document.body, { childList: true, subtree: true });
+          timer = setTimeout(() => { observer.disconnect(); resolve(); }, 500);
+        });
+      }
+
+      // Wait for new drawer to mount
       await waitForElement("#tour-drawer-panel", 1500);
+      // Let spring enter animation settle
+      await sleep(200);
     }
 
     // 3. Apps dropdown
@@ -290,7 +313,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const tour = allTours.find((t) => t.tour === s.tourName);
     const nextIdx = s.currentStep + 1;
     if (tour?.steps[nextIdx]) {
-      executeStep(tour.steps[nextIdx]);
+      executeStep(tour.steps[nextIdx]).catch((err) => {
+        console.warn("[Tour] Step execution failed:", err);
+      });
     }
   }, [completeTour, executeStep]);
 
@@ -312,7 +337,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "NEXT" });
     const nextIdx = s.currentStep + 1;
     if (tour?.steps[nextIdx]) {
-      executeStep(tour.steps[nextIdx]);
+      executeStep(tour.steps[nextIdx]).catch((err) => {
+        console.warn("[Tour] Step execution failed:", err);
+      });
     }
   }, [completeTour, executeStep]);
 
@@ -323,7 +350,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const tour = allTours.find((t) => t.tour === s.tourName);
     const prevIdx = s.currentStep - 1;
     if (tour?.steps[prevIdx]) {
-      executeStep(tour.steps[prevIdx]);
+      executeStep(tour.steps[prevIdx]).catch((err) => {
+        console.warn("[Tour] Step execution failed:", err);
+      });
     }
   }, [executeStep]);
 
