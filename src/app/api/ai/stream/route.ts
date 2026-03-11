@@ -42,12 +42,16 @@ export async function POST(req: NextRequest) {
 
   const model = resolveModel(provider.id, modelId);
   const tradeContext = buildTradeContext(trades, context, notes);
-  const images = notes.length > 0 ? extractImagesFromNotes(notes) : [];
+  const imageData = notes.length > 0 ? extractImagesFromNotes(notes) : [];
+  const images = imageData.map((i) => i.url);
+  const imageContext = imageData.length > 0
+    ? `\n\n## Attached Images (${imageData.length})\n${imageData.map((img, i) => `- Image ${i + 1}: from journal entry "${img.noteTitle}" (${img.noteDate})`).join("\n")}\n`
+    : "";
 
   try {
     const chunks = provider.stream({
       system: AI_CHAT_SYSTEM_PROMPT,
-      userMessage: `Here is my trading data:\n\n${tradeContext}\n\nMy question: ${message}`,
+      userMessage: `Here is my trading data:\n\n${tradeContext}${imageContext}\n\nMy question: ${message}`,
       maxTokens: 2048,
       model,
       apiKey,
