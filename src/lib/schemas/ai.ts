@@ -28,14 +28,14 @@ const TradeSchema = z.object({
 // A journal note passed to the AI chat context
 const JournalNoteSchema = z.object({
   title: z.string().nullable().optional(),
-  content: z.string(),
-  tags: z.array(z.string()).optional().default([]),
+  content: z.string().nullable().default(""),
+  tags: z.array(z.string()).nullable().optional().default([]),
   note_type: z.string().nullable().optional(),
-  asset_type: z.string().optional(),
+  asset_type: z.string().nullable().optional(),
   note_date: z.string().nullable().optional(),
   created_at: z.string().optional(),
   trade_id: z.string().nullable().optional(),
-  structured_data: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).nullable().optional(),
+  structured_data: z.record(z.string(), z.any()).nullable().optional(),
 }).passthrough();
 
 // AI chat request body (used by /api/ai and /api/ai/stream)
