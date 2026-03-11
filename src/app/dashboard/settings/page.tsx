@@ -9,7 +9,6 @@ import {
   User,
   Lock,
   Globe,
-  Wallet,
   CreditCard,
   Gift,
   Download,
@@ -34,7 +33,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/lib/use-subscription";
 import { useReferral } from "@/lib/use-referral";
 import { RedeemCodeSection } from "@/components/settings/redeem-code-section";
-import { TradingAccountsTab } from "@/components/settings/trading-accounts-tab";
 import { useI18n, LOCALES } from "@/lib/i18n";
 
 /* ================================================================
@@ -63,7 +61,6 @@ const DEFAULT_GLOBAL: GlobalSettings = {
 
 type SettingsTab =
   | "account"
-  | "trading-accounts"
   | "global"
   | "ai"
   | "subscription"
@@ -72,7 +69,6 @@ type SettingsTab =
 
 const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerOnly?: boolean }[] = [
   { value: "account", label: "Account", icon: User },
-  { value: "trading-accounts", label: "Trading Accounts", icon: Wallet },
   { value: "global", label: "Global Settings", icon: Globe },
   { value: "ai", label: "AI Coach", icon: Brain },
   { value: "subscription", label: "Subscription", icon: CreditCard },
@@ -236,7 +232,7 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
    MAIN SETTINGS PAGE
    ================================================================ */
 
-const VALID_TABS = new Set<SettingsTab>(["account", "trading-accounts", "global", "ai", "subscription", "referrals", "export"]);
+const VALID_TABS = new Set<SettingsTab>(["account", "global", "ai", "subscription", "referrals", "export"]);
 
 export default function SettingsPage() {
   return (
@@ -394,9 +390,6 @@ function SettingsContent() {
           </SectionCard>
         </div>
       )}
-
-      {/* ============ TRADING ACCOUNTS TAB (Unified) ============ */}
-      {tab === "trading-accounts" && <TradingAccountsTab />}
 
       {/* ============ GLOBAL SETTINGS TAB ============ */}
       {tab === "global" && (

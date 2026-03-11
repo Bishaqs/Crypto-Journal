@@ -39,11 +39,6 @@ export function ConnectionCard({
   }
 
   async function handleDelete() {
-    if (!confirmDelete) {
-      setConfirmDelete(true);
-      setTimeout(() => setConfirmDelete(false), 3000);
-      return;
-    }
     setDeleting(true);
     try {
       await onDelete(connection.id);
@@ -105,28 +100,42 @@ export function ConnectionCard({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="p-2 rounded-lg border border-border text-muted hover:text-accent hover:border-accent/30 transition-all disabled:opacity-30"
-            title="Sync now"
-          >
-            {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className={`p-2 rounded-lg border transition-all ${
-              confirmDelete
-                ? "border-loss/50 bg-loss/10 text-loss"
-                : "border-border text-muted hover:text-loss hover:border-loss/30"
-            }`}
-            title={confirmDelete ? "Click again to confirm" : "Delete connection"}
-          >
-            {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-          </button>
-        </div>
+        {confirmDelete ? (
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs text-loss font-medium whitespace-nowrap">Delete?</span>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              className="px-3 py-1.5 rounded-lg border border-border text-xs text-muted hover:text-foreground transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-3 py-1.5 rounded-lg bg-loss text-white text-xs font-semibold hover:bg-loss/80 transition-all disabled:opacity-50"
+            >
+              {deleting ? <Loader2 size={12} className="animate-spin" /> : "Delete"}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="p-2 rounded-lg border border-border text-muted hover:text-accent hover:border-accent/30 transition-all disabled:opacity-30"
+              title="Sync now"
+            >
+              {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            </button>
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="p-2 rounded-lg border border-border text-muted hover:text-loss hover:border-loss/30 transition-all"
+              title="Delete connection"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
