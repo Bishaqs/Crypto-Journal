@@ -41,6 +41,9 @@ export type Trade = {
   price_mfe: number | null;
   mfe_timestamp: string | null;
   mae_timestamp: string | null;
+  // Broker sync fields (populated by API sync, null for manual trades)
+  broker_name: string | null;
+  broker_order_id: string | null;
   created_at: string;
 };
 

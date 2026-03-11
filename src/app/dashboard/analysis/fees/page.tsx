@@ -6,6 +6,7 @@ import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { calculateGasImpact } from "@/lib/calculations";
 import { groupTradesBySymbol } from "@/lib/trade-grouping";
 import { useTheme } from "@/lib/theme-context";
@@ -27,6 +28,7 @@ export default function FeesPage() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
 
@@ -44,7 +46,7 @@ export default function FeesPage() {
 
   useEffect(() => { fetchTrades(); }, [fetchTrades]);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const gasImpact = useMemo(() => calculateGasImpact(filtered), [filtered]);
 
   const totalExchangeFees = useMemo(

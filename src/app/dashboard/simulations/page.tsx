@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { calculateTradePnl } from "@/lib/calculations";
@@ -78,6 +79,7 @@ export default function SimulationsPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { theme, viewMode } = useTheme();
   const colors = getChartColors(theme);
   const supabase = createClient();
@@ -125,7 +127,7 @@ export default function SimulationsPage() {
     fetchTrades();
   }, [fetchTrades]);
 
-  const filtered = filterTrades(trades);
+  const filtered = filterByAccount(filterTrades(trades));
   const closedTrades = filtered.filter(
     (t) => t.close_timestamp && t.exit_price !== null
   );

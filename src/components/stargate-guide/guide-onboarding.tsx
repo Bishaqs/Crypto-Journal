@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { useI18n, LOCALES } from "@/lib/i18n";
 import { StargateLogo } from "@/components/stargate-logo";
-import { OnboardingParticles } from "./onboarding-particles";
 
 /* ── Types ───────────────────────────────────────── */
 type OnboardingData = {
@@ -881,9 +880,6 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[100] bg-background overflow-hidden">
-      {/* Particle canvas background */}
-      <OnboardingParticles />
-
       {/* Radial glow behind everything */}
       <motion.div
         className="absolute inset-0 pointer-events-none"

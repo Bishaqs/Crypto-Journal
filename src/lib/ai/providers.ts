@@ -3,9 +3,19 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type Part } from "@google/generative-ai";
 import type { AIProvider, MessageOptions, ProviderId } from "./types";
 import { PROVIDER_CONFIGS, DEFAULT_PROVIDER } from "./config";
+
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+/** Parse a base64 data URI into its mime type and raw data. Returns null for HTTP URLs. */
+function parseDataUri(url: string): { mimeType: string; data: string } | null {
+  const match = url.match(/^data:(image\/[^;]+);base64,(.+)$/);
+  return match ? { mimeType: match[1], data: match[2] } : null;
+}
 
 // ---------------------------------------------------------------------------
 // Anthropic (Claude)
@@ -22,13 +32,35 @@ class AnthropicProvider implements AIProvider {
     return new Anthropic({ apiKey: apiKey || process.env.ANTHROPIC_API_KEY! });
   }
 
+  private buildContent(opts: MessageOptions): string | Anthropic.MessageCreateParams["messages"][0]["content"] {
+    if (!opts.images?.length) return opts.userMessage;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const blocks: any[] = [{ type: "text", text: opts.userMessage }];
+    for (const url of opts.images) {
+      const dataUri = parseDataUri(url);
+      if (dataUri) {
+        blocks.push({
+          type: "image",
+          source: { type: "base64", media_type: dataUri.mimeType, data: dataUri.data },
+        });
+      } else {
+        blocks.push({
+          type: "image",
+          source: { type: "url", url },
+        });
+      }
+    }
+    return blocks;
+  }
+
   async chat(opts: MessageOptions): Promise<string> {
     const client = this.getClient(opts.apiKey);
     const response = await client.messages.create({
       model: opts.model,
       max_tokens: opts.maxTokens,
       system: opts.system,
-      messages: [{ role: "user", content: opts.userMessage }],
+      messages: [{ role: "user", content: this.buildContent(opts) }],
     });
     return response.content
       .filter((block) => block.type === "text")
@@ -42,7 +74,7 @@ class AnthropicProvider implements AIProvider {
       model: opts.model,
       max_tokens: opts.maxTokens,
       system: opts.system,
-      messages: [{ role: "user", content: opts.userMessage }],
+      messages: [{ role: "user", content: this.buildContent(opts) }],
     });
     for await (const event of stream) {
       if (
@@ -70,6 +102,18 @@ class OpenAIProvider implements AIProvider {
     return new OpenAI({ apiKey: apiKey || process.env.OPENAI_API_KEY! });
   }
 
+  private buildContent(opts: MessageOptions): string | OpenAI.ChatCompletionContentPart[] {
+    if (!opts.images?.length) return opts.userMessage;
+
+    const parts: OpenAI.ChatCompletionContentPart[] = [
+      { type: "text", text: opts.userMessage },
+    ];
+    for (const url of opts.images) {
+      parts.push({ type: "image_url", image_url: { url } });
+    }
+    return parts;
+  }
+
   async chat(opts: MessageOptions): Promise<string> {
     const client = this.getClient(opts.apiKey);
     const response = await client.chat.completions.create({
@@ -77,7 +121,7 @@ class OpenAIProvider implements AIProvider {
       max_tokens: opts.maxTokens,
       messages: [
         { role: "system", content: opts.system },
-        { role: "user", content: opts.userMessage },
+        { role: "user", content: this.buildContent(opts) },
       ],
     });
     return response.choices[0]?.message?.content ?? "";
@@ -91,7 +135,7 @@ class OpenAIProvider implements AIProvider {
       stream: true,
       messages: [
         { role: "system", content: opts.system },
-        { role: "user", content: opts.userMessage },
+        { role: "user", content: this.buildContent(opts) },
       ],
     });
     for await (const chunk of stream) {
@@ -116,13 +160,40 @@ class GoogleProvider implements AIProvider {
     return new GoogleGenerativeAI(apiKey || process.env.GOOGLE_AI_API_KEY!);
   }
 
+  /** Build Gemini Part[] with text + images. HTTP URLs are fetched and converted to base64. */
+  private async buildParts(opts: MessageOptions): Promise<string | Part[]> {
+    if (!opts.images?.length) return opts.userMessage;
+
+    const parts: Part[] = [{ text: opts.userMessage }];
+    for (const url of opts.images) {
+      const dataUri = parseDataUri(url);
+      if (dataUri) {
+        parts.push({ inlineData: { mimeType: dataUri.mimeType, data: dataUri.data } });
+      } else {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const buffer = await res.arrayBuffer();
+            const base64 = Buffer.from(buffer).toString("base64");
+            const mimeType = res.headers.get("content-type") || "image/png";
+            parts.push({ inlineData: { mimeType, data: base64 } });
+          }
+        } catch {
+          // Skip images that fail to fetch
+        }
+      }
+    }
+    return parts;
+  }
+
   async chat(opts: MessageOptions): Promise<string> {
     const genAI = this.getClient(opts.apiKey);
     const model = genAI.getGenerativeModel({
       model: opts.model,
       systemInstruction: opts.system,
     });
-    const result = await model.generateContent(opts.userMessage);
+    const content = await this.buildParts(opts);
+    const result = await model.generateContent(content);
     return result.response.text();
   }
 
@@ -132,7 +203,8 @@ class GoogleProvider implements AIProvider {
       model: opts.model,
       systemInstruction: opts.system,
     });
-    const result = await model.generateContentStream(opts.userMessage);
+    const content = await this.buildParts(opts);
+    const result = await model.generateContentStream(content);
     for await (const chunk of result.stream) {
       const text = chunk.text();
       if (text) yield text;

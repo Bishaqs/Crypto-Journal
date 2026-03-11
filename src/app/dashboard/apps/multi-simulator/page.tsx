@@ -7,6 +7,7 @@ import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { calculateTradePnl } from "@/lib/calculations";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import {
   runSimulation,
   type MonteCarloConfig,
@@ -61,6 +62,7 @@ export default function MultiSimulatorPage() {
   const { theme } = useTheme();
   const colors = getChartColors(theme);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const supabase = createClient();
 
   const [tradePnls, setTradePnls] = useState<number[]>([]);
@@ -73,7 +75,7 @@ export default function MultiSimulatorPage() {
     (async () => {
       const { data } = await fetchAllTrades(supabase);
       const trades = ((data as Trade[]) ?? []).length > 0 ? (data as Trade[]) : DEMO_TRADES;
-      const closed = filterTrades(trades).filter((t) => t.close_timestamp && t.exit_price !== null);
+      const closed = filterByAccount(filterTrades(trades)).filter((t) => t.close_timestamp && t.exit_price !== null);
       const pnls = closed.map((t) => t.pnl ?? calculateTradePnl(t) ?? 0);
       setTradePnls(pnls);
       setLoading(false);

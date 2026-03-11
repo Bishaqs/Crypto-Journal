@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import {
   calculateStats,
   calculateAdvancedStats,
@@ -20,6 +21,7 @@ export default function AccountsStatisticsPage() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
 
   const fetchTrades = useCallback(async () => {
     const { data } = await supabase
@@ -38,7 +40,7 @@ export default function AccountsStatisticsPage() {
 
   useEffect(() => { fetchTrades(); }, [fetchTrades]);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const stats = useMemo(() => calculateStats(filtered), [filtered]);
   const adv = useMemo(() => calculateAdvancedStats(filtered), [filtered]);
   const dailyPnl = useMemo(() => calculateDailyPnl(filtered), [filtered]);

@@ -67,6 +67,7 @@ function calcBubblePosition(
   guideAbsY: number,
   align?: "left" | "center",
   targetRect?: { left: number; width: number } | null,
+  spotlightPadding?: number,
 ): { left: number; top: number; tail: "bottom-left" | "bottom-right" | "top-left" | "top-right" } {
   const vw = window.innerWidth;
 
@@ -78,8 +79,8 @@ function calcBubblePosition(
 
   let left: number;
   if (align === "left" && targetRect) {
-    // Anchor bubble to the right edge of the target element (e.g. sidebar drawer)
-    left = targetRect.left + targetRect.width + 8;
+    // Clear the spotlight area: target edge + spotlight padding + visual gap
+    left = targetRect.left + targetRect.width + (spotlightPadding ?? 0) + 16;
   } else {
     left = guideAbsX + GUIDE_SIZE / 2 - BUBBLE_WIDTH / 2;
   }
@@ -114,25 +115,32 @@ function TourCard({
   onNext: () => void;
   onPrev: () => void;
   onSkip: () => void;
-  tail?: "top" | "bottom";
+  tail?: "top" | "bottom" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
 }) {
   const { t } = useI18n();
   const title = step.titleKey ? t(step.titleKey) : step.title;
   const content = step.contentKey ? t(step.contentKey) : step.content;
   const skipLabel = t("tours.skipTour");
 
+  // Parse tail direction
+  const isTop = tail?.startsWith("top");
+  const isBottom = tail?.startsWith("bottom");
+  const isRight = tail?.includes("right");
+  const isLeft = tail?.includes("left") && !isRight;
+  const horizontalClass = isRight ? "right-4" : isLeft ? "left-4" : "left-1/2 -translate-x-1/2";
+
   return (
     <div className="relative">
       {/* Tail pointing toward guide */}
-      {tail === "top" && (
+      {isTop && (
         <div
-          className="absolute -top-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 z-[-1]"
+          className={`absolute -top-[6px] ${horizontalClass} w-3 h-3 rotate-45 z-[-1]`}
           style={{ background: "rgba(15, 23, 42, 0.85)" }}
         />
       )}
-      {tail === "bottom" && (
+      {isBottom && (
         <div
-          className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 z-[-1]"
+          className={`absolute -bottom-[6px] ${horizontalClass} w-3 h-3 rotate-45 z-[-1]`}
           style={{ background: "rgba(15, 23, 42, 0.85)" }}
         />
       )}
@@ -361,8 +369,10 @@ export function StargateGuideCharacter() {
   const [showBubble, setShowBubble] = useState(false);
   const [isCentered, setIsCentered] = useState(false);
   const [showStarWarp, setShowStarWarp] = useState(false);
+  const [pendingFly, setPendingFly] = useState(false);
   const wasCenteredRef = useRef(false);
   const needsTargetRef = useRef(false);
+  const bubbleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [spotlightRect, setSpotlightRect] = useState<{
     left: number;
@@ -387,6 +397,12 @@ export function StargateGuideCharacter() {
 
   // ── Step change: hide bubble and prepare for transition ──
   useEffect(() => {
+    // Clear any pending bubble timer from previous step
+    if (bubbleTimerRef.current) {
+      clearTimeout(bubbleTimerRef.current);
+      bubbleTimerRef.current = null;
+    }
+
     if (!isTourMode || !currentStepDef) {
       needsTargetRef.current = false;
       setShowBubble(false);
@@ -422,6 +438,8 @@ export function StargateGuideCharacter() {
 
       if (currentStepDef.selector) {
         needsTargetRef.current = true;
+        // Hold guide at center position if transitioning from centered to spotlight
+        setPendingFly(wasCenteredRef.current);
       } else {
         // Spotlight with no selector — show at home
         needsTargetRef.current = false;
@@ -459,17 +477,23 @@ export function StargateGuideCharacter() {
       if (needsTargetRef.current) {
         // Initial target arrival — full transition
         needsTargetRef.current = false;
+        setPendingFly(false);
         setIsFlying(true);
         setArrivalKey((k) => k + 1);
-        const timer = setTimeout(() => setShowBubble(true), 350);
-        return () => clearTimeout(timer);
+        // Use ref-based timer — scroll/resize re-triggering stepTarget must NOT cancel this
+        bubbleTimerRef.current = setTimeout(() => {
+          setShowBubble(true);
+          bubbleTimerRef.current = null;
+        }, 350);
       }
       // Resize — position already updated
     } else if (needsTargetRef.current) {
       // Fullscreen with selector — target arrived
       needsTargetRef.current = false;
-      const timer = setTimeout(() => setShowBubble(true), 200);
-      return () => clearTimeout(timer);
+      bubbleTimerRef.current = setTimeout(() => {
+        setShowBubble(true);
+        bubbleTimerRef.current = null;
+      }, 200);
     }
   }, [isTourMode, stepTarget, currentStepDef]);
 
@@ -541,7 +565,7 @@ export function StargateGuideCharacter() {
   const guideAbsX = homeX + flyOffset.x - GUIDE_SIZE / 2;
   const guideAbsY = homeY + flyOffset.y - GUIDE_SIZE / 2;
 
-  const bubblePos = calcBubblePosition(guideAbsX, guideAbsY, currentStepDef?.bubbleAlign, stepTarget?.rect);
+  const bubblePos = calcBubblePosition(guideAbsX, guideAbsY, currentStepDef?.bubbleAlign, stepTarget?.rect, stepTarget?.padding);
   const isLast = tourState.currentStep >= tourState.totalSteps - 1;
 
   return (
@@ -691,7 +715,7 @@ export function StargateGuideCharacter() {
               onNext={nextStep}
               onPrev={prevStep}
               onSkip={skipTour}
-              tail={bubblePos.tail.startsWith("bottom") ? "bottom" : "top"}
+              tail={bubblePos.tail}
             />
           </motion.div>
         )}
@@ -714,7 +738,12 @@ export function StargateGuideCharacter() {
           animate={
             isFlying
               ? { x: flyOffset.x, y: flyOffset.y }
-              : { x: 0, y: 0 }
+              : pendingFly
+                ? {
+                    x: (typeof window !== "undefined" ? window.innerWidth / 2 - GUIDE_SIZE / 2 : 0) - homeX,
+                    y: (typeof window !== "undefined" ? window.innerHeight / 2 - GUIDE_SIZE / 2 : 0) - homeY,
+                  }
+                : { x: 0, y: 0 }
           }
           transition={{
             type: "spring" as const,

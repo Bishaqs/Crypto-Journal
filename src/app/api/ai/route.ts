@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, extractImagesFromNotes } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 
 export async function POST(req: NextRequest) {
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
 
   const model = resolveModel(provider.id, modelId);
   const tradeContext = buildTradeContext(trades, context, notes);
+  const images = notes.length > 0 ? extractImagesFromNotes(notes) : [];
 
   try {
     const text = await provider.chat({
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
       maxTokens: 2048,
       model,
       apiKey,
+      images,
     });
 
     return NextResponse.json({ response: text });

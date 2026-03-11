@@ -6,6 +6,7 @@ import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import {
   calculateStats,
   calculateDailyPnl,
@@ -51,6 +52,7 @@ export default function DashboardPage() {
   const [postTradeData, setPostTradeData] = useState<{ id: string; symbol: string; pnl: number } | null>(null);
   const [deletingTrade, setDeletingTrade] = useState<Trade | null>(null);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { viewMode, setViewModeTo } = useTheme();
   const { t } = useI18n();
   const { equipped, definitions, getDefinition } = useCosmetics();
@@ -99,7 +101,7 @@ export default function DashboardPage() {
     fetchTrades();
   }, [fetchTrades]);
 
-  const filteredTrades = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filteredTrades = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
 
   const stats = useMemo(() => calculateStats(filteredTrades), [filteredTrades]);
   const dailyPnl = useMemo(() => calculateDailyPnl(filteredTrades), [filteredTrades]);

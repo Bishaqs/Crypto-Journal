@@ -39,6 +39,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Held through the pullback without panicking", improve: "Could have added to the position at the retest" },
     stop_loss: 95500, profit_target: 98500, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: 95800, price_mfe: 98200, mfe_timestamp: hoursAfter(daysAgo(14), 5), mae_timestamp: hoursAfter(daysAgo(14), 2),
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(14),
   },
   {
@@ -63,6 +65,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Respected the stop loss", improve: "Wait for candle close confirmation before entry" },
     stop_loss: 3350, profit_target: 3550, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: 3290, price_mfe: 3480, mfe_timestamp: hoursAfter(daysAgo(13), 1), mae_timestamp: hoursAfter(daysAgo(13), 3),
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(13),
   },
   {
@@ -87,6 +91,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Great entry timing on the pullback", improve: "Could have trailed stop tighter" },
     stop_loss: 180, profit_target: 200, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: 183.2, price_mfe: 201.5, mfe_timestamp: hoursAfter(daysAgo(11), 7), mae_timestamp: hoursAfter(daysAgo(11), 1),
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(11),
   },
   {
@@ -111,6 +117,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Patient entry at the double top", improve: "Nothing major" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(10),
   },
   {
@@ -135,6 +143,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Cut the loss quickly", improve: "Check BTC trend before entering alts" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(9),
   },
   {
@@ -159,6 +169,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Waited for the 200MA reclaim confirmation", improve: "Size was a bit small for the confidence level" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: 3250, price_mfe: 3490, mfe_timestamp: hoursAfter(daysAgo(7), 10), mae_timestamp: hoursAfter(daysAgo(7), 3),
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(7),
   },
   {
@@ -183,6 +195,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Good volume confirmation", improve: "Could have let it run a bit more" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(6),
   },
   {
@@ -207,6 +221,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Respected the stop", improve: "Don't fight the trend. Wait for confirmation." },
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(5),
   },
   {
@@ -231,6 +247,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Took profits instead of getting greedy", improve: "This wasn't on my plan — got lucky" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(3),
   },
   {
@@ -255,6 +273,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Perfect execution of the plan", improve: "Nothing — this is how every trade should go" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: 205.8, price_mfe: 193.1, mfe_timestamp: hoursAfter(daysAgo(2), 3), mae_timestamp: hoursAfter(daysAgo(2), 1),
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(2),
   },
   {
@@ -279,6 +299,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Let the winner run", improve: "Could have scaled in more aggressively" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(1),
   },
   {
@@ -303,6 +325,8 @@ export const DEMO_TRADES: Trade[] = [
     review: null,
     stop_loss: null, profit_target: null, sector: null, trade_source: "cex", chain: null, dex_protocol: null, tx_hash: null, wallet_address: null, gas_fee: 0, gas_fee_native: 0,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(0),
   },
   // DEX trades
@@ -328,6 +352,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "Yes", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Used limit order on DEX", improve: "Could have split across pools for less slippage" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "dex", chain: "base", dex_protocol: "Uniswap V3", tx_hash: "0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890", wallet_address: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD38", gas_fee: 0.12, gas_fee_native: 0.00004,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(4),
   },
   {
@@ -352,6 +378,8 @@ export const DEMO_TRADES: Trade[] = [
     review: { followed_entry_rules: "No", followed_exit_rules: "Yes", moved_stop: "No", did_well: "Cut the loss", improve: "Set max slippage tolerance. Check for MEV before swapping large amounts" },
     stop_loss: null, profit_target: null, sector: null, trade_source: "dex", chain: "solana", dex_protocol: "Jupiter", tx_hash: "5KtPn1LGuxhFiwjxErkxTb3XwEHgyQSRTAoKJKPv8sFBcrXAhVcBmR1wVNFRXuFJZWToMh", wallet_address: "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", gas_fee: 0.008, gas_fee_native: 0.000005,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+    broker_name: null,
+    broker_order_id: null,
     created_at: daysAgo(3),
   },
 ];

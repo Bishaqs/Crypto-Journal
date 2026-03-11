@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { groupTradesByTag } from "@/lib/trade-grouping";
 import { GroupTable } from "@/components/dashboard/group-table";
 import { useTheme } from "@/lib/theme-context";
@@ -27,6 +28,7 @@ export default function TagGroupsStatisticsPage() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
 
@@ -47,7 +49,7 @@ export default function TagGroupsStatisticsPage() {
 
   useEffect(() => { fetchTrades(); }, [fetchTrades]);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const tagGroups = useMemo(() => groupTradesByTag(filtered), [filtered]);
 
   const best = tagGroups[0];

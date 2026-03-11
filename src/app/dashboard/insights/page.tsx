@@ -8,6 +8,7 @@ import { DemoBanner } from "@/components/demo-banner";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import {
@@ -66,6 +67,7 @@ export default function InsightsPage() {
   const [usingDemo, setUsingDemo] = useState(false);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { theme, viewMode } = useTheme();
   const colors = getChartColors(theme);
   const chartTooltipStyle = {
@@ -96,7 +98,7 @@ export default function InsightsPage() {
     fetchTrades();
   }, [fetchTrades]);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const insights = useMemo(() => generateBehavioralInsights(filtered), [filtered]);
   const emotionData = useMemo(() => getEmotionPnlData(filtered), [filtered]);
   const confidenceData = useMemo(() => getConfidencePnlData(filtered), [filtered]);

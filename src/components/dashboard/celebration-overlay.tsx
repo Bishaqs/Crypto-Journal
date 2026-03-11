@@ -5,6 +5,8 @@ import { Trophy, ArrowUp, Flame, Star, Target } from "lucide-react";
 import { useLevel } from "@/lib/xp";
 import { useAchievements, ACHIEVEMENT_MAP, TIER_META } from "@/lib/achievements";
 import { useChallenges, CHALLENGE_MAP } from "@/lib/challenges";
+import { useTour } from "@/lib/tour-context";
+import { isTourComplete } from "@/lib/onboarding";
 import type { AchievementTier } from "@/lib/achievements";
 
 // ── Particle System ─────────────────────────────────────────────────
@@ -232,11 +234,19 @@ function LevelUpCelebration() {
 
 function ChallengeCompleteToast() {
   const { recentCompletion, dismissCompletion } = useChallenges();
+  const { state: tourState } = useTour();
   const [visible, setVisible] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
 
   useEffect(() => {
     if (recentCompletion) {
+      // Suppress during active tour OR if welcome tour hasn't been completed yet
+      // (synchronous localStorage check avoids timing issues with reactive state)
+      if (tourState.isActive || !isTourComplete("welcome")) {
+        dismissCompletion();
+        return;
+      }
+
       setVisible(true);
       setShowParticles(true);
 
@@ -250,7 +260,7 @@ function ChallengeCompleteToast() {
 
       return () => clearTimeout(hideTimer);
     }
-  }, [recentCompletion, dismissCompletion]);
+  }, [recentCompletion, dismissCompletion, tourState.isActive]);
 
   if (!recentCompletion) return null;
 

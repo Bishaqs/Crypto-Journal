@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme-context";
 import { DateRangeProvider } from "@/lib/date-range-context";
+import { AccountProvider } from "@/lib/account-context";
 import { I18nProvider } from "@/lib/i18n";
 import "./globals.css";
 
@@ -39,7 +40,9 @@ export default function RootLayout({
       >
         <I18nProvider>
           <ThemeProvider>
-            <DateRangeProvider>{children}</DateRangeProvider>
+            <DateRangeProvider>
+              <AccountProvider>{children}</AccountProvider>
+            </DateRangeProvider>
           </ThemeProvider>
         </I18nProvider>
       </body>
