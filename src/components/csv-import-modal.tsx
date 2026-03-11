@@ -60,6 +60,7 @@ const EXCHANGE_PRESETS: ExchangePreset[] = [
 export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
   const [step, setStep] = useState<Step>("upload");
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [fileName, setFileName] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [selectedExchange, setSelectedExchange] = useState("");
   const [importProgress, setImportProgress] = useState(0);
@@ -77,6 +78,7 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
   const processFile = useCallback(async (file: File) => {
     if (!isAcceptedFileType(file.name)) return;
     try {
+      setFileName(file.name);
       const { csvText } = await parseFileToCSV(file);
       const validationResult = validateImportData(csvText);
       setResult(validationResult);
@@ -104,6 +106,21 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
     let success = 0;
     let failed = 0;
 
+    // Create batch record
+    let batchId: string | null = null;
+    const { data: batchData } = await supabase
+      .from("import_batches")
+      .insert({
+        filename: fileName || null,
+        exchange_preset: selectedExchange || null,
+        detected_format: result.detectedFormat || null,
+        target_table: "trades",
+        total_rows: result.totalRows,
+      })
+      .select("id")
+      .single();
+    if (batchData) batchId = batchData.id;
+
     const allPayloads = result.validRows.map((r) => r.parsed!);
 
     // Dedup: fetch ALL existing trades (paginated past 1k limit) and skip duplicates
@@ -126,6 +143,13 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
     const skipped = allPayloads.length - payloads.length;
     setSkippedCount(skipped);
 
+    // Attach batch ID to each payload
+    if (batchId) {
+      for (const p of payloads) {
+        (p as Record<string, unknown>).import_batch_id = batchId;
+      }
+    }
+
     // Batch insert in chunks of 20
     const chunks: Record<string, unknown>[][] = [];
     for (let i = 0; i < payloads.length; i += 20) {
@@ -142,6 +166,14 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
       setImportProgress(Math.round(((i + 1) / chunks.length) * 100));
       setImportedCount(success);
       setFailedCount(failed);
+    }
+
+    // Update batch with final counts
+    if (batchId) {
+      await supabase
+        .from("import_batches")
+        .update({ imported_count: success, skipped_count: skipped, failed_count: failed })
+        .eq("id", batchId);
     }
 
     // Compute import summary from parsed payloads
