@@ -28,8 +28,9 @@ type ImportBatch = {
 export function ManageImportsTab() {
   const [loading, setLoading] = useState(true);
   const [batches, setBatches] = useState<ImportBatch[]>([]);
-  const [untrackedCount, setUntrackedCount] = useState(0);
+  const [untrackedByTable, setUntrackedByTable] = useState<Record<string, number>>({});
   const [totalCount, setTotalCount] = useState(0);
+  const [activeFilter, setActiveFilter] = useState<TargetTable | "all">("all");
   const [tableCounts, setTableCounts] = useState<{ id: string; label: string; count: number }[]>([]);
   const [deletingBatchId, setDeletingBatchId] = useState<string | null>(null);
   const [confirmBatchId, setConfirmBatchId] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export function ManageImportsTab() {
 
       // Count total trades across all tables
       let total = 0;
-      let untracked = 0;
+      const untrackedMap: Record<string, number> = {};
       const perTable: { id: string; label: string; count: number }[] = [];
       for (const t of TABLES) {
         const { count } = await supabase
@@ -73,10 +74,10 @@ export function ManageImportsTab() {
           .from(t.id)
           .select("*", { count: "exact", head: true })
           .is("import_batch_id", null);
-        untracked += nullCount ?? 0;
+        untrackedMap[t.id] = nullCount ?? 0;
       }
       setTotalCount(total);
-      setUntrackedCount(untracked);
+      setUntrackedByTable(untrackedMap);
       setTableCounts(perTable);
     } catch {
       setError("Failed to load import data");
@@ -155,13 +156,16 @@ export function ManageImportsTab() {
   async function handleDeleteUntracked() {
     setError(null);
     try {
-      for (const t of TABLES) {
+      const tablesToDelete = activeFilter === "all"
+        ? TABLES
+        : TABLES.filter((t) => t.id === activeFilter);
+      for (const t of tablesToDelete) {
         await supabase
           .from(t.id)
           .delete()
           .is("import_batch_id", null);
       }
-      setSuccessMsg(`Deleted ${untrackedCount.toLocaleString()} untracked trades`);
+      setSuccessMsg(`Deleted ${displayedUntracked.toLocaleString()} untracked trades`);
       await fetchData();
     } catch {
       setError("Failed to delete untracked trades");
@@ -174,6 +178,20 @@ export function ManageImportsTab() {
     commodity_trades: "Commodities",
     forex_trades: "Forex",
   };
+
+  // Derived filtered values
+  const filteredBatches = activeFilter === "all"
+    ? batches
+    : batches.filter((b) => b.target_table === activeFilter);
+
+  const displayedUntracked = activeFilter === "all"
+    ? Object.values(untrackedByTable).reduce((s, n) => s + n, 0)
+    : (untrackedByTable[activeFilter] ?? 0);
+
+  const FILTER_TABS: { id: TargetTable | "all"; label: string }[] = [
+    { id: "all", label: "All" },
+    ...TABLES.map((t) => ({ id: t.id, label: TABLE_LABELS[t.id] || t.label })),
+  ];
 
   return (
     <div className="space-y-5">
@@ -198,17 +216,38 @@ export function ManageImportsTab() {
           </div>
         )}
 
+        {/* Filter tabs */}
+        {!loading && batches.length > 0 && (
+          <div className="flex gap-1.5 mb-4">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveFilter(tab.id)}
+                className={`text-[10px] px-3 py-1.5 rounded-full font-medium transition-all ${
+                  activeFilter === tab.id
+                    ? "bg-accent text-background"
+                    : "bg-surface border border-border text-muted hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center gap-2 text-muted text-sm py-4">
             <Loader2 size={16} className="animate-spin" />
             Loading...
           </div>
-        ) : batches.length === 0 && untrackedCount === 0 ? (
+        ) : batches.length === 0 && displayedUntracked === 0 ? (
           <p className="text-sm text-muted py-4">No imports found. Upload a CSV to get started.</p>
+        ) : filteredBatches.length === 0 && displayedUntracked === 0 ? (
+          <p className="text-sm text-muted py-4">No imports for this asset type.</p>
         ) : (
           <div className="space-y-3">
             {/* Batch list */}
-            {batches.map((batch) => (
+            {filteredBatches.map((batch) => (
               <div key={batch.id} className="rounded-xl bg-surface border border-border/50 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -242,7 +281,7 @@ export function ManageImportsTab() {
                       {batch.imported_count.toLocaleString()} trades
                     </p>
                     <p className="text-[10px] text-muted">
-                      {new Date(batch.created_at).toLocaleDateString()}
+                      {new Date(batch.created_at).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 </div>
@@ -290,7 +329,7 @@ export function ManageImportsTab() {
             ))}
 
             {/* Untracked trades */}
-            {untrackedCount > 0 && (
+            {displayedUntracked > 0 && (
               <div className="rounded-xl bg-surface border border-border/50 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -302,7 +341,7 @@ export function ManageImportsTab() {
                       <p className="text-[10px] text-muted">Trades imported before batch tracking was added</p>
                     </div>
                   </div>
-                  <p className="text-sm font-semibold text-muted">{untrackedCount.toLocaleString()} trades</p>
+                  <p className="text-sm font-semibold text-muted">{displayedUntracked.toLocaleString()} trades</p>
                 </div>
                 <div className="flex justify-end mt-3 pt-3 border-t border-border/30">
                   <button

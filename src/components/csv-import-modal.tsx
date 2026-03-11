@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { validateImportData, ImportResult } from "@/lib/csv-import";
 import { parseFileToCSV, isAcceptedFileType } from "@/lib/file-parser";
+import { getDedupSelect, getExistingSig, getPayloadSig } from "@/lib/import-dedup";
 import { calculateStats, detectTiltSignals, type TiltSignal } from "@/lib/calculations";
 import type { Trade, DashboardStats } from "@/lib/types";
 import {
@@ -106,11 +107,20 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
     let success = 0;
     let failed = 0;
 
-    // Create batch record
+    // Get authenticated user for batch record
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setStep("done");
+      setFailedCount(result.validRows.length);
+      return;
+    }
+
+    // Create batch record (this modal is crypto dashboard only — always targets "trades")
     let batchId: string | null = null;
     const { data: batchData } = await supabase
       .from("import_batches")
       .insert({
+        user_id: user.id,
         filename: fileName || null,
         exchange_preset: selectedExchange || null,
         detected_format: result.detectedFormat || null,
@@ -124,21 +134,18 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
     const allPayloads = result.validRows.map((r) => r.parsed!);
 
     // Dedup: fetch ALL existing trades (paginated past 1k limit) and skip duplicates
-    const { data: existing } = await fetchAllTrades(
-      supabase,
-      "symbol, position, entry_price, quantity, open_timestamp",
-    );
+    const dedupSelect = getDedupSelect("trades");
+    const { data: existing } = await fetchAllTrades(supabase, dedupSelect);
 
     const existingSet = new Set(
       (existing ?? []).map((t: Record<string, unknown>) =>
-        `${t.symbol}|${t.position}|${t.entry_price}|${t.quantity}|${t.open_timestamp}`,
+        getExistingSig(t, "trades"),
       ),
     );
 
-    const payloads = allPayloads.filter((p) => {
-      const sig = `${p.symbol}|${p.position}|${p.entry_price}|${p.quantity}|${p.open_timestamp}`;
-      return !existingSet.has(sig);
-    });
+    const payloads = allPayloads.filter(
+      (p) => !existingSet.has(getPayloadSig(p as Record<string, unknown>)),
+    );
 
     const skipped = allPayloads.length - payloads.length;
     setSkippedCount(skipped);

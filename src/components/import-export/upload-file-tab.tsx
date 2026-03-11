@@ -4,6 +4,8 @@ import { useState, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { validateImportData, type ImportResult } from "@/lib/csv-import";
 import { parseFileToCSV, isAcceptedFileType } from "@/lib/file-parser";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
+import { getDedupSelect, getExistingSig, getPayloadSig } from "@/lib/import-dedup";
 import {
   Upload,
   FileText,
@@ -32,6 +34,8 @@ export function UploadFileTab() {
   const [importedCount, setImportedCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
+  const [skippedCount, setSkippedCount] = useState(0);
+  const [fileName, setFileName] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [timezone, setTimezone] = useState("UTC");
   const [currency, setCurrency] = useState("USD");
@@ -50,6 +54,7 @@ export function UploadFileTab() {
   const processFile = useCallback(async (file: File) => {
     if (!isAcceptedFileType(file.name)) return;
     try {
+      setFileName(file.name);
       const { csvText } = await parseFileToCSV(file);
       const validationResult = validateImportData(csvText);
       setResult(validationResult);
@@ -77,8 +82,55 @@ export function UploadFileTab() {
     let success = 0;
     let failed = 0;
 
+    // 1. Get authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setStep("done");
+      setFailedCount(result.validRows.length);
+      return;
+    }
+
+    // 2. Create batch record
+    let batchId: string | null = null;
+    const { data: batchData } = await supabase
+      .from("import_batches")
+      .insert({
+        user_id: user.id,
+        filename: fileName || null,
+        exchange_preset: selectedBroker || null,
+        detected_format: result.detectedFormat || null,
+        target_table: targetTable,
+        total_rows: result.totalRows,
+      })
+      .select("id")
+      .single();
+    if (batchData) batchId = batchData.id;
+
+    // 3. Dedup: fetch existing trades and skip duplicates
+    const dedupSelect = getDedupSelect(targetTable);
+    const { data: existing } = await fetchAllTrades(supabase, dedupSelect, targetTable);
+    const existingSet = new Set(
+      (existing ?? []).map((t: Record<string, unknown>) =>
+        getExistingSig(t, targetTable),
+      ),
+    );
+
+    const allPayloads = result.validRows.map((r) => r.parsed!);
+    const payloads = allPayloads.filter(
+      (p) => !existingSet.has(getPayloadSig(p as Record<string, unknown>)),
+    );
+    const skipped = allPayloads.length - payloads.length;
+    setSkippedCount(skipped);
+
+    // 4. Attach batch ID
+    if (batchId) {
+      for (const p of payloads) {
+        (p as Record<string, unknown>).import_batch_id = batchId;
+      }
+    }
+
+    // 5. Chunked insert
     const chunks: Record<string, unknown>[][] = [];
-    const payloads = result.validRows.map((r) => r.parsed!);
     for (let i = 0; i < payloads.length; i += 20) {
       chunks.push(payloads.slice(i, i + 20));
     }
@@ -95,6 +147,14 @@ export function UploadFileTab() {
       setFailedCount(failed);
     }
 
+    // 6. Update batch with final counts
+    if (batchId) {
+      await supabase
+        .from("import_batches")
+        .update({ imported_count: success, skipped_count: skipped, failed_count: failed })
+        .eq("id", batchId);
+    }
+
     setStep("done");
   }
 
@@ -104,6 +164,8 @@ export function UploadFileTab() {
     setImportProgress(0);
     setImportedCount(0);
     setFailedCount(0);
+    setSkippedCount(0);
+    setFileName("");
     setShowErrors(false);
   }
 
@@ -367,6 +429,11 @@ export function UploadFileTab() {
             <p className="text-sm text-muted mb-1">
               {importedCount} trade{importedCount !== 1 ? "s" : ""} imported successfully
             </p>
+            {skippedCount > 0 && (
+              <p className="text-xs text-muted mb-1">
+                {skippedCount} duplicate{skippedCount !== 1 ? "s" : ""} skipped
+              </p>
+            )}
             {failedCount > 0 && (
               <p className="text-sm text-loss flex items-center justify-center gap-1.5 mb-4">
                 <AlertTriangle size={14} />
