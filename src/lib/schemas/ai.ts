@@ -41,7 +41,7 @@ const JournalNoteSchema = z.object({
 // AI chat request body (used by /api/ai and /api/ai/stream)
 export const AiChatSchema = z.object({
   message: z.string().min(1, "Message is required").max(5000, "Message must be under 5000 characters"),
-  trades: z.array(TradeSchema).max(2000).optional().default([]),
+  trades: z.array(TradeSchema).max(10000).optional().default([]),
   notes: z.array(JournalNoteSchema).max(500).optional().default([]),
   context: z.object({
     weeklyReport: z.string().optional(),
