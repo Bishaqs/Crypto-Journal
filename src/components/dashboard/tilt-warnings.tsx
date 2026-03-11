@@ -1,68 +1,19 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useMemo } from "react";
 import { TiltSignal } from "@/lib/calculations";
 import { AlertTriangle, ShieldAlert, X, ChevronDown, ChevronRight, CheckCheck } from "lucide-react";
-
-const LS_KEY = "stargate-dismissed-tilt";
-
-function getFingerprint(signal: TiltSignal): string {
-  return `${signal.type}-${[...signal.trades].sort().join(",")}`;
-}
-
-function getDismissed(): Set<string> {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function saveDismissed(set: Set<string>) {
-  localStorage.setItem(LS_KEY, JSON.stringify([...set]));
-}
+import { useDismissedTilt } from "@/lib/use-dismissed-tilt";
+import { useState } from "react";
 
 export function TiltWarnings({ signals }: { signals: TiltSignal[] }) {
-  const [dismissed, setDismissed] = useState<Set<string>>(() => getDismissed());
+  const { isDismissed, dismiss, dismissAll } = useDismissedTilt();
   const [expanded, setExpanded] = useState(false);
 
   const visible = useMemo(
-    () => signals.filter((s) => !dismissed.has(getFingerprint(s))),
-    [signals, dismissed],
+    () => signals.filter((s) => !isDismissed(s.type)),
+    [signals, isDismissed],
   );
-
-  // Prune stale fingerprints that no longer match any signal
-  useEffect(() => {
-    const current = new Set(signals.map(getFingerprint));
-    const stored = getDismissed();
-    let pruned = false;
-    for (const fp of stored) {
-      if (!current.has(fp)) {
-        stored.delete(fp);
-        pruned = true;
-      }
-    }
-    if (pruned) saveDismissed(stored);
-  }, [signals]);
-
-  const dismiss = useCallback((signal: TiltSignal) => {
-    setDismissed((prev) => {
-      const next = new Set(prev);
-      next.add(getFingerprint(signal));
-      saveDismissed(next);
-      return next;
-    });
-  }, []);
-
-  const dismissAll = useCallback(() => {
-    setDismissed((prev) => {
-      const next = new Set(prev);
-      for (const s of visible) next.add(getFingerprint(s));
-      saveDismissed(next);
-      return next;
-    });
-  }, [visible]);
 
   if (visible.length === 0) return null;
 
@@ -98,7 +49,7 @@ export function TiltWarnings({ signals }: { signals: TiltSignal[] }) {
           )}
         </button>
         <button
-          onClick={dismissAll}
+          onClick={() => dismissAll(visible.map((s) => s.type))}
           className="flex items-center gap-1.5 text-[10px] text-muted hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
         >
           <CheckCheck size={12} />
@@ -108,9 +59,9 @@ export function TiltWarnings({ signals }: { signals: TiltSignal[] }) {
 
       {/* Expanded individual alerts */}
       {expanded &&
-        visible.map((signal) => (
+        visible.map((signal, i) => (
           <div
-            key={getFingerprint(signal)}
+            key={`${signal.type}-${i}`}
             className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${
               signal.severity === "danger"
                 ? "bg-loss/5 border-loss/20"
@@ -135,7 +86,7 @@ export function TiltWarnings({ signals }: { signals: TiltSignal[] }) {
               <p className="text-xs text-muted mt-0.5">{signal.message}</p>
             </div>
             <button
-              onClick={() => dismiss(signal)}
+              onClick={() => dismiss(signal.type)}
               className="p-1 text-muted hover:text-foreground transition-colors shrink-0"
             >
               <X size={14} />
