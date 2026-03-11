@@ -30,6 +30,7 @@ export function ManageImportsTab() {
   const [batches, setBatches] = useState<ImportBatch[]>([]);
   const [untrackedCount, setUntrackedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [tableCounts, setTableCounts] = useState<{ id: string; label: string; count: number }[]>([]);
   const [deletingBatchId, setDeletingBatchId] = useState<string | null>(null);
   const [confirmBatchId, setConfirmBatchId] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
@@ -58,11 +59,14 @@ export function ManageImportsTab() {
       // Count total trades across all tables
       let total = 0;
       let untracked = 0;
+      const perTable: { id: string; label: string; count: number }[] = [];
       for (const t of TABLES) {
         const { count } = await supabase
           .from(t.id)
           .select("*", { count: "exact", head: true });
-        total += count ?? 0;
+        const c = count ?? 0;
+        total += c;
+        perTable.push({ id: t.id, label: t.label, count: c });
 
         // Count trades without a batch (pre-existing / untracked)
         const { count: nullCount } = await supabase
@@ -73,6 +77,7 @@ export function ManageImportsTab() {
       }
       setTotalCount(total);
       setUntrackedCount(untracked);
+      setTableCounts(perTable);
     } catch {
       setError("Failed to load import data");
     } finally {
@@ -178,9 +183,20 @@ export function ManageImportsTab() {
           <Package size={16} className="text-accent" />
           Import History
         </h3>
-        <p className="text-xs text-muted mb-4">
+        <p className="text-xs text-muted mb-3">
           {totalCount.toLocaleString()} total trades across all tables.
         </p>
+
+        {!loading && tableCounts.some((t) => t.count > 0) && (
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {tableCounts.map((t) => (
+              <div key={t.id} className="flex items-center justify-between rounded-lg bg-surface/50 border border-border/30 px-3 py-2">
+                <span className="text-xs text-muted">{t.label}</span>
+                <span className="text-xs font-semibold text-foreground">{t.count.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <div className="flex items-center gap-2 text-muted text-sm py-4">
