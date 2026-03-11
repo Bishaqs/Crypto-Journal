@@ -8,26 +8,6 @@ type GateStep = "loading" | "onboarding" | "transitioning" | "done";
 // Bump this when onboarding steps change to re-trigger for existing users
 const ONBOARDING_VERSION = "3";
 
-const ONBOARDING_KEYS = [
-  "stargate-onboarded",
-  "stargate-onboarding-version",
-  "stargate-display-name",
-  "stargate-experience-level",
-  "stargate-account-type",
-  "stargate-broker",
-  "stargate-instruments",
-  "stargate-goals",
-  "stargate-risk-tolerance",
-  "stargate-preferred-analytics",
-  "stargate-referral",
-  "stargate-getting-started-dismissed",
-  "stargate-started-first-trade",
-  "stargate-started-first-journal",
-  "stargate-started-try-ai",
-  "stargate-started-import-trades",
-  "stargate-tour-welcome",
-];
-
 export function OnboardingGate({ userId, isReturningUser }: { userId?: string; isReturningUser?: boolean }) {
   const [step, setStep] = useState<GateStep>("loading");
 
@@ -42,11 +22,10 @@ export function OnboardingGate({ userId, isReturningUser }: { userId?: string; i
           localStorage.setItem("stargate-onboarding-version", ONBOARDING_VERSION);
           localStorage.setItem("stargate-tour-welcome", "true");
         } else {
-          // Truly new user — clear everything for fresh experience
-          ONBOARDING_KEYS.forEach((k) => localStorage.removeItem(k));
+          // Truly new user — clear ALL stargate keys for fresh experience
           for (let i = localStorage.length - 1; i >= 0; i--) {
             const key = localStorage.key(i);
-            if (key && key.startsWith("stargate-tour-")) {
+            if (key && key.startsWith("stargate-") && key !== "stargate-current-user") {
               localStorage.removeItem(key);
             }
           }

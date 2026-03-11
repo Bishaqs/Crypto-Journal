@@ -89,16 +89,22 @@ export async function POST(req: NextRequest) {
   }
 
   // Log the redemption
-  await admin.from("discount_code_redemptions").insert({
+  const { error: redeemErr } = await admin.from("discount_code_redemptions").insert({
     discount_code_id: discountCode.id,
     user_id: user.id,
   });
 
-  // Increment current_uses
-  await admin
-    .from("discount_codes")
-    .update({ current_uses: discountCode.current_uses + 1 })
-    .eq("id", discountCode.id);
+  if (redeemErr) {
+    console.error("[discount/apply] redemption log failed:", redeemErr.message);
+    return NextResponse.json({ error: "Failed to process redemption" }, { status: 500 });
+  }
+
+  // Atomic increment to prevent race condition with concurrent redemptions
+  await admin.rpc("increment_counter", {
+    table_name: "discount_codes",
+    row_id: discountCode.id,
+    column_name: "current_uses",
+  });
 
   return NextResponse.json({
     success: true,

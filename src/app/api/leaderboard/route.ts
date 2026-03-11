@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const UpdateProfileSchema = z.object({
   display_name: z.string().trim().min(2).max(30),
   is_public: z.boolean().optional().default(true),

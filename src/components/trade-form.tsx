@@ -8,11 +8,11 @@ import { calculateTradePnl } from "@/lib/calculations";
 import { Trade, Chain, DEX_PROTOCOLS, CHAINS } from "@/lib/types";
 import { X, Wallet, Building2, Trash2 } from "lucide-react";
 import { EmotionPicker, ConfidenceSlider, SetupTypePicker, ProcessScoreInput } from "./psychology-inputs";
+import { PreTradeMindset } from "./pre-trade-mindset";
 import { PreTradeChecklist } from "./pre-trade-checklist";
 import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
 import { getCustomTagPresets } from "@/lib/tag-manager";
-import { checkFeatureAccess, type SubscriptionTier } from "@/lib/use-subscription";
 
 const NARRATIVE_OPTIONS = [
   "AI", "Memecoin", "RWA", "DeFi", "L2/Infra", "BTC ETF",
@@ -93,28 +93,6 @@ export function TradeForm({
     setSaving(true);
 
     try {
-      // Free tier: 2 trades per week limit
-      if (!editTrade) {
-        try {
-          const raw = localStorage.getItem("stargate-subscription-cache");
-          const tier: SubscriptionTier = raw ? (JSON.parse(raw).data?.tier ?? "free") : "free";
-          if (!checkFeatureAccess(tier, "unlimited-trades")) {
-            const now = new Date();
-            const weekStart = new Date(now);
-            weekStart.setDate(now.getDate() - now.getDay());
-            weekStart.setHours(0, 0, 0, 0);
-            const { count } = await supabase
-              .from("trades")
-              .select("*", { count: "exact", head: true })
-              .gte("created_at", weekStart.toISOString());
-            if ((count ?? 0) >= 2) {
-              setErrors({ symbol: "Free tier is limited to 2 trades per week. Upgrade to Pro for unlimited trades." });
-              return;
-            }
-          }
-        } catch {}
-      }
-
       const formData = new FormData(e.currentTarget);
       const raw = {
         symbol: formData.get("symbol") as string,
@@ -293,6 +271,9 @@ export function TradeForm({
       )}
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* Pre-trade mindset (collapsible) */}
+          <PreTradeMindset />
+
           {/* Trade Source Toggle: CEX / DEX */}
           <div>
             <label className="block text-xs text-muted mb-1.5">Trade Source</label>

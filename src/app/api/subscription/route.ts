@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const FREE_RESPONSE = {
   tier: "free" as const,
   is_owner: false,
