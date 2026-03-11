@@ -15,6 +15,7 @@ export function AddConnectionTab() {
   const [apiSecret, setApiSecret] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  const [passphrase, setPassphrase] = useState("");
   const [targetTable, setTargetTable] = useState<TargetTable>("trades");
   const [syncFrequency, setSyncFrequency] = useState<SyncFrequency>("manual");
   const [timezone, setTimezone] = useState("UTC");
@@ -47,6 +48,7 @@ export function AddConnectionTab() {
           api_key: apiKey,
           api_secret: apiSecret,
           broker_name: BROKER_INSTRUCTIONS.find((b) => b.brokerId === broker)?.brokerName ?? broker,
+          passphrase: passphrase || undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -81,6 +83,7 @@ export function AddConnectionTab() {
           account_label: accountLabel || null,
           api_key: apiKey,
           api_secret: apiSecret,
+          passphrase: passphrase || undefined,
           target_table: targetTable,
           sync_frequency: syncFrequency,
           timezone,
@@ -100,6 +103,7 @@ export function AddConnectionTab() {
       setAccountLabel("");
       setApiKey("");
       setApiSecret("");
+      setPassphrase("");
       setTestStatus("idle");
       setTimeout(() => setSuccess(false), 4000);
     } catch {
@@ -220,6 +224,21 @@ export function AddConnectionTab() {
               </button>
             </div>
           </div>
+
+          {/* Passphrase (Bitget) */}
+          {broker === "bitget" && (
+            <div>
+              <p className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-2">API Passphrase</p>
+              <input
+                type="password"
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
+                placeholder="Enter the passphrase you set when creating the API key"
+                className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder:text-muted/40 font-mono"
+              />
+              <p className="text-[10px] text-muted mt-1">Required for Bitget — this is the passphrase you chose during API key creation.</p>
+            </div>
+          )}
 
           {/* Test connection */}
           <div className="flex items-center gap-3">

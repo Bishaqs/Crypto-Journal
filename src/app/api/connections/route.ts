@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
-import { randomBytes, createCipheriv } from "crypto";
+import { encrypt } from "@/lib/broker-sync/crypto";
 
 export const dynamic = "force-dynamic";
-
-const ENCRYPTION_KEY = process.env.CREDENTIALS_ENCRYPTION_KEY;
 
 const ConnectionSchema = z.object({
   broker_name: z.string().min(1),
@@ -14,24 +12,12 @@ const ConnectionSchema = z.object({
   account_label: z.string().nullable().optional(),
   api_key: z.string().min(1),
   api_secret: z.string().min(1),
+  passphrase: z.string().optional(),
   target_table: z.enum(["trades", "stock_trades", "commodity_trades", "forex_trades"]).default("trades"),
   sync_frequency: z.enum(["manual", "hourly", "daily", "weekly"]).default("manual"),
   timezone: z.string().default("UTC"),
   currency: z.string().default("USD"),
 });
-
-function encrypt(text: string): { encrypted: string; iv: string } {
-  if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 32) {
-    // Fallback for development — store a placeholder
-    return { encrypted: Buffer.from(text).toString("base64"), iv: "dev" };
-  }
-  const key = Buffer.from(ENCRYPTION_KEY.slice(0, 32), "utf-8");
-  const iv = randomBytes(16);
-  const cipher = createCipheriv("aes-256-cbc", key, iv);
-  let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  return { encrypted, iv: iv.toString("hex") };
-}
 
 // GET: List user's connections (without decrypted keys)
 export async function GET() {
@@ -82,9 +68,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  // Encrypt credentials
+  // Encrypt each credential with its own IV
   const encryptedKey = encrypt(parsed.api_key);
   const encryptedSecret = encrypt(parsed.api_secret);
+  const encryptedPassphrase = parsed.passphrase ? encrypt(parsed.passphrase) : null;
 
   const { data, error } = await supabase
     .from("broker_connections")
@@ -96,6 +83,9 @@ export async function POST(req: NextRequest) {
       encrypted_api_key: encryptedKey.encrypted,
       encrypted_api_secret: encryptedSecret.encrypted,
       encryption_iv: encryptedKey.iv,
+      secret_iv: encryptedSecret.iv,
+      encrypted_passphrase: encryptedPassphrase?.encrypted ?? null,
+      passphrase_iv: encryptedPassphrase?.iv ?? null,
       target_table: parsed.target_table,
       sync_frequency: parsed.sync_frequency,
       timezone: parsed.timezone,
