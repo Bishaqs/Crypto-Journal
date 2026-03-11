@@ -60,47 +60,39 @@ export function Sidebar() {
       const { expand, category, force } = (e as CustomEvent).detail;
       if (expand) {
         if (tourSavedCategory.current === null) {
-          // Save original state — use "" sentinel for "no drawer open"
-          // so null remains the "not yet saved" indicator
           tourSavedCategory.current = activeCategory ?? "";
         }
-        // Open the relevant category drawer for the tour
+        // Also expand all nav sections so the full drawer is visible
+        if (tourSavedSections.current === null) {
+          tourSavedSections.current = { ...sectionState };
+        }
+        const allOpen: Record<string, boolean> = {};
+        NAV_SECTIONS.forEach(s => {
+          allOpen[s.key] = true;
+          s.subSections?.forEach(sub => { allOpen[sub.key] = true; });
+        });
+        setSectionState(allOpen);
         setActiveCategory(category || "journal");
       } else if (force) {
-        // Force close — save state first if needed, then close regardless
         if (tourSavedCategory.current === null) {
           tourSavedCategory.current = activeCategory ?? "";
         }
         setActiveCategory(null);
-      } else if (tourSavedCategory.current !== null) {
-        setActiveCategory(tourSavedCategory.current === "" ? null : tourSavedCategory.current);
-        tourSavedCategory.current = null;
-      }
-    }
-    function handleSectionsExpand() {
-      if (tourSavedSections.current === null) {
-        tourSavedSections.current = { ...sectionState };
-      }
-      const allOpen: Record<string, boolean> = {};
-      NAV_SECTIONS.forEach(s => {
-        allOpen[s.key] = true;
-        s.subSections?.forEach(sub => { allOpen[sub.key] = true; });
-      });
-      setSectionState(allOpen);
-    }
-    function handleSectionsRestore() {
-      if (tourSavedSections.current !== null) {
-        setSectionState(tourSavedSections.current);
-        tourSavedSections.current = null;
+      } else {
+        // Restore both drawer category and section state
+        if (tourSavedCategory.current !== null) {
+          setActiveCategory(tourSavedCategory.current === "" ? null : tourSavedCategory.current);
+          tourSavedCategory.current = null;
+        }
+        if (tourSavedSections.current !== null) {
+          setSectionState(tourSavedSections.current);
+          tourSavedSections.current = null;
+        }
       }
     }
     window.addEventListener("tour-sidebar", handleTourSidebar as EventListener);
-    window.addEventListener("tour-sections-expand", handleSectionsExpand);
-    window.addEventListener("tour-sections-restore", handleSectionsRestore);
     return () => {
       window.removeEventListener("tour-sidebar", handleTourSidebar as EventListener);
-      window.removeEventListener("tour-sections-expand", handleSectionsExpand);
-      window.removeEventListener("tour-sections-restore", handleSectionsRestore);
     };
   }, [sectionState, activeCategory]);
 

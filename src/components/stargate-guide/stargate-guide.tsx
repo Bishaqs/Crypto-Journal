@@ -5,14 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Rocket } from "lucide-react";
 import { StargateLogo } from "@/components/stargate-logo";
 import { useGuide } from "./guide-context";
-import { useTour } from "@/lib/tour-context";
+import { useTour, getEffectiveLayout } from "@/lib/tour-context";
 import { useI18n } from "@/lib/i18n";
 import type { TourStep } from "@/lib/tour-context";
 import { StarWarpTransition } from "./star-warp";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 const GUIDE_SIZE = 48;
-const BUBBLE_WIDTH = 340;
+const BUBBLE_WIDTH = 380;
 const BUBBLE_GAP = 16;
 
 const GLOW_BY_MODE = {
@@ -88,8 +88,8 @@ function calcBubblePosition(
   return { left, top, tail };
 }
 
-/* ── Chat-style speech bubble (shared between centered and attached modes) ── */
-function ChatBubble({
+/* ── Glassmorphic Tour Card ── */
+function TourCard({
   step,
   currentStep,
   totalSteps,
@@ -118,88 +118,120 @@ function ChatBubble({
       {/* Tail pointing toward guide */}
       {tail === "top" && (
         <div
-          className="absolute -top-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45"
-          style={{ background: "var(--surface-elevated, var(--surface))" }}
+          className="absolute -top-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 z-[-1]"
+          style={{ background: "rgba(15, 23, 42, 0.85)" }}
         />
       )}
       {tail === "bottom" && (
         <div
-          className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45"
-          style={{ background: "var(--surface-elevated, var(--surface))" }}
+          className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 z-[-1]"
+          style={{ background: "rgba(15, 23, 42, 0.85)" }}
         />
       )}
 
-      <div
-        className="rounded-3xl relative overflow-hidden"
-        style={{
-          background: "var(--surface-elevated, var(--surface))",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05)",
-        }}
-      >
-        <div className="p-5">
-          {/* Progress bar */}
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="text-[10px] font-medium text-muted/60 tabular-nums">
-              {currentStep + 1}/{totalSteps}
-            </span>
-            <div className="flex-1 h-0.5 bg-muted/10 rounded-full overflow-hidden max-w-[120px]">
-              <div
-                className="h-full bg-accent rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+      <div className="tour-card">
+        {/* Segmented progress dots */}
+        <div className="flex items-center gap-1.5 mb-4">
+          <div className="flex items-center gap-1 flex-1">
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <motion.div
+                key={i}
+                className="h-1 rounded-full"
+                animate={{
+                  width: i === currentStep ? 20 : 8,
+                  background:
+                    i <= currentStep
+                      ? "var(--accent)"
+                      : "rgba(255, 255, 255, 0.15)",
+                  boxShadow:
+                    i === currentStep
+                      ? "0 0 8px var(--accent-glow)"
+                      : "none",
+                }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
               />
-            </div>
+            ))}
           </div>
-
-          {/* Icon + title */}
-          <div className="flex items-center gap-2.5 mb-2">
-            {step.icon && <span className="text-xl">{step.icon}</span>}
-            <h3 className="text-base font-bold text-foreground">{title}</h3>
-          </div>
-
-          {/* Content */}
-          <p className="text-sm text-muted leading-relaxed mb-4">{content}</p>
-
-          {/* Controls */}
-          <div className="flex items-center justify-between">
-            {step.showSkip ? (
-              <button
-                onClick={onSkip}
-                className="text-xs text-muted/50 hover:text-muted transition-colors"
-              >
-                {skipLabel}
-              </button>
-            ) : (
-              <div />
-            )}
-            <div className="flex gap-2">
-              {currentStep > 0 && (
-                <button
-                  onClick={onPrev}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs text-muted hover:text-foreground hover:bg-surface-hover transition-all"
-                >
-                  <ArrowLeft size={12} />
-                  Back
-                </button>
-              )}
-              <button
-                onClick={onNext}
-                className="flex items-center gap-1 px-4 py-2 rounded-xl bg-accent text-background text-xs font-semibold hover:bg-accent-hover transition-all"
-              >
-                {isLast ? (
-                  <>
-                    <Rocket size={12} />
-                    {"Let's go!"}
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight size={12} />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          <span className="text-[10px] font-medium text-muted/50 tabular-nums whitespace-nowrap">
+            {currentStep + 1} of {totalSteps}
+          </span>
         </div>
+
+        {/* Icon + title */}
+        <motion.div
+          className="flex items-center gap-2.5 mb-2"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.06 }}
+        >
+          {step.icon && <span className="text-xl">{step.icon}</span>}
+          <h3 className="text-base font-bold text-foreground">{title}</h3>
+        </motion.div>
+
+        {/* Content */}
+        <motion.p
+          className="text-sm text-muted leading-relaxed mb-4"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+        >
+          {content}
+        </motion.p>
+
+        {/* Controls */}
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+        >
+          {step.showSkip ? (
+            <button
+              onClick={onSkip}
+              className="text-xs text-muted/40 hover:text-muted/70 transition-colors"
+            >
+              {skipLabel}
+            </button>
+          ) : (
+            <div />
+          )}
+          <div className="flex gap-2">
+            {currentStep > 0 && (
+              <motion.button
+                onClick={onPrev}
+                whileHover={{ x: -3 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs text-muted hover:text-foreground hover:bg-white/5 transition-all"
+              >
+                <ArrowLeft size={12} />
+                Back
+              </motion.button>
+            )}
+            <motion.button
+              onClick={onNext}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className={`flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                isLast
+                  ? "bg-accent text-background tour-cta-shimmer"
+                  : "bg-accent text-background hover:bg-accent-hover"
+              }`}
+              style={isLast ? { position: "relative", overflow: "hidden" } : undefined}
+            >
+              {isLast ? (
+                <>
+                  <Rocket size={12} />
+                  {"Let's go!"}
+                </>
+              ) : (
+                <>
+                  Next
+                  <ArrowRight size={12} />
+                </>
+              )}
+            </motion.button>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -313,7 +345,7 @@ function GuideCharacterAnimated({
 
 export function StargateGuideCharacter() {
   const { state, toggleMenu } = useGuide();
-  const { state: tourState, currentStepDef, nextStep, prevStep, skipTour, advanceStep } = useTour();
+  const { state: tourState, currentStepDef, stepTarget, nextStep, prevStep, skipTour, advanceStep } = useTour();
   const guideRef = useRef<HTMLDivElement>(null);
   const [isFlying, setIsFlying] = useState(false);
   const [flyOffset, setFlyOffset] = useState({ x: 0, y: 0 });
@@ -322,6 +354,7 @@ export function StargateGuideCharacter() {
   const [isCentered, setIsCentered] = useState(false);
   const [showStarWarp, setShowStarWarp] = useState(false);
   const wasCenteredRef = useRef(false);
+  const needsTargetRef = useRef(false);
 
   const [spotlightRect, setSpotlightRect] = useState<{
     left: number;
@@ -332,6 +365,7 @@ export function StargateGuideCharacter() {
     radius: number;
   } | null>(null);
 
+  // Expose guide element on window for external access
   useEffect(() => {
     if (guideRef.current) {
       (window as unknown as Record<string, unknown>).__stargateGuideEl = guideRef.current;
@@ -341,77 +375,106 @@ export function StargateGuideCharacter() {
     };
   }, []);
 
-  // Listen for tour flight events
+  const isTourMode = state.mode === "tour" && tourState.isActive;
+
+  // ── Step change: hide bubble and prepare for transition ──
   useEffect(() => {
-    function handleFly(e: Event) {
-      const detail = (e as CustomEvent).detail;
-      if (!detail) return;
-
+    if (!isTourMode || !currentStepDef) {
+      needsTargetRef.current = false;
       setShowBubble(false);
-
-      if (detail.home) {
-        setIsFlying(false);
-        setFlyOffset({ x: 0, y: 0 });
-        setSpotlightRect(null);
-        setIsCentered(false);
-        return;
-      }
-
-      // Centered mode — guide + bubble rendered as centered dialog
-      if (detail.centered) {
-        setIsFlying(false);
-        setFlyOffset({ x: 0, y: 0 });
-        setSpotlightRect(null);
-        setIsCentered(true);
-        wasCenteredRef.current = true;
-        setTimeout(() => setShowBubble(true), 200);
-        return;
-      }
-
+      setIsFlying(false);
+      setFlyOffset({ x: 0, y: 0 });
       setIsCentered(false);
-
-      if (!detail.rect) {
-        setIsFlying(false);
-        setFlyOffset({ x: 0, y: 0 });
-        setSpotlightRect(null);
-        setTimeout(() => setShowBubble(true), 200);
-        return;
-      }
-
-      const rect = detail.rect as { top: number; left: number; width: number; height: number };
-      const padding = (detail.padding as number) ?? 8;
-      const radius = (detail.radius as number) ?? 12;
-
-      setSpotlightRect({
-        left: rect.left - padding,
-        top: rect.top - padding,
-        width: rect.width + padding * 2,
-        height: rect.height + padding * 2,
-        padding,
-        radius,
-      });
-
-      const offset = calcTourOffset(rect, (detail.side as string) || "right");
-      setFlyOffset(offset);
-      setIsFlying(true);
-      setArrivalKey((k) => k + 1);
-
-      setTimeout(() => setShowBubble(true), 350);
+      setSpotlightRect(null);
+      return;
     }
 
-    window.addEventListener("tour-guide-fly", handleFly);
-    return () => window.removeEventListener("tour-guide-fly", handleFly);
-  }, []);
+    const layout = getEffectiveLayout(currentStepDef);
+    setShowBubble(false);
 
-  // Reset wasCentered ref after the guide remounts from centered→attached
+    if (layout === "fullscreen") {
+      setIsFlying(false);
+      setFlyOffset({ x: 0, y: 0 });
+      setIsCentered(true);
+      wasCenteredRef.current = true;
+
+      if (currentStepDef.selector) {
+        // Fullscreen with spotlight target — wait for stepTarget
+        needsTargetRef.current = true;
+      } else {
+        // Pure fullscreen — show bubble now
+        needsTargetRef.current = false;
+        setSpotlightRect(null);
+        const timer = setTimeout(() => setShowBubble(true), 200);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      // Spotlight mode
+      setIsCentered(false);
+
+      if (currentStepDef.selector) {
+        needsTargetRef.current = true;
+      } else {
+        // Spotlight with no selector — show at home
+        needsTargetRef.current = false;
+        setIsFlying(false);
+        setFlyOffset({ x: 0, y: 0 });
+        setSpotlightRect(null);
+        const timer = setTimeout(() => setShowBubble(true), 200);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isTourMode, tourState.currentStep, currentStepDef]);
+
+  // ── stepTarget arrived: position guide and show bubble ──
+  useEffect(() => {
+    if (!isTourMode || !currentStepDef || !stepTarget) return;
+
+    const layout = getEffectiveLayout(currentStepDef);
+    const p = stepTarget.padding;
+
+    // Always update spotlight rect (handles resize too)
+    setSpotlightRect({
+      left: stepTarget.rect.left - p,
+      top: stepTarget.rect.top - p,
+      width: stepTarget.rect.width + p * 2,
+      height: stepTarget.rect.height + p * 2,
+      padding: p,
+      radius: stepTarget.radius,
+    });
+
+    if (layout === "spotlight") {
+      // Update guide position
+      const offset = calcTourOffset(stepTarget.rect, stepTarget.side);
+      setFlyOffset(offset);
+
+      if (needsTargetRef.current) {
+        // Initial target arrival — full transition
+        needsTargetRef.current = false;
+        setIsFlying(true);
+        setArrivalKey((k) => k + 1);
+        const timer = setTimeout(() => setShowBubble(true), 350);
+        return () => clearTimeout(timer);
+      }
+      // Resize — position already updated
+    } else if (needsTargetRef.current) {
+      // Fullscreen with selector — target arrived
+      needsTargetRef.current = false;
+      const timer = setTimeout(() => setShowBubble(true), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isTourMode, stepTarget, currentStepDef]);
+
+  // Reset wasCentered ref after the guide remounts from centered -> attached
   useEffect(() => {
     if (!isCentered && wasCenteredRef.current) {
-      // Reset after the initial prop is consumed on mount
-      requestAnimationFrame(() => { wasCenteredRef.current = false; });
+      requestAnimationFrame(() => {
+        wasCenteredRef.current = false;
+      });
     }
   }, [isCentered]);
 
-  // Listen for star warp trigger
+  // ── Star warp trigger ──
   useEffect(() => {
     function handleWarp() {
       setShowBubble(false);
@@ -425,6 +488,27 @@ export function StargateGuideCharacter() {
     setShowStarWarp(false);
     advanceStep();
   }, [advanceStep]);
+
+  // ── Keyboard navigation during tour ──
+  useEffect(() => {
+    if (!isTourMode) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowRight" || e.key === "Enter") {
+        e.preventDefault();
+        nextStep();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prevStep();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        skipTour();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isTourMode, nextStep, prevStep, skipTour]);
 
   const handleClick = useCallback(() => {
     if (state.mode === "idle" || state.mode === "help") {
@@ -441,7 +525,6 @@ export function StargateGuideCharacter() {
 
   const glow = GLOW_BY_MODE[glowKey];
   const isClickable = state.mode === "idle" || state.mode === "help";
-  const isTourMode = state.mode === "tour" && tourState.isActive;
   const isTalking = isTourMode && showBubble;
 
   // Guide absolute position for attached bubble placement
@@ -458,12 +541,12 @@ export function StargateGuideCharacter() {
       {/* ── Tour Overlay ── */}
       {isTourMode && (
         <>
-          {/* Click blocker — only block in centered mode */}
+          {/* Click blocker for fullscreen mode */}
           {isCentered && <div className="fixed inset-0 z-[997]" />}
 
           <AnimatePresence>
             {isCentered ? (
-              /* Full dark overlay for centered mode — fully opaque for star-warp step */
+              /* Full dark overlay for centered mode */
               <motion.div
                 key="centered-overlay"
                 className="fixed inset-0 z-[998] pointer-events-none"
@@ -498,8 +581,8 @@ export function StargateGuideCharacter() {
                 exit={{ opacity: 0 }}
                 transition={{
                   type: "spring" as const,
-                  damping: 25,
-                  stiffness: 200,
+                  damping: 30,
+                  stiffness: 250,
                   opacity: { duration: 0.3 },
                 }}
                 style={{
@@ -522,7 +605,7 @@ export function StargateGuideCharacter() {
         </>
       )}
 
-      {/* ── Centered Tour Dialog (welcome tour) ── */}
+      {/* ── Centered Tour Dialog (fullscreen layout) ── */}
       <AnimatePresence mode="wait">
         {isTourMode && isCentered && showBubble && currentStepDef && (
           <motion.div
@@ -549,7 +632,7 @@ export function StargateGuideCharacter() {
               />
             </motion.div>
 
-            {/* Chat bubble */}
+            {/* Tour card */}
             <motion.div
               className="w-[380px] max-w-full"
               initial={{ opacity: 0, y: 16 }}
@@ -557,7 +640,7 @@ export function StargateGuideCharacter() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ type: "spring" as const, damping: 25, stiffness: 300, delay: 0.05 }}
             >
-              <ChatBubble
+              <TourCard
                 step={currentStepDef}
                 currentStep={tourState.currentStep}
                 totalSteps={tourState.totalSteps}
@@ -572,7 +655,7 @@ export function StargateGuideCharacter() {
         )}
       </AnimatePresence>
 
-      {/* ── Attached Tour Speech Bubble (page tours) ── */}
+      {/* ── Attached Tour Card (spotlight layout) ── */}
       <AnimatePresence mode="wait">
         {isTourMode && !isCentered && showBubble && currentStepDef && (
           <motion.div
@@ -592,7 +675,7 @@ export function StargateGuideCharacter() {
               maxWidth: "90vw",
             }}
           >
-            <ChatBubble
+            <TourCard
               step={currentStepDef}
               currentStep={tourState.currentStep}
               totalSteps={tourState.totalSteps}
@@ -627,9 +710,9 @@ export function StargateGuideCharacter() {
           }
           transition={{
             type: "spring" as const,
-            damping: 22,
-            stiffness: 180,
-            mass: 0.8,
+            damping: 28,
+            stiffness: 220,
+            mass: 0.7,
           }}
           onClick={handleClick}
           role={isClickable ? "button" : undefined}
