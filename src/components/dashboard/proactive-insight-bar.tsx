@@ -6,6 +6,7 @@ import { TiltSignal, generateBehavioralInsights } from "@/lib/calculations";
 import { createClient } from "@/lib/supabase/client";
 import { AlertTriangle, AlertCircle, Brain, Flame, Sun, ChevronLeft, ChevronRight, X, Sparkles } from "lucide-react";
 import { useAiEnhancedInsights, fetchAiInsight } from "@/lib/ai-insights";
+import { useDismissedTilt } from "@/lib/use-dismissed-tilt";
 
 type InsightItem = {
   id: string;
@@ -31,6 +32,7 @@ export function ProactiveInsightBar({
   tiltSignals: TiltSignal[];
 }) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const { isDismissed: isTiltDismissed, dismiss: dismissTilt } = useDismissedTilt();
   const [activeIndex, setActiveIndex] = useState(0);
   const [trafficLight, setTrafficLight] = useState<string | null>(null);
   const [currentStreak, setCurrentStreak] = useState<number | null>(null);
@@ -180,9 +182,14 @@ export function ProactiveInsightBar({
     }
 
     return items
-      .filter((item) => !dismissed.has(item.id))
+      .filter((item) => {
+        if (item.id.startsWith("tilt-")) {
+          return !isTiltDismissed(item.id.replace("tilt-", ""));
+        }
+        return !dismissed.has(item.id);
+      })
       .sort((a, b) => a.priority - b.priority);
-  }, [tiltSignals, trafficLight, behavioralInsights, currentStreak, hasCheckin, dismissed, aiInsight]);
+  }, [tiltSignals, trafficLight, behavioralInsights, currentStreak, hasCheckin, dismissed, isTiltDismissed, aiInsight]);
 
   // Auto-rotate
   useEffect(() => {
@@ -241,7 +248,13 @@ export function ProactiveInsightBar({
 
       {/* Dismiss */}
       <button
-        onClick={() => setDismissed((prev) => new Set(prev).add(current.id))}
+        onClick={() => {
+          if (current.id.startsWith("tilt-")) {
+            dismissTilt(current.id.replace("tilt-", ""));
+          } else {
+            setDismissed((prev) => new Set(prev).add(current.id));
+          }
+        }}
         className="p-1 text-muted hover:text-foreground transition-colors shrink-0"
       >
         <X size={12} />

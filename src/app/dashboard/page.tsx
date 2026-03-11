@@ -171,7 +171,7 @@ export default function DashboardPage() {
       {/* Welcome greeting */}
       <div className="relative glass rounded-2xl border border-border/50 p-4 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         {bannerCss && (
-          <div className={`absolute inset-0 ${bannerCss} opacity-20 pointer-events-none`} />
+          <div className={`absolute inset-0 ${bannerCss} opacity-20 pointer-events-none`} style={{ mixBlendMode: "screen" }} />
         )}
         <div className="relative z-10">
           <p className="text-xs text-muted/60 uppercase tracking-widest font-semibold mb-1">
