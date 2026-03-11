@@ -65,6 +65,7 @@ function calcTourOffset(
 function calcBubblePosition(
   guideAbsX: number,
   guideAbsY: number,
+  align?: "left" | "center",
 ): { left: number; top: number; tail: "bottom-left" | "bottom-right" | "top-left" | "top-right" } {
   const vw = window.innerWidth;
 
@@ -74,7 +75,13 @@ function calcBubblePosition(
   const placeAbove = guideAbsY > 200;
   const top = placeAbove ? aboveY : belowY;
 
-  let left = guideAbsX + GUIDE_SIZE / 2 - BUBBLE_WIDTH / 2;
+  let left: number;
+  if (align === "left") {
+    // Left-align bubble near guide (for sidebar-adjacent cards)
+    left = guideAbsX - 16;
+  } else {
+    left = guideAbsX + GUIDE_SIZE / 2 - BUBBLE_WIDTH / 2;
+  }
   left = Math.max(8, Math.min(left, vw - BUBBLE_WIDTH - 8));
 
   const guideCenter = guideAbsX + GUIDE_SIZE / 2;
@@ -533,7 +540,7 @@ export function StargateGuideCharacter() {
   const guideAbsX = homeX + flyOffset.x - GUIDE_SIZE / 2;
   const guideAbsY = homeY + flyOffset.y - GUIDE_SIZE / 2;
 
-  const bubblePos = calcBubblePosition(guideAbsX, guideAbsY);
+  const bubblePos = calcBubblePosition(guideAbsX, guideAbsY, currentStepDef?.bubbleAlign);
   const isLast = tourState.currentStep >= tourState.totalSteps - 1;
 
   return (
