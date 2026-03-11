@@ -191,6 +191,11 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const executeStep = useCallback(async (step: TourStep) => {
+    // Clear stale stepTarget so the guide's Effect 2 doesn't fire
+    // with the previous step's rect before our async work completes
+    setStepTarget(null);
+    currentSelectorRef.current = undefined;
+
     const effectiveLayout = getEffectiveLayout(step);
 
     // 1. Always close apps dropdown from previous step
