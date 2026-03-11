@@ -378,6 +378,7 @@ export function getResolvedCoreItems(assetContext: "crypto" | "stocks" | "commod
     return coreItems.map((item, i) => {
       if (i === 0) return { ...item, href: "/dashboard/stocks", label: "Dashboard" };
       if (i === 1) return { ...item, href: "/dashboard/stocks/trades", label: "Positions" };
+      if (i === 2) return { ...item, href: "/dashboard/journal?asset=stocks" };
       if (i === 4) return { ...item, href: "/dashboard/stocks/analytics", label: "Analytics" };
       if (i === 5) return { ...item, href: "/dashboard/stocks/plans", label: "Watchlist" };
       return item;
@@ -387,6 +388,7 @@ export function getResolvedCoreItems(assetContext: "crypto" | "stocks" | "commod
     return coreItems.map((item, i) => {
       if (i === 0) return { ...item, href: "/dashboard/commodities", label: "Dashboard" };
       if (i === 1) return { ...item, href: "/dashboard/commodities/trades", label: "Positions" };
+      if (i === 2) return { ...item, href: "/dashboard/journal?asset=commodities" };
       if (i === 4) return { ...item, href: "/dashboard/commodities/analytics", label: "Analytics" };
       if (i === 5) return { ...item, href: "/dashboard/commodities/plans", label: "Watchlist" };
       return item;
@@ -396,6 +398,7 @@ export function getResolvedCoreItems(assetContext: "crypto" | "stocks" | "commod
     return coreItems.map((item, i) => {
       if (i === 0) return { ...item, href: "/dashboard/forex", label: "Dashboard" };
       if (i === 1) return { ...item, href: "/dashboard/forex/trades", label: "Positions" };
+      if (i === 2) return { ...item, href: "/dashboard/journal?asset=forex" };
       if (i === 4) return { ...item, href: "/dashboard/forex/analytics", label: "Analytics" };
       if (i === 5) return { ...item, href: "/dashboard/forex/plans", label: "Watchlist" };
       return item;

@@ -5,15 +5,23 @@ import { X } from "lucide-react";
 import { useAchievements, ACHIEVEMENT_MAP, TIER_META } from "@/lib/achievements";
 import type { AchievementTier } from "@/lib/achievements";
 import { XP_AMOUNTS } from "@/lib/xp/types";
+import { useTour } from "@/lib/tour-context";
 
 export function AchievementToast() {
   const { recentUnlocks, dismissUnlock } = useAchievements();
+  const { state: tourState } = useTour();
   const [visible, setVisible] = useState<
     { id: string; tier: AchievementTier | null; show: boolean }[]
   >([]);
 
   useEffect(() => {
     if (recentUnlocks.length === 0) return;
+
+    // During active tour, silently dismiss all unlocks to avoid toast spam
+    if (tourState.isActive) {
+      recentUnlocks.forEach((u) => dismissUnlock(u.achievement_id, u.tier));
+      return;
+    }
 
     // Add new unlocks with animation delay
     const newItems = recentUnlocks.map((u, i) => ({

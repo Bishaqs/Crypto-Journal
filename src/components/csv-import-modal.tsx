@@ -40,7 +40,7 @@ const EXCHANGE_PRESETS: ExchangePreset[] = [
   { label: "Kraken", group: "cex", tip: "Kraken > History > Export" },
   { label: "KuCoin", group: "cex", tip: "KuCoin > Orders > Trade History > Export" },
   { label: "Gate.io", group: "cex", tip: "Gate.io > Orders > Trade History > Export" },
-  { label: "Bitget", group: "cex", tip: "Bitget > Orders > Spot Orders > Export" },
+  { label: "Bitget", group: "cex", tip: "Bitget > Orders > Futures Orders > Trade History > Export" },
   { label: "MEXC", group: "cex", tip: "MEXC > Orders > Trade History > Export" },
   { label: "HTX", group: "cex", tip: "HTX > Orders > Trade History > Export" },
   { label: "Crypto.com", group: "cex", tip: "Crypto.com > Accounts > Transaction History > Export" },
@@ -256,6 +256,16 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
                   {result.totalRows} total rows
                 </span>
               </div>
+
+              {/* BitGet futures detection banner */}
+              {result.detectedFormat === "bitget-futures" && (
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-accent/5 border border-accent/20">
+                  <CheckCircle2 size={14} className="text-accent shrink-0" />
+                  <p className="text-xs text-accent">
+                    BitGet Futures detected. Open/Close orders paired into trades automatically. Cancelled orders filtered.
+                  </p>
+                </div>
+              )}
 
               {/* Column mapping */}
               <div>

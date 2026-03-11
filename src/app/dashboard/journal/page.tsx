@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { JournalNote } from "@/lib/types";
+import { JournalNote, AssetType } from "@/lib/types";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { NoteEditor, TEMPLATES } from "@/components/note-editor";
 import {
@@ -24,6 +24,11 @@ import {
   Link2,
   TrendingUp,
   TrendingDown,
+  Bitcoin,
+  BarChart3,
+  Wheat,
+  DollarSign,
+  Layers,
 } from "lucide-react";
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
@@ -32,10 +37,26 @@ import { getTagColor } from "@/lib/tag-colors";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { CustomSelect } from "@/components/ui/custom-select";
 
+type AssetFilter = AssetType | "all";
 type NoteTypeFilter = "all" | "trade" | "daily" | "other" | "favorites";
 type DateRange = "all" | "today" | "yesterday" | "7d" | "this-month" | "last-month" | "this-year";
 type SortOption = "created-newest" | "created-oldest" | "newest" | "oldest" | "name-asc" | "name-desc";
 type LayoutMode = "grid" | "list" | "compact";
+
+const ASSET_FILTER_OPTIONS: { value: AssetFilter; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
+  { value: "all", label: "All", icon: Layers },
+  { value: "crypto", label: "Crypto", icon: Bitcoin },
+  { value: "stocks", label: "Stocks", icon: BarChart3 },
+  { value: "commodities", label: "Commodities", icon: Wheat },
+  { value: "forex", label: "Forex", icon: DollarSign },
+];
+
+const TRADE_TABLE_MAP: Record<AssetType, string> = {
+  crypto: "trades",
+  stocks: "stock_trades",
+  commodities: "commodity_trades",
+  forex: "forex_trades",
+};
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "created-newest", label: "Recently Added" },
@@ -110,6 +131,7 @@ function formatTitle(title: string): string {
 
 export default function JournalPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [notes, setNotes] = useState<JournalNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
@@ -120,7 +142,7 @@ export default function JournalPage() {
   const [editNote, setEditNote] = useState<JournalNote | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("free");
   const [showTagManager, setShowTagManager] = useState(false);
-  const [allTrades, setAllTrades] = useState<Trade[]>([]);
+  const [allTrades, setAllTrades] = useState<(Trade & { _assetType?: AssetType })[]>([]);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("created-newest");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
@@ -129,16 +151,32 @@ export default function JournalPage() {
     }
     return "grid";
   });
+  const [assetFilter, setAssetFilter] = useState<AssetFilter>(() => {
+    if (typeof window !== "undefined") {
+      const urlAsset = new URLSearchParams(window.location.search).get("asset");
+      if (urlAsset && ["crypto", "stocks", "commodities", "forex", "all"].includes(urlAsset)) {
+        return urlAsset as AssetFilter;
+      }
+      return (localStorage.getItem("stargate-asset-context") as AssetFilter) || "crypto";
+    }
+    return "crypto";
+  });
   const [linkingNoteId, setLinkingNoteId] = useState<string | null>(null);
   const [linkSearch, setLinkSearch] = useState("");
   const supabase = createClient();
 
   const fetchNotes = useCallback(async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from("journal_notes")
       .select("*")
       .order("note_date", { ascending: false })
       .order("created_at", { ascending: false });
+
+    if (assetFilter !== "all") {
+      query = query.eq("asset_type", assetFilter);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("[Journal] fetchNotes error:", error.message);
@@ -148,19 +186,36 @@ export default function JournalPage() {
 
     setNotes((data as JournalNote[]) ?? []);
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, assetFilter]);
 
   const fetchTrades = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("trades")
-      .select("*")
-      .order("open_timestamp", { ascending: false });
-    if (error) {
-      console.error("[Journal] fetchTrades error:", error.message);
-      return;
-    }
-    setAllTrades((data as Trade[]) ?? []);
-  }, [supabase]);
+    // Fetch trades from the relevant table(s) based on asset filter
+    const tablesToFetch: AssetType[] = assetFilter === "all"
+      ? ["crypto", "stocks", "commodities", "forex"]
+      : [assetFilter];
+
+    const results = await Promise.all(
+      tablesToFetch.map(async (at) => {
+        const table = TRADE_TABLE_MAP[at];
+        const { data, error } = await supabase
+          .from(table)
+          .select("*")
+          .order("open_timestamp", { ascending: false });
+        if (error) {
+          console.error(`[Journal] fetchTrades(${table}) error:`, error.message);
+          return [];
+        }
+        // Normalize forex trades: they use `pair` instead of `symbol`
+        return ((data ?? []) as Record<string, unknown>[]).map((t) => ({
+          ...t,
+          symbol: (t.symbol as string) ?? (t.pair as string) ?? "Unknown",
+          _assetType: at,
+        })) as (Trade & { _assetType?: AssetType })[];
+      })
+    );
+
+    setAllTrades(results.flat());
+  }, [supabase, assetFilter]);
 
   useEffect(() => {
     fetchNotes();
@@ -264,15 +319,19 @@ export default function JournalPage() {
   }
 
   async function syncTradeToNote(noteId: string, tradeId: string) {
-    // 1. Link journal entry to trade
+    // Find the trade to determine which table it belongs to
+    const trade = allTrades.find((t) => t.id === tradeId);
+    const tradeAssetType: AssetType = (trade as { _assetType?: AssetType })?._assetType ?? "crypto";
+    const tradeTable = TRADE_TABLE_MAP[tradeAssetType];
+
+    // 1. Link journal entry to trade (include trade_asset_type for reverse lookup)
     await supabase
       .from("journal_notes")
-      .update({ trade_id: tradeId, note_type: "trade" })
+      .update({ trade_id: tradeId, note_type: "trade", trade_asset_type: tradeAssetType })
       .eq("id", noteId);
 
     // 2. Non-destructive psychology merge: copy if trade fields are empty
     const note = notes.find((n) => n.id === noteId);
-    const trade = allTrades.find((t) => t.id === tradeId);
     if (note?.structured_data && trade) {
       const sd = note.structured_data as Record<string, string | number | boolean | null>;
       const update: Record<string, unknown> = {};
@@ -280,7 +339,7 @@ export default function JournalPage() {
       if (!trade.confidence && sd.confidence) update.confidence = sd.confidence;
       if (!trade.setup_type && sd.setup_type) update.setup_type = sd.setup_type;
       if (Object.keys(update).length > 0) {
-        await supabase.from("trades").update(update).eq("id", tradeId);
+        await supabase.from(tradeTable).update(update).eq("id", tradeId);
       }
     }
 
@@ -315,6 +374,35 @@ export default function JournalPage() {
           <Plus size={18} />
           New Note
         </button>
+      </div>
+
+      {/* Asset type switcher */}
+      <div className="flex rounded-xl border border-border/50 p-0.5 bg-surface w-fit">
+        {ASSET_FILTER_OPTIONS.map(({ value, label, icon: Icon }) => (
+          <button
+            key={value}
+            onClick={() => {
+              setAssetFilter(value);
+              setLoading(true);
+              // Update URL without full navigation
+              const url = new URL(window.location.href);
+              if (value === "all") {
+                url.searchParams.delete("asset");
+              } else {
+                url.searchParams.set("asset", value);
+              }
+              router.replace(url.pathname + url.search, { scroll: false });
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              assetFilter === value
+                ? "bg-accent/15 text-accent border border-accent/20"
+                : "text-muted hover:text-foreground border border-transparent"
+            }`}
+          >
+            <Icon size={13} />
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Filters: Search + Date Range + Tag + Manage tags */}
@@ -742,6 +830,7 @@ export default function JournalPage() {
           <NoteEditor
             editNote={editNote}
             initialTemplate={selectedTemplate}
+            assetType={assetFilter === "all" ? "crypto" : assetFilter}
             onClose={() => { setShowEditor(false); setEditNote(null); }}
             onSaved={fetchNotes}
           />

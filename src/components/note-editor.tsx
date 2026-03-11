@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { JournalNote, Trade } from "@/lib/types";
+import { JournalNote, Trade, AssetType } from "@/lib/types";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { uploadJournalImage } from "@/lib/image-upload";
 import { EditorToolbar } from "@/components/note-editor/editor-toolbar";
@@ -67,14 +67,22 @@ export { TEMPLATES };
 
 const TEMPLATE_LIST = TEMPLATES.map(({ id, label, content }) => ({ id, label, content }));
 
+const TRADE_TABLE_MAP: Record<AssetType, string> = {
+  crypto: "trades",
+  stocks: "stock_trades",
+  commodities: "commodity_trades",
+  forex: "forex_trades",
+};
+
 interface NoteEditorProps {
   editNote?: JournalNote | null;
   initialTemplate?: string;
+  assetType?: AssetType;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function NoteEditor({ editNote = null, initialTemplate = "free", onClose, onSaved }: NoteEditorProps) {
+export function NoteEditor({ editNote = null, initialTemplate = "free", assetType = "crypto", onClose, onSaved }: NoteEditorProps) {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,10 +133,14 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
   }, []);
 
   // Fetch trades for TradeLinker + existing tags for suggestions
+  // Use the asset-specific trade table when editing an existing note, or the current assetType for new notes
+  const effectiveAssetType = editNote?.asset_type ?? assetType;
+  const tradeTable = TRADE_TABLE_MAP[effectiveAssetType];
+
   useEffect(() => {
     async function loadData() {
       const [tradesResult, notesResult] = await Promise.all([
-        supabase.from("trades").select("*").order("open_timestamp", { ascending: false }),
+        supabase.from(tradeTable).select("*").order("open_timestamp", { ascending: false }),
         supabase.from("journal_notes").select("tags"),
       ]);
       if (tradesResult.data) setTrades(tradesResult.data as Trade[]);
@@ -138,7 +150,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
       }
     }
     loadData();
-  }, []);
+  }, [tradeTable]);
 
   const tagOptions = useMemo(() => {
     const presets = getCustomTagPresets();
@@ -286,6 +298,8 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", onClose,
         note_date: noteDate ? new Date(noteDate).toISOString() : new Date().toISOString(),
         structured_data: useStructured ? structuredData : psychData,
         template_id: useStructured ? appliedTemplate : null,
+        asset_type: effectiveAssetType,
+        trade_asset_type: linkedTradeId ? effectiveAssetType : null,
       };
 
       if (!payload.content || payload.content === "<br>") {

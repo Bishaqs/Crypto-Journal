@@ -9,7 +9,9 @@ export type ParsedCSV = {
 };
 
 export function parseCSV(text: string): ParsedCSV {
-  const lines = splitCSVLines(text);
+  // Strip UTF-8 BOM if present (common in Excel/BitGet exports)
+  const clean = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  const lines = splitCSVLines(clean);
   if (lines.length === 0) return { headers: [], rows: [] };
 
   const headers = parseCSVLine(lines[0]).map((h) => h.trim().toLowerCase());
