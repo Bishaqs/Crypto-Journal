@@ -25,10 +25,24 @@ const TradeSchema = z.object({
   review: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).nullable().optional(),
 }).passthrough();
 
+// A journal note passed to the AI chat context
+const JournalNoteSchema = z.object({
+  title: z.string().nullable().optional(),
+  content: z.string(),
+  tags: z.array(z.string()).optional().default([]),
+  note_type: z.string().nullable().optional(),
+  asset_type: z.string().optional(),
+  note_date: z.string().nullable().optional(),
+  created_at: z.string().optional(),
+  trade_id: z.string().nullable().optional(),
+  structured_data: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).nullable().optional(),
+}).passthrough();
+
 // AI chat request body (used by /api/ai and /api/ai/stream)
 export const AiChatSchema = z.object({
   message: z.string().min(1, "Message is required").max(5000, "Message must be under 5000 characters"),
   trades: z.array(TradeSchema).max(2000).optional().default([]),
+  notes: z.array(JournalNoteSchema).max(500).optional().default([]),
   context: z.object({
     weeklyReport: z.string().optional(),
   }).passthrough().optional().default({}),

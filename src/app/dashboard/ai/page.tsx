@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Trade } from "@/lib/types";
+import { Trade, JournalNote } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { formatAndSanitizeMarkdown } from "@/lib/sanitize";
 import {
   Brain,
@@ -29,9 +30,9 @@ const SUGGESTED_QUESTIONS = [
   "What's my biggest behavioral weakness?",
   "How do my emotions affect my trading results?",
   "Which setup types work best for me?",
-  "Am I following my own rules consistently?",
+  "Summarize my recent journal notes and key themes.",
+  "Compare my discipline across asset classes.",
   "What would you prioritize improving this week?",
-  "Analyze my risk management habits.",
 ];
 
 // Demo responses shown when AI service is not configured
@@ -118,6 +119,7 @@ Based on your trading data, here are some observations:
 
 export default function AIPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [notes, setNotes] = useState<JournalNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -139,19 +141,46 @@ export default function AIPage() {
     if (savedApiKey) setAiApiKey(savedApiKey);
   }, []);
 
+  const TRADE_TABLE_MAP: Record<string, string> = {
+    crypto: "trades",
+    stocks: "stock_trades",
+    commodities: "commodity_trades",
+    forex: "forex_trades",
+  };
+
   const fetchTrades = useCallback(async () => {
-    const { data } = await supabase
-      .from("trades")
+    const assetTypes = ["crypto", "stocks", "commodities", "forex"] as const;
+    const results = await Promise.all(
+      assetTypes.map(async (at) => {
+        const table = TRADE_TABLE_MAP[at];
+        const { data } = await fetchAllTrades(supabase, "*", table);
+        return (data ?? []).map((t: Record<string, unknown>) => ({
+          ...t,
+          symbol: (t.symbol as string) ?? (t.pair as string) ?? "Unknown",
+          _assetType: at,
+        }));
+      })
+    );
+    const allTrades = results.flat() as unknown as Trade[];
+    setTrades(allTrades.length === 0 ? DEMO_TRADES : allTrades);
+  }, [supabase]);
+
+  const fetchNotes = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("journal_notes")
       .select("*")
-      .order("open_timestamp", { ascending: false });
-    const dbTrades = (data as Trade[]) ?? [];
-    setTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
-    setLoading(false);
+      .order("note_date", { ascending: false })
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("[AI] fetchNotes error:", error.message);
+      return;
+    }
+    setNotes((data as JournalNote[]) ?? []);
   }, [supabase]);
 
   useEffect(() => {
-    fetchTrades();
-  }, [fetchTrades]);
+    Promise.all([fetchTrades(), fetchNotes()]).then(() => setLoading(false));
+  }, [fetchTrades, fetchNotes]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -172,6 +201,7 @@ export default function AIPage() {
         body: JSON.stringify({
           message: msg,
           trades,
+          notes,
           provider: aiProvider,
           model: aiModel,
           ...(aiApiKey ? { apiKey: aiApiKey } : {}),
@@ -322,8 +352,8 @@ export default function AIPage() {
             </h2>
             <p className="text-sm text-muted max-w-md mb-8">
               Ask about your patterns, psychology, risk management,
-              or anything about your trading data. The AI has access to your trade history,
-              emotions, process scores, and more.
+              or anything about your trading data. The AI has access to your full trade history
+              across all asset classes, journal notes, emotions, process scores, and more.
             </p>
 
             {/* Suggested questions */}
@@ -395,7 +425,7 @@ export default function AIPage() {
           </button>
         </div>
         <p className="text-[10px] text-muted/40 mt-1.5 text-center">
-          AI analyzes your last 50 trades. Responses are not financial advice.
+          AI analyzes your full trade history and journal notes across all asset classes. Responses are not financial advice.
         </p>
       </div>
     </div>

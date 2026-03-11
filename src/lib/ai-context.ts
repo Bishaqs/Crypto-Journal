@@ -2,7 +2,7 @@
  * Shared AI prompt and context builders for the AI Coach routes.
  */
 
-export const AI_CHAT_SYSTEM_PROMPT = `You are Stargate AI — a trading psychology coach and pattern analyst built into a crypto trading journal.
+export const AI_CHAT_SYSTEM_PROMPT = `You are Stargate AI — a trading psychology coach and pattern analyst built into a multi-asset trading journal (crypto, stocks, commodities, forex).
 
 Your role:
 - Analyze trading data to find behavioral patterns, emotional tendencies, and process breakdowns
@@ -57,18 +57,40 @@ Avoid misleading conclusions:
 - Profit factor: >1.5 = solid, >2.0 = excellent, <1.0 = losing money. Frame accordingly.
 - Never give trade ideas or market predictions. You coach process and psychology, not entries.
 
+## Multi-Asset Context
+
+The trader may have positions across crypto, stocks, commodities, and forex.
+- When analyzing patterns, note if certain behaviors differ by asset class
+- Forex trades use "pair" (e.g., EUR/USD) instead of "symbol"
+- Compare discipline and process scores across asset classes if data permits
+- Look for patterns like: better discipline in one asset class but not others
+
+## Journal Notes Context
+
+The trader keeps journal notes alongside their trades. These include:
+- **Trade notes** (reflections on specific trades, linked via trade_id)
+- **Daily notes** (pre-market plans, end-of-day reviews)
+- **General notes** (strategy ideas, market observations, psychological insights)
+
+When referencing notes, cite them by date and title. Use journal notes to understand the trader's thought process beyond just numbers. Notes reveal intentions, lessons learned, and evolving strategies that raw trade data cannot show.
+
 Format rules:
 - Use markdown for formatting
-- Keep responses focused and concise (200-400 words typically)
+- Keep responses focused and concise (200-500 words typically)
 - Use bullet points for actionable items
 - Bold key insights`;
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export function buildTradeContext(
   trades: Record<string, unknown>[],
-  context: Record<string, unknown>
+  context: Record<string, unknown>,
+  notes?: Record<string, unknown>[],
 ): string {
-  if (trades.length === 0) {
-    return "No trade data available yet. The user is asking a general trading question.";
+  if (trades.length === 0 && (!notes || notes.length === 0)) {
+    return "No trade data or journal notes available yet. The user is asking a general trading question.";
   }
 
   const closed = trades.filter((t) => t.close_timestamp);
@@ -193,15 +215,42 @@ export function buildTradeContext(
     });
   }
 
+  // Asset class breakdown (only if trades have _assetType tags)
+  const assetStats: Record<string, { count: number; pnl: number; wins: number }> = {};
+  for (const t of closed) {
+    const at = String(t._assetType || "crypto");
+    if (!assetStats[at]) assetStats[at] = { count: 0, pnl: 0, wins: 0 };
+    assetStats[at].count++;
+    assetStats[at].pnl += Number(t.pnl) || 0;
+    if ((Number(t.pnl) || 0) > 0) assetStats[at].wins++;
+  }
+  const assetClasses = Object.keys(assetStats);
+
+  // Determine context budget — progressive truncation for large journals
+  let recentTradeLimit = 50;
+  let recentNoteLimit = 30;
+  let noteContentLimit = 200;
+
   // Build summary
-  let summary = `## Trading Summary (Full Journal: ${closed.length} closed trades)
+  let summary = `## Trading Summary (Full Journal: ${closed.length} closed trades, ${open.length} open)
 - **Total P&L**: $${totalPnl.toFixed(2)}
 - **Win rate**: ${winRate}% (${wins.length}W / ${losses.length}L)
 - **Avg winner**: $${avgWin} | **Avg loser**: $${avgLoss}
 - **Largest win**: $${largestWin} | **Largest loss**: $${largestLoss}
 - **Profit factor**: ${profitFactor}
 - **Open positions**: ${open.length}
+`;
 
+  // Asset class breakdown (only shown when multiple asset classes exist)
+  if (assetClasses.length > 1) {
+    summary += `\n## Asset Class Breakdown\n`;
+    for (const [at, d] of Object.entries(assetStats).sort((a, b) => b[1].count - a[1].count)) {
+      const wr = d.count > 0 ? ((d.wins / d.count) * 100).toFixed(0) : "0";
+      summary += `- **${at.charAt(0).toUpperCase() + at.slice(1)}**: ${d.count} trades, WR ${wr}%, P&L $${d.pnl.toFixed(2)}\n`;
+    }
+  }
+
+  summary += `
 ## Process Discipline
 - **Avg process score**: ${avgProcess}/10 (overall) | ${recentAvgProcess}/10 (last 10 trades)
 - **Trend**: ${avgProcess !== "N/A" && recentAvgProcess !== "N/A" ? (Number(recentAvgProcess) > Number(avgProcess) ? "Improving ↑" : Number(recentAvgProcess) < Number(avgProcess) ? "Declining ↓" : "Stable →") : "N/A"}
@@ -232,23 +281,61 @@ ${Object.entries(setupStats)
 ## Weekly Trend (last 4 weeks)
 ${weeklyPnl.map((w) => `- ${w.week}: $${w.pnl.toFixed(2)} (${w.count} trades)`).join("\n")}
 ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.length} day(s) with >5 trades: ${overtradingDays.map(([d, c]) => `${d} (${c})`).join(", ")}` : ""}
-
-## Recent Trades (last 20)
 `;
 
-  const recent = trades.slice(0, 20);
+  // Check if we need to reduce context size before adding recent trades + notes
+  // Rough estimate: current summary + upcoming sections
+  if (summary.length > 30000) {
+    recentTradeLimit = 20;
+    recentNoteLimit = 15;
+    noteContentLimit = 100;
+  }
+
+  // Recent trades
+  summary += `\n## Recent Trades (last ${Math.min(recentTradeLimit, trades.length)})\n`;
+  const recent = trades.slice(0, recentTradeLimit);
   for (const t of recent) {
     const pnl = t.pnl != null ? `$${Number(t.pnl).toFixed(2)}` : "OPEN";
     const date = t.close_timestamp
       ? String(t.close_timestamp).split("T")[0]
       : String(t.open_timestamp).split("T")[0];
-    summary += `- ${date} | ${t.symbol} ${t.position} | P&L: ${pnl} | Emotion: ${t.emotion || "—"} | Confidence: ${t.confidence ?? "—"}/10 | Process: ${t.process_score ?? "—"}/10 | Setup: ${t.setup_type || "—"}`;
+    const assetType = t._assetType ? ` [${t._assetType}]` : "";
+    summary += `- ${date} | ${t.symbol} ${t.position}${assetType} | P&L: ${pnl} | Emotion: ${t.emotion || "—"} | Confidence: ${t.confidence ?? "—"}/10 | Process: ${t.process_score ?? "—"}/10 | Setup: ${t.setup_type || "—"}`;
     if (t.notes) summary += ` | Notes: ${String(t.notes).slice(0, 80)}`;
     summary += "\n";
   }
 
+  // Journal notes section
+  if (notes && notes.length > 0) {
+    const sortedNotes = [...notes].sort((a, b) => {
+      const dateA = String(a.note_date || a.created_at || "");
+      const dateB = String(b.note_date || b.created_at || "");
+      return dateB.localeCompare(dateA);
+    });
+
+    const displayNotes = sortedNotes.slice(0, recentNoteLimit);
+    summary += `\n## Journal Notes (${displayNotes.length} most recent of ${notes.length} total)\n`;
+
+    for (const n of displayNotes) {
+      const date = String(n.note_date || n.created_at || "").split("T")[0];
+      const title = n.title ? `"${n.title}"` : "(untitled)";
+      const type = n.note_type || "general";
+      const asset = n.asset_type || "—";
+      const tags = Array.isArray(n.tags) && n.tags.length > 0 ? ` | Tags: ${n.tags.join(", ")}` : "";
+      const content = stripHtml(String(n.content || "")).slice(0, noteContentLimit);
+      const linkedTrade = n.trade_id ? " (linked to trade)" : "";
+
+      summary += `- ${date} | ${title} [${type}, ${asset}]${linkedTrade}${tags} — ${content}${content.length >= noteContentLimit ? "..." : ""}\n`;
+    }
+  }
+
   if (context.weeklyReport) {
     summary += `\n## Additional Context\n${context.weeklyReport}\n`;
+  }
+
+  // Final context size safety — hard truncate if still too large
+  if (summary.length > 60000) {
+    return summary.slice(0, 60000) + "\n\n[Context truncated due to size — aggregate statistics above are computed from ALL data]";
   }
 
   return summary;
