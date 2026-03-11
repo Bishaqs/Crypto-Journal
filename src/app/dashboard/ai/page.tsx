@@ -460,7 +460,7 @@ function ChatBubble({ message }: { message: Message }) {
         <div className="flex items-center gap-2 mb-2">
           <Brain size={14} className="text-accent" />
           <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
-            Stargate AI
+            Nova
           </span>
         </div>
         <div

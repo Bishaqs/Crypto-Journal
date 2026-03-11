@@ -2,7 +2,7 @@
  * Shared AI prompt and context builders for the AI Coach routes.
  */
 
-export const AI_CHAT_SYSTEM_PROMPT = `You are Stargate AI — a trading psychology coach and pattern analyst built into a multi-asset trading journal (crypto, stocks, commodities, forex).
+export const AI_CHAT_SYSTEM_PROMPT = `You are Nova — a trading psychology coach and pattern analyst built into a multi-asset trading journal (crypto, stocks, commodities, forex).
 
 Your role:
 - Analyze trading data to find behavioral patterns, emotional tendencies, and process breakdowns
@@ -79,7 +79,12 @@ When referencing journal entries, cite them by date and title. Use them to under
 ## Image Analysis
 
 You can see images embedded in journal entries (charts, screenshots, annotated setups, trade executions).
-When images are present in the conversation, describe what you observe and relate it to the trader's data and patterns. Look for chart patterns, support/resistance levels, entry/exit timing, and anything that adds context to the trade data.
+Each image is labeled with its source note title and date in the "Attached Images" section of the context.
+When the user asks about images or visual content:
+- ALWAYS describe what you actually see in each image (chart patterns, indicators, price action, annotations, colors, timeframes)
+- Relate your observations to the trade data and journal entry each image came from
+- If you cannot make out details in an image, say so honestly rather than giving generic analysis
+- Do NOT just say "I can see your images" and then ignore them — describe specific visual details
 
 Format rules:
 - Use markdown for formatting
@@ -91,21 +96,25 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-/** Extract image URLs (Supabase signed URLs or base64 data URIs) from journal note HTML. Max 10. */
-export function extractImagesFromNotes(notes: Record<string, unknown>[]): string[] {
+export type ExtractedImage = { url: string; noteTitle: string; noteDate: string };
+
+/** Extract image URLs with source context from journal note HTML. Max 10. */
+export function extractImagesFromNotes(notes: Record<string, unknown>[]): ExtractedImage[] {
   const MAX_IMAGES = 10;
-  const urls: string[] = [];
+  const images: ExtractedImage[] = [];
   const imgRegex = /<img[^>]+src="([^"]+)"[^>]*>/gi;
 
   for (const n of notes) {
-    if (urls.length >= MAX_IMAGES) break;
+    if (images.length >= MAX_IMAGES) break;
     const html = String(n.content || "");
+    const title = String(n.title || "(untitled)");
+    const date = String(n.note_date || n.created_at || "").split("T")[0];
     let match;
-    while ((match = imgRegex.exec(html)) !== null && urls.length < MAX_IMAGES) {
-      urls.push(match[1]);
+    while ((match = imgRegex.exec(html)) !== null && images.length < MAX_IMAGES) {
+      images.push({ url: match[1], noteTitle: title, noteDate: date });
     }
   }
-  return urls;
+  return images;
 }
 
 export function buildTradeContext(
