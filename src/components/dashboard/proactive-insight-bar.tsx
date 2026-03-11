@@ -16,12 +16,12 @@ type InsightItem = {
   icon: React.ElementType;
 };
 
-const TYPE_STYLES: Record<InsightItem["type"], { border: string; bg: string; iconColor: string }> = {
-  danger: { border: "border-l-red-500", bg: "bg-surface", iconColor: "text-red-400" },
-  warning: { border: "border-l-amber-500", bg: "bg-surface", iconColor: "text-amber-400" },
-  coaching: { border: "border-l-accent", bg: "bg-surface", iconColor: "text-accent" },
-  motivation: { border: "border-l-emerald-500", bg: "bg-surface", iconColor: "text-emerald-400" },
-  nudge: { border: "border-l-border", bg: "bg-surface", iconColor: "text-muted" },
+const TYPE_STYLES: Record<InsightItem["type"], { border: string; bg: string; tint: string; iconColor: string }> = {
+  danger: { border: "border-l-red-500", bg: "bg-surface", tint: "bg-red-500/10", iconColor: "text-red-400" },
+  warning: { border: "border-l-amber-500", bg: "bg-surface", tint: "bg-amber-500/10", iconColor: "text-amber-400" },
+  coaching: { border: "border-l-accent", bg: "bg-surface", tint: "bg-accent/10", iconColor: "text-accent" },
+  motivation: { border: "border-l-emerald-500", bg: "bg-surface", tint: "bg-emerald-500/10", iconColor: "text-emerald-400" },
+  nudge: { border: "border-l-border", bg: "bg-surface", tint: "", iconColor: "text-muted" },
 };
 
 export function ProactiveInsightBar({
@@ -214,51 +214,54 @@ export function ProactiveInsightBar({
   const Icon = current.icon;
 
   return (
-    <div className={`rounded-xl border border-border/30 ${style.bg} border-l-4 ${style.border} px-4 py-2.5 flex items-center gap-3`}>
-      <Icon size={14} className={`shrink-0 ${style.iconColor}`} />
-      <p className="flex-1 text-xs text-foreground/80 leading-snug">{current.text}</p>
+    <div className={`relative rounded-xl border border-border/30 ${style.bg} border-l-4 ${style.border} px-4 py-2.5 overflow-hidden`}>
+      {style.tint && <div className={`absolute inset-0 ${style.tint} pointer-events-none`} />}
+      <div className="relative flex items-center gap-3">
+        <Icon size={14} className={`shrink-0 ${style.iconColor}`} />
+        <p className="flex-1 text-xs text-foreground/80 leading-snug">{current.text}</p>
 
-      {/* Navigation */}
-      {insights.length > 1 && (
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={() => setActiveIndex((prev) => (prev - 1 + insights.length) % insights.length)}
-            className="p-0.5 text-muted hover:text-foreground transition-colors"
-          >
-            <ChevronLeft size={12} />
-          </button>
-          <div className="flex gap-1">
-            {insights.map((_, i) => (
-              <div
-                key={i}
-                className={`w-1 h-1 rounded-full transition-colors ${
-                  i === activeIndex ? "bg-accent" : "bg-border"
-                }`}
-              />
-            ))}
+        {/* Navigation */}
+        {insights.length > 1 && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => setActiveIndex((prev) => (prev - 1 + insights.length) % insights.length)}
+              className="p-0.5 text-muted hover:text-foreground transition-colors"
+            >
+              <ChevronLeft size={12} />
+            </button>
+            <div className="flex gap-1">
+              {insights.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-1 h-1 rounded-full transition-colors ${
+                    i === activeIndex ? "bg-accent" : "bg-border"
+                  }`}
+                />
+              ))}
+            </div>
+            <button
+              onClick={() => setActiveIndex((prev) => (prev + 1) % insights.length)}
+              className="p-0.5 text-muted hover:text-foreground transition-colors"
+            >
+              <ChevronRight size={12} />
+            </button>
           </div>
-          <button
-            onClick={() => setActiveIndex((prev) => (prev + 1) % insights.length)}
-            className="p-0.5 text-muted hover:text-foreground transition-colors"
-          >
-            <ChevronRight size={12} />
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* Dismiss */}
-      <button
-        onClick={() => {
-          if (current.id.startsWith("tilt-")) {
-            dismissTilt(current.id.replace("tilt-", ""));
-          } else {
-            setDismissed((prev) => new Set(prev).add(current.id));
-          }
-        }}
-        className="p-1 text-muted hover:text-foreground transition-colors shrink-0"
-      >
-        <X size={12} />
-      </button>
+        {/* Dismiss */}
+        <button
+          onClick={() => {
+            if (current.id.startsWith("tilt-")) {
+              dismissTilt(current.id.replace("tilt-", ""));
+            } else {
+              setDismissed((prev) => new Set(prev).add(current.id));
+            }
+          }}
+          className="p-1 text-muted hover:text-foreground transition-colors shrink-0"
+        >
+          <X size={12} />
+        </button>
+      </div>
     </div>
   );
 }
