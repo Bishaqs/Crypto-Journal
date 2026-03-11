@@ -829,51 +829,6 @@ body {
 .tour-highlight {
   box-shadow:
     0 0 0 2px var(--accent),
-    0 0 12px rgba(var(--accent-rgb), 0.3) !important;
-  border-color: var(--accent) !important;
-  transition: box-shadow 0.5s ease, border-color 0.5s ease !important;
-  animation: tour-pulse 2s ease-in-out infinite;
-  position: relative;
-  z-index: 999;
-}
-
-@keyframes tour-pulse {
-
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 2px var(--accent),
-      0 0 12px rgba(var(--accent-rgb), 0.3);
-  }
-
-  50% {
-    box-shadow:
-      0 0 0 2px var(--accent),
-      0 0 18px rgba(var(--accent-rgb), 0.4);
-  }
-}
-
-/* Fade-in animation for content sections */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out both;
-}
-
-/* Tour highlight glow on sidebar/target items */
-.tour-highlight {
-  box-shadow:
-    0 0 0 2px var(--accent),
     0 0 16px rgba(var(--accent-rgb), 0.4),
     0 0 32px rgba(var(--accent-rgb), 0.2) !important;
   border-color: var(--accent) !important;
@@ -916,6 +871,66 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out both;
+}
+
+/* ===== Tour Card — Glassmorphic ===== */
+.tour-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 20px 24px;
+  max-width: calc(100vw - 32px);
+}
+
+.tour-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.3), transparent 50%, rgba(var(--accent-rgb), 0.1));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Shimmer CTA effect on final "Let's go!" button */
+.tour-cta-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.15) 50%, transparent 75%);
+  animation: tour-shimmer 2s ease-in-out infinite;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@keyframes tour-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-cta-shimmer::after {
+    animation: none;
+  }
+
+  .tour-card::before {
+    background: rgba(var(--accent-rgb), 0.15);
+  }
 }
 
 /* Feature & pricing card depth */

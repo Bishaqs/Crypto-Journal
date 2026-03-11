@@ -52,38 +52,36 @@ export function AppsDropdown() {
   const apps = APPS_REGISTRY.filter((a) => a.category === "apps");
   const links = APPS_REGISTRY.filter((a) => a.category === "links");
 
-  // Tour integration: programmatic open/close
+  // Tour integration: programmatic open/close via single event
   useEffect(() => {
-    function handleTourOpen() {
-      openedByTour.current = true;
-      // Calculate position from button for portal rendering
-      if (buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        const dropdownHeight = 480; // approximate max height of apps panel
-        let top = rect.bottom + 8;
-        // Clamp: don't start above viewport
-        top = Math.max(8, top);
-        // Clamp: if dropdown would overflow bottom, anchor to bottom instead
-        if (top + dropdownHeight > window.innerHeight) {
-          top = Math.max(8, window.innerHeight - dropdownHeight - 8);
+    function handleTourApps(e: Event) {
+      const open = (e as CustomEvent).detail?.open;
+      if (open) {
+        openedByTour.current = true;
+        // Calculate position from button for portal rendering
+        if (buttonRef.current) {
+          const rect = buttonRef.current.getBoundingClientRect();
+          const dropdownHeight = 480; // approximate max height of apps panel
+          let top = rect.bottom + 8;
+          top = Math.max(8, top);
+          if (top + dropdownHeight > window.innerHeight) {
+            top = Math.max(8, window.innerHeight - dropdownHeight - 8);
+          }
+          setPortalPos({
+            top,
+            right: Math.max(8, window.innerWidth - rect.right),
+          });
         }
-        setPortalPos({
-          top,
-          right: Math.max(8, window.innerWidth - rect.right),
-        });
+        setShowApps(true);
+      } else {
+        openedByTour.current = false;
+        setShowApps(false);
+        setPortalPos(null);
       }
-      setShowApps(true);
     }
-    function handleTourClose() {
-      openedByTour.current = false;
-      setShowApps(false);
-      setPortalPos(null);
-    }
-    window.addEventListener("tour-apps-open", handleTourOpen);
-    window.addEventListener("tour-apps-close", handleTourClose);
+    window.addEventListener("tour-apps", handleTourApps);
     return () => {
-      window.removeEventListener("tour-apps-open", handleTourOpen);
-      window.removeEventListener("tour-apps-close", handleTourClose);
+      window.removeEventListener("tour-apps", handleTourApps);
     };
   }, []);
 

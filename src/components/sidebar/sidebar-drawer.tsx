@@ -274,6 +274,7 @@ export function SidebarDrawer({
 
       {/* Drawer panel */}
       <motion.aside
+        id="tour-drawer-panel"
         initial={{ x: -280 }}
         animate={{ x: 0, transition: { type: "spring", damping: 35, stiffness: 400 } }}
         exit={{ x: -280, transition: { type: "tween", duration: 0.15, ease: "easeIn" } }}

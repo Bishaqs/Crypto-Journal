@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   type ReactNode,
 } from "react";
 import { allTours, markTourComplete, isTourComplete } from "./onboarding";
@@ -14,6 +15,13 @@ import { allTours, markTourComplete, isTourComplete } from "./onboarding";
 // ─── Types ──────────────────────────────────────────────────
 
 export type TourStep = {
+  // New fields (optional for backward compat with page-specific tours)
+  id?: string;
+  layout?: "fullscreen" | "spotlight";
+  sidebarCategory?: string;
+  sidebarClose?: boolean;
+  appsDropdown?: boolean;
+  // Existing fields kept for page-specific tours
   icon?: string;
   title: string;
   content: string;
@@ -26,7 +34,7 @@ export type TourStep = {
   pointerPadding?: number;
   pointerRadius?: number;
   viewportID?: string;
-  presentation?: "centered" | "attached";
+  presentation?: "centered" | "attached"; // legacy — mapped to layout
   transitionEffect?: "star-warp";
   logoSize?: number;
 };
@@ -35,6 +43,13 @@ export type TourDef = {
   tour: string;
   steps: TourStep[];
 };
+
+export type StepTarget = {
+  rect: DOMRect;
+  side: string;
+  padding: number;
+  radius: number;
+} | null;
 
 type TourState = {
   isActive: boolean;
@@ -86,6 +101,7 @@ function tourReducer(state: TourState, action: TourAction): TourState {
 type TourContextValue = {
   state: TourState;
   currentStepDef: TourStep | null;
+  stepTarget: StepTarget;
   startTour: (name: string) => void;
   nextStep: () => void;
   prevStep: () => void;
@@ -99,278 +115,55 @@ const TourContext = createContext<TourContextValue | null>(null);
 
 const TOUR_SESSION_KEY = "stargate-tour-active";
 
-function dispatchGuideFly(detail: Record<string, unknown>) {
-  window.dispatchEvent(new CustomEvent("tour-guide-fly", { detail }));
+/** Resolve effective layout — maps legacy `presentation` to new `layout` */
+export function getEffectiveLayout(step: TourStep): "fullscreen" | "spotlight" {
+  if (step.layout) return step.layout;
+  if (step.presentation === "centered") return "fullscreen";
+  return "spotlight";
 }
 
-// Maps sidebar tour IDs to the drawer category that contains them
-const TOUR_ID_TO_CATEGORY: Record<string, string> = {
-  "tour-trades": "journal",
-  "tour-journal": "journal",
-  "tour-calendar": "journal",
-  "tour-plans": "journal",
-  "tour-achievements": "compete",
-  "tour-analytics": "analytics",
-  "tour-insights": "analytics",
-  "tour-ai": "analytics",
-  "tour-view-toggle": "analytics",
-};
-
-const SIDEBAR_TOUR_IDS = new Set(Object.keys(TOUR_ID_TO_CATEGORY));
-
-// Track sidebar state to avoid unnecessary close/open cycles during transitions
-let sidebarOpen = false;
-
-function expandSidebar(category?: string) {
-  sidebarOpen = true;
-  window.dispatchEvent(
-    new CustomEvent("tour-sidebar", { detail: { expand: true, category: category || "journal" } }),
-  );
-  window.dispatchEvent(new CustomEvent("tour-sections-expand"));
-}
-
-function restoreSidebar() {
-  sidebarOpen = false;
-  window.dispatchEvent(
-    new CustomEvent("tour-sidebar", { detail: { expand: false } }),
-  );
-  window.dispatchEvent(new CustomEvent("tour-sections-restore"));
-}
-
-function forceCloseSidebar() {
-  sidebarOpen = false;
-  window.dispatchEvent(
-    new CustomEvent("tour-sidebar", { detail: { expand: false, force: true } }),
-  );
-  window.dispatchEvent(new CustomEvent("tour-sections-restore"));
-}
-
-function openAppsDropdown() {
-  window.dispatchEvent(new CustomEvent("tour-apps-open"));
-}
-
-function closeAppsDropdown() {
-  window.dispatchEvent(new CustomEvent("tour-apps-close"));
-}
-
-// ─── Step Execution ─────────────────────────────────────────
-
-function executeStep(step: TourStep, stepIndex: number, tourName: string) {
-  // Close apps dropdown from previous step (if it was open)
-  closeAppsDropdown();
-
-  const isCentered = step.presentation === "centered";
-
-  // ── Centered mode: guide + bubble stay centered, element just gets highlight ──
-  if (isCentered) {
-    if (step.selector) {
-      const selectorId = step.selector.replace("#", "");
-      const isSidebarTarget = SIDEBAR_TOUR_IDS.has(selectorId);
-
-      if (isSidebarTarget) {
-        const category = TOUR_ID_TO_CATEGORY[selectorId] || "journal";
-        expandSidebar(category);
-
-        setTimeout(() => {
-          document
-            .querySelectorAll(".tour-highlight")
-            .forEach((el) => el.classList.remove("tour-highlight"));
-          const targetEl = document.querySelector(step.selector!);
-          if (targetEl) {
-            targetEl.classList.add("tour-highlight");
-            targetEl.scrollIntoView({ behavior: "instant", block: "nearest" });
-          }
-          dispatchGuideFly({ centered: true, step: stepIndex, tourName });
-        }, 550);
-      } else {
-        // Close sidebar first
-        forceCloseSidebar();
-
-        // Special case: Apps dropdown — scroll to top + open dropdown
-        if (selectorId === "tour-apps") {
-          const vp = document.getElementById("dashboard-viewport");
-          if (vp) vp.scrollTo({ top: 0, behavior: "instant" });
-
-          setTimeout(() => {
-            openAppsDropdown();
-            setTimeout(() => {
-              document
-                .querySelectorAll(".tour-highlight")
-                .forEach((el) => el.classList.remove("tour-highlight"));
-              const targetEl = document.querySelector(step.selector!);
-              if (targetEl) targetEl.classList.add("tour-highlight");
-              dispatchGuideFly({ centered: true, step: stepIndex, tourName });
-            }, 200);
-          }, 100);
-        } else {
-          setTimeout(() => {
-            document
-              .querySelectorAll(".tour-highlight")
-              .forEach((el) => el.classList.remove("tour-highlight"));
-            const targetEl = document.querySelector(step.selector!);
-            if (targetEl) {
-              targetEl.classList.add("tour-highlight");
-              const viewport = document.getElementById(step.viewportID || "dashboard-viewport");
-              if (viewport?.contains(targetEl)) {
-                targetEl.scrollIntoView({ behavior: "instant", block: "center" });
-              }
-            }
-            dispatchGuideFly({ centered: true, step: stepIndex, tourName });
-          }, 200);
-        }
-      }
-    } else {
-      // Floating centered step — no target
-      restoreSidebar();
-      document
-        .querySelectorAll(".tour-highlight")
-        .forEach((el) => el.classList.remove("tour-highlight"));
-      dispatchGuideFly({ centered: true, step: stepIndex, tourName });
-    }
-    return;
-  }
-
-  // ── Attached mode (default): guide flies to element ──
-
-  if (!step.selector) {
-    restoreSidebar();
-    dispatchGuideFly({ rect: null, step: stepIndex, tourName });
-    return;
-  }
-
-  const selectorId = step.selector.replace("#", "");
-  const isSidebarSelector = SIDEBAR_TOUR_IDS.has(selectorId);
-
-  if (isSidebarSelector) {
-    const category = TOUR_ID_TO_CATEGORY[selectorId] || "journal";
-    expandSidebar(category);
-    setTimeout(() => {
-      const targetEl = document.querySelector(step.selector!);
-      if (targetEl) {
-        targetEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        document
-          .querySelectorAll(".tour-highlight")
-          .forEach((el) => el.classList.remove("tour-highlight"));
-        targetEl.classList.add("tour-highlight");
-        const rect = targetEl.getBoundingClientRect();
-        dispatchGuideFly({
-          rect: {
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-          },
-          side: step.side || "right",
-          step: stepIndex,
-          tourName,
-          padding: step.pointerPadding ?? 8,
-          radius: step.pointerRadius ?? 12,
-        });
-      }
-    }, 550);
-    return;
-  }
-
-  // Apps dropdown — scroll to top so header is visible, then open dropdown
-  if (selectorId === "tour-apps") {
-    forceCloseSidebar();
-    // Scroll viewport to top so the header button is in view
-    const vp = document.getElementById("dashboard-viewport");
-    if (vp) vp.scrollTo({ top: 0, behavior: "instant" });
-
-    // Small delay for scroll to settle, then open dropdown
-    setTimeout(() => {
-      openAppsDropdown();
-
-      setTimeout(() => {
-        document
-          .querySelectorAll(".tour-highlight")
-          .forEach((el) => el.classList.remove("tour-highlight"));
-        const appsEl = document.querySelector(step.selector!);
-        if (!appsEl) return;
-        appsEl.classList.add("tour-highlight");
-
-        const rect = appsEl.getBoundingClientRect();
-        dispatchGuideFly({
-          rect: {
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-          },
-          side: step.side || "bottom",
-          step: stepIndex,
-          tourName,
-          padding: step.pointerPadding ?? 8,
-          radius: step.pointerRadius ?? 12,
-        });
-      }, 200);
-    }, 100);
-    return;
-  }
-
-  // Non-sidebar target — only close sidebar if it's actually open
-  const needsSidebarClose = sidebarOpen;
-  if (needsSidebarClose) {
-    forceCloseSidebar();
-  }
-
-  const highlightAndFly = () => {
-    const targetEl = document.querySelector(step.selector!);
-    if (!targetEl) return;
-
-    document
-      .querySelectorAll(".tour-highlight")
-      .forEach((el) => el.classList.remove("tour-highlight"));
-    targetEl.classList.add("tour-highlight");
-
-    const viewport = document.getElementById(
-      step.viewportID || "dashboard-viewport",
-    );
-    if (viewport?.contains(targetEl)) {
-      targetEl.scrollIntoView({ behavior: "instant", block: "center" });
-    }
-
-    // Small rAF delay for DOM paint, then fly
-    requestAnimationFrame(() => {
-      const rect = targetEl.getBoundingClientRect();
-      dispatchGuideFly({
-        rect: {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-        },
-        side: step.side || "bottom",
-        step: stepIndex,
-        tourName,
-        padding: step.pointerPadding ?? 6,
-        radius: step.pointerRadius ?? 12,
-      });
+function waitForElement(selector: string, timeout = 2000): Promise<Element | null> {
+  return new Promise((resolve) => {
+    const el = document.querySelector(selector);
+    if (el) { resolve(el); return; }
+    let timer: ReturnType<typeof setTimeout>;
+    const observer = new MutationObserver(() => {
+      const found = document.querySelector(selector);
+      if (found) { observer.disconnect(); clearTimeout(timer); resolve(found); }
     });
-  };
+    observer.observe(document.body, { childList: true, subtree: true });
+    timer = setTimeout(() => { observer.disconnect(); resolve(null); }, timeout);
+  });
+}
 
-  if (needsSidebarClose) {
-    // Wait for sidebar close animation before highlighting
-    setTimeout(highlightAndFly, 300);
-  } else {
-    // Sidebar already closed — highlight immediately
-    highlightAndFly();
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function scrollIntoViewIfNeeded(el: Element, viewportID?: string) {
+  const viewport = document.getElementById(viewportID || "dashboard-viewport");
+  if (viewport?.contains(el)) {
+    el.scrollIntoView({ behavior: "instant", block: "center" });
   }
 }
 
 function cleanupHighlights() {
-  document
-    .querySelectorAll(".tour-highlight")
-    .forEach((el) => el.classList.remove("tour-highlight"));
+  document.querySelectorAll(".tour-highlight").forEach((el) => el.classList.remove("tour-highlight"));
 }
 
 // ─── Provider ───────────────────────────────────────────────
 
 export function TourProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(tourReducer, initialState);
+  const [stepTarget, setStepTarget] = useState<StepTarget>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // Track current step's selector for resize recalculation
+  const currentSelectorRef = useRef<string | undefined>(undefined);
+  const currentSideRef = useRef<string>("right");
+  const currentPaddingRef = useRef<number>(8);
+  const currentRadiusRef = useRef<number>(12);
 
   // Get current step definition
   const currentStepDef: TourStep | null = (() => {
@@ -382,11 +175,81 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const completeTour = useCallback((tourName: string | null) => {
     if (tourName) markTourComplete(tourName);
     sessionStorage.removeItem(TOUR_SESSION_KEY);
-    closeAppsDropdown();
+
+    // Close apps dropdown
+    window.dispatchEvent(new CustomEvent("tour-apps", { detail: { open: false } }));
+
+    // Clean highlights
     cleanupHighlights();
-    restoreSidebar();
-    dispatchGuideFly({ home: true });
+
+    // Restore sidebar
+    window.dispatchEvent(new CustomEvent("tour-sidebar", { detail: { expand: false } }));
+
     dispatch({ type: "END" });
+    setStepTarget(null);
+    currentSelectorRef.current = undefined;
+  }, []);
+
+  const executeStep = useCallback(async (step: TourStep) => {
+    const effectiveLayout = getEffectiveLayout(step);
+
+    // 1. Always close apps dropdown from previous step
+    window.dispatchEvent(new CustomEvent("tour-apps", { detail: { open: false } }));
+
+    // 2. Sidebar control — new declarative fields take precedence, then fall back to legacy behavior
+    if (step.sidebarClose) {
+      window.dispatchEvent(new CustomEvent("tour-sidebar", { detail: { expand: false, force: true } }));
+      await sleep(300);
+    }
+    if (step.sidebarCategory) {
+      window.dispatchEvent(new CustomEvent("tour-sidebar", { detail: { expand: true, category: step.sidebarCategory } }));
+      await waitForElement("#tour-drawer-panel", 1500);
+    }
+
+    // 3. Apps dropdown
+    if (step.appsDropdown) {
+      // Close sidebar first if it's open
+      window.dispatchEvent(new CustomEvent("tour-sidebar", { detail: { expand: false, force: true } }));
+      await sleep(100);
+      const vp = document.getElementById("dashboard-viewport");
+      if (vp) vp.scrollTo({ top: 0, behavior: "instant" });
+      window.dispatchEvent(new CustomEvent("tour-apps", { detail: { open: true } }));
+      await sleep(200);
+    }
+
+    // 4. Highlight target
+    cleanupHighlights();
+
+    currentSelectorRef.current = step.selector;
+    currentSideRef.current = step.side || "right";
+    currentPaddingRef.current = step.pointerPadding ?? 8;
+    currentRadiusRef.current = step.pointerRadius ?? 12;
+
+    let targetRect: DOMRect | null = null;
+    if (step.selector) {
+      const el = await waitForElement(step.selector, 2000);
+      if (el) {
+        el.classList.add("tour-highlight");
+        if (effectiveLayout === "spotlight") {
+          scrollIntoViewIfNeeded(el, step.viewportID);
+        }
+        targetRect = el.getBoundingClientRect();
+      } else {
+        console.warn(`[Tour] Element ${step.selector} not found`);
+      }
+    }
+
+    // 5. Update context — guide reads from here (no events needed)
+    setStepTarget(
+      targetRect
+        ? {
+            rect: targetRect,
+            side: currentSideRef.current,
+            padding: currentPaddingRef.current,
+            radius: currentRadiusRef.current,
+          }
+        : null,
+    );
   }, []);
 
   const startTour = useCallback(
@@ -398,7 +261,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
       const firstStep = tour.steps[0];
       if (firstStep.transitionEffect === "star-warp") {
-        // Auto-trigger warp — no bubble for this step
         requestAnimationFrame(() => {
           window.dispatchEvent(new CustomEvent("tour-star-warp"));
         });
@@ -406,13 +268,12 @@ export function TourProvider({ children }: { children: ReactNode }) {
       }
 
       requestAnimationFrame(() => {
-        executeStep(tour.steps[0], 0, name);
+        executeStep(tour.steps[0]);
       });
     },
-    [],
+    [executeStep],
   );
 
-  // advanceStep: unconditionally advances (used after star-warp completes)
   const advanceStep = useCallback(() => {
     const s = stateRef.current;
     if (!s.isActive || !s.tourName) return;
@@ -424,19 +285,17 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const tour = allTours.find((t) => t.tour === s.tourName);
     const nextIdx = s.currentStep + 1;
     if (tour?.steps[nextIdx]) {
-      executeStep(tour.steps[nextIdx], nextIdx, s.tourName);
+      executeStep(tour.steps[nextIdx]);
     }
-  }, [completeTour]);
+  }, [completeTour, executeStep]);
 
   const nextStep = useCallback(() => {
     const s = stateRef.current;
     if (!s.isActive || !s.tourName) return;
 
-    // Check if current step has a transition effect
     const tour = allTours.find((t) => t.tour === s.tourName);
     const currentDef = tour?.steps[s.currentStep];
     if (currentDef?.transitionEffect === "star-warp") {
-      // Dispatch event — guide component handles warp, then calls advanceStep
       window.dispatchEvent(new CustomEvent("tour-star-warp"));
       return;
     }
@@ -448,9 +307,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "NEXT" });
     const nextIdx = s.currentStep + 1;
     if (tour?.steps[nextIdx]) {
-      executeStep(tour.steps[nextIdx], nextIdx, s.tourName);
+      executeStep(tour.steps[nextIdx]);
     }
-  }, [completeTour, advanceStep]);
+  }, [completeTour, executeStep]);
 
   const prevStep = useCallback(() => {
     const s = stateRef.current;
@@ -459,13 +318,40 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const tour = allTours.find((t) => t.tour === s.tourName);
     const prevIdx = s.currentStep - 1;
     if (tour?.steps[prevIdx]) {
-      executeStep(tour.steps[prevIdx], prevIdx, s.tourName);
+      executeStep(tour.steps[prevIdx]);
     }
-  }, []);
+  }, [executeStep]);
 
   const skipTour = useCallback(() => {
-    completeTour(stateRef.current.tourName);
+    if (stateRef.current.isActive) {
+      completeTour(stateRef.current.tourName);
+    }
   }, [completeTour]);
+
+  // Recalculate target rect on resize/scroll
+  useEffect(() => {
+    if (!state.isActive || !currentSelectorRef.current) return;
+
+    const updateRect = () => {
+      const el = document.querySelector(currentSelectorRef.current!);
+      if (el) {
+        setStepTarget({
+          rect: el.getBoundingClientRect(),
+          side: currentSideRef.current,
+          padding: currentPaddingRef.current,
+          radius: currentRadiusRef.current,
+        });
+      }
+    };
+
+    window.addEventListener("resize", updateRect);
+    window.addEventListener("scroll", updateRect, { capture: true, passive: true });
+
+    return () => {
+      window.removeEventListener("resize", updateRect);
+      window.removeEventListener("scroll", updateRect, { capture: true });
+    };
+  }, [state.isActive, state.currentStep]);
 
   // Persist tour state for HMR recovery
   useEffect(() => {
@@ -494,11 +380,11 @@ export function TourProvider({ children }: { children: ReactNode }) {
             if (step > 0) {
               setTimeout(() => {
                 dispatch({ type: "GO_TO", step });
-                executeStep(tourDef.steps[step], step, tour);
+                executeStep(tourDef.steps[step]);
               }, 50);
             } else {
               requestAnimationFrame(() => {
-                executeStep(tourDef.steps[0], 0, tour);
+                executeStep(tourDef.steps[0]);
               });
             }
             return;
@@ -509,11 +395,11 @@ export function TourProvider({ children }: { children: ReactNode }) {
       }
       sessionStorage.removeItem(TOUR_SESSION_KEY);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [executeStep]);
 
   return (
     <TourContext.Provider
-      value={{ state, currentStepDef, startTour, nextStep, prevStep, skipTour, advanceStep }}
+      value={{ state, currentStepDef, stepTarget, startTour, nextStep, prevStep, skipTour, advanceStep }}
     >
       {children}
     </TourContext.Provider>
