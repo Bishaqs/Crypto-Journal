@@ -34,7 +34,7 @@ export async function POST(
   }
 
   // Log the sync attempt
-  await supabase.from("sync_logs").insert({
+  const { error: logError } = await supabase.from("sync_logs").insert({
     connection_id: id,
     user_id: user.id,
     sync_type: "manual",
@@ -47,9 +47,12 @@ export async function POST(
     started_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
   });
+  if (logError) {
+    console.error("[sync] Failed to write sync log:", logError.message, logError.code);
+  }
 
   // Update connection status
-  await supabase
+  const { error: updateError } = await supabase
     .from("broker_connections")
     .update({
       last_sync_at: new Date().toISOString(),
@@ -57,6 +60,9 @@ export async function POST(
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
+  if (updateError) {
+    console.error("[sync] Failed to update connection:", updateError.message, updateError.code);
+  }
 
   // Placeholder response — actual broker API integration will be added per-broker
   return NextResponse.json({

@@ -4,20 +4,15 @@ import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Key,
-  RefreshCw,
-  Clock,
   Shield,
   Save,
   User,
   Lock,
-  Link2,
   Globe,
   Wallet,
   CreditCard,
   Gift,
   Download,
-  Plus,
-  Trash2,
   Copy,
   CheckCircle2,
   Star,
@@ -26,7 +21,6 @@ import {
   Database,
   Mail,
   X,
-  Info,
   TrendingUp,
   Brain,
   Eye,
@@ -36,34 +30,16 @@ import {
   Zap,
 } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
-import type { Chain, Wallet as WalletType } from "@/lib/types";
-import { CHAINS } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/lib/use-subscription";
 import { useReferral } from "@/lib/use-referral";
 import { RedeemCodeSection } from "@/components/settings/redeem-code-section";
+import { TradingAccountsTab } from "@/components/settings/trading-accounts-tab";
 import { useI18n, LOCALES } from "@/lib/i18n";
 
 /* ================================================================
    TYPES
    ================================================================ */
-
-type ExchangeConfig = {
-  exchange: string;
-  apiKey: string;
-  apiSecret: string;
-  autoImport: boolean;
-  importTime: string;
-};
-
-type TradingAccount = {
-  id: string;
-  name: string;
-  exchange: string;
-  balance: number;
-  currency: string;
-  active: boolean;
-};
 
 type GlobalSettings = {
   timezone: string;
@@ -73,14 +49,6 @@ type GlobalSettings = {
   maxDailyLoss: string;
   maxDrawdown: string;
   maxPositionSize: string;
-};
-
-const DEFAULT_CONFIG: ExchangeConfig = {
-  exchange: "binance",
-  apiKey: "",
-  apiSecret: "",
-  autoImport: false,
-  importTime: "01:00",
 };
 
 const DEFAULT_GLOBAL: GlobalSettings = {
@@ -95,7 +63,6 @@ const DEFAULT_GLOBAL: GlobalSettings = {
 
 type SettingsTab =
   | "account"
-  | "connections"
   | "trading-accounts"
   | "global"
   | "ai"
@@ -105,7 +72,6 @@ type SettingsTab =
 
 const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerOnly?: boolean }[] = [
   { value: "account", label: "Account", icon: User },
-  { value: "connections", label: "Connected Accounts", icon: Link2 },
   { value: "trading-accounts", label: "Trading Accounts", icon: Wallet },
   { value: "global", label: "Global Settings", icon: Globe },
   { value: "ai", label: "AI Coach", icon: Brain },
@@ -113,8 +79,6 @@ const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerO
   { value: "referrals", label: "Referrals", icon: Gift },
   { value: "export", label: "Export Data", icon: Download },
 ];
-
-const EXCHANGES = ["Binance", "Bybit", "OKX", "Bitget", "Coinbase", "Kraken", "KuCoin", "Gate.io"];
 
 const TIMEZONES = [
   "UTC",
@@ -272,7 +236,7 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
    MAIN SETTINGS PAGE
    ================================================================ */
 
-const VALID_TABS = new Set<SettingsTab>(["account", "connections", "trading-accounts", "global", "ai", "subscription", "referrals", "export"]);
+const VALID_TABS = new Set<SettingsTab>(["account", "trading-accounts", "global", "ai", "subscription", "referrals", "export"]);
 
 export default function SettingsPage() {
   return (
@@ -291,9 +255,6 @@ function SettingsContent() {
   const { tier, isOwner, loading: subLoading } = useSubscription();
   const { code: referralCode, totalReferrals, converted: referralConverted, freeDaysEarned, loading: refLoading } = useReferral();
   const [tab, setTab] = useState<SettingsTab>(initialTab);
-  const [config, setConfig] = useState<ExchangeConfig>(DEFAULT_CONFIG);
-  const [saved, setSaved] = useState(false);
-  const [showSecret, setShowSecret] = useState(false);
   const [displayName, setDisplayName] = useState("Trader");
   const [profileSaved, setProfileSaved] = useState(false);
   const [userEmail, setUserEmail] = useState("");
@@ -305,11 +266,6 @@ function SettingsContent() {
       if (user?.email) setUserEmail(user.email);
     });
   }, []);
-
-  // Trading accounts state
-  const [accounts, setAccounts] = useState<TradingAccount[]>([]);
-  const [showAddAccount, setShowAddAccount] = useState(false);
-  const [newAccount, setNewAccount] = useState({ name: "", exchange: "Binance", balance: "", currency: "USD" });
 
   // Global settings state
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>(DEFAULT_GLOBAL);
@@ -333,21 +289,11 @@ function SettingsContent() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [aiEnhancedInsights, setAiEnhancedInsights] = useState(false);
 
-  // Wallet state
-  const [wallets, setWallets] = useState<WalletType[]>([]);
-  const [newWallet, setNewWallet] = useState({ address: "", chain: "ethereum" as Chain, label: "" });
-
   useEffect(() => {
-    const stored = localStorage.getItem("stargate-exchange-config");
-    if (stored) setConfig(JSON.parse(stored));
     const name = localStorage.getItem("stargate-display-name");
     if (name) setDisplayName(name);
-    const accts = localStorage.getItem("stargate-trading-accounts");
-    if (accts) setAccounts(JSON.parse(accts));
     const global = localStorage.getItem("stargate-global-settings");
     if (global) setGlobalSettings(JSON.parse(global));
-    const storedWallets = localStorage.getItem("stargate-wallets");
-    if (storedWallets) setWallets(JSON.parse(storedWallets));
 
     // Load AI provider preference
     const savedProvider = localStorage.getItem("stargate-ai-provider");
@@ -369,32 +315,6 @@ function SettingsContent() {
       .catch(() => {});
   }, []);
 
-  function saveConfig() {
-    localStorage.setItem("stargate-exchange-config", JSON.stringify(config));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  function saveAccounts(updated: TradingAccount[]) {
-    setAccounts(updated);
-    localStorage.setItem("stargate-trading-accounts", JSON.stringify(updated));
-  }
-
-  function addAccount() {
-    if (!newAccount.name.trim()) return;
-    const acct: TradingAccount = {
-      id: Date.now().toString(),
-      name: newAccount.name,
-      exchange: newAccount.exchange,
-      balance: parseFloat(newAccount.balance) || 0,
-      currency: newAccount.currency,
-      active: true,
-    };
-    saveAccounts([...accounts, acct]);
-    setNewAccount({ name: "", exchange: "Binance", balance: "", currency: "USD" });
-    setShowAddAccount(false);
-  }
-
   function saveGlobal() {
     localStorage.setItem("stargate-global-settings", JSON.stringify(globalSettings));
     setGlobalSaved(true);
@@ -410,27 +330,6 @@ function SettingsContent() {
     navigator.clipboard.writeText(referralUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }
-
-  function saveWallets(updated: WalletType[]) {
-    setWallets(updated);
-    localStorage.setItem("stargate-wallets", JSON.stringify(updated));
-  }
-
-  function addWallet() {
-    if (!newWallet.address.trim()) return;
-    const w: WalletType = {
-      id: Date.now().toString(),
-      address: newWallet.address.trim(),
-      chain: newWallet.chain,
-      label: newWallet.label.trim() || "Untitled Wallet",
-    };
-    saveWallets([...wallets, w]);
-    setNewWallet({ address: "", chain: "ethereum", label: "" });
-  }
-
-  function removeWallet(id: string) {
-    saveWallets(wallets.filter((w) => w.id !== id));
   }
 
   function downloadFile(filename: string, content: string, type: string) {
@@ -496,247 +395,8 @@ function SettingsContent() {
         </div>
       )}
 
-      {/* ============ CONNECTED ACCOUNTS TAB ============ */}
-      {tab === "connections" && (
-        <div className="space-y-6">
-          {config.apiKey && (
-            <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
-              config.apiKey.length > 10
-                ? "bg-win/5 border-win/20"
-                : "bg-amber-500/5 border-amber-500/20"
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${config.apiKey.length > 10 ? "bg-win animate-pulse" : "bg-amber-500"}`} />
-              <span className={`text-xs font-medium ${config.apiKey.length > 10 ? "text-win" : "text-amber-500"}`}>
-                {config.exchange.charAt(0).toUpperCase() + config.exchange.slice(1)} — {config.apiKey.length > 10 ? "Connected" : "Key looks incomplete"}
-              </span>
-              <span className="text-[10px] text-muted/60 ml-auto">
-                Key: ...{config.apiKey.slice(-6)}
-              </span>
-            </div>
-          )}
-
-          <SectionCard icon={Key} title="Exchange API Keys" description="Connect your exchange to auto-import trades.">
-            <div>
-              <label className="block text-xs text-muted mb-1.5 font-medium">Exchange</label>
-              <select
-                value={config.exchange}
-                onChange={(e) => setConfig({ ...config, exchange: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all"
-              >
-                {EXCHANGES.map((ex) => (
-                  <option key={ex} value={ex.toLowerCase()}>{ex}</option>
-                ))}
-              </select>
-            </div>
-            <InputField label="API Key" value={config.apiKey} onChange={(v) => setConfig({ ...config, apiKey: v })} placeholder="Enter your API key" mono />
-            <div>
-              <label className="block text-xs text-muted mb-1.5 font-medium">API Secret</label>
-              <div className="relative">
-                <input
-                  type={showSecret ? "text" : "password"}
-                  value={config.apiSecret}
-                  onChange={(e) => setConfig({ ...config, apiSecret: e.target.value })}
-                  placeholder="Enter your API secret"
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm font-mono focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowSecret(!showSecret)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted hover:text-foreground transition-colors"
-                >
-                  {showSecret ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-accent/5 border border-accent/10">
-              <Shield size={14} className="text-accent mt-0.5 shrink-0" />
-              <p className="text-xs text-muted leading-relaxed">
-                API keys are stored locally on your machine only. Use <strong className="text-foreground">read-only</strong> API keys for safety.
-              </p>
-            </div>
-          </SectionCard>
-          <SectionCard icon={Clock} title="Auto Import" description="Automatically fetch new trades on a schedule.">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-foreground">Enable auto-import</p>
-                <p className="text-xs text-muted">Fetches trades daily at the scheduled time.</p>
-              </div>
-              <button
-                onClick={() => setConfig({ ...config, autoImport: !config.autoImport })}
-                className={`relative w-12 h-6 rounded-full transition-all duration-300 ${config.autoImport ? "bg-accent" : "bg-border"}`}
-              >
-                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-300 ${config.autoImport ? "left-6" : "left-0.5"}`} />
-              </button>
-            </div>
-            {config.autoImport && (
-              <div>
-                <label className="block text-xs text-muted mb-1.5 font-medium">Import Time (Detroit / EST)</label>
-                <input
-                  type="time"
-                  value={config.importTime}
-                  onChange={(e) => setConfig({ ...config, importTime: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all"
-                />
-              </div>
-            )}
-            <button
-              onClick={() => alert("Manual import coming soon!")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-hover border border-border text-sm text-foreground hover:border-accent/30 transition-all"
-            >
-              <RefreshCw size={14} />
-              Import Now
-            </button>
-          </SectionCard>
-          {/* Wallets Section */}
-          <SectionCard icon={Wallet} title="Wallets" description="Track your on-chain wallets for DEX trade logging.">
-            {/* Add wallet form */}
-            <div className="space-y-3">
-              <InputField
-                label="Wallet Address"
-                value={newWallet.address}
-                onChange={(v) => setNewWallet({ ...newWallet, address: v })}
-                placeholder="0x... or So1..."
-                mono
-              />
-              <SelectField
-                label="Chain"
-                value={newWallet.chain}
-                onChange={(v) => setNewWallet({ ...newWallet, chain: v as Chain })}
-                options={CHAINS.map((c) => ({ value: c.id, label: c.label }))}
-              />
-              <InputField
-                label="Label"
-                value={newWallet.label}
-                onChange={(v) => setNewWallet({ ...newWallet, label: v })}
-                placeholder="Main Trading Wallet"
-              />
-              <button
-                onClick={addWallet}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-accent text-background text-sm font-semibold hover:bg-accent-hover transition-all"
-              >
-                <Plus size={14} />
-                Add Wallet
-              </button>
-            </div>
-
-            {/* Saved wallets list */}
-            {wallets.length > 0 && (
-              <div className="space-y-2 mt-4">
-                {wallets.map((w) => (
-                  <div key={w.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-background border border-border">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">{w.label}</p>
-                      <p className="text-[10px] text-muted font-mono truncate">{w.address}</p>
-                      <p className="text-[10px] text-accent">{CHAINS.find((c) => c.id === w.chain)?.label ?? w.chain}</p>
-                    </div>
-                    <button
-                      onClick={() => removeWallet(w.id)}
-                      className="ml-3 p-1.5 rounded-lg text-muted hover:text-loss hover:bg-loss/10 transition-all shrink-0"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Info message */}
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-accent/5 border border-accent/10 mt-3">
-              <Info size={14} className="text-accent mt-0.5 shrink-0" />
-              <p className="text-xs text-muted leading-relaxed">
-                Wallet scanning coming soon — for now, log DEX trades manually with the CEX/DEX toggle.
-              </p>
-            </div>
-          </SectionCard>
-
-          <SaveButton saved={saved} onClick={saveConfig} label="Save Settings" />
-        </div>
-      )}
-
-      {/* ============ TRADING ACCOUNTS TAB ============ */}
-      {tab === "trading-accounts" && (
-        <div className="space-y-6">
-          <SectionCard icon={Wallet} title="Trading Accounts" description="Manage multiple trading accounts and portfolios.">
-            {accounts.length === 0 && !showAddAccount && (
-              <div className="py-6 text-center">
-                <p className="text-sm text-muted mb-4">No trading accounts added yet.</p>
-              </div>
-            )}
-
-            {accounts.map((acct) => (
-              <div key={acct.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-background border border-border">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${acct.active ? "bg-win" : "bg-muted/30"}`} />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{acct.name}</p>
-                    <p className="text-[10px] text-muted">{acct.exchange} · {acct.currency} {acct.balance.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      const updated = accounts.map((a) => a.id === acct.id ? { ...a, active: !a.active } : a);
-                      saveAccounts(updated);
-                    }}
-                    className="text-[10px] px-2 py-1 rounded-lg bg-surface-hover text-muted hover:text-foreground transition-all"
-                  >
-                    {acct.active ? "Active" : "Paused"}
-                  </button>
-                  <button
-                    onClick={() => saveAccounts(accounts.filter((a) => a.id !== acct.id))}
-                    className="p-1.5 rounded-lg text-muted hover:text-loss hover:bg-loss/10 transition-all"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {showAddAccount && (
-              <div className="space-y-3 p-4 rounded-xl border border-accent/20 bg-accent/5">
-                <InputField label="Account Name" value={newAccount.name} onChange={(v) => setNewAccount({ ...newAccount, name: v })} placeholder="e.g., Main Trading" />
-                <SelectField
-                  label="Exchange"
-                  value={newAccount.exchange}
-                  onChange={(v) => setNewAccount({ ...newAccount, exchange: v })}
-                  options={EXCHANGES.map((e) => ({ value: e, label: e }))}
-                />
-                <InputField label="Starting Balance" value={newAccount.balance} onChange={(v) => setNewAccount({ ...newAccount, balance: v })} placeholder="10000" type="number" />
-                <SelectField
-                  label="Currency"
-                  value={newAccount.currency}
-                  onChange={(v) => setNewAccount({ ...newAccount, currency: v })}
-                  options={[
-                    { value: "USD", label: "USD" },
-                    { value: "EUR", label: "EUR" },
-                    { value: "GBP", label: "GBP" },
-                    { value: "BTC", label: "BTC" },
-                    { value: "USDT", label: "USDT" },
-                  ]}
-                />
-                <div className="flex gap-2">
-                  <button onClick={addAccount} className="flex-1 py-2.5 rounded-xl bg-accent text-background text-sm font-semibold hover:bg-accent-hover transition-all">
-                    Add Account
-                  </button>
-                  <button onClick={() => setShowAddAccount(false)} className="px-4 py-2.5 rounded-xl bg-surface-hover border border-border text-sm text-muted hover:text-foreground transition-all">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {!showAddAccount && (
-              <button
-                onClick={() => setShowAddAccount(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-border text-sm text-muted hover:text-accent hover:border-accent/30 transition-all"
-              >
-                <Plus size={16} />
-                Add Trading Account
-              </button>
-            )}
-          </SectionCard>
-        </div>
-      )}
+      {/* ============ TRADING ACCOUNTS TAB (Unified) ============ */}
+      {tab === "trading-accounts" && <TradingAccountsTab />}
 
       {/* ============ GLOBAL SETTINGS TAB ============ */}
       {tab === "global" && (

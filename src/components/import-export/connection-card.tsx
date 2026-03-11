@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RefreshCw, Trash2, Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
-import type { BrokerConnection, ConnectionStatus } from "@/lib/import-export-types";
+import type { BrokerConnection, ConnectionStatus, SyncResult } from "@/lib/import-export-types";
 
 const STATUS_CONFIG: Record<ConnectionStatus, { label: string; className: string }> = {
   pending: { label: "Pending", className: "bg-yellow-500/10 text-yellow-400" },
@@ -16,10 +16,12 @@ export function ConnectionCard({
   connection,
   onSync,
   onDelete,
+  syncResult,
 }: {
   connection: BrokerConnection;
   onSync: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  syncResult?: SyncResult;
 }) {
   const [syncing, setSyncing] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -86,6 +88,19 @@ export function ConnectionCard({
               <AlertTriangle size={10} />
               {connection.last_error}
             </p>
+          )}
+
+          {syncResult && (
+            <div className={`flex items-center gap-1.5 text-xs mt-2 px-2.5 py-1.5 rounded-lg ${
+              syncResult.status === "success" ? "bg-win/10 text-win" :
+              syncResult.status === "error" ? "bg-loss/10 text-loss" :
+              "bg-accent/10 text-accent"
+            }`}>
+              {syncResult.status === "success" ? <CheckCircle2 size={12} /> :
+               syncResult.status === "error" ? <AlertTriangle size={12} /> :
+               <RefreshCw size={12} />}
+              {syncResult.message}
+            </div>
           )}
         </div>
 

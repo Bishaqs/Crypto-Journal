@@ -48,6 +48,7 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   if (error) {
+    console.error("[connections:GET] DB query failed:", error.message, error.code, error.details);
     return NextResponse.json({ error: "Failed to load connections" }, { status: 500 });
   }
 
@@ -105,7 +106,13 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: "Failed to save connection" }, { status: 500 });
+    console.error("[connections:POST] DB insert failed:", error.message, error.code, error.details);
+    const userMessage =
+      error.code === "42P01" ? "Database table not found — please contact support." :
+      error.code === "42501" ? "Permission denied — database security policies may need updating." :
+      error.code === "23505" ? "A connection with these credentials already exists." :
+      `Save failed: ${error.message}`;
+    return NextResponse.json({ error: userMessage, code: error.code }, { status: 500 });
   }
 
   return NextResponse.json({ id: data.id }, { status: 201 });
