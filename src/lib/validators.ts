@@ -37,6 +37,18 @@ export const BEHAVIORAL_EMOTIONS = [
   "Fearful",
 ] as const;
 
+// Expanded emotion set for journal notes (multi-select)
+export const JOURNAL_EMOTIONS = [
+  // Positive
+  "Calm", "Confident", "Excited", "Disciplined", "Relieved", "Hopeful",
+  // Negative
+  "Anxious", "Frustrated", "Fearful", "Greedy", "Impatient", "Regretful",
+  // Destructive
+  "FOMO", "Revenge", "Overconfident",
+  // Neutral
+  "Bored", "Confused", "Indifferent",
+] as const;
+
 export const EMOTION_TRIGGERS = [
   "Loss streak",
   "Big win",

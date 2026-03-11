@@ -226,12 +226,23 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
   );
 }
 
-export function serializePsychToHtml(data: Record<string, string | number | null>): string {
+export function serializePsychToHtml(data: Record<string, string | number | string[] | null>): string {
   const parts: string[] = [];
 
-  if (data.emotion) {
-    const emoji = EMOTION_CONFIG[data.emotion as string]?.emoji ?? "";
-    parts.push(`<p><strong>Emotion:</strong> ${emoji} ${data.emotion}</p>`);
+  // Handle both new multi-emotion format (emotions: string[]) and legacy single (emotion: string)
+  const emotions: string[] = Array.isArray(data.emotions)
+    ? (data.emotions as string[])
+    : (typeof data.emotion === "string" ? [data.emotion] : []);
+
+  if (emotions.length > 0) {
+    const labels = emotions.map((e) => {
+      const emoji = EMOTION_CONFIG[e]?.emoji ?? "";
+      return `${emoji} ${e}`;
+    });
+    parts.push(`<p><strong>Emotion${emotions.length > 1 ? "s" : ""}:</strong> ${labels.join(", ")}</p>`);
+  }
+  if (data.custom_emotion) {
+    parts.push(`<p><strong>Emotional State:</strong> ${data.custom_emotion}</p>`);
   }
   if (data.confidence != null) {
     parts.push(`<p><strong>Confidence:</strong> ${data.confidence}/10</p>`);

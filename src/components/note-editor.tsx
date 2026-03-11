@@ -103,6 +103,15 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
       : new Date().toISOString().slice(0, 16)
   );
   const [showPsychInsights, setShowPsychInsights] = useState(false);
+  const [selectedEmotions, setSelectedEmotions] = useState<string[]>(() => {
+    const sd = (editNote?.structured_data as Record<string, unknown>) ?? {};
+    if (Array.isArray(sd.emotions)) return sd.emotions as string[];
+    if (typeof sd.emotion === "string") return [sd.emotion];
+    return [];
+  });
+  const [customEmotionText, setCustomEmotionText] = useState<string>(
+    ((editNote?.structured_data as Record<string, unknown>)?.custom_emotion as string) ?? ""
+  );
   const contentRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const supabase = createClient();
@@ -125,8 +134,8 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
   // Auto-open psychology insights if editing a free-form note that has psychology data
   useEffect(() => {
     if (editNote && !useStructured && editNote.structured_data) {
-      const sd = editNote.structured_data as Record<string, string | number | null>;
-      if (sd.emotion || sd.confidence != null || sd.process_score != null) {
+      const sd = editNote.structured_data as Record<string, unknown>;
+      if (sd.emotion || sd.emotions || sd.custom_emotion || sd.confidence != null || sd.process_score != null) {
         setShowPsychInsights(true);
       }
     }
@@ -261,22 +270,27 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
         : sanitizeHtml(contentRef.current?.innerHTML ?? "");
 
       // Check if free-form note has psychology insights to save
-      const psychKeys = ["emotion", "confidence", "process_score"] as const;
-      const hasPsychInsights = !useStructured && showPsychInsights &&
-        psychKeys.some((k) => structuredData[k] != null);
+      const hasPsychData = !useStructured && showPsychInsights &&
+        (selectedEmotions.length > 0 || customEmotionText.trim() ||
+         structuredData.confidence != null || structuredData.process_score != null);
+
+      // Build psychology structured_data for free-form notes
+      const psychData = hasPsychData
+        ? {
+            ...(selectedEmotions.length > 0 ? { emotions: selectedEmotions } : {}),
+            ...(customEmotionText.trim() ? { custom_emotion: customEmotionText.trim() } : {}),
+            ...(structuredData.confidence != null ? { confidence: structuredData.confidence } : {}),
+            ...(structuredData.process_score != null ? { process_score: structuredData.process_score } : {}),
+          }
+        : null;
 
       // Prepend psychology HTML for display in note cards
-      if (hasPsychInsights) {
-        const psychHtml = serializePsychToHtml(structuredData);
+      if (hasPsychData && psychData) {
+        const psychHtml = serializePsychToHtml(psychData as Record<string, string | number | null>);
         if (psychHtml) {
           htmlContent = psychHtml + "<hr>" + htmlContent;
         }
       }
-
-      // Build psychology-only structured_data for free-form notes
-      const psychData = hasPsychInsights
-        ? Object.fromEntries(psychKeys.filter((k) => structuredData[k] != null).map((k) => [k, structuredData[k]]))
-        : null;
 
       // Determine note_type automatically
       let noteType = "other";
@@ -451,17 +465,34 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                   onToggleFullscreen={() => setIsFullscreen((f) => !f)}
                 />
 
-                {/* Psychology insights toggle */}
+                <div
+                  ref={contentRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  onPaste={handlePaste}
+                  onDrop={handleDrop}
+                  onDragOver={(e) => e.preventDefault()}
+                  className={`w-full overflow-y-auto px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm leading-relaxed focus:outline-none focus:border-accent/50 transition-all note-content [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_h2]:font-semibold [&_h2]:text-base [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_hr]:border-border [&_hr]:my-3 [&_code]:bg-surface [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono ${
+                    isFullscreen ? "min-h-[400px] flex-1" : "min-h-[200px] max-h-[400px]"
+                  }`}
+                  data-placeholder="What did you learn today? Paste screenshots directly..."
+                />
+                <p className="text-[10px] text-muted/40">
+                  {uploading ? "Uploading image..." : "Paste images from clipboard or drag & drop screenshots"}
+                </p>
+
+                {/* Psychology insights toggle — below the text editor */}
                 <div className="border border-border/50 rounded-xl overflow-hidden">
                   <button
                     type="button"
                     onClick={() => {
                       setShowPsychInsights((v) => {
                         if (v) {
-                          // Clearing: remove psychology keys
+                          // Clearing: remove psychology data
+                          setSelectedEmotions([]);
+                          setCustomEmotionText("");
                           setStructuredData((prev) => {
                             const next = { ...prev };
-                            delete next.emotion;
                             delete next.confidence;
                             delete next.process_score;
                             return next;
@@ -489,9 +520,13 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                     <div className="overflow-hidden">
                       <div className="px-4 py-4 space-y-4 border-t border-border/50">
                         <EmotionPicker
-                          value={(structuredData.emotion as string) ?? null}
-                          onChange={(v) => setStructuredData((prev) => ({ ...prev, emotion: v }))}
+                          mode="multi"
+                          value={selectedEmotions}
+                          onChange={setSelectedEmotions}
                           label="How are you feeling?"
+                          showCustomInput
+                          customText={customEmotionText}
+                          onCustomTextChange={setCustomEmotionText}
                         />
                         <ConfidenceSlider
                           value={(structuredData.confidence as number) ?? null}
@@ -505,22 +540,6 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                     </div>
                   </div>
                 </div>
-
-                <div
-                  ref={contentRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onPaste={handlePaste}
-                  onDrop={handleDrop}
-                  onDragOver={(e) => e.preventDefault()}
-                  className={`w-full overflow-y-auto px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm leading-relaxed focus:outline-none focus:border-accent/50 transition-all note-content [&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-2 [&_h2]:font-semibold [&_h2]:text-base [&_h2]:mt-3 [&_h2]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_hr]:border-border [&_hr]:my-3 [&_code]:bg-surface [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono ${
-                    isFullscreen ? "min-h-[400px] flex-1" : "min-h-[200px] max-h-[400px]"
-                  }`}
-                  data-placeholder="What did you learn today? Paste screenshots directly..."
-                />
-                <p className="text-[10px] text-muted/40">
-                  {uploading ? "Uploading image..." : "Paste images from clipboard or drag & drop screenshots"}
-                </p>
               </>
             )}
 

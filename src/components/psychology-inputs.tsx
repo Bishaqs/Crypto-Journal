@@ -1,6 +1,6 @@
 "use client";
 
-import { EMOTIONS, SETUP_TYPES } from "@/lib/validators";
+import { EMOTIONS, JOURNAL_EMOTIONS, SETUP_TYPES } from "@/lib/validators";
 
 // Emotion icons mapped to each emotion for visual recognition
 export const EMOTION_CONFIG: Record<string, { emoji: string; color: string }> = {
@@ -14,35 +14,86 @@ export const EMOTION_CONFIG: Record<string, { emoji: string; color: string }> = 
   Confident: { emoji: "💪", color: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" },
   Greedy: { emoji: "🤑", color: "bg-yellow-600/10 border-yellow-600/30 text-yellow-500" },
   Fearful: { emoji: "😨", color: "bg-indigo-500/10 border-indigo-500/30 text-indigo-400" },
+  Disciplined: { emoji: "🎯", color: "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" },
+  Relieved: { emoji: "😮‍💨", color: "bg-teal-500/10 border-teal-500/30 text-teal-400" },
+  Hopeful: { emoji: "🌟", color: "bg-amber-500/10 border-amber-500/30 text-amber-400" },
+  Impatient: { emoji: "⏰", color: "bg-orange-600/10 border-orange-600/30 text-orange-500" },
+  Regretful: { emoji: "😔", color: "bg-slate-500/10 border-slate-500/30 text-slate-400" },
+  Overconfident: { emoji: "🦚", color: "bg-pink-500/10 border-pink-500/30 text-pink-400" },
+  Confused: { emoji: "🤔", color: "bg-violet-500/10 border-violet-500/30 text-violet-400" },
+  Indifferent: { emoji: "😐", color: "bg-zinc-500/10 border-zinc-500/30 text-zinc-400" },
 };
 
-export function EmotionPicker({
-  value,
-  onChange,
-  emotions = EMOTIONS,
-  label = "How are you feeling?",
-}: {
+type EmotionPickerSingleProps = {
+  mode?: "single";
   value: string | null;
   onChange: (emotion: string | null) => void;
   emotions?: readonly string[];
   label?: string;
-}) {
+  showCustomInput?: never;
+  customText?: never;
+  onCustomTextChange?: never;
+};
+
+type EmotionPickerMultiProps = {
+  mode: "multi";
+  value: string[];
+  onChange: (emotions: string[]) => void;
+  emotions?: readonly string[];
+  label?: string;
+  showCustomInput?: boolean;
+  customText?: string;
+  onCustomTextChange?: (text: string) => void;
+};
+
+type EmotionPickerProps = EmotionPickerSingleProps | EmotionPickerMultiProps;
+
+export function EmotionPicker(props: EmotionPickerProps) {
+  const {
+    label = "How are you feeling?",
+    mode = "single",
+  } = props;
+  const emotions = props.emotions ?? (mode === "multi" ? JOURNAL_EMOTIONS : EMOTIONS);
+
+  function isSelected(emotion: string): boolean {
+    if (mode === "multi") {
+      return (props as EmotionPickerMultiProps).value.includes(emotion);
+    }
+    return (props as EmotionPickerSingleProps).value === emotion;
+  }
+
+  function handleClick(emotion: string) {
+    if (mode === "multi") {
+      const mp = props as EmotionPickerMultiProps;
+      const next = mp.value.includes(emotion)
+        ? mp.value.filter((e) => e !== emotion)
+        : [...mp.value, emotion];
+      mp.onChange(next);
+    } else {
+      const sp = props as EmotionPickerSingleProps;
+      sp.onChange(sp.value === emotion ? null : emotion);
+    }
+  }
+
   return (
     <div>
       <label className="block text-xs text-muted mb-2">
         {label}
+        {mode === "multi" && (
+          <span className="text-muted/50 ml-1">(select all that apply)</span>
+        )}
       </label>
       <div className="flex flex-wrap gap-2">
         {emotions.map((emotion) => {
-          const config = EMOTION_CONFIG[emotion];
-          const isSelected = value === emotion;
+          const config = EMOTION_CONFIG[emotion] ?? { emoji: "❓", color: "bg-accent/10 border-accent/30 text-accent" };
+          const selected = isSelected(emotion);
           return (
             <button
               key={emotion}
               type="button"
-              onClick={() => onChange(isSelected ? null : emotion)}
+              onClick={() => handleClick(emotion)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
-                isSelected
+                selected
                   ? `${config.color} shadow-sm`
                   : "bg-background border-border text-muted hover:text-foreground hover:border-accent/30"
               }`}
@@ -53,6 +104,20 @@ export function EmotionPicker({
           );
         })}
       </div>
+      {mode === "multi" && (props as EmotionPickerMultiProps).showCustomInput && (
+        <div className="mt-3">
+          <label className="block text-xs text-muted mb-1.5">
+            Describe your emotional state
+          </label>
+          <input
+            type="text"
+            value={(props as EmotionPickerMultiProps).customText ?? ""}
+            onChange={(e) => (props as EmotionPickerMultiProps).onCustomTextChange?.(e.target.value)}
+            placeholder="In your own words..."
+            className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
+          />
+        </div>
+      )}
     </div>
   );
 }
