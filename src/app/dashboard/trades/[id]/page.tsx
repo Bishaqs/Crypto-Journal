@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade, CHAINS } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { formatAndSanitizeMarkdown } from "@/lib/sanitize";
@@ -91,10 +92,9 @@ export default function TradeDetailPage() {
   const tradeId = params.id as string;
 
   const fetchTrade = useCallback(async () => {
-    // Try Supabase first
-    const { data: allTrades } = await supabase
-      .from("trades").select("id, open_timestamp").order("open_timestamp", { ascending: false });
-    const ids = (allTrades ?? []).map((t: { id: string }) => t.id);
+    // Try Supabase first — paginated to get ALL trade IDs
+    const { data: allTrades } = await fetchAllTrades(supabase, "id, open_timestamp");
+    const ids = (allTrades ?? []).map((t) => t.id as string);
 
     if (ids.length > 0) {
       setAllTradeIds(ids);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { calculateTradePnl } from "@/lib/calculations";
@@ -70,7 +71,7 @@ export default function MultiSimulatorPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("trades").select("*").order("open_timestamp", { ascending: false });
+      const { data } = await fetchAllTrades(supabase);
       const trades = ((data as Trade[]) ?? []).length > 0 ? (data as Trade[]) : DEMO_TRADES;
       const closed = filterTrades(trades).filter((t) => t.close_timestamp && t.exit_price !== null);
       const pnls = closed.map((t) => t.pnl ?? calculateTradePnl(t) ?? 0);

@@ -5,6 +5,7 @@
  * Supports 57 achievements across 5 categories with 5 tiers (Bronze→Legendary).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { ACHIEVEMENTS, type AchievementTier } from "./definitions";
 
 export type AchievementProgress = {
@@ -32,9 +33,13 @@ export async function computeProgress(
 ): Promise<AchievementProgress[]> {
   const progress: AchievementProgress[] = [];
 
-  // Batch queries for efficiency
+  // Fetch all trades (paginated past 1k limit), then batch remaining queries
+  const tradesResult = await fetchAllTrades(
+    supabase,
+    "id, pnl, emotion, confidence, process_score, setup_type, sector, symbol, notes, tags, checklist, review, created_at",
+  );
+
   const [
-    tradesResult,
     behavioralLogsResult,
     streakResult,
     journalNotesResult,
@@ -42,10 +47,6 @@ export async function computeProgress(
     plansResult,
     userLevelResult,
   ] = await Promise.all([
-    supabase
-      .from("trades")
-      .select("id, pnl, emotion, confidence, process_score, setup_type, sector, symbol, notes, tags, checklist, review, created_at")
-      .eq("user_id", userId),
     supabase
       .from("behavioral_logs")
       .select("id, traffic_light, biases, created_at")
@@ -74,7 +75,13 @@ export async function computeProgress(
       .maybeSingle(),
   ]);
 
-  const trades = tradesResult.data ?? [];
+  const trades = (tradesResult.data ?? []) as Array<{
+    id: string; pnl: number | null; emotion: string | null; confidence: number | null;
+    process_score: number | null; setup_type: string | null; sector: string | null;
+    symbol: string; notes: string | null; tags: string[] | null;
+    checklist: Record<string, boolean> | null; review: Record<string, string> | null;
+    created_at: string;
+  }>;
   const logs = behavioralLogsResult.data ?? [];
   const streak = streakResult.data;
   const journalNotes = journalNotesResult.data ?? [];

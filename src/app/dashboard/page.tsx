@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
@@ -74,10 +75,7 @@ export default function DashboardPage() {
   }, [equipped.title_badge, definitions]);
 
   const fetchTrades = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("trades")
-      .select("*")
-      .order("open_timestamp", { ascending: false });
+    const { data, error } = await fetchAllTrades(supabase);
 
     if (error) {
       console.error("[Dashboard] fetchTrades error:", error.message);
