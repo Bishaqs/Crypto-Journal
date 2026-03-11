@@ -144,6 +144,9 @@ const en = {
     watchlist: "Watchlist",
     settings: "Settings",
     admin: "Admin",
+    importExport: "Import / Export",
+    feedback: "Feedback",
+    helpCenter: "Help Center",
 
     // Sections
     performanceAnalysis: "Performance & Analysis",
