@@ -31,7 +31,6 @@ export const welcomeTour: Tour = {
       content: "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
       contentKey: "tours.welcome.step0Content",
       layout: "fullscreen",
-      transitionEffect: "star-warp",
       showSkip: true,
     },
     // ── Step 1: Welcome splash ──

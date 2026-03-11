@@ -66,6 +66,7 @@ function calcBubblePosition(
   guideAbsX: number,
   guideAbsY: number,
   align?: "left" | "center",
+  targetRect?: { left: number; width: number } | null,
 ): { left: number; top: number; tail: "bottom-left" | "bottom-right" | "top-left" | "top-right" } {
   const vw = window.innerWidth;
 
@@ -76,9 +77,9 @@ function calcBubblePosition(
   const top = placeAbove ? aboveY : belowY;
 
   let left: number;
-  if (align === "left") {
-    // Left-align bubble near guide (for sidebar-adjacent cards)
-    left = guideAbsX - 16;
+  if (align === "left" && targetRect) {
+    // Anchor bubble to the right edge of the target element (e.g. sidebar drawer)
+    left = targetRect.left + targetRect.width + 8;
   } else {
     left = guideAbsX + GUIDE_SIZE / 2 - BUBBLE_WIDTH / 2;
   }
@@ -540,7 +541,7 @@ export function StargateGuideCharacter() {
   const guideAbsX = homeX + flyOffset.x - GUIDE_SIZE / 2;
   const guideAbsY = homeY + flyOffset.y - GUIDE_SIZE / 2;
 
-  const bubblePos = calcBubblePosition(guideAbsX, guideAbsY, currentStepDef?.bubbleAlign);
+  const bubblePos = calcBubblePosition(guideAbsX, guideAbsY, currentStepDef?.bubbleAlign, stepTarget?.rect);
   const isLast = tourState.currentStep >= tourState.totalSteps - 1;
 
   return (
@@ -548,8 +549,8 @@ export function StargateGuideCharacter() {
       {/* ── Tour Overlay ── */}
       {isTourMode && (
         <>
-          {/* Click blocker for fullscreen mode */}
-          {isCentered && <div className="fixed inset-0 z-[997]" />}
+          {/* Click blocker — prevents background clicks (drawer backdrop, sidebar) during tour */}
+          <div className="fixed inset-0 z-[997]" />
 
           <AnimatePresence>
             {isCentered ? (
