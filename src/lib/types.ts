@@ -44,6 +44,8 @@ export type Trade = {
   created_at: string;
 };
 
+export type AssetType = "crypto" | "stocks" | "commodities" | "forex";
+
 export type JournalNote = {
   id: string;
   user_id: string;
@@ -57,6 +59,8 @@ export type JournalNote = {
   note_date?: string;
   structured_data?: Record<string, string | number | boolean | null> | null;
   template_id?: string | null;
+  asset_type: AssetType;
+  trade_asset_type?: AssetType | null;
   created_at: string;
   updated_at: string;
 };

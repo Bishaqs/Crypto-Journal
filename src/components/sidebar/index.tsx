@@ -16,7 +16,7 @@ import {
 import { useTheme } from "@/lib/theme-context";
 import { hasStockAccess, hasCommodityAccess, hasForexAccess } from "@/lib/addons";
 import type { AssetContext } from "@/lib/addons";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, resetClient } from "@/lib/supabase/client";
 import { clearSubscriptionCache } from "@/lib/use-subscription";
 import { useSubscriptionContext } from "@/lib/subscription-context";
 import { useI18n } from "@/lib/i18n";
@@ -245,9 +245,24 @@ export function Sidebar() {
                 <button
                   onClick={async () => {
                     const supabase = createClient();
-                    clearSubscriptionCache();
+
+                    // Clear all user-specific localStorage keys
+                    const keysToRemove = Object.keys(localStorage).filter(
+                      (k) =>
+                        k.startsWith("stargate-") &&
+                        k !== "stargate-theme" &&
+                        k !== "stargate-mode" &&
+                        k !== "stargate-reduced-motion"
+                    );
+                    keysToRemove.forEach((k) => localStorage.removeItem(k));
+                    // Also clear checkin dismissals
+                    Object.keys(localStorage)
+                      .filter((k) => k.startsWith("checkin-dismissed"))
+                      .forEach((k) => localStorage.removeItem(k));
+
+                    resetClient();
                     await supabase.auth.signOut();
-                    router.push("/login");
+                    window.location.href = "/login";
                   }}
                   className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-loss hover:bg-loss/80 transition-all"
                 >

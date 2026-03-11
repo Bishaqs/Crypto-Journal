@@ -10,6 +10,7 @@ import { ManualEntryTab } from "@/components/import-export/manual-entry-tab";
 import { NoteImportTab } from "@/components/import-export/note-import-tab";
 import { AddConnectionTab } from "@/components/import-export/add-connection-tab";
 import { ViewConnectionsTab } from "@/components/import-export/view-connections-tab";
+import { ManageImportsTab } from "@/components/import-export/manage-imports-tab";
 import { ManageExportTab } from "@/components/import-export/manage-export-tab";
 import type { ImportExportTab } from "@/lib/import-export-types";
 
@@ -48,6 +49,7 @@ export default function ImportExportPage() {
           {activeTab === "notes" && <NoteImportTab />}
           {activeTab === "add-sync" && <AddConnectionTab />}
           {activeTab === "connections" && <ViewConnectionsTab />}
+          {activeTab === "manage" && <ManageImportsTab />}
           {activeTab === "export" && <ManageExportTab />}
         </div>
       </div>

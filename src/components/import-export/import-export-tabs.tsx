@@ -7,6 +7,7 @@ import {
   FileText,
   Link2,
   Activity,
+  Package,
   Download,
 } from "lucide-react";
 
@@ -16,6 +17,7 @@ const TABS: { id: ImportExportTab; label: string; icon: React.ComponentType<{ si
   { id: "notes", label: "Import Notes", icon: FileText },
   { id: "add-sync", label: "Add Auto-sync", icon: Link2 },
   { id: "connections", label: "Connections", icon: Activity },
+  { id: "manage", label: "Manage Imports", icon: Package },
   { id: "export", label: "Manage & Export", icon: Download },
 ];
 
