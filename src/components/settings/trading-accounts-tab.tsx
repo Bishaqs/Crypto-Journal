@@ -40,6 +40,7 @@ export function TradingAccountsTab() {
   const [apiSecret, setApiSecret] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  const [passphrase, setPassphrase] = useState("");
   const [targetTable, setTargetTable] = useState<TargetTable>("trades");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -133,6 +134,7 @@ export function TradingAccountsTab() {
           account_label: accountLabel || null,
           api_key: apiKey,
           api_secret: apiSecret,
+          passphrase: passphrase || undefined,
           target_table: targetTable,
           sync_frequency: "manual",
           timezone: "UTC",
@@ -145,7 +147,7 @@ export function TradingAccountsTab() {
         return;
       }
       setFormSuccess(true);
-      setBroker(""); setAccountLabel(""); setApiKey(""); setApiSecret("");
+      setBroker(""); setAccountLabel(""); setApiKey(""); setApiSecret(""); setPassphrase("");
       setShowAdd(false);
       await fetchConnections();
       setTimeout(() => setFormSuccess(false), 4000);
@@ -330,6 +332,21 @@ export function TradingAccountsTab() {
                 </button>
               </div>
             </div>
+
+            {/* Passphrase (Bitget) */}
+            {broker === "bitget" && (
+              <div>
+                <label className="block text-xs text-muted mb-1.5 font-medium">API Passphrase</label>
+                <input
+                  type="password"
+                  value={passphrase}
+                  onChange={(e) => setPassphrase(e.target.value)}
+                  placeholder="Enter the passphrase you set when creating the API key"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm font-mono focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
+                />
+                <p className="text-[10px] text-muted mt-1">Required for Bitget — this is the passphrase you chose during API key creation.</p>
+              </div>
+            )}
 
             {/* Buttons */}
             <div className="flex gap-2">
