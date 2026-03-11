@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
@@ -68,10 +69,7 @@ export default function AnalyticsPage() {
   const supabase = createClient();
 
   const fetchTrades = useCallback(async () => {
-    const { data } = await supabase
-      .from("trades")
-      .select("*")
-      .order("open_timestamp", { ascending: false });
+    const { data } = await fetchAllTrades(supabase);
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
       setTrades(DEMO_TRADES);

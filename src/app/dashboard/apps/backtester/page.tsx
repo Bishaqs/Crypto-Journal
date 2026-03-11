@@ -9,6 +9,7 @@ import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import type { Trade } from "@/lib/types";
 
 import {
@@ -76,12 +77,8 @@ export default function BacktesterPage() {
     } catch {
       // Fallback: user's trade data
       try {
-        const { data } = await supabase
-          .from("trades")
-          .select("*")
-          .eq("symbol", symbol)
-          .order("open_timestamp", { ascending: true });
-        const trades = (data as Trade[]) ?? [];
+        const { data } = await fetchAllTrades(supabase);
+        const trades = ((data as Trade[]) ?? []).filter((t) => t.symbol === symbol);
         if (trades.length >= 10) {
           const tradeOhlc: OHLCBar[] = trades.map((t) => ({
             date: new Date(t.open_timestamp).toISOString().split("T")[0],

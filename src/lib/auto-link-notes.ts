@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 
 /**
  * After a CSV import, find journal notes flagged with auto_link_on_import
@@ -16,16 +17,13 @@ export async function autoLinkNotesAfterImport(
 
   if (!notes || notes.length === 0) return 0;
 
-  // Fetch all trades for matching
-  const { data: trades } = await supabase
-    .from("trades")
-    .select("id, open_timestamp")
-    .order("open_timestamp", { ascending: false });
+  // Fetch all trades for matching (paginated past 1k limit)
+  const { data: trades } = await fetchAllTrades(supabase, "id, open_timestamp");
 
   if (!trades || trades.length === 0) return 0;
 
   const sorted = trades
-    .map((t) => ({ id: t.id as string, ts: new Date(t.open_timestamp).getTime() }))
+    .map((t) => ({ id: t.id as string, ts: new Date(t.open_timestamp as string).getTime() }))
     .sort((a, b) => a.ts - b.ts);
 
   let linked = 0;

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { validateImportData, ImportResult } from "@/lib/csv-import";
 import { parseFileToCSV, isAcceptedFileType } from "@/lib/file-parser";
 import { calculateStats, detectTiltSignals, type TiltSignal } from "@/lib/calculations";
@@ -105,10 +106,11 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
 
     const allPayloads = result.validRows.map((r) => r.parsed!);
 
-    // Dedup: fetch existing trades and skip duplicates
-    const { data: existing } = await supabase
-      .from("trades")
-      .select("symbol, position, entry_price, quantity, open_timestamp");
+    // Dedup: fetch ALL existing trades (paginated past 1k limit) and skip duplicates
+    const { data: existing } = await fetchAllTrades(
+      supabase,
+      "symbol, position, entry_price, quantity, open_timestamp",
+    );
 
     const existingSet = new Set(
       (existing ?? []).map((t: Record<string, unknown>) =>

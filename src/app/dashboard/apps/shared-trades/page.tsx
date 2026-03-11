@@ -9,6 +9,7 @@ import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
 import { calculateTradePnl } from "@/lib/calculations";
 
@@ -43,11 +44,7 @@ export default function SharedTradesPage() {
   const fetchTrades = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await supabase
-        .from("trades")
-        .select("*")
-        .not("close_timestamp", "is", null)
-        .order("close_timestamp", { ascending: false });
+      const { data } = await fetchAllTrades(supabase);
       setTrades((data as Trade[]) ?? []);
 
       // Load shared state from localStorage

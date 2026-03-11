@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { tradeSchema, type TradeFormData } from "@/lib/validators";
 import { calculateTradePnl } from "@/lib/calculations";
 import { Trade, Chain, DEX_PROTOCOLS, CHAINS } from "@/lib/types";
@@ -69,11 +70,11 @@ export function TradeForm({
   // Fetch tag suggestions from existing trades + custom presets
   useEffect(() => {
     async function fetchTags() {
-      const { data } = await supabase.from("trades").select("tags");
+      const { data } = await fetchAllTrades(supabase, "tags");
       const allTags = new Set<string>();
       if (data) {
-        data.forEach((row: { tags: string[] | null }) => {
-          row.tags?.forEach((t) => {
+        data.forEach((row) => {
+          (row.tags as string[] | null)?.forEach((t) => {
             if (!t.startsWith("narrative:")) allTags.add(t);
           });
         });
