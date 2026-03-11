@@ -17,10 +17,10 @@ type InsightItem = {
 };
 
 const TYPE_STYLES: Record<InsightItem["type"], { border: string; bg: string; iconColor: string }> = {
-  danger: { border: "border-l-red-500", bg: "bg-red-500/5", iconColor: "text-red-400" },
-  warning: { border: "border-l-amber-500", bg: "bg-amber-500/5", iconColor: "text-amber-400" },
-  coaching: { border: "border-l-accent", bg: "bg-accent/5", iconColor: "text-accent" },
-  motivation: { border: "border-l-emerald-500", bg: "bg-emerald-500/5", iconColor: "text-emerald-400" },
+  danger: { border: "border-l-red-500", bg: "bg-surface", iconColor: "text-red-400" },
+  warning: { border: "border-l-amber-500", bg: "bg-surface", iconColor: "text-amber-400" },
+  coaching: { border: "border-l-accent", bg: "bg-surface", iconColor: "text-accent" },
+  motivation: { border: "border-l-emerald-500", bg: "bg-surface", iconColor: "text-emerald-400" },
   nudge: { border: "border-l-border", bg: "bg-surface", iconColor: "text-muted" },
 };
 
