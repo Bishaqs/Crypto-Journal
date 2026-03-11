@@ -335,7 +335,8 @@ export default function JournalPage() {
     if (note?.structured_data && trade) {
       const sd = note.structured_data as Record<string, string | number | boolean | null>;
       const update: Record<string, unknown> = {};
-      if (!trade.emotion && sd.emotion) update.emotion = sd.emotion;
+      const noteEmotion = Array.isArray(sd.emotions) ? (sd.emotions as string[])[0] : sd.emotion;
+      if (!trade.emotion && noteEmotion) update.emotion = noteEmotion;
       if (!trade.confidence && sd.confidence) update.confidence = sd.confidence;
       if (!trade.setup_type && sd.setup_type) update.setup_type = sd.setup_type;
       if (Object.keys(update).length > 0) {
