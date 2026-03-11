@@ -31,6 +31,7 @@ export const welcomeTour: Tour = {
       content: "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
       contentKey: "tours.welcome.step0Content",
       layout: "fullscreen",
+      transitionEffect: "star-warp",
       showSkip: true,
     },
     // ── Step 1: Welcome splash ──
@@ -142,7 +143,8 @@ export const welcomeTour: Tour = {
       content: "Recent trades, streak, and heatmap. Click any row and notice the difference between calm and anxious trades.",
       selector: "#tour-trades-table",
       layout: "spotlight",
-      side: "top",
+      side: "right",
+      bubbleAlign: "left",
       pointerPadding: 12,
       viewportID: "dashboard-viewport",
       showSkip: true,

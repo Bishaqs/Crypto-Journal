@@ -6,6 +6,7 @@ import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { groupTradesByTag } from "@/lib/trade-grouping";
 import { TreemapChart } from "@/components/dashboard/treemap-chart";
 import { TreePine, Hash, Award, TrendingDown } from "lucide-react";
@@ -16,6 +17,7 @@ export default function TreemapTagsPage() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
 
   const fetchTrades = useCallback(async () => {
     const { data } = await fetchAllTrades(supabase);
@@ -31,7 +33,7 @@ export default function TreemapTagsPage() {
 
   useEffect(() => { fetchTrades(); }, [fetchTrades]);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const tagGroups = useMemo(() => groupTradesByTag(filtered), [filtered]);
 
   const best = tagGroups[0] ?? null;

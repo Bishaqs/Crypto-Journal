@@ -6,12 +6,14 @@ import { useTheme, THEMES, isProTheme, isLevel500Theme, getLevelRequirement } fr
 import { useLevel } from "@/lib/xp";
 import { useSubscriptionContext } from "@/lib/subscription-context";
 import { useDateRange, DATE_RANGES } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import {
   Palette,
   User,
   Calendar,
   RefreshCw,
   Search,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { AppsDropdown } from "@/components/apps-dropdown";
@@ -35,7 +37,9 @@ export function Header() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const { dateRange, setDateRange } = useDateRange();
+  const { selectedAccount, setSelectedAccount, connections, connectionsLoading, refreshConnections } = useAccount();
   const [showRanges, setShowRanges] = useState(false);
+  const [showAccounts, setShowAccounts] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [helpSearch, setHelpSearch] = useState("");
 
@@ -47,6 +51,48 @@ export function Header() {
 
   const currentLabel = DATE_RANGES.find((r) => r.value === dateRange)?.label ?? "All";
   const currentTheme = THEMES.find((t) => t.value === theme);
+
+  const accountLabel = selectedAccount === "all"
+    ? "All"
+    : selectedAccount === "manual"
+      ? "Manual"
+      : connections.find((c) => c.id === selectedAccount)?.account_label
+        || connections.find((c) => c.id === selectedAccount)?.broker_name
+        || "...";
+
+  async function handleSync() {
+    if (connectionsLoading) return;
+    if (connections.length === 0) {
+      setSyncMessage("Add a connection in Import / Export first.");
+      return;
+    }
+    setSyncing(true);
+    setSyncMessage(null);
+    let totalImported = 0;
+    const errors: string[] = [];
+    for (const conn of connections) {
+      try {
+        const res = await fetch(`/api/connections/${conn.id}/sync`, { method: "POST" });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          totalImported += data.trades_imported ?? 0;
+        } else {
+          errors.push(conn.account_label || conn.broker_name);
+        }
+      } catch {
+        errors.push(conn.account_label || conn.broker_name);
+      }
+    }
+    await refreshConnections();
+    if (errors.length > 0) {
+      setSyncMessage(`Synced with errors: ${errors.join(", ")}`);
+    } else if (totalImported > 0) {
+      setSyncMessage(`Imported ${totalImported} trade${totalImported !== 1 ? "s" : ""}.`);
+    } else {
+      setSyncMessage("No new trades found.");
+    }
+    setSyncing(false);
+  }
 
   return (
     <div className="flex items-center justify-between mb-6">
@@ -118,27 +164,73 @@ export function Header() {
         </div>
 
         {/* Account filter */}
-        <div
-          className="px-3 py-1.5 rounded-xl bg-surface border border-border text-sm text-muted flex items-center gap-1.5"
-          style={{ boxShadow: "var(--shadow-card)" }}
-        >
-          <span className="text-xs">Acct</span>
-          <span className="text-foreground text-xs font-medium">All</span>
+        <div className="relative">
+          <button
+            onClick={() => setShowAccounts(!showAccounts)}
+            className="px-3 py-1.5 rounded-xl bg-surface border border-border text-sm text-foreground hover:border-accent/30 transition-all flex items-center gap-2"
+            style={{ boxShadow: "var(--shadow-card)" }}
+          >
+            <span className="text-muted text-xs">Acct</span>
+            <span className="text-xs font-medium">{accountLabel}</span>
+            <ChevronDown size={10} className="text-muted" />
+          </button>
+          {showAccounts && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowAccounts(false)} />
+              <div
+                className="absolute right-0 top-full mt-2 bg-surface border border-border rounded-xl z-50 py-1 min-w-[160px]"
+                style={{ boxShadow: "var(--shadow-card)" }}
+              >
+                <button
+                  onClick={() => { setSelectedAccount("all"); setShowAccounts(false); }}
+                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                    selectedAccount === "all"
+                      ? "text-accent bg-accent/10"
+                      : "text-muted hover:text-foreground hover:bg-surface-hover"
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => { setSelectedAccount("manual"); setShowAccounts(false); }}
+                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                    selectedAccount === "manual"
+                      ? "text-accent bg-accent/10"
+                      : "text-muted hover:text-foreground hover:bg-surface-hover"
+                  }`}
+                >
+                  Manual
+                </button>
+                {connections.length > 0 && (
+                  <div className="border-t border-border/50 my-1" />
+                )}
+                {connections.map((conn) => (
+                  <button
+                    key={conn.id}
+                    onClick={() => { setSelectedAccount(conn.id); setShowAccounts(false); }}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                      selectedAccount === conn.id
+                        ? "text-accent bg-accent/10"
+                        : "text-muted hover:text-foreground hover:bg-surface-hover"
+                    }`}
+                  >
+                    {conn.account_label || conn.broker_name}
+                  </button>
+                ))}
+                {connectionsLoading && (
+                  <div className="px-4 py-2 text-xs text-muted">Loading...</div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Sync button */}
         <div className="relative">
           <button
-            onClick={() => {
-              const config = localStorage.getItem("stargate-exchange-config");
-              if (!config || !JSON.parse(config).apiKey) {
-                setSyncMessage("Connect an exchange in Settings first.");
-                return;
-              }
-              setSyncing(true);
-              setTimeout(() => setSyncing(false), 2000);
-            }}
-            className="p-2 rounded-xl bg-surface border border-border text-muted hover:text-foreground hover:border-accent/30 transition-all"
+            onClick={handleSync}
+            disabled={syncing}
+            className="p-2 rounded-xl bg-surface border border-border text-muted hover:text-foreground hover:border-accent/30 transition-all disabled:opacity-50"
             style={{ boxShadow: "var(--shadow-card)" }}
             title="Sync trades"
           >

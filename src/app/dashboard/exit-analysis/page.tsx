@@ -8,6 +8,7 @@ import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { StatBlock } from "@/components/ui/stat-block";
@@ -91,6 +92,7 @@ function ExitAnalysisContent() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
 
@@ -103,7 +105,7 @@ function ExitAnalysisContent() {
 
   useEffect(() => { fetchTrades(); }, [fetchTrades]);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const exits = useMemo(() => analyzeExits(filtered), [filtered]);
 
   function setTab(tab: TabId) {

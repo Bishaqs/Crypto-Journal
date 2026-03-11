@@ -7,6 +7,7 @@ import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import {
@@ -57,6 +58,7 @@ export default function AnalyticsPage() {
   const [tab, setTab] = useState<TabId>("overview");
   const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
   const chartTooltipStyle = {
@@ -84,7 +86,7 @@ export default function AnalyticsPage() {
     fetchTrades();
   }, [fetchTrades]);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const stats = useMemo(() => calculateStats(filtered), [filtered]);
   const advanced = useMemo(() => calculateAdvancedStats(filtered), [filtered]);
   const dailyPnl = useMemo(() => calculateDailyPnl(filtered), [filtered]);

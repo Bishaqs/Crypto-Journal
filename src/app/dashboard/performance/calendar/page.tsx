@@ -7,6 +7,7 @@ import { Trade } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { calculateDailyPnl } from "@/lib/calculations";
@@ -21,6 +22,7 @@ export default function CalendarGroupedPage() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
 
@@ -33,7 +35,7 @@ export default function CalendarGroupedPage() {
 
   useEffect(() => { fetchTrades(); }, [fetchTrades]);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const closedTrades = useMemo(() => filtered.filter(t => t.exit_price !== null), [filtered]);
   const dailyPnl = useMemo(() => calculateDailyPnl(closedTrades), [closedTrades]);
 

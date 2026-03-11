@@ -11,6 +11,8 @@ export type MessageOptions = {
   model: string;
   /** Optional user-provided API key (BYOK) — takes precedence over server env var */
   apiKey?: string;
+  /** Optional image URLs or base64 data URIs from journal notes */
+  images?: string[];
 };
 
 export interface AIProvider {

@@ -76,6 +76,11 @@ IMPORTANT: "Trade memos" (short inline text on each trade row in the Recent Trad
 
 When referencing journal entries, cite them by date and title. Use them to understand the trader's thought process beyond just numbers. They reveal intentions, lessons learned, and evolving strategies that raw trade data cannot show.
 
+## Image Analysis
+
+You can see images embedded in journal entries (charts, screenshots, annotated setups, trade executions).
+When images are present in the conversation, describe what you observe and relate it to the trader's data and patterns. Look for chart patterns, support/resistance levels, entry/exit timing, and anything that adds context to the trade data.
+
 Format rules:
 - Use markdown for formatting
 - Keep responses focused and concise (200-500 words typically)
@@ -84,6 +89,23 @@ Format rules:
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** Extract image URLs (Supabase signed URLs or base64 data URIs) from journal note HTML. Max 10. */
+export function extractImagesFromNotes(notes: Record<string, unknown>[]): string[] {
+  const MAX_IMAGES = 10;
+  const urls: string[] = [];
+  const imgRegex = /<img[^>]+src="([^"]+)"[^>]*>/gi;
+
+  for (const n of notes) {
+    if (urls.length >= MAX_IMAGES) break;
+    const html = String(n.content || "");
+    let match;
+    while ((match = imgRegex.exec(html)) !== null && urls.length < MAX_IMAGES) {
+      urls.push(match[1]);
+    }
+  }
+  return urls;
 }
 
 export function buildTradeContext(

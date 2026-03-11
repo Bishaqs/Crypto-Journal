@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useTrades } from "@/hooks/use-trades";
 import { useDateRange } from "@/lib/date-range-context";
+import { useAccount } from "@/lib/account-context";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import {
@@ -48,10 +49,11 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 export default function PnlChartsPage() {
   const { trades, loading, usingDemo } = useTrades();
   const { filterTrades } = useDateRange();
+  const { filterByAccount } = useAccount();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
 
-  const filtered = useMemo(() => filterTrades(trades), [trades, filterTrades]);
+  const filtered = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
   const closedTrades = useMemo(
     () => filtered.filter((t) => t.exit_price !== null),
     [filtered]
