@@ -33,8 +33,7 @@ export function ManageImportsTab() {
       for (const t of TABLES) {
         const { count, error: err } = await supabase
           .from(t.id)
-          .select("*", { count: "exact", head: true })
-          .contains("tags", ["csv-import"]);
+          .select("*", { count: "exact", head: true });
 
         if (err) {
           // Table might not exist or RLS issue — treat as 0
@@ -79,7 +78,7 @@ export function ManageImportsTab() {
         const { error: delErr } = await supabase
           .from(t.id)
           .delete()
-          .contains("tags", ["csv-import"]);
+          .gte("id", "00000000-0000-0000-0000-000000000000");
 
         if (delErr) {
           setError(`Failed to delete from ${t.label}: ${delErr.message}`);
@@ -108,10 +107,10 @@ export function ManageImportsTab() {
       <div className="glass border border-border/50 rounded-2xl p-5">
         <h3 className="text-base font-semibold text-foreground mb-1 flex items-center gap-2">
           <Package size={16} className="text-accent" />
-          Imported Trades
+          Your Trades
         </h3>
         <p className="text-xs text-muted mb-4">
-          Trades imported via CSV upload, tagged with &ldquo;csv-import&rdquo;.
+          All trades across your account, by table.
         </p>
 
         {loading ? (
@@ -145,10 +144,10 @@ export function ManageImportsTab() {
         <div className="glass border border-border/50 rounded-2xl p-5">
           <h3 className="text-base font-semibold text-foreground mb-1 flex items-center gap-2">
             <Trash2 size={16} className="text-loss" />
-            Delete Imported Trades
+            Delete All Trades
           </h3>
           <p className="text-xs text-muted mb-4">
-            Remove all CSV-imported trades so you can re-import with updated settings.
+            Remove all trades so you can re-import with updated settings.
           </p>
 
           {confirmStage === 0 && (
@@ -157,7 +156,7 @@ export function ManageImportsTab() {
               className="w-full py-3 rounded-xl bg-loss/15 text-loss border border-loss/20 font-semibold text-sm hover:bg-loss/25 transition-all flex items-center justify-center gap-2"
             >
               <Trash2 size={16} />
-              Delete All Imported Trades ({totalCount.toLocaleString()})
+              Delete All Trades ({totalCount.toLocaleString()})
             </button>
           )}
 
@@ -166,7 +165,7 @@ export function ManageImportsTab() {
               <div className="flex items-center gap-3 p-3 rounded-xl bg-loss/10 border border-loss/20">
                 <AlertTriangle size={18} className="text-loss shrink-0" />
                 <p className="text-sm text-foreground">
-                  This will delete <strong>{totalCount.toLocaleString()}</strong> imported trades. Are you sure?
+                  This will delete <strong>{totalCount.toLocaleString()}</strong> trades across all tables. Are you sure?
                 </p>
               </div>
               <div className="flex gap-3">
@@ -226,7 +225,7 @@ export function ManageImportsTab() {
         <div className="flex items-center gap-3 p-4 rounded-xl bg-profit/10 border border-profit/20">
           <CheckCircle2 size={18} className="text-profit shrink-0" />
           <p className="text-sm text-foreground">
-            Successfully deleted <strong>{deleted.toLocaleString()}</strong> imported trades. You can now re-import your data.
+            Successfully deleted <strong>{deleted.toLocaleString()}</strong> trades. You can now re-import your data.
           </p>
         </div>
       )}
