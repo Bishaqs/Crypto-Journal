@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 import { encrypt } from "@/lib/broker-sync/crypto";
+import { testBitgetConnection } from "@/lib/broker-sync/bitget";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,22 @@ export async function POST(req: NextRequest) {
   const encryptedSecret = encrypt(parsed.api_secret);
   const encryptedPassphrase = parsed.passphrase ? encrypt(parsed.passphrase) : null;
 
+  // Auto-test connection to determine initial status
+  let initialStatus = "pending";
+  const brokerLower = parsed.broker_name.toLowerCase();
+  if (brokerLower.includes("bitget") && parsed.passphrase) {
+    try {
+      const testResult = await testBitgetConnection({
+        apiKey: parsed.api_key,
+        apiSecret: parsed.api_secret,
+        passphrase: parsed.passphrase,
+      });
+      if (testResult.ok) initialStatus = "active";
+    } catch {
+      // Test failed — keep "pending"
+    }
+  }
+
   const { data, error } = await supabase
     .from("broker_connections")
     .insert({
@@ -90,7 +107,7 @@ export async function POST(req: NextRequest) {
       sync_frequency: parsed.sync_frequency,
       timezone: parsed.timezone,
       currency: parsed.currency,
-      status: "pending",
+      status: initialStatus,
     })
     .select("id")
     .single();
