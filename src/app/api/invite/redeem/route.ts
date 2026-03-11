@@ -102,13 +102,15 @@ export async function POST(req: NextRequest) {
 
   if (redeemErr) {
     console.error("[invite/redeem] redemption log failed:", redeemErr.message);
+    return NextResponse.json({ success: false, error: "Failed to process redemption" }, { status: 500 });
   }
 
-  // Increment usage counter
-  await admin
-    .from("invite_codes")
-    .update({ current_uses: invite.current_uses + 1 })
-    .eq("id", invite.id);
+  // Atomic increment to prevent race condition with concurrent redemptions
+  await admin.rpc("increment_counter", {
+    table_name: "invite_codes",
+    row_id: invite.id,
+    column_name: "current_uses",
+  });
 
   return NextResponse.json({ success: true, tier: invite.grants_tier });
 }

@@ -4,8 +4,7 @@ const ENCRYPTION_KEY = process.env.CREDENTIALS_ENCRYPTION_KEY;
 
 export function encrypt(text: string): { encrypted: string; iv: string } {
   if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 32) {
-    // Dev fallback — base64 (NOT secure for production)
-    return { encrypted: Buffer.from(text).toString("base64"), iv: "dev" };
+    throw new Error("[encrypt] CREDENTIALS_ENCRYPTION_KEY must be set and >= 32 chars");
   }
   const key = Buffer.from(ENCRYPTION_KEY.slice(0, 32), "utf-8");
   const iv = randomBytes(16);
@@ -16,9 +15,8 @@ export function encrypt(text: string): { encrypted: string; iv: string } {
 }
 
 export function decrypt(encrypted: string, ivHex: string): string {
-  if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 32 || ivHex === "dev") {
-    // Dev fallback — base64
-    return Buffer.from(encrypted, "base64").toString("utf-8");
+  if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 32) {
+    throw new Error("[decrypt] CREDENTIALS_ENCRYPTION_KEY must be set and >= 32 chars");
   }
   const key = Buffer.from(ENCRYPTION_KEY.slice(0, 32), "utf-8");
   const iv = Buffer.from(ivHex, "hex");
