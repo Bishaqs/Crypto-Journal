@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { message, trades, context, provider: providerId, model: modelId, apiKey } = parsed.data;
+  const { message, trades, notes, context, provider: providerId, model: modelId, apiKey } = parsed.data;
 
   const provider = getProvider(providerId, apiKey);
   if (!provider.isConfigured(apiKey)) {
@@ -44,13 +44,13 @@ export async function POST(req: NextRequest) {
   }
 
   const model = resolveModel(provider.id, modelId);
-  const tradeContext = buildTradeContext(trades, context);
+  const tradeContext = buildTradeContext(trades, context, notes);
 
   try {
     const text = await provider.chat({
       system: AI_CHAT_SYSTEM_PROMPT,
       userMessage: `Here is my trading data:\n\n${tradeContext}\n\nMy question: ${message}`,
-      maxTokens: 1024,
+      maxTokens: 2048,
       model,
       apiKey,
     });

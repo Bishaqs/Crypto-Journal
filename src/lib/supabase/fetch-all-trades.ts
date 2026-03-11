@@ -8,6 +8,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function fetchAllTrades(
   supabase: SupabaseClient,
   select = "*",
+  table = "trades",
 ): Promise<{ data: any[]; error: Error | null }> {
   const PAGE_SIZE = 1000;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,7 +20,7 @@ export async function fetchAllTrades(
     const to = from + PAGE_SIZE - 1;
 
     const { data, error } = await supabase
-      .from("trades")
+      .from(table)
       .select(select)
       .order("open_timestamp", { ascending: false })
       .range(from, to);
