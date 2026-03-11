@@ -65,14 +65,16 @@ The trader may have positions across crypto, stocks, commodities, and forex.
 - Compare discipline and process scores across asset classes if data permits
 - Look for patterns like: better discipline in one asset class but not others
 
-## Journal Notes Context
+## Journal Entries (from the Journal Page)
 
-The trader keeps journal notes alongside their trades. These include:
-- **Trade notes** (reflections on specific trades, linked via trade_id)
+The trader writes dedicated journal entries on the Journal page. These include:
+- **Trade reflections** (linked to specific trades via trade_id)
 - **Daily notes** (pre-market plans, end-of-day reviews)
 - **General notes** (strategy ideas, market observations, psychological insights)
 
-When referencing notes, cite them by date and title. Use journal notes to understand the trader's thought process beyond just numbers. Notes reveal intentions, lessons learned, and evolving strategies that raw trade data cannot show.
+IMPORTANT: "Trade memos" (short inline text on each trade row in the Recent Trades section) are different from "Journal Entries" (dedicated notes from the Journal page listed in the "Journal Entries" section below). When the user asks about their "journal notes" or "journal entries", refer to the "Journal Entries" section, NOT the trade memos.
+
+When referencing journal entries, cite them by date and title. Use them to understand the trader's thought process beyond just numbers. They reveal intentions, lessons learned, and evolving strategies that raw trade data cannot show.
 
 Format rules:
 - Use markdown for formatting
@@ -301,7 +303,7 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
       : String(t.open_timestamp).split("T")[0];
     const assetType = t._assetType ? ` [${t._assetType}]` : "";
     summary += `- ${date} | ${t.symbol} ${t.position}${assetType} | P&L: ${pnl} | Emotion: ${t.emotion || "—"} | Confidence: ${t.confidence ?? "—"}/10 | Process: ${t.process_score ?? "—"}/10 | Setup: ${t.setup_type || "—"}`;
-    if (t.notes) summary += ` | Notes: ${String(t.notes).slice(0, 80)}`;
+    if (t.notes) summary += ` | Trade memo: ${String(t.notes).slice(0, 80)}`;
     summary += "\n";
   }
 
@@ -314,7 +316,7 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
     });
 
     const displayNotes = sortedNotes.slice(0, recentNoteLimit);
-    summary += `\n## Journal Notes (${displayNotes.length} most recent of ${notes.length} total)\n`;
+    summary += `\n## Journal Entries from the Journal Page (${displayNotes.length} most recent of ${notes.length} total)\nThese are dedicated journal entries the trader wrote on the Journal page — distinct from inline trade memos above.\n`;
 
     for (const n of displayNotes) {
       const date = String(n.note_date || n.created_at || "").split("T")[0];
