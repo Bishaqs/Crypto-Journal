@@ -56,6 +56,12 @@ export type BrokerInstruction = {
   exportUrl?: string;
 };
 
+export type SyncResult = {
+  status: "success" | "error" | "info";
+  message: string;
+  trades_imported?: number;
+};
+
 export type ExportFormat = "csv" | "json";
 
 export type ExportOptions = {

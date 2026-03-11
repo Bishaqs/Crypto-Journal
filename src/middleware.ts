@@ -99,6 +99,7 @@ export const config = {
     "/api/admin/:path*",
     "/api/auth/signup",
     "/api/discount/:path*",
+    "/api/connections/:path*",
     "/banned",
   ],
 };

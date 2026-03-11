@@ -39,13 +39,26 @@ export function AddConnectionTab() {
     }
     setTestStatus("testing");
     setError("");
-    // Placeholder: simulate test
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    if (apiKey.length >= 8) {
-      setTestStatus("success");
-    } else {
+    try {
+      const res = await fetch("/api/connections/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          api_key: apiKey,
+          api_secret: apiSecret,
+          broker_name: BROKER_INSTRUCTIONS.find((b) => b.brokerId === broker)?.brokerName ?? broker,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setTestStatus("success");
+      } else {
+        setTestStatus("error");
+        setError(data.error || "Connection test failed");
+      }
+    } catch {
       setTestStatus("error");
-      setError("API key appears too short. Check your credentials.");
+      setError("Network error during connection test");
     }
   }
 
@@ -143,6 +156,11 @@ export function AddConnectionTab() {
               </optgroup>
               <optgroup label="DEX / Blockchain">
                 {BROKER_INSTRUCTIONS.filter((b) => b.group === "dex").map((b) => (
+                  <option key={b.brokerId} value={b.brokerId}>{b.brokerName}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Forex Brokers">
+                {BROKER_INSTRUCTIONS.filter((b) => b.group === "forex").map((b) => (
                   <option key={b.brokerId} value={b.brokerId}>{b.brokerName}</option>
                 ))}
               </optgroup>
