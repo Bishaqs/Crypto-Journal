@@ -11,11 +11,34 @@ export function useAiEnhancedInsights() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const enabled = localStorage.getItem(STORAGE_KEY) === "true";
+    const aiConsent = localStorage.getItem("stargate-privacy-ai-consent") !== "false";
+    const enabled = aiConsent && localStorage.getItem(STORAGE_KEY) === "true";
     const key = localStorage.getItem("stargate-ai-api-key");
     const prov = localStorage.getItem("stargate-ai-provider");
 
-    setIsEnabled(enabled && !!key);
+    setIsEnabled(enabled);
+    setApiKey(key);
+    setProvider(prov);
+  }, []);
+
+  return { isEnabled, apiKey, provider };
+}
+
+const BEHAVIORAL_KEY = "stargate-ai-behavioral-analysis";
+
+export function useAiBehavioralAnalysis() {
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [provider, setProvider] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const aiConsent = localStorage.getItem("stargate-privacy-ai-consent") !== "false";
+    const enabled = aiConsent && localStorage.getItem(BEHAVIORAL_KEY) === "true";
+    const key = localStorage.getItem("stargate-ai-api-key");
+    const prov = localStorage.getItem("stargate-ai-provider");
+
+    setIsEnabled(enabled);
     setApiKey(key);
     setProvider(prov);
   }, []);
@@ -30,7 +53,7 @@ export function useAiEnhancedInsights() {
 export async function fetchAiInsight(
   trades: { symbol: string; position: string; pnl: number | null; emotion: string | null }[],
   context: string,
-  apiKey: string,
+  apiKey: string | null,
   provider: string | null,
 ): Promise<string | null> {
   try {
@@ -41,7 +64,7 @@ export async function fetchAiInsight(
         mode: "dashboard-insight",
         context,
         trades: trades.slice(0, 20),
-        apiKey,
+        apiKey: apiKey ?? undefined,
         provider: provider ?? undefined,
       }),
     });

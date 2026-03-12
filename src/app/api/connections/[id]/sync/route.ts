@@ -178,6 +178,24 @@ async function syncBitget(
     };
   }
 
+  // Legacy cleanup: remove old fill-level rows (broker_order_id = tradeId)
+  // that are now aggregated into order-level rows (broker_order_id = orderId)
+  if (result.constituentFillIds.length > 0) {
+    const CLEANUP_CHUNK = 200;
+    for (let i = 0; i < result.constituentFillIds.length; i += CLEANUP_CHUNK) {
+      const chunk = result.constituentFillIds.slice(i, i + CLEANUP_CHUNK);
+      const { error: cleanupError } = await supabase
+        .from("trades")
+        .delete()
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .in("broker_order_id", chunk);
+      if (cleanupError) {
+        console.error("[sync:bitget] Legacy cleanup failed:", cleanupError.message);
+      }
+    }
+  }
+
   // Dedup: fetch existing broker_order_ids for this user+broker
   const { data: existing } = await supabase
     .from("trades")
