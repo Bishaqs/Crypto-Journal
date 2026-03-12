@@ -33,9 +33,10 @@ export function ViewConnectionsTab() {
     fetchConnections();
   }, [fetchConnections]);
 
-  async function handleSync(id: string) {
+  async function handleSync(id: string, fullSync = false) {
     try {
-      const res = await fetch(`/api/connections/${id}/sync`, { method: "POST" });
+      const url = `/api/connections/${id}/sync${fullSync ? "?fullSync=true" : ""}`;
+      const res = await fetch(url, { method: "POST" });
       const data = await res.json().catch(() => ({}));
 
       let result: SyncResult;
@@ -62,6 +63,10 @@ export function ViewConnectionsTab() {
       setSyncResults((prev) => ({ ...prev, [id]: result }));
       setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 6000);
     }
+  }
+
+  async function handleFullSync(id: string) {
+    return handleSync(id, true);
   }
 
   async function handleDelete(id: string) {
@@ -153,6 +158,7 @@ export function ViewConnectionsTab() {
                 key={conn.id}
                 connection={conn}
                 onSync={handleSync}
+                onFullSync={handleFullSync}
                 onDelete={handleDelete}
                 syncResult={syncResults[conn.id]}
               />

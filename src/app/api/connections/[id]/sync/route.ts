@@ -22,6 +22,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  const fullSync = new URL(_req.url).searchParams.get("fullSync") === "true";
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -53,7 +54,7 @@ export async function POST(
     .insert({
       connection_id: id,
       user_id: user.id,
-      sync_type: "manual",
+      sync_type: fullSync ? "full" : "manual",
       status: "started",
       started_at: new Date().toISOString(),
     })
@@ -77,7 +78,7 @@ export async function POST(
         { apiKey, apiSecret, passphrase },
         user.id,
         supabase,
-        conn.last_sync_at,
+        fullSync ? null : conn.last_sync_at,
       );
     } else {
       await updateSyncLog(supabase, syncLog?.id, {

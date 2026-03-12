@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Trash2, Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { RefreshCw, RotateCcw, Trash2, Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import type { BrokerConnection, ConnectionStatus, SyncResult } from "@/lib/import-export-types";
 
 const STATUS_CONFIG: Record<ConnectionStatus, { label: string; className: string }> = {
@@ -15,15 +15,18 @@ const STATUS_CONFIG: Record<ConnectionStatus, { label: string; className: string
 export function ConnectionCard({
   connection,
   onSync,
+  onFullSync,
   onDelete,
   syncResult,
 }: {
   connection: BrokerConnection;
   onSync: (id: string) => Promise<void>;
+  onFullSync: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   syncResult?: SyncResult;
 }) {
   const [syncing, setSyncing] = useState(false);
+  const [fullSyncing, setFullSyncing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -35,6 +38,15 @@ export function ConnectionCard({
       await onSync(connection.id);
     } finally {
       setSyncing(false);
+    }
+  }
+
+  async function handleFullSync() {
+    setFullSyncing(true);
+    try {
+      await onFullSync(connection.id);
+    } finally {
+      setFullSyncing(false);
     }
   }
 
@@ -121,11 +133,19 @@ export function ConnectionCard({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={handleSync}
-              disabled={syncing}
+              disabled={syncing || fullSyncing}
               className="p-2 rounded-lg border border-border text-muted hover:text-accent hover:border-accent/30 transition-all disabled:opacity-30"
-              title="Sync now"
+              title="Sync new trades"
             >
               {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            </button>
+            <button
+              onClick={handleFullSync}
+              disabled={syncing || fullSyncing}
+              className="p-2 rounded-lg border border-border text-muted hover:text-accent hover:border-accent/30 transition-all disabled:opacity-30"
+              title="Full re-sync (re-fetch all trades)"
+            >
+              {fullSyncing ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
