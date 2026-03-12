@@ -34,9 +34,13 @@ export function ViewConnectionsTab() {
   }, [fetchConnections]);
 
   async function handleSync(id: string, fullSync = false) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15_000);
+
     try {
       const url = `/api/connections/${id}/sync${fullSync ? "?fullSync=true" : ""}`;
-      const res = await fetch(url, { method: "POST" });
+      const res = await fetch(url, { method: "POST", signal: controller.signal });
+      clearTimeout(timeoutId);
       const data = await res.json().catch(() => ({}));
 
       let result: SyncResult;
@@ -50,18 +54,32 @@ export function ViewConnectionsTab() {
         result = { status: "error", message: data.error || "Sync failed." };
       } else {
         const imported = data.trades_imported ?? 0;
-        result = imported > 0
-          ? { status: "success", message: `${imported} trade${imported !== 1 ? "s" : ""} imported.`, trades_imported: imported }
-          : { status: "info", message: data.message || "Sync complete. No new trades." };
+        const apiErrors: string[] = data.api_errors ?? [];
+        const d = data.diagnostics;
+        const diagSuffix = d
+          ? ` [${d.phase_a_fetched}F → ${d.phase_a_paired + d.phase_a_unmatched_opens}T → ${d.dedup_existing_ids}E → ${d.dedup_new_trades}N → ${d.insert_succeeded}I]`
+          : "";
+        if (imported > 0) {
+          result = { status: "success", message: `${imported} trade${imported !== 1 ? "s" : ""} imported.${diagSuffix}`, trades_imported: imported };
+        } else if (apiErrors.length > 0) {
+          result = { status: "error", message: `${apiErrors[0]}${diagSuffix}` };
+        } else {
+          result = { status: "info", message: `${data.message || "No new trades."}${diagSuffix}` };
+        }
         await fetchConnections();
       }
 
       setSyncResults((prev) => ({ ...prev, [id]: result }));
-      setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 6000);
-    } catch {
-      const result: SyncResult = { status: "error", message: "Network error during sync." };
+      setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 15_000);
+    } catch (err) {
+      clearTimeout(timeoutId);
+      const isAbort = err instanceof DOMException && err.name === "AbortError";
+      const result: SyncResult = {
+        status: "error",
+        message: isAbort ? "Sync timed out. Try again or use incremental sync." : "Network error during sync.",
+      };
       setSyncResults((prev) => ({ ...prev, [id]: result }));
-      setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 6000);
+      setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 15_000);
     }
   }
 

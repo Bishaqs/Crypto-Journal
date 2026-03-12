@@ -430,7 +430,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div id="tour-trades-table" className="lg:col-span-2 space-y-6 self-start">
+        <div id="tour-trades-table" className="lg:col-span-2 space-y-6">
           <TradesTable
             trades={filteredTrades}
             onEdit={

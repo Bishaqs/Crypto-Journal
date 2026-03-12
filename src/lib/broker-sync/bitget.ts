@@ -24,6 +24,9 @@ export type BitgetFill = {
   tradeSide?: string;
 };
 
+/** Core fields for a broker-synced trade. Only includes columns guaranteed
+ *  to exist in the DB. Additional nullable columns (notes, emotion, etc.)
+ *  are omitted and default to NULL via PostgreSQL column defaults. */
 export type MappedTrade = {
   symbol: string;
   position: "long" | "short";
@@ -38,26 +41,6 @@ export type MappedTrade = {
   broker_name: string;
   trade_source: "cex";
   tags: string[];
-  notes: string | null;
-  stop_loss: number | null;
-  profit_target: number | null;
-  emotion: string | null;
-  confidence: number | null;
-  setup_type: string | null;
-  process_score: number | null;
-  checklist: null;
-  review: null;
-  sector: string | null;
-  chain: null;
-  dex_protocol: string | null;
-  tx_hash: string | null;
-  wallet_address: string | null;
-  gas_fee: number;
-  gas_fee_native: number;
-  price_mae: number | null;
-  price_mfe: number | null;
-  mfe_timestamp: string | null;
-  mae_timestamp: string | null;
 };
 
 /** An order aggregated from one or more partial fills. */
@@ -96,7 +79,7 @@ function sign(
   return createHmac("sha256", secret).update(prehash).digest("base64");
 }
 
-function buildHeaders(
+export function buildHeaders(
   creds: BitgetCredentials,
   method: string,
   requestPath: string,
@@ -143,70 +126,105 @@ export async function testBitgetConnection(
 }
 
 /**
- * Fetch futures fills from Bitget with cursor pagination.
- * Pairs open/close fills into complete trades using FIFO matching.
+ * Fetch futures fills from Bitget with sliding 7-day time windows.
+ * Bitget enforces a max 7-day range between startTime/endTime per request.
+ * Windows are processed NEWEST→OLDEST so recent trades are fetched first.
  */
 export async function fetchBitgetFills(
   creds: BitgetCredentials,
-  options?: { startTime?: number; maxPages?: number },
+  options?: { startTime?: number; maxPages?: number; daysBack?: number },
 ): Promise<BitgetSyncResult> {
   const rawFills: BitgetFill[] = [];
   const errors: string[] = [];
   let totalFetched = 0;
-  let cursor: string | undefined;
-  const maxPages = options?.maxPages ?? 50;
   const productType = "USDT-FUTURES";
+  const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+  const maxPagesPerWindow = options?.maxPages ?? 50;
 
-  for (let page = 0; page < maxPages; page++) {
-    const params = new URLSearchParams({ productType, limit: "100" });
-    if (cursor) params.set("idLessThan", cursor);
-    // Bitget defaults to yesterday-only when startTime is omitted — always send it
-    const startMs = options?.startTime ?? Date.now() - 90 * 24 * 60 * 60 * 1000;
-    params.set("startTime", startMs.toString());
+  const defaultDays = options?.daysBack ?? 14;
+  const earliest = options?.startTime ?? Date.now() - defaultDays * 24 * 60 * 60 * 1000;
+  const now = Date.now();
 
-    const path = "/api/v2/mix/order/fills";
-    const query = "?" + params.toString();
-    const fullPath = path + query;
+  // Build windows then reverse: newest first so recent trades survive rate limits
+  const windows: { start: number; end: number }[] = [];
+  for (let winStart = earliest; winStart < now; winStart += SEVEN_DAYS) {
+    windows.push({ start: winStart, end: Math.min(winStart + SEVEN_DAYS, now) });
+  }
+  windows.reverse();
 
-    try {
-      const headers = buildHeaders(creds, "GET", fullPath);
-      const res = await fetch(BASE + fullPath, { headers });
+  for (const win of windows) {
+    let cursor: string | undefined;
 
-      if (res.status === 429) {
-        errors.push("Rate limited by Bitget. Partial results returned.");
-        break;
+    for (let page = 0; page < maxPagesPerWindow; page++) {
+      const params = new URLSearchParams({ productType, limit: "100" });
+      params.set("startTime", win.start.toString());
+      params.set("endTime", win.end.toString());
+      if (cursor) params.set("idLessThan", cursor);
+
+      const path = "/api/v2/mix/order/fills";
+      const query = "?" + params.toString();
+      const fullPath = path + query;
+
+      let retries = 0;
+      let success = false;
+
+      while (retries < 3 && !success) {
+        try {
+          const headers = buildHeaders(creds, "GET", fullPath);
+          const res = await fetch(BASE + fullPath, { headers });
+
+          if (res.status === 429) {
+            retries++;
+            if (retries >= 3) {
+              errors.push("Rate limited by Bitget after retries. Partial results.");
+              break;
+            }
+            await new Promise((r) => setTimeout(r, 2000 * retries));
+            continue;
+          }
+
+          if (res.status === 401 || res.status === 403) {
+            errors.push("Authentication failed. Check your API key, secret, and passphrase.");
+            return buildResult(rawFills, totalFetched, errors);
+          }
+
+          const json = await res.json();
+
+          if (json.code !== "00000") {
+            errors.push(`Bitget API error: ${json.msg || json.code}`);
+            return buildResult(rawFills, totalFetched, errors);
+          }
+
+          const fillList: BitgetFill[] = json.data?.fillList ?? [];
+          success = true;
+
+          if (fillList.length === 0) break;
+          totalFetched += fillList.length;
+          rawFills.push(...fillList);
+
+          cursor = fillList[fillList.length - 1].tradeId;
+          if (fillList.length < 100) break;
+        } catch (err) {
+          errors.push(err instanceof Error ? err.message : "Network error fetching fills");
+          return buildResult(rawFills, totalFetched, errors);
+        }
       }
 
-      if (res.status === 401 || res.status === 403) {
-        errors.push("Authentication failed. Check your API key, secret, and passphrase.");
-        break;
-      }
-
-      const json = await res.json();
-
-      if (json.code !== "00000") {
-        errors.push(`Bitget API error: ${json.msg || json.code}`);
-        break;
-      }
-
-      const fillList: BitgetFill[] = json.data?.fillList ?? [];
-      if (fillList.length === 0) break;
-
-      totalFetched += fillList.length;
-      rawFills.push(...fillList);
-
-      cursor = fillList[fillList.length - 1].tradeId;
-      if (fillList.length < 100) break;
-      await new Promise((r) => setTimeout(r, 100));
-    } catch (err) {
-      errors.push(err instanceof Error ? err.message : "Network error fetching fills");
-      break;
+      if (!success) break; // Rate limited out of this window, move to next
     }
   }
 
+  return buildResult(rawFills, totalFetched, errors);
+}
+
+/** Build the final sync result from collected fills. */
+function buildResult(
+  rawFills: BitgetFill[],
+  totalFetched: number,
+  errors: string[],
+): BitgetSyncResult {
   const allFillIds = rawFills.map((f) => f.tradeId);
   const paired = pairBitgetFills(rawFills);
-
   return { ...paired, fetched: totalFetched, errors, allFillIds };
 }
 
@@ -272,15 +290,6 @@ function aggregateByOrder(rawFills: BitgetFill[]): AggregatedOrder[] {
   orders.sort((a, b) => a.earliestTime - b.earliestTime);
   return orders;
 }
-
-/** Shared null-field defaults for MappedTrade. */
-const NULL_FIELDS = {
-  notes: null, stop_loss: null, profit_target: null, emotion: null,
-  confidence: null, setup_type: null, process_score: null, checklist: null,
-  review: null, sector: null, chain: null, dex_protocol: null, tx_hash: null,
-  wallet_address: null, gas_fee: 0, gas_fee_native: 0, price_mae: null,
-  price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
-} as const;
 
 type PairResult = {
   pairedTrades: MappedTrade[];
@@ -367,7 +376,6 @@ function pairBitgetFills(rawFills: BitgetFill[]): PairResult {
         broker_name: "Bitget",
         trade_source: "cex",
         tags,
-        ...NULL_FIELDS,
       });
     } else {
       unmatchedCloses.push(close);
@@ -401,7 +409,6 @@ function pairBitgetFills(rawFills: BitgetFill[]): PairResult {
           broker_name: "Bitget",
           trade_source: "cex",
           tags,
-          ...NULL_FIELDS,
         });
       }
     }

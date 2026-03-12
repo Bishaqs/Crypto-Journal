@@ -66,7 +66,7 @@ const POSITIONS_COLUMNS: TradeTableColumn<Trade>[] = [
     sortFn: (a, b) => a.open_timestamp.localeCompare(b.open_timestamp),
     renderCell: (t) => (
       <span className="text-xs text-muted">
-        {new Date(t.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+        {new Date(t.open_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}
       </span>
     ),
   },
@@ -75,7 +75,7 @@ const POSITIONS_COLUMNS: TradeTableColumn<Trade>[] = [
     sortFn: (a, b) => (a.close_timestamp ?? "").localeCompare(b.close_timestamp ?? ""),
     renderCell: (t) => (
       <span className="text-xs text-muted">
-        {t.close_timestamp ? new Date(t.close_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "\u2014"}
+        {t.close_timestamp ? new Date(t.close_timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }) : "\u2014"}
       </span>
     ),
   },
@@ -267,7 +267,7 @@ export function TradesTable({
         <span className="text-[10px] text-muted">{trades.length} total</span>
       </div>
       <div className="overflow-x-auto">
-        <div className="max-h-[340px] overflow-y-auto">
+        <div className="max-h-[600px] overflow-y-auto">
           <table className="w-full">
             <thead className="bg-background/30 sticky top-0 z-10">
               <tr>
