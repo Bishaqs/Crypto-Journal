@@ -160,7 +160,9 @@ export async function fetchBitgetFills(
   for (let page = 0; page < maxPages; page++) {
     const params = new URLSearchParams({ productType, limit: "100" });
     if (cursor) params.set("idLessThan", cursor);
-    if (options?.startTime) params.set("startTime", options.startTime.toString());
+    // Bitget defaults to yesterday-only when startTime is omitted — always send it
+    const startMs = options?.startTime ?? Date.now() - 90 * 24 * 60 * 60 * 1000;
+    params.set("startTime", startMs.toString());
 
     const path = "/api/v2/mix/order/fills";
     const query = "?" + params.toString();
