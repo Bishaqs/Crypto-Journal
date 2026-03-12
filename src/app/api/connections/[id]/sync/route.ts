@@ -46,7 +46,8 @@ export async function POST(
   const url = new URL(_req.url);
   const fullSync = url.searchParams.get("fullSync") === "true";
   const dryRun = url.searchParams.get("dryRun") === "true";
-  const daysBack = Math.min(Math.max(parseInt(url.searchParams.get("daysBack") || "14") || 14, 1), 90);
+  const defaultDays = fullSync ? "90" : "14";
+  const daysBack = Math.min(Math.max(parseInt(url.searchParams.get("daysBack") || defaultDays) || 14, 1), 90);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -283,12 +284,14 @@ async function syncBitget(
 
   if (candidateOrderIds.length > 0 && candidateOrderIds.length <= 500) {
     // Optimized path: targeted query for just the order IDs we fetched
+    // Only dedup against API-synced trades (not CSV imports) — CSV trades lack the bitget-api-sync tag
     console.log(`[sync:bitget] Phase B: Targeted dedup for ${candidateOrderIds.length} order IDs`);
     const { data } = await supabase
       .from("trades")
       .select("broker_order_id, tags")
       .eq("user_id", userId)
       .eq("broker_name", "Bitget")
+      .contains("tags", ["bitget-api-sync"])
       .in("broker_order_id", candidateOrderIds);
 
     if (data) {
@@ -334,6 +337,7 @@ async function syncBitget(
         .select("broker_order_id, tags")
         .eq("user_id", userId)
         .eq("broker_name", "Bitget")
+        .contains("tags", ["bitget-api-sync"])
         .not("broker_order_id", "is", null)
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       if (!data || data.length === 0) break;
