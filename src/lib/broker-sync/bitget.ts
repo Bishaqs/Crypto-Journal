@@ -132,7 +132,7 @@ export async function testBitgetConnection(
  */
 export async function fetchBitgetFills(
   creds: BitgetCredentials,
-  options?: { startTime?: number; maxPages?: number; daysBack?: number },
+  options?: { startTime?: number; maxPages?: number; daysBack?: number; deadlineMs?: number },
 ): Promise<BitgetSyncResult> {
   const rawFills: BitgetFill[] = [];
   const errors: string[] = [];
@@ -152,7 +152,15 @@ export async function fetchBitgetFills(
   }
   windows.reverse();
 
-  for (const win of windows) {
+  for (let winIdx = 0; winIdx < windows.length; winIdx++) {
+    const win = windows[winIdx];
+
+    // Deadline guard: stop fetching if running out of time
+    if (options?.deadlineMs && Date.now() >= options.deadlineMs - 1500) {
+      errors.push(`Stopped early — ${windows.length - winIdx} of ${windows.length} windows remaining (approaching deadline).`);
+      break;
+    }
+
     let cursor: string | undefined;
 
     for (let page = 0; page < maxPagesPerWindow; page++) {

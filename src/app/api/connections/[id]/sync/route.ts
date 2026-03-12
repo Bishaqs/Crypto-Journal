@@ -71,6 +71,15 @@ export async function POST(
   }
 
   const startTime = Date.now();
+  const deadline = startTime + 8000; // 2s safety margin from Vercel's 10s limit
+
+  // Clear stale last_error immediately so it doesn't persist if we timeout
+  if (!dryRun) {
+    await supabase.from("broker_connections").update({
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", id);
+  }
 
   // Log sync start (skip for dry runs)
   let syncLogId: string | undefined;
@@ -108,7 +117,7 @@ export async function POST(
         user.id,
         supabase,
         fullSync ? null : conn.last_sync_at,
-        { dryRun, daysBack: fullSync ? daysBack : undefined },
+        { dryRun, daysBack: fullSync ? daysBack : undefined, deadline },
       );
     } else {
       if (!dryRun) {
@@ -208,9 +217,9 @@ async function syncBitget(
   userId: string,
   supabase: SupabaseClient,
   lastSyncAt: string | null,
-  opts: { dryRun?: boolean; daysBack?: number } = {},
+  opts: { dryRun?: boolean; daysBack?: number; deadline: number },
 ): Promise<SyncOutput> {
-  const { dryRun = false, daysBack } = opts;
+  const { dryRun = false, daysBack, deadline } = opts;
 
   const diag: SyncDiagnostics = {
     phase_a_fetched: 0,
@@ -230,11 +239,22 @@ async function syncBitget(
     insert_errors: [],
   };
 
-  // Phase A: Fetch and pair fills
+  const mkResult = (extra: Partial<SyncOutput> = {}): SyncOutput => ({
+    fetched: diag.phase_a_fetched,
+    imported: 0,
+    merged: 0,
+    skipped: 0,
+    failed: 0,
+    errors: [],
+    diagnostics: diag,
+    ...extra,
+  });
+
+  // Phase A: Fetch and pair fills (pass deadline so API calls stop in time)
   const phaseAStart = Date.now();
   console.log(`[sync:bitget] Phase A: Fetching fills. lastSync=${lastSyncAt ?? "null"}, daysBack=${daysBack ?? "default"}`);
   const fetchStart = lastSyncAt ? new Date(lastSyncAt).getTime() : undefined;
-  const result = await fetchBitgetFills(creds, { startTime: fetchStart, daysBack });
+  const result = await fetchBitgetFills(creds, { startTime: fetchStart, daysBack, deadlineMs: deadline });
   console.log(`[sync:bitget] Phase A: ${result.fetched} fills in ${Date.now() - phaseAStart}ms (${result.pairedTrades.length} paired, ${result.unmatchedOpens.length} open, ${result.unmatchedCloses.length} close)`);
 
   diag.phase_a_fetched = result.fetched;
@@ -247,25 +267,13 @@ async function syncBitget(
   const allTrades = [...result.pairedTrades, ...result.unmatchedOpens];
 
   if (allTrades.length === 0 && result.unmatchedCloses.length === 0) {
-    return { fetched: result.fetched, imported: 0, merged: 0, skipped: 0, failed: 0, errors: result.errors, diagnostics: diag };
+    return mkResult({ errors: result.errors });
   }
 
-  // Legacy cleanup: remove old fill-level rows that are now aggregated.
-  // ONLY run on incremental sync — on full re-sync there's no benefit
-  // (we re-fetch everything anyway) and it could accidentally delete valid rows.
-  const isFullSync = lastSyncAt === null;
-  if (!dryRun && !isFullSync && result.allFillIds.length > 0) {
-    diag.legacy_cleanup_skipped = false;
-    const CLEANUP_CHUNK = 200;
-    for (let i = 0; i < result.allFillIds.length; i += CLEANUP_CHUNK) {
-      const chunk = result.allFillIds.slice(i, i + CLEANUP_CHUNK);
-      await supabase
-        .from("trades")
-        .delete()
-        .eq("user_id", userId)
-        .eq("broker_name", "Bitget")
-        .in("broker_order_id", chunk);
-    }
+  // Deadline check before Phase B
+  if (Date.now() >= deadline) {
+    console.log(`[sync:bitget] Deadline reached after Phase A (${Date.now() - phaseAStart}ms). Returning partial results.`);
+    return mkResult({ errors: [...result.errors, `Timed out after fetching ${result.fetched} fills. Retry to continue.`] });
   }
 
   // Phase B: Dedup — check fetched fills against existing DB rows
@@ -295,7 +303,9 @@ async function syncBitget(
     }
 
     // For cross-sync skip check: verify each unmatched close's fill IDs against existing tags
+    // Only check if we have time
     for (const closeOrder of result.unmatchedCloses) {
+      if (Date.now() >= deadline) break;
       const tagToCheck = `close-fill:${closeOrder.fillIds[0]}`;
       const { data: tagMatch } = await supabase
         .from("trades")
@@ -315,6 +325,10 @@ async function syncBitget(
     let page = 0;
 
     while (true) {
+      if (Date.now() >= deadline) {
+        result.errors.push("Dedup scan incomplete (deadline). Some duplicates may slip through.");
+        break;
+      }
       const { data } = await supabase
         .from("trades")
         .select("broker_order_id, tags")
@@ -348,12 +362,23 @@ async function syncBitget(
     diag.sample_trade_keys = Object.keys(newTrades[0]);
   }
 
+  // Deadline check before Phase C
+  if (Date.now() >= deadline) {
+    console.log(`[sync:bitget] Deadline reached after Phase B. ${newTrades.length} new trades identified but not inserted.`);
+    return mkResult({ errors: [...result.errors, `Timed out during dedup. ${newTrades.length} new trades found but not inserted. Retry to continue.`] });
+  }
+
   // Phase C: Cross-sync matching — update existing open trades with close data
   const phaseCStart = Date.now();
   let merged = 0;
 
   if (!dryRun) {
     for (const closeOrder of result.unmatchedCloses) {
+      if (Date.now() >= deadline) {
+        result.errors.push("Cross-sync incomplete (deadline). Retry to merge remaining closes.");
+        break;
+      }
+
       const alreadyProcessed = closeOrder.fillIds.some((id) => existingIds.has(id));
       if (alreadyProcessed) continue;
 
@@ -397,6 +422,12 @@ async function syncBitget(
   diag.cross_sync_merged = merged;
   console.log(`[sync:bitget] Phase C: Cross-sync complete in ${Date.now() - phaseCStart}ms. Merged ${merged}.`);
 
+  // Deadline check before Phase D
+  if (Date.now() >= deadline) {
+    console.log(`[sync:bitget] Deadline reached after Phase C. ${newTrades.length} new trades not inserted.`);
+    return mkResult({ merged, errors: [...result.errors, `Timed out before insert. ${newTrades.length} new trades found. Retry to import.`] });
+  }
+
   // Phase D: Insert new trades in chunks
   const phaseDStart = Date.now();
   let imported = 0;
@@ -407,6 +438,12 @@ async function syncBitget(
     diag.insert_attempted = newTrades.length;
 
     for (let i = 0; i < newTrades.length; i += CHUNK_SIZE) {
+      if (Date.now() >= deadline) {
+        const remaining = newTrades.length - i;
+        result.errors.push(`Insert incomplete — ${remaining} trades remaining (deadline). Retry to finish.`);
+        break;
+      }
+
       const chunk = newTrades.slice(i, i + CHUNK_SIZE);
       const rows = chunk.map((trade: MappedTrade) => ({ user_id: userId, ...trade }));
 
@@ -435,6 +472,25 @@ async function syncBitget(
   diag.insert_succeeded = imported;
   diag.insert_failed = failed;
   console.log(`[sync:bitget] Phase D: Insert complete in ${Date.now() - phaseDStart}ms. ${imported} succeeded, ${failed} failed.`);
+
+  // Legacy cleanup: remove old fill-level rows AFTER successful insert.
+  // Only run on incremental sync — on full re-sync there's no benefit.
+  // Moved after insert so we never delete data without replacements existing.
+  const isFullSync = lastSyncAt === null;
+  if (!dryRun && !isFullSync && imported > 0 && result.allFillIds.length > 0 && Date.now() < deadline) {
+    diag.legacy_cleanup_skipped = false;
+    const CLEANUP_CHUNK = 200;
+    for (let i = 0; i < result.allFillIds.length; i += CLEANUP_CHUNK) {
+      if (Date.now() >= deadline) break;
+      const chunk = result.allFillIds.slice(i, i + CLEANUP_CHUNK);
+      await supabase
+        .from("trades")
+        .delete()
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .in("broker_order_id", chunk);
+    }
+  }
 
   const skipped = allTrades.length - newTrades.length;
   return { fetched: result.fetched, imported, merged, skipped, failed, errors: result.errors, diagnostics: diag };
