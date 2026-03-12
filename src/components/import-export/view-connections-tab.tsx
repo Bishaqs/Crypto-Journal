@@ -41,7 +41,16 @@ export function ViewConnectionsTab() {
       const url = `/api/connections/${id}/sync${fullSync ? "?fullSync=true" : ""}`;
       const res = await fetch(url, { method: "POST", signal: controller.signal });
       clearTimeout(timeoutId);
-      const data = await res.json().catch(() => ({}));
+
+      // Parse response — capture parse failures so we show real errors, not "Sync failed."
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let data: Record<string, any> = {};
+      const resText = await res.text().catch(() => "");
+      try {
+        data = resText ? JSON.parse(resText) : {};
+      } catch {
+        // Server returned non-JSON (e.g., Vercel timeout HTML page)
+      }
 
       let result: SyncResult;
       if (res.status === 429) {
@@ -50,8 +59,11 @@ export function ViewConnectionsTab() {
         result = { status: "error", message: "Connection not found." };
       } else if (res.status === 401) {
         result = { status: "error", message: "Session expired. Please log in again." };
+      } else if (res.status === 504) {
+        result = { status: "error", message: "Sync timed out on server. Try incremental sync or retry." };
       } else if (!res.ok) {
-        result = { status: "error", message: data.error || "Sync failed." };
+        const msg = data.error || `Server error (HTTP ${res.status}). Check Vercel logs.`;
+        result = { status: "error", message: msg };
       } else {
         const imported = data.trades_imported ?? 0;
         const apiErrors: string[] = data.api_errors ?? [];

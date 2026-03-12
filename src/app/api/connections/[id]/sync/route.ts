@@ -96,6 +96,7 @@ export async function POST(
     const passphrase = conn.encrypted_passphrase && conn.passphrase_iv
       ? decrypt(conn.encrypted_passphrase, conn.passphrase_iv)
       : "";
+    console.log(`[sync] Credentials decrypted in ${Date.now() - startTime}ms`);
 
     // Route to broker-specific sync
     let result: SyncOutput;
@@ -230,8 +231,11 @@ async function syncBitget(
   };
 
   // Phase A: Fetch and pair fills
+  const phaseAStart = Date.now();
+  console.log(`[sync:bitget] Phase A: Fetching fills. lastSync=${lastSyncAt ?? "null"}, daysBack=${daysBack ?? "default"}`);
   const fetchStart = lastSyncAt ? new Date(lastSyncAt).getTime() : undefined;
   const result = await fetchBitgetFills(creds, { startTime: fetchStart, daysBack });
+  console.log(`[sync:bitget] Phase A: ${result.fetched} fills in ${Date.now() - phaseAStart}ms (${result.pairedTrades.length} paired, ${result.unmatchedOpens.length} open, ${result.unmatchedCloses.length} close)`);
 
   diag.phase_a_fetched = result.fetched;
   diag.phase_a_paired = result.pairedTrades.length;
@@ -264,33 +268,76 @@ async function syncBitget(
     }
   }
 
-  // Phase B: Dedup — fetch existing broker_order_ids + tags (paginated)
+  // Phase B: Dedup — check fetched fills against existing DB rows
+  const phaseBStart = Date.now();
   const existingIds = new Set<string>();
-  const PAGE_SIZE = 1000;
-  let page = 0;
+  const candidateOrderIds = [...new Set(allTrades.map((t) => t.broker_order_id))];
 
-  while (true) {
+  if (candidateOrderIds.length > 0 && candidateOrderIds.length <= 500) {
+    // Optimized path: targeted query for just the order IDs we fetched
+    console.log(`[sync:bitget] Phase B: Targeted dedup for ${candidateOrderIds.length} order IDs`);
     const { data } = await supabase
       .from("trades")
       .select("broker_order_id, tags")
       .eq("user_id", userId)
       .eq("broker_name", "Bitget")
-      .not("broker_order_id", "is", null)
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-    if (!data || data.length === 0) break;
-    for (const t of data) {
-      if (t.broker_order_id) existingIds.add(t.broker_order_id);
-      for (const tag of (t.tags ?? []) as string[]) {
-        if (tag.startsWith("close-fill:")) existingIds.add(tag.slice(11));
-        else if (tag.startsWith("open-fill:")) existingIds.add(tag.slice(10));
-        else if (tag.startsWith("fid:")) existingIds.add(tag.slice(4));
+      .in("broker_order_id", candidateOrderIds);
+
+    if (data) {
+      for (const t of data) {
+        if (t.broker_order_id) existingIds.add(t.broker_order_id);
+        for (const tag of (t.tags ?? []) as string[]) {
+          if (tag.startsWith("close-fill:")) existingIds.add(tag.slice(11));
+          else if (tag.startsWith("open-fill:")) existingIds.add(tag.slice(10));
+          else if (tag.startsWith("fid:")) existingIds.add(tag.slice(4));
+        }
       }
     }
-    if (data.length < PAGE_SIZE) break;
-    page++;
+
+    // For cross-sync skip check: verify each unmatched close's fill IDs against existing tags
+    for (const closeOrder of result.unmatchedCloses) {
+      const tagToCheck = `close-fill:${closeOrder.fillIds[0]}`;
+      const { data: tagMatch } = await supabase
+        .from("trades")
+        .select("tags")
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .contains("tags", [tagToCheck])
+        .limit(1);
+      if (tagMatch && tagMatch.length > 0) {
+        for (const fid of closeOrder.fillIds) existingIds.add(fid);
+      }
+    }
+  } else if (candidateOrderIds.length > 500) {
+    // Fallback: paginated scan for full re-sync with many orders
+    console.log(`[sync:bitget] Phase B: Paginated dedup for ${candidateOrderIds.length} order IDs`);
+    const PAGE_SIZE = 1000;
+    let page = 0;
+
+    while (true) {
+      const { data } = await supabase
+        .from("trades")
+        .select("broker_order_id, tags")
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .not("broker_order_id", "is", null)
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      if (!data || data.length === 0) break;
+      for (const t of data) {
+        if (t.broker_order_id) existingIds.add(t.broker_order_id);
+        for (const tag of (t.tags ?? []) as string[]) {
+          if (tag.startsWith("close-fill:")) existingIds.add(tag.slice(11));
+          else if (tag.startsWith("open-fill:")) existingIds.add(tag.slice(10));
+          else if (tag.startsWith("fid:")) existingIds.add(tag.slice(4));
+        }
+      }
+      if (data.length < PAGE_SIZE) break;
+      page++;
+    }
   }
 
   diag.dedup_existing_ids = existingIds.size;
+  console.log(`[sync:bitget] Phase B: Dedup complete in ${Date.now() - phaseBStart}ms. ${existingIds.size} existing IDs found.`);
 
   const newTrades = allTrades.filter((t) => !existingIds.has(t.broker_order_id));
   diag.dedup_new_trades = newTrades.length;
@@ -302,6 +349,7 @@ async function syncBitget(
   }
 
   // Phase C: Cross-sync matching — update existing open trades with close data
+  const phaseCStart = Date.now();
   let merged = 0;
 
   if (!dryRun) {
@@ -347,8 +395,10 @@ async function syncBitget(
     }
   }
   diag.cross_sync_merged = merged;
+  console.log(`[sync:bitget] Phase C: Cross-sync complete in ${Date.now() - phaseCStart}ms. Merged ${merged}.`);
 
   // Phase D: Insert new trades in chunks
+  const phaseDStart = Date.now();
   let imported = 0;
   let failed = 0;
 
@@ -384,6 +434,7 @@ async function syncBitget(
 
   diag.insert_succeeded = imported;
   diag.insert_failed = failed;
+  console.log(`[sync:bitget] Phase D: Insert complete in ${Date.now() - phaseDStart}ms. ${imported} succeeded, ${failed} failed.`);
 
   const skipped = allTrades.length - newTrades.length;
   return { fetched: result.fetched, imported, merged, skipped, failed, errors: result.errors, diagnostics: diag };
