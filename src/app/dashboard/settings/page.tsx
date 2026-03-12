@@ -33,6 +33,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/lib/use-subscription";
 import { useReferral } from "@/lib/use-referral";
 import { RedeemCodeSection } from "@/components/settings/redeem-code-section";
+import { LegalPrivacyTab } from "@/components/settings/legal-privacy-tab";
 import { useI18n, LOCALES } from "@/lib/i18n";
 
 /* ================================================================
@@ -65,7 +66,8 @@ type SettingsTab =
   | "ai"
   | "subscription"
   | "referrals"
-  | "export";
+  | "export"
+  | "legal";
 
 const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerOnly?: boolean }[] = [
   { value: "account", label: "Account", icon: User },
@@ -74,6 +76,7 @@ const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerO
   { value: "subscription", label: "Subscription", icon: CreditCard },
   { value: "referrals", label: "Referrals", icon: Gift },
   { value: "export", label: "Export Data", icon: Download },
+  { value: "legal", label: "Legal & Privacy", icon: Shield },
 ];
 
 const TIMEZONES = [
@@ -232,7 +235,7 @@ function SaveButton({ saved, onClick, label = "Save" }: { saved: boolean; onClic
    MAIN SETTINGS PAGE
    ================================================================ */
 
-const VALID_TABS = new Set<SettingsTab>(["account", "global", "ai", "subscription", "referrals", "export"]);
+const VALID_TABS = new Set<SettingsTab>(["account", "global", "ai", "subscription", "referrals", "export", "legal"]);
 
 export default function SettingsPage() {
   return (
@@ -248,7 +251,7 @@ function SettingsContent() {
     const param = searchParams.get("tab") as SettingsTab | null;
     return param && VALID_TABS.has(param) ? param : "account";
   }, [searchParams]);
-  const { tier, isOwner, loading: subLoading } = useSubscription();
+  const { tier, isOwner, hasAccess, loading: subLoading } = useSubscription();
   const { code: referralCode, totalReferrals, converted: referralConverted, freeDaysEarned, loading: refLoading } = useReferral();
   const [tab, setTab] = useState<SettingsTab>(initialTab);
   const [displayName, setDisplayName] = useState("Trader");
@@ -284,6 +287,8 @@ function SettingsContent() {
   const [aiApiKey, setAiApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [aiEnhancedInsights, setAiEnhancedInsights] = useState(false);
+  const [aiBehavioralAnalysis, setAiBehavioralAnalysis] = useState(false);
+  const [aiConsentDisabled, setAiConsentDisabled] = useState(false);
 
   useEffect(() => {
     const name = localStorage.getItem("stargate-display-name");
@@ -300,6 +305,9 @@ function SettingsContent() {
     if (savedApiKey) setAiApiKey(savedApiKey);
     const aiInsightsEnabled = localStorage.getItem("stargate-ai-enhanced-insights");
     if (aiInsightsEnabled === "true") setAiEnhancedInsights(true);
+    const aiBehavioralEnabled = localStorage.getItem("stargate-ai-behavioral-analysis");
+    if (aiBehavioralEnabled === "true") setAiBehavioralAnalysis(true);
+    if (localStorage.getItem("stargate-privacy-ai-consent") === "false") setAiConsentDisabled(true);
 
     // Fetch available AI providers
     fetch("/api/ai/providers")
@@ -484,6 +492,20 @@ function SettingsContent() {
       {/* ============ AI COACH TAB ============ */}
       {tab === "ai" && (
         <div className="space-y-6">
+          {aiConsentDisabled && (
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+              <AlertTriangle size={16} className="text-amber-400 shrink-0" />
+              <p className="text-xs text-muted flex-1">
+                AI data processing is disabled in your Privacy settings. AI features will not function until re-enabled.
+              </p>
+              <button
+                onClick={() => setTab("legal")}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/30 text-accent text-[11px] font-medium hover:bg-accent/20 transition-all"
+              >
+                Go to Legal &amp; Privacy
+              </button>
+            </div>
+          )}
           <SectionCard icon={Brain} title="AI Coach" description="Choose your AI provider and model for the trading coach.">
             <SelectField
               label="AI Provider"
@@ -570,19 +592,16 @@ function SettingsContent() {
           </SectionCard>
 
           {/* AI-Enhanced Dashboard Insights */}
-          <SectionCard icon={Sparkles} title="AI-Enhanced Dashboard Insights" description="Get richer, AI-generated insights on your dashboard using your API key.">
+          <SectionCard icon={Sparkles} title="AI-Enhanced Dashboard Insights" description="Get richer, AI-generated insights on your dashboard.">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-foreground font-medium">Enable AI-Enhanced Insights</p>
                 <p className="text-[11px] text-muted mt-0.5">
-                  {aiApiKey
-                    ? "Appends AI-generated insights below your dashboard widgets"
-                    : "Add your API key above to enable this feature"}
+                  Appends AI-generated insights below your dashboard widgets
                 </p>
               </div>
               <button
                 onClick={() => {
-                  if (!aiApiKey) return;
                   const next = !aiEnhancedInsights;
                   setAiEnhancedInsights(next);
                   if (next) {
@@ -591,32 +610,136 @@ function SettingsContent() {
                     localStorage.removeItem("stargate-ai-enhanced-insights");
                   }
                 }}
-                disabled={!aiApiKey}
-                className={`relative w-11 h-6 rounded-full transition-all shrink-0 ${
-                  aiEnhancedInsights && aiApiKey ? "bg-accent" : "bg-border"
-                } ${!aiApiKey ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
+                className={`relative w-11 h-6 rounded-full transition-all shrink-0 cursor-pointer ${
+                  aiEnhancedInsights ? "bg-accent" : "bg-border"
+                }`}
               >
                 <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${
-                  aiEnhancedInsights && aiApiKey ? "left-6" : "left-1"
+                  aiEnhancedInsights ? "left-6" : "left-1"
                 }`} />
               </button>
             </div>
 
-            {aiEnhancedInsights && aiApiKey && (
-              <div className="mt-3 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
+            {aiEnhancedInsights && (
+              <div className={`mt-3 p-3 rounded-xl ${aiApiKey ? "bg-amber-500/5 border border-amber-500/20" : "bg-accent/5 border border-accent/20"}`}>
                 <div className="flex items-start gap-2">
-                  <AlertTriangle size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                  {aiApiKey ? (
+                    <AlertTriangle size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                  ) : (
+                    <Sparkles size={14} className="text-accent mt-0.5 shrink-0" />
+                  )}
                   <div className="text-[11px] text-muted leading-relaxed space-y-1">
-                    <p className="font-semibold text-amber-400">Cost Notice</p>
-                    <p>AI-Enhanced Insights uses your personal API key on each dashboard visit.</p>
-                    <ul className="list-disc list-inside space-y-0.5 ml-1">
-                      <li>~500–1,000 tokens per request (input + output)</li>
-                      <li>Estimated: $0.01–0.05/day with typical usage</li>
-                      <li>Counts toward your daily AI request limit</li>
-                      <li>Disable anytime — local insights always available</li>
-                    </ul>
+                    {aiApiKey ? (
+                      <>
+                        <p className="font-semibold text-amber-400">Cost Notice</p>
+                        <p>AI-Enhanced Insights uses your personal API key on each dashboard visit.</p>
+                        <ul className="list-disc list-inside space-y-0.5 ml-1">
+                          <li>~500–1,000 tokens per request (input + output)</li>
+                          <li>Estimated: $0.01–0.05/day with typical usage</li>
+                          <li>Counts toward your daily AI request limit</li>
+                          <li>Disable anytime — local insights always available</li>
+                        </ul>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-accent">Included with Max Plan</p>
+                        <p>AI-Enhanced Insights are included with your plan — no API key needed.</p>
+                        <ul className="list-disc list-inside space-y-0.5 ml-1">
+                          <li>Runs on each dashboard visit</li>
+                          <li>Uses built-in AI — no additional cost to you</li>
+                          <li>Disable anytime — local insights always available</li>
+                        </ul>
+                      </>
+                    )}
                   </div>
                 </div>
+              </div>
+            )}
+          </SectionCard>
+
+          {/* AI Behavioral Analysis — Max tier only */}
+          <SectionCard icon={Brain} title="AI Behavioral Analysis" description="AI-powered analysis of your emotion check-ins, triggers, and trading patterns.">
+            {hasAccess("ai-behavioral-analysis") ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-foreground font-medium">Enable AI Behavioral Analysis</p>
+                    <p className="text-[11px] text-muted mt-0.5">
+                      Nova analyzes your check-in patterns and correlates them with trade outcomes
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const next = !aiBehavioralAnalysis;
+                      setAiBehavioralAnalysis(next);
+                      if (next) {
+                        localStorage.setItem("stargate-ai-behavioral-analysis", "true");
+                      } else {
+                        localStorage.removeItem("stargate-ai-behavioral-analysis");
+                      }
+                    }}
+                    className={`relative w-11 h-6 rounded-full transition-all shrink-0 cursor-pointer ${
+                      aiBehavioralAnalysis ? "bg-accent" : "bg-border"
+                    }`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                      aiBehavioralAnalysis ? "left-6" : "left-1"
+                    }`} />
+                  </button>
+                </div>
+
+                {aiBehavioralAnalysis && (
+                  <div className={`mt-3 p-3 rounded-xl ${aiApiKey ? "bg-amber-500/5 border border-amber-500/20" : "bg-accent/5 border border-accent/20"}`}>
+                    <div className="flex items-start gap-2">
+                      {aiApiKey ? (
+                        <AlertTriangle size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                      ) : (
+                        <Sparkles size={14} className="text-accent mt-0.5 shrink-0" />
+                      )}
+                      <div className="text-[11px] text-muted leading-relaxed space-y-1">
+                        {aiApiKey ? (
+                          <>
+                            <p className="font-semibold text-amber-400">Cost Notice</p>
+                            <p>AI Behavioral Analysis uses your API key when you click &quot;Generate Analysis&quot; on the Insights page.</p>
+                            <ul className="list-disc list-inside space-y-0.5 ml-1">
+                              <li>~600 tokens per analysis (input + output)</li>
+                              <li>Only runs when you explicitly request it — not automatic</li>
+                              <li>Results cached for 5 minutes</li>
+                            </ul>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-semibold text-accent">Included with Max Plan</p>
+                            <p>AI Behavioral Analysis is included with your plan — no API key needed.</p>
+                            <ul className="list-disc list-inside space-y-0.5 ml-1">
+                              <li>Only runs when you explicitly request it — not automatic</li>
+                              <li>Results cached for 5 minutes</li>
+                              <li>Uses built-in AI — no additional cost to you</li>
+                            </ul>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-surface border border-border">
+                <div className="p-2 rounded-lg bg-amber-500/10">
+                  <Lock size={18} className="text-amber-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-foreground">Max Plan Required</p>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    AI Behavioral Analysis is available on the Max plan. Upgrade to unlock AI-powered insights into your trading psychology.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setTab("subscription")}
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/30 text-accent text-[11px] font-medium hover:bg-accent/20 transition-all"
+                >
+                  Upgrade
+                </button>
               </div>
             )}
           </SectionCard>
@@ -1024,6 +1147,11 @@ function SettingsContent() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* ============ LEGAL & PRIVACY TAB ============ */}
+      {tab === "legal" && (
+        <LegalPrivacyTab userEmail={userEmail} isOwner={isOwner} />
       )}
     </div>
   );
