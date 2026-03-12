@@ -116,7 +116,6 @@ export function EmotionCheckIn({
         value={emotion}
         onChange={setEmotion}
         label={labels.emotion}
-        defaultExpanded={mode === "advanced"}
       />
 
       {/* Traffic Light — always visible */}

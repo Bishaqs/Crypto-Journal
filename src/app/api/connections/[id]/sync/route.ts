@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 type SyncOutput = {
   fetched: number;
   imported: number;
+  merged: number;
   skipped: number;
   failed: number;
   errors: string[];
@@ -79,7 +80,6 @@ export async function POST(
         conn.last_sync_at,
       );
     } else {
-      // Unsupported broker — return info message
       await updateSyncLog(supabase, syncLog?.id, {
         status: "success",
         duration_ms: Date.now() - startTime,
@@ -104,6 +104,7 @@ export async function POST(
     });
 
     // Update connection status
+    const totalNew = result.imported + result.merged;
     const { error: updateError } = await supabase
       .from("broker_connections")
       .update({
@@ -120,10 +121,11 @@ export async function POST(
 
     return NextResponse.json({
       trades_imported: result.imported,
+      trades_merged: result.merged,
       trades_skipped: result.skipped,
       trades_failed: result.failed,
-      message: result.imported > 0
-        ? `Imported ${result.imported} trade${result.imported !== 1 ? "s" : ""} from Bitget.`
+      message: totalNew > 0
+        ? `Imported ${result.imported} trade${result.imported !== 1 ? "s" : ""}${result.merged > 0 ? `, merged ${result.merged} close fill${result.merged !== 1 ? "s" : ""}` : ""} from Bitget.`
         : result.fetched > 0
           ? `No new trades — ${result.skipped} already imported.`
           : "No new trades found.",
@@ -164,71 +166,111 @@ async function syncBitget(
   supabase: SupabaseClient,
   lastSyncAt: string | null,
 ): Promise<SyncOutput> {
-  // Fetch fills from Bitget API
-  const startTime = lastSyncAt ? new Date(lastSyncAt).getTime() : undefined;
-  const result = await fetchBitgetFills(creds, { startTime });
+  // Phase A: Fetch and pair fills
+  const fetchStart = lastSyncAt ? new Date(lastSyncAt).getTime() : undefined;
+  const result = await fetchBitgetFills(creds, { startTime: fetchStart });
 
-  if (result.fills.length === 0) {
-    return {
-      fetched: result.fetched,
-      imported: 0,
-      skipped: 0,
-      failed: 0,
-      errors: result.errors,
-    };
+  const allTrades = [...result.pairedTrades, ...result.unmatchedOpens];
+
+  if (allTrades.length === 0 && result.unmatchedCloses.length === 0) {
+    return { fetched: result.fetched, imported: 0, merged: 0, skipped: 0, failed: 0, errors: result.errors };
   }
 
-  // Legacy cleanup: remove old fill-level rows (broker_order_id = tradeId)
-  // that are now aggregated into order-level rows (broker_order_id = orderId)
-  if (result.constituentFillIds.length > 0) {
+  // Legacy cleanup: remove old fill-level rows that are now aggregated
+  if (result.allFillIds.length > 0) {
     const CLEANUP_CHUNK = 200;
-    for (let i = 0; i < result.constituentFillIds.length; i += CLEANUP_CHUNK) {
-      const chunk = result.constituentFillIds.slice(i, i + CLEANUP_CHUNK);
-      const { error: cleanupError } = await supabase
+    for (let i = 0; i < result.allFillIds.length; i += CLEANUP_CHUNK) {
+      const chunk = result.allFillIds.slice(i, i + CLEANUP_CHUNK);
+      await supabase
         .from("trades")
         .delete()
         .eq("user_id", userId)
         .eq("broker_name", "Bitget")
         .in("broker_order_id", chunk);
-      if (cleanupError) {
-        console.error("[sync:bitget] Legacy cleanup failed:", cleanupError.message);
+    }
+  }
+
+  // Phase B: Dedup — fetch existing broker_order_ids + tags (paginated)
+  const existingIds = new Set<string>();
+  const PAGE_SIZE = 1000;
+  let page = 0;
+
+  while (true) {
+    const { data } = await supabase
+      .from("trades")
+      .select("broker_order_id, tags")
+      .eq("user_id", userId)
+      .eq("broker_name", "Bitget")
+      .not("broker_order_id", "is", null)
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+    if (!data || data.length === 0) break;
+    for (const t of data) {
+      if (t.broker_order_id) existingIds.add(t.broker_order_id);
+      for (const tag of (t.tags ?? []) as string[]) {
+        if (tag.startsWith("close-fill:")) existingIds.add(tag.slice(11));
+        else if (tag.startsWith("open-fill:")) existingIds.add(tag.slice(10));
+        else if (tag.startsWith("fid:")) existingIds.add(tag.slice(4));
+      }
+    }
+    if (data.length < PAGE_SIZE) break;
+    page++;
+  }
+
+  const newTrades = allTrades.filter((t) => !existingIds.has(t.broker_order_id));
+  const skipped = allTrades.length - newTrades.length;
+
+  // Phase C: Cross-sync matching — update existing open trades with close data
+  let merged = 0;
+
+  for (const closeOrder of result.unmatchedCloses) {
+    const alreadyProcessed = closeOrder.fillIds.some((id) => existingIds.has(id));
+    if (alreadyProcessed) continue;
+
+    // Close: sell closes a long, buy closes a short
+    const polarity = closeOrder.side === "sell" ? "long" : "short";
+
+    const { data: openTrade } = await supabase
+      .from("trades")
+      .select("id, fees, tags")
+      .eq("user_id", userId)
+      .eq("broker_name", "Bitget")
+      .eq("symbol", closeOrder.symbol)
+      .eq("position", polarity)
+      .is("exit_price", null)
+      .order("open_timestamp", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (openTrade) {
+      const closeTags = closeOrder.fillIds.map((id) => `close-fill:${id}`);
+      const updatedTags = [...((openTrade.tags ?? []) as string[]), ...closeTags];
+
+      const { error: updateError } = await supabase
+        .from("trades")
+        .update({
+          exit_price: closeOrder.vwap,
+          close_timestamp: new Date(closeOrder.earliestTime).toISOString(),
+          pnl: closeOrder.totalProfit || null,
+          fees: (openTrade.fees || 0) + closeOrder.totalFees,
+          tags: updatedTags,
+        })
+        .eq("id", openTrade.id);
+
+      if (!updateError) {
+        merged++;
+        for (const id of closeOrder.fillIds) existingIds.add(id);
       }
     }
   }
 
-  // Dedup: fetch existing broker_order_ids for this user+broker
-  const { data: existing } = await supabase
-    .from("trades")
-    .select("broker_order_id")
-    .eq("user_id", userId)
-    .eq("broker_name", "Bitget")
-    .not("broker_order_id", "is", null);
-
-  const existingIds = new Set((existing ?? []).map((t: { broker_order_id: string }) => t.broker_order_id));
-  const newFills = result.fills.filter((f) => !existingIds.has(f.broker_order_id));
-  const skipped = result.fills.length - newFills.length;
-
-  if (newFills.length === 0) {
-    return {
-      fetched: result.fetched,
-      imported: 0,
-      skipped,
-      failed: 0,
-      errors: result.errors,
-    };
-  }
-
-  // Insert in chunks of 20
+  // Phase D: Insert new trades in chunks
   let imported = 0;
   let failed = 0;
   const CHUNK_SIZE = 20;
 
-  for (let i = 0; i < newFills.length; i += CHUNK_SIZE) {
-    const chunk = newFills.slice(i, i + CHUNK_SIZE);
-    const rows = chunk.map((fill: MappedTrade) => ({
-      user_id: userId,
-      ...fill,
-    }));
+  for (let i = 0; i < newTrades.length; i += CHUNK_SIZE) {
+    const chunk = newTrades.slice(i, i + CHUNK_SIZE);
+    const rows = chunk.map((trade: MappedTrade) => ({ user_id: userId, ...trade }));
 
     const { error: insertError } = await supabase.from("trades").insert(rows);
     if (insertError) {
@@ -240,13 +282,7 @@ async function syncBitget(
     }
   }
 
-  return {
-    fetched: result.fetched,
-    imported,
-    skipped,
-    failed,
-    errors: result.errors,
-  };
+  return { fetched: result.fetched, imported, merged, skipped, failed, errors: result.errors };
 }
 
 // ── Helpers ───────────────────────────────────────────────────

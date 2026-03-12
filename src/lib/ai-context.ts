@@ -373,3 +373,32 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
 
   return summary;
 }
+
+/** Build a text summary of behavioral logs and daily check-ins for AI analysis. */
+export function buildBehavioralContext(
+  logs: { emotion: string; intensity: number | null; trigger: string | null; physical_state: string | string[] | null; biases: string[] | null; traffic_light: string | null; note: string | null; created_at: string }[],
+  checkins: { date: string; mood: number; energy: number | null; traffic_light: "green" | "yellow" | "red" }[],
+): string {
+  const parts: string[] = [];
+
+  if (logs.length > 0) {
+    parts.push(`## Behavioral Logs (${logs.length} entries)`);
+    for (const l of logs.slice(-20)) {
+      const date = l.created_at?.split("T")[0] ?? "unknown";
+      const biases = l.biases?.length ? ` | biases: ${l.biases.join(", ")}` : "";
+      const trigger = l.trigger ? ` | trigger: ${l.trigger}` : "";
+      const physical = l.physical_state ? ` | physical: ${Array.isArray(l.physical_state) ? l.physical_state.join(", ") : l.physical_state}` : "";
+      const light = l.traffic_light ? ` [${l.traffic_light}]` : "";
+      parts.push(`- ${date}: ${l.emotion} (intensity ${l.intensity ?? "?"})${light}${trigger}${physical}${biases}${l.note ? ` — "${l.note}"` : ""}`);
+    }
+  }
+
+  if (checkins.length > 0) {
+    parts.push(`\n## Daily Check-ins (${checkins.length} days)`);
+    for (const c of checkins.slice(-14)) {
+      parts.push(`- ${c.date}: mood ${c.mood}/10, energy ${c.energy ?? "?"}/10, light ${c.traffic_light}`);
+    }
+  }
+
+  return parts.join("\n") || "No behavioral data available.";
+}

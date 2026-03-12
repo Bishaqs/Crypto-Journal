@@ -11,7 +11,7 @@ export type BitgetCredentials = {
   passphrase: string;
 };
 
-type BitgetFill = {
+export type BitgetFill = {
   tradeId: string;
   orderId: string;
   symbol: string;
@@ -60,11 +60,27 @@ export type MappedTrade = {
   mae_timestamp: string | null;
 };
 
+/** An order aggregated from one or more partial fills. */
+export type AggregatedOrder = {
+  orderId: string;
+  symbol: string;
+  side: string;
+  tradeSide: "open" | "close";
+  vwap: number;
+  totalSize: number;
+  totalFees: number;
+  totalProfit: number;
+  earliestTime: number;
+  fillIds: string[];
+};
+
 export type BitgetSyncResult = {
-  fills: MappedTrade[];
+  pairedTrades: MappedTrade[];
+  unmatchedOpens: MappedTrade[];
+  unmatchedCloses: AggregatedOrder[];
   fetched: number;
   errors: string[];
-  constituentFillIds: string[];
+  allFillIds: string[];
 };
 
 // ── Signature ──────────────────────────────────────────────────
@@ -104,7 +120,6 @@ const BASE = "https://api.bitget.com";
 
 /**
  * Test connection by calling the account endpoint.
- * Returns { ok: true } or { ok: false, error: string }.
  */
 export async function testBitgetConnection(
   creds: BitgetCredentials,
@@ -129,7 +144,7 @@ export async function testBitgetConnection(
 
 /**
  * Fetch futures fills from Bitget with cursor pagination.
- * Returns mapped trades + error list.
+ * Pairs open/close fills into complete trades using FIFO matching.
  */
 export async function fetchBitgetFills(
   creds: BitgetCredentials,
@@ -139,7 +154,7 @@ export async function fetchBitgetFills(
   const errors: string[] = [];
   let totalFetched = 0;
   let cursor: string | undefined;
-  const maxPages = options?.maxPages ?? 50; // Safety limit
+  const maxPages = options?.maxPages ?? 50;
   const productType = "USDT-FUTURES";
 
   for (let page = 0; page < maxPages; page++) {
@@ -178,13 +193,8 @@ export async function fetchBitgetFills(
       totalFetched += fillList.length;
       rawFills.push(...fillList);
 
-      // Cursor pagination: use the last fill's tradeId
       cursor = fillList[fillList.length - 1].tradeId;
-
-      // If we got fewer than limit, there are no more pages
       if (fillList.length < 100) break;
-
-      // Small delay between pages to respect rate limits
       await new Promise((r) => setTimeout(r, 100));
     } catch (err) {
       errors.push(err instanceof Error ? err.message : "Network error fetching fills");
@@ -192,31 +202,38 @@ export async function fetchBitgetFills(
     }
   }
 
-  const fills = aggregateFills(rawFills);
-  const constituentFillIds = rawFills.map((f) => f.tradeId);
+  const allFillIds = rawFills.map((f) => f.tradeId);
+  const paired = pairBitgetFills(rawFills);
 
-  return { fills, fetched: totalFetched, errors, constituentFillIds };
+  return { ...paired, fetched: totalFetched, errors, allFillIds };
 }
 
-// ── Aggregation ────────────────────────────────────────────────
-// Groups fills by orderId so iceberg/split orders become one trade row.
+// ── Aggregation & Pairing ──────────────────────────────────────
 
-function aggregateFills(rawFills: BitgetFill[]): MappedTrade[] {
+const QTY_EPSILON = 1e-10;
+
+/** Classify a fill as "open" or "close" using tradeSide or profit heuristic. */
+function classifyFill(fill: BitgetFill): "open" | "close" {
+  const ts = fill.tradeSide?.toLowerCase();
+  if (ts === "open" || ts === "close") return ts;
+  const profit = parseFloat(fill.profit) || 0;
+  return profit !== 0 ? "close" : "open";
+}
+
+/** Group raw fills by orderId into aggregated orders. */
+function aggregateByOrder(rawFills: BitgetFill[]): AggregatedOrder[] {
   const groups = new Map<string, BitgetFill[]>();
 
   for (const fill of rawFills) {
     const key = fill.orderId || fill.tradeId;
     const existing = groups.get(key);
-    if (existing) {
-      existing.push(fill);
-    } else {
-      groups.set(key, [fill]);
-    }
+    if (existing) existing.push(fill);
+    else groups.set(key, [fill]);
   }
 
-  const trades: MappedTrade[] = [];
+  const orders: AggregatedOrder[] = [];
 
-  for (const [groupKey, fills] of groups) {
+  for (const [, fills] of groups) {
     let totalNotional = 0;
     let totalSize = 0;
     let totalFees = 0;
@@ -236,54 +253,157 @@ function aggregateFills(rawFills: BitgetFill[]): MappedTrade[] {
       fillIds.push(f.tradeId);
     }
 
-    const vwap = totalSize > 0 ? totalNotional / totalSize : 0;
-    const side = fills[0].side?.toLowerCase();
-    const position: "long" | "short" = side === "buy" ? "long" : "short";
-
-    const tags = ["bitget-api-sync"];
-    if (fills.length > 1) {
-      tags.push(`fills:${fills.length}`);
-      for (const fid of fillIds) {
-        tags.push(`fid:${fid}`);
-      }
-    }
-
-    trades.push({
+    orders.push({
+      orderId: fills[0].orderId || fills[0].tradeId,
       symbol: fills[0].symbol,
-      position,
-      entry_price: vwap,
-      exit_price: null,
-      quantity: totalSize,
-      fees: totalFees,
-      open_timestamp: new Date(earliestTime).toISOString(),
-      close_timestamp: null,
-      pnl: totalProfit || null,
-      broker_order_id: fills[0].orderId ? groupKey : fills[0].tradeId,
-      broker_name: "Bitget",
-      trade_source: "cex",
-      tags,
-      notes: null,
-      stop_loss: null,
-      profit_target: null,
-      emotion: null,
-      confidence: null,
-      setup_type: null,
-      process_score: null,
-      checklist: null,
-      review: null,
-      sector: null,
-      chain: null,
-      dex_protocol: null,
-      tx_hash: null,
-      wallet_address: null,
-      gas_fee: 0,
-      gas_fee_native: 0,
-      price_mae: null,
-      price_mfe: null,
-      mfe_timestamp: null,
-      mae_timestamp: null,
+      side: (fills[0].side ?? "buy").toLowerCase(),
+      tradeSide: classifyFill(fills[0]),
+      vwap: totalSize > 0 ? totalNotional / totalSize : 0,
+      totalSize,
+      totalFees,
+      totalProfit,
+      earliestTime,
+      fillIds,
     });
   }
 
-  return trades;
+  orders.sort((a, b) => a.earliestTime - b.earliestTime);
+  return orders;
+}
+
+/** Shared null-field defaults for MappedTrade. */
+const NULL_FIELDS = {
+  notes: null, stop_loss: null, profit_target: null, emotion: null,
+  confidence: null, setup_type: null, process_score: null, checklist: null,
+  review: null, sector: null, chain: null, dex_protocol: null, tx_hash: null,
+  wallet_address: null, gas_fee: 0, gas_fee_native: 0, price_mae: null,
+  price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
+} as const;
+
+type PairResult = {
+  pairedTrades: MappedTrade[];
+  unmatchedOpens: MappedTrade[];
+  unmatchedCloses: AggregatedOrder[];
+};
+
+/**
+ * Pair open/close orders into complete trades using FIFO matching.
+ * Adapted from preprocessBitgetFutures() in csv-import.ts.
+ */
+function pairBitgetFills(rawFills: BitgetFill[]): PairResult {
+  const orders = aggregateByOrder(rawFills);
+
+  const opens = orders.filter((o) => o.tradeSide === "open");
+  const closes = orders.filter((o) => o.tradeSide === "close");
+
+  // Build open pool keyed by "SYMBOL|polarity" (buy open=long, sell open=short)
+  type OpenTracker = { order: AggregatedOrder; remainingQty: number };
+  const openPool = new Map<string, OpenTracker[]>();
+
+  for (const open of opens) {
+    const polarity = open.side === "buy" ? "long" : "short";
+    const key = `${open.symbol}|${polarity}`;
+    if (!openPool.has(key)) openPool.set(key, []);
+    openPool.get(key)!.push({ order: open, remainingQty: open.totalSize });
+  }
+
+  // FIFO match closes to opens
+  const pairedTrades: MappedTrade[] = [];
+  const unmatchedCloses: AggregatedOrder[] = [];
+
+  for (const close of closes) {
+    // Close: sell closes a long, buy closes a short
+    const polarity: "long" | "short" = close.side === "sell" ? "long" : "short";
+    const key = `${close.symbol}|${polarity}`;
+    const pool = openPool.get(key) || [];
+
+    let remainingCloseQty = close.totalSize;
+    const matchedOpens: { order: AggregatedOrder; qty: number }[] = [];
+
+    for (const tracker of pool) {
+      if (remainingCloseQty <= QTY_EPSILON) break;
+      if (tracker.remainingQty <= QTY_EPSILON) continue;
+
+      const matched = Math.min(tracker.remainingQty, remainingCloseQty);
+      matchedOpens.push({ order: tracker.order, qty: matched });
+      tracker.remainingQty -= matched;
+      if (Math.abs(tracker.remainingQty) < QTY_EPSILON) tracker.remainingQty = 0;
+      remainingCloseQty -= matched;
+      if (Math.abs(remainingCloseQty) < QTY_EPSILON) remainingCloseQty = 0;
+    }
+
+    if (matchedOpens.length > 0) {
+      const totalOpenQty = matchedOpens.reduce((s, m) => s + m.qty, 0);
+      const weightedEntry = matchedOpens.reduce(
+        (s, m) => s + m.order.vwap * m.qty, 0,
+      ) / totalOpenQty;
+
+      const openFees = matchedOpens.reduce((s, m) => {
+        const proportion = m.order.totalSize > 0 ? m.qty / m.order.totalSize : 1;
+        return s + m.order.totalFees * proportion;
+      }, 0);
+
+      const earliestOpen = matchedOpens[0].order;
+      const openFillIds = matchedOpens.flatMap((m) => m.order.fillIds);
+      const closeFillIds = close.fillIds;
+
+      const tags = ["bitget-api-sync"];
+      for (const id of closeFillIds) tags.push(`close-fill:${id}`);
+      for (const id of openFillIds.slice(1)) tags.push(`open-fill:${id}`);
+
+      pairedTrades.push({
+        symbol: close.symbol,
+        position: polarity,
+        entry_price: weightedEntry,
+        exit_price: close.vwap,
+        quantity: close.totalSize,
+        fees: openFees + close.totalFees,
+        open_timestamp: new Date(earliestOpen.earliestTime).toISOString(),
+        close_timestamp: new Date(close.earliestTime).toISOString(),
+        pnl: close.totalProfit || null,
+        broker_order_id: earliestOpen.orderId,
+        broker_name: "Bitget",
+        trade_source: "cex",
+        tags,
+        ...NULL_FIELDS,
+      });
+    } else {
+      unmatchedCloses.push(close);
+    }
+  }
+
+  // Remaining unmatched opens
+  const unmatchedOpens: MappedTrade[] = [];
+  for (const [, trackers] of openPool) {
+    for (const tracker of trackers) {
+      if (tracker.remainingQty > QTY_EPSILON) {
+        const o = tracker.order;
+        const polarity: "long" | "short" = o.side === "buy" ? "long" : "short";
+        const tags = ["bitget-api-sync"];
+        if (o.fillIds.length > 1) {
+          tags.push(`fills:${o.fillIds.length}`);
+          for (const fid of o.fillIds) tags.push(`fid:${fid}`);
+        }
+
+        unmatchedOpens.push({
+          symbol: o.symbol,
+          position: polarity,
+          entry_price: o.vwap,
+          exit_price: null,
+          quantity: tracker.remainingQty,
+          fees: o.totalFees * (tracker.remainingQty / o.totalSize),
+          open_timestamp: new Date(o.earliestTime).toISOString(),
+          close_timestamp: null,
+          pnl: null,
+          broker_order_id: o.orderId,
+          broker_name: "Bitget",
+          trade_source: "cex",
+          tags,
+          ...NULL_FIELDS,
+        });
+      }
+    }
+  }
+
+  return { pairedTrades, unmatchedOpens, unmatchedCloses };
 }
