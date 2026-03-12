@@ -35,6 +35,8 @@ type SyncOutput = {
   failed: number;
   errors: string[];
   diagnostics: SyncDiagnostics;
+  /** Ms timestamp of the most recent fill actually fetched. Used for sync cursor. */
+  latestFillTime: number | null;
 };
 
 // POST: Trigger sync for a connection
@@ -147,11 +149,15 @@ export async function POST(
         completed_at: new Date().toISOString(),
       });
 
-      // Update connection status
+      // Update connection status — use actual fill progress for last_sync_at
+      // so incremental sync resumes from where we left off, not "now"
+      const syncCursor = result.latestFillTime
+        ? new Date(result.latestFillTime).toISOString()
+        : new Date().toISOString();
       const { error: updateError } = await supabase
         .from("broker_connections")
         .update({
-          last_sync_at: new Date().toISOString(),
+          last_sync_at: syncCursor,
           status: "active",
           total_trades_synced: (conn.total_trades_synced ?? 0) + result.imported,
           last_error: result.errors[0] ?? null,
@@ -240,6 +246,8 @@ async function syncBitget(
     insert_errors: [],
   };
 
+  let latestFillTime: number | null = null;
+
   const mkResult = (extra: Partial<SyncOutput> = {}): SyncOutput => ({
     fetched: diag.phase_a_fetched,
     imported: 0,
@@ -248,15 +256,19 @@ async function syncBitget(
     failed: 0,
     errors: [],
     diagnostics: diag,
+    latestFillTime,
     ...extra,
   });
 
   // Phase A: Fetch and pair fills (pass deadline so API calls stop in time)
+  // Full sync (lastSyncAt=null): process oldest→newest so incremental clicks make forward progress
+  const isFullSync = lastSyncAt === null;
   const phaseAStart = Date.now();
-  console.log(`[sync:bitget] Phase A: Fetching fills. lastSync=${lastSyncAt ?? "null"}, daysBack=${daysBack ?? "default"}`);
+  console.log(`[sync:bitget] Phase A: Fetching fills. lastSync=${lastSyncAt ?? "null"}, daysBack=${daysBack ?? "default"}, oldestFirst=${isFullSync}`);
   const fetchStart = lastSyncAt ? new Date(lastSyncAt).getTime() : undefined;
-  const result = await fetchBitgetFills(creds, { startTime: fetchStart, daysBack, deadlineMs: deadline });
-  console.log(`[sync:bitget] Phase A: ${result.fetched} fills in ${Date.now() - phaseAStart}ms (${result.pairedTrades.length} paired, ${result.unmatchedOpens.length} open, ${result.unmatchedCloses.length} close)`);
+  const result = await fetchBitgetFills(creds, { startTime: fetchStart, daysBack, deadlineMs: deadline, oldestFirst: isFullSync });
+  latestFillTime = result.latestFillTime;
+  console.log(`[sync:bitget] Phase A: ${result.fetched} fills in ${Date.now() - phaseAStart}ms (${result.pairedTrades.length} paired, ${result.unmatchedOpens.length} open, ${result.unmatchedCloses.length} close, latestFill=${latestFillTime ? new Date(latestFillTime).toISOString() : "none"})`);
 
   diag.phase_a_fetched = result.fetched;
   diag.phase_a_paired = result.pairedTrades.length;
@@ -480,7 +492,6 @@ async function syncBitget(
   // Legacy cleanup: remove old fill-level rows AFTER successful insert.
   // Only run on incremental sync — on full re-sync there's no benefit.
   // Moved after insert so we never delete data without replacements existing.
-  const isFullSync = lastSyncAt === null;
   if (!dryRun && !isFullSync && imported > 0 && result.allFillIds.length > 0 && Date.now() < deadline) {
     diag.legacy_cleanup_skipped = false;
     const CLEANUP_CHUNK = 200;
@@ -497,7 +508,7 @@ async function syncBitget(
   }
 
   const skipped = allTrades.length - newTrades.length;
-  return { fetched: result.fetched, imported, merged, skipped, failed, errors: result.errors, diagnostics: diag };
+  return { fetched: result.fetched, imported, merged, skipped, failed, errors: result.errors, diagnostics: diag, latestFillTime };
 }
 
 // ── Helpers ───────────────────────────────────────────────────

@@ -64,6 +64,8 @@ export type BitgetSyncResult = {
   fetched: number;
   errors: string[];
   allFillIds: string[];
+  /** Timestamp (ms) of the most recent fill fetched, for tracking sync progress. */
+  latestFillTime: number | null;
 };
 
 // ── Signature ──────────────────────────────────────────────────
@@ -132,7 +134,7 @@ export async function testBitgetConnection(
  */
 export async function fetchBitgetFills(
   creds: BitgetCredentials,
-  options?: { startTime?: number; maxPages?: number; daysBack?: number; deadlineMs?: number },
+  options?: { startTime?: number; maxPages?: number; daysBack?: number; deadlineMs?: number; oldestFirst?: boolean },
 ): Promise<BitgetSyncResult> {
   const rawFills: BitgetFill[] = [];
   const errors: string[] = [];
@@ -145,12 +147,15 @@ export async function fetchBitgetFills(
   const earliest = options?.startTime ?? Date.now() - defaultDays * 24 * 60 * 60 * 1000;
   const now = Date.now();
 
-  // Build windows then reverse: newest first so recent trades survive rate limits
+  // Build windows. Default: newest first so recent trades survive rate limits.
+  // oldestFirst: used for full sync so incremental progress works across multiple runs.
   const windows: { start: number; end: number }[] = [];
   for (let winStart = earliest; winStart < now; winStart += SEVEN_DAYS) {
     windows.push({ start: winStart, end: Math.min(winStart + SEVEN_DAYS, now) });
   }
-  windows.reverse();
+  if (!options?.oldestFirst) {
+    windows.reverse();
+  }
 
   for (let winIdx = 0; winIdx < windows.length; winIdx++) {
     const win = windows[winIdx];
@@ -233,7 +238,15 @@ function buildResult(
 ): BitgetSyncResult {
   const allFillIds = rawFills.map((f) => f.tradeId);
   const paired = pairBitgetFills(rawFills);
-  return { ...paired, fetched: totalFetched, errors, allFillIds };
+  // Track the most recent fill time for sync progress cursor
+  let latestFillTime: number | null = null;
+  for (const f of rawFills) {
+    const t = parseInt(f.cTime);
+    if (!isNaN(t) && (latestFillTime === null || t > latestFillTime)) {
+      latestFillTime = t;
+    }
+  }
+  return { ...paired, fetched: totalFetched, errors, allFillIds, latestFillTime };
 }
 
 // ── Aggregation & Pairing ──────────────────────────────────────
