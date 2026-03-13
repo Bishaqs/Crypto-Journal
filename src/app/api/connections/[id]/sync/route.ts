@@ -20,6 +20,7 @@ type SyncDiagnostics = {
   dedup_new_trades: number;
   dedup_skipped: number;
   cross_sync_merged: number;
+  cross_sync_close_only: number;
   insert_attempted: number;
   insert_succeeded: number;
   insert_failed: number;
@@ -247,6 +248,7 @@ async function syncBitget(
     dedup_new_trades: 0,
     dedup_skipped: 0,
     cross_sync_merged: 0,
+    cross_sync_close_only: 0,
     insert_attempted: 0,
     insert_succeeded: 0,
     insert_failed: 0,
@@ -392,8 +394,10 @@ async function syncBitget(
   }
 
   // Phase C: Cross-sync matching — update existing open trades with close data
+  // If no matching open is found, store as a close-only trade with back-calculated entry price
   const phaseCStart = Date.now();
   let merged = 0;
+  let closeOnlyInserted = 0;
 
   if (!dryRun) {
     for (const closeOrder of result.unmatchedCloses) {
@@ -439,11 +443,47 @@ async function syncBitget(
           merged++;
           for (const id of closeOrder.fillIds) existingIds.add(id);
         }
+      } else {
+        // No matching open found — store as close-only trade with back-calculated entry
+        console.log(`[sync:bitget] Phase C: No open trade found for close ${closeOrder.orderId} (${closeOrder.symbol}, ${polarity}). Storing as close-only.`);
+        const pnl = closeOrder.totalProfit || 0;
+        const qty = closeOrder.totalSize || 1;
+        // long PnL = (exit - entry) × qty → entry = exit - pnl/qty
+        // short PnL = (entry - exit) × qty → entry = exit + pnl/qty
+        const calculatedEntry = polarity === "long"
+          ? closeOrder.vwap - pnl / qty
+          : closeOrder.vwap + pnl / qty;
+        const closeTags = ["bitget-api-sync", "close-only", ...closeOrder.fillIds.map((id) => `close-fill:${id}`)];
+
+        const { error: insertError } = await supabase.from("trades").insert({
+          user_id: userId,
+          symbol: closeOrder.symbol,
+          position: polarity,
+          entry_price: pnl !== 0 ? calculatedEntry : null,
+          exit_price: closeOrder.vwap,
+          quantity: qty,
+          fees: closeOrder.totalFees,
+          open_timestamp: new Date(closeOrder.earliestTime).toISOString(),
+          close_timestamp: new Date(closeOrder.earliestTime).toISOString(),
+          pnl: closeOrder.totalProfit || null,
+          broker_order_id: closeOrder.orderId,
+          broker_name: "Bitget",
+          trade_source: "cex",
+          tags: closeTags,
+        });
+
+        if (!insertError) {
+          closeOnlyInserted++;
+          for (const id of closeOrder.fillIds) existingIds.add(id);
+        } else {
+          console.error(`[sync:bitget] Phase C: Close-only insert failed:`, insertError.message);
+        }
       }
     }
   }
   diag.cross_sync_merged = merged;
-  console.log(`[sync:bitget] Phase C: Cross-sync complete in ${Date.now() - phaseCStart}ms. Merged ${merged}.`);
+  diag.cross_sync_close_only = closeOnlyInserted;
+  console.log(`[sync:bitget] Phase C: Cross-sync complete in ${Date.now() - phaseCStart}ms. Merged ${merged}, close-only ${closeOnlyInserted}.`);
 
   // Deadline check before Phase D
   if (Date.now() >= deadline) {
@@ -515,7 +555,7 @@ async function syncBitget(
   }
 
   const skipped = allTrades.length - newTrades.length;
-  return { fetched: result.fetched, imported, merged, skipped, failed, errors: result.errors, diagnostics: diag, latestFillTime };
+  return { fetched: result.fetched, imported: imported + closeOnlyInserted, merged, skipped, failed, errors: result.errors, diagnostics: diag, latestFillTime };
 }
 
 // ── Helpers ───────────────────────────────────────────────────
