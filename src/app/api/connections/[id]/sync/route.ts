@@ -44,6 +44,10 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  // Deadline must start from actual request receipt — not after pre-sync overhead
+  const startTime = Date.now();
+  const deadline = startTime + 8000; // 2s safety margin from Vercel's 10s limit
+
   const { id } = await params;
   const url = new URL(_req.url);
   const fullSync = url.searchParams.get("fullSync") === "true";
@@ -56,49 +60,45 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const rl = await rateLimit(`sync:${user.id}`, 5, 60_000);
+  // Parallel batch 1: rate limit + connection fetch (both need only user.id)
+  const [rl, { data: conn, error: connError }] = await Promise.all([
+    rateLimit(`sync:${user.id}`, 5, 60_000),
+    supabase
+      .from("broker_connections")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+
   if (!rl.success) {
     return NextResponse.json({ error: "Too many sync requests. Wait 1 minute." }, { status: 429 });
   }
-
-  // Fetch connection WITH encrypted credentials
-  const { data: conn, error: connError } = await supabase
-    .from("broker_connections")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
   if (connError || !conn) {
     return NextResponse.json({ error: "Connection not found" }, { status: 404 });
   }
 
-  const startTime = Date.now();
-  const deadline = startTime + 8000; // 2s safety margin from Vercel's 10s limit
-
-  // Clear stale last_error immediately so it doesn't persist if we timeout
-  if (!dryRun) {
-    await supabase.from("broker_connections").update({
-      last_error: null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", id);
-  }
-
-  // Log sync start (skip for dry runs)
+  // Parallel batch 2: set sync sentinel + insert sync log (skip for dry runs)
   let syncLogId: string | undefined;
   if (!dryRun) {
-    const { data: syncLog } = await supabase
-      .from("sync_logs")
-      .insert({
-        connection_id: id,
-        user_id: user.id,
-        sync_type: fullSync ? "full" : "manual",
-        status: "started",
-        started_at: new Date().toISOString(),
-      })
-      .select("id")
-      .single();
-    syncLogId = syncLog?.id;
+    const [, syncLogResult] = await Promise.all([
+      supabase.from("broker_connections").update({
+        last_error: "Syncing...",
+        updated_at: new Date().toISOString(),
+      }).eq("id", id),
+      supabase
+        .from("sync_logs")
+        .insert({
+          connection_id: id,
+          user_id: user.id,
+          sync_type: fullSync ? "full" : "manual",
+          status: "started",
+          started_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single(),
+    ]);
+    syncLogId = syncLogResult.data?.id;
   }
 
   try {
@@ -170,6 +170,9 @@ export async function POST(
     }
 
     const totalNew = result.imported + result.merged;
+    const hasDeadlineErrors = result.errors.some(e =>
+      e.includes("deadline") || e.includes("Timed out") || e.includes("Retry to") || e.includes("Stopped early"),
+    );
     return NextResponse.json({
       trades_imported: result.imported,
       trades_merged: result.merged,
@@ -178,6 +181,7 @@ export async function POST(
       fetched: result.fetched,
       api_errors: result.errors,
       dry_run: dryRun,
+      retryable: hasDeadlineErrors,
       diagnostics: result.diagnostics,
       message: dryRun
         ? `Dry run: ${result.diagnostics.dedup_new_trades} trades would be imported (${result.fetched} fills fetched).`
