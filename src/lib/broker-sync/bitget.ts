@@ -17,8 +17,10 @@ export type BitgetFill = {
   symbol: string;
   side: string;
   price: string;
-  size: string;
-  fee: string;
+  baseVolume: string;      // V2 field (was "size" in V1)
+  size?: string;           // V1 fallback
+  fee?: string;            // V1 field
+  feeDetail?: Array<{ totalFee: string; feeCoin: string }>; // V2 field
   cTime: string;
   profit: string;
   tradeSide?: string;
@@ -318,10 +320,13 @@ function aggregateByOrder(rawFills: BitgetFill[]): AggregatedOrder[] {
 
     for (const f of fills) {
       const price = parseFloat(f.price) || 0;
-      const size = parseFloat(f.size) || 0;
+      const size = parseFloat(f.baseVolume) || parseFloat(f.size as string) || 0;
       totalNotional += price * size;
       totalSize += size;
-      totalFees += Math.abs(parseFloat(f.fee) || 0);
+      const fee = f.feeDetail?.[0]?.totalFee
+        ? Math.abs(parseFloat(f.feeDetail[0].totalFee))
+        : Math.abs(parseFloat(f.fee ?? "0") || 0);
+      totalFees += fee;
       totalProfit += parseFloat(f.profit) || 0;
       const time = parseInt(f.cTime);
       if (time < earliestTime) earliestTime = time;
