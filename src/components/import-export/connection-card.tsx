@@ -133,7 +133,9 @@ export function ConnectionCard({
           <div className="flex items-center gap-1.5 shrink-0">
             {(syncing || fullSyncing) && (
               <span className="text-[10px] text-accent animate-pulse mr-1">
-                {fullSyncing ? "Re-syncing..." : "Syncing..."}
+                {syncResult?.progress?.currentRetry
+                  ? `Syncing... (retry ${syncResult.progress.currentRetry}/${syncResult.progress.maxRetries})`
+                  : fullSyncing ? "Re-syncing..." : "Syncing..."}
               </span>
             )}
             <button

@@ -34,64 +34,102 @@ export function ViewConnectionsTab() {
   }, [fetchConnections]);
 
   async function handleSync(id: string, fullSync = false) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15_000);
+    const MAX_RETRIES = 2;
 
-    try {
-      const url = `/api/connections/${id}/sync${fullSync ? "?fullSync=true" : ""}`;
-      const res = await fetch(url, { method: "POST", signal: controller.signal });
-      clearTimeout(timeoutId);
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const isRetry = attempt > 0;
 
-      // Parse response — capture parse failures so we show real errors, not "Sync failed."
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let data: Record<string, any> = {};
-      const resText = await res.text().catch(() => "");
+      // Show retry progress
+      if (isRetry) {
+        setSyncResults((prev) => ({
+          ...prev,
+          [id]: { status: "info", message: `Syncing... (retry ${attempt}/${MAX_RETRIES})`, progress: { currentRetry: attempt, maxRetries: MAX_RETRIES } },
+        }));
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12_000);
+
       try {
-        data = resText ? JSON.parse(resText) : {};
-      } catch {
-        // Server returned non-JSON (e.g., Vercel timeout HTML page)
-      }
+        // On retry, always use incremental sync — cursor from last_sync_at advances progress
+        const useFullSync = isRetry ? false : fullSync;
+        const syncUrl = `/api/connections/${id}/sync${useFullSync ? "?fullSync=true" : ""}`;
+        const res = await fetch(syncUrl, { method: "POST", signal: controller.signal });
+        clearTimeout(timeoutId);
 
-      let result: SyncResult;
-      if (res.status === 429) {
-        result = { status: "error", message: data.error || "Rate limited — wait 1 minute." };
-      } else if (res.status === 404) {
-        result = { status: "error", message: "Connection not found." };
-      } else if (res.status === 401) {
-        result = { status: "error", message: "Session expired. Please log in again." };
-      } else if (res.status === 504) {
-        result = { status: "error", message: "Sync timed out on server. Try incremental sync or retry." };
-      } else if (!res.ok) {
-        const msg = data.error || `Server error (HTTP ${res.status}). Check Vercel logs.`;
-        result = { status: "error", message: msg };
-      } else {
-        const imported = data.trades_imported ?? 0;
-        const apiErrors: string[] = data.api_errors ?? [];
-        const d = data.diagnostics;
-        const diagSuffix = d
-          ? ` [${d.phase_a_fetched}F → ${d.phase_a_paired + d.phase_a_unmatched_opens}T → ${d.dedup_existing_ids}E → ${d.dedup_new_trades}N → ${d.insert_succeeded}I]`
-          : "";
-        if (imported > 0) {
-          result = { status: "success", message: `${imported} trade${imported !== 1 ? "s" : ""} imported.${diagSuffix}`, trades_imported: imported };
-        } else if (apiErrors.length > 0) {
-          result = { status: "error", message: `${apiErrors[0]}${diagSuffix}` };
-        } else {
-          result = { status: "info", message: `${data.message || "No new trades."}${diagSuffix}` };
+        // Parse response
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let data: Record<string, any> = {};
+        const resText = await res.text().catch(() => "");
+        try {
+          data = resText ? JSON.parse(resText) : {};
+        } catch {
+          // Server returned non-JSON (e.g., Vercel timeout HTML page)
         }
-        await fetchConnections();
-      }
 
-      setSyncResults((prev) => ({ ...prev, [id]: result }));
-      setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 15_000);
-    } catch (err) {
-      clearTimeout(timeoutId);
-      const isAbort = err instanceof DOMException && err.name === "AbortError";
-      const result: SyncResult = {
-        status: "error",
-        message: isAbort ? "Sync timed out. Try again or use incremental sync." : "Network error during sync.",
-      };
-      setSyncResults((prev) => ({ ...prev, [id]: result }));
-      setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 15_000);
+        // Auto-retry on retryable conditions
+        const shouldRetry = attempt < MAX_RETRIES && (
+          data.retryable === true || res.status === 504 || (!resText && !res.ok)
+        );
+
+        if (shouldRetry) {
+          await new Promise(r => setTimeout(r, 500));
+          await fetchConnections(); // Refresh cursor
+          continue;
+        }
+
+        // Build final result
+        let result: SyncResult;
+        if (res.status === 429) {
+          result = { status: "error", message: data.error || "Rate limited — wait 1 minute." };
+        } else if (res.status === 404) {
+          result = { status: "error", message: "Connection not found." };
+        } else if (res.status === 401) {
+          result = { status: "error", message: "Session expired. Please log in again." };
+        } else if (res.status === 504) {
+          result = { status: "error", message: `Sync timed out after ${attempt + 1} attempt(s).` };
+        } else if (!res.ok) {
+          const msg = data.error || `Server error (HTTP ${res.status}). Check Vercel logs.`;
+          result = { status: "error", message: msg };
+        } else {
+          const imported = data.trades_imported ?? 0;
+          const apiErrors: string[] = data.api_errors ?? [];
+          const d = data.diagnostics;
+          const diagSuffix = d
+            ? ` [${d.phase_a_fetched}F → ${d.phase_a_paired + d.phase_a_unmatched_opens}T → ${d.dedup_existing_ids}E → ${d.dedup_new_trades}N → ${d.insert_succeeded}I]`
+            : "";
+          if (imported > 0) {
+            result = { status: "success", message: `${imported} trade${imported !== 1 ? "s" : ""} imported.${diagSuffix}`, trades_imported: imported };
+          } else if (apiErrors.length > 0) {
+            result = { status: "error", message: `${apiErrors[0]}${diagSuffix}` };
+          } else {
+            result = { status: "info", message: `${data.message || "No new trades."}${diagSuffix}` };
+          }
+          await fetchConnections();
+        }
+
+        setSyncResults((prev) => ({ ...prev, [id]: result }));
+        setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 15_000);
+        return;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        const isAbort = err instanceof DOMException && err.name === "AbortError";
+
+        // Auto-retry on client timeout
+        if (isAbort && attempt < MAX_RETRIES) {
+          await new Promise(r => setTimeout(r, 500));
+          await fetchConnections();
+          continue;
+        }
+
+        const result: SyncResult = {
+          status: "error",
+          message: isAbort ? `Sync timed out after ${attempt + 1} attempt(s).` : "Network error during sync.",
+        };
+        setSyncResults((prev) => ({ ...prev, [id]: result }));
+        setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 15_000);
+        return;
+      }
     }
   }
 
