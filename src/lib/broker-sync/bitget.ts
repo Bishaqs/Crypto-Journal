@@ -201,6 +201,17 @@ export async function fetchBitgetFills(
             return buildResult(rawFills, totalFetched, errors);
           }
 
+          // Retry on 5xx (Bitget returns HTML error pages for 502/503)
+          if (!res.ok) {
+            retries++;
+            if (retries >= 3) {
+              errors.push(`Bitget server error (HTTP ${res.status}) after retries. Partial results.`);
+              break; // Move to next window, not fatal abort
+            }
+            await new Promise((r) => setTimeout(r, 2000 * retries));
+            continue;
+          }
+
           const json = await res.json();
 
           if (json.code !== "00000") {
@@ -219,7 +230,7 @@ export async function fetchBitgetFills(
           if (fillList.length < 100) break;
         } catch (err) {
           errors.push(err instanceof Error ? err.message : "Network error fetching fills");
-          return buildResult(rawFills, totalFetched, errors);
+          break; // Continue to next window instead of aborting all
         }
       }
 

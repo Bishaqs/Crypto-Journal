@@ -151,9 +151,10 @@ export async function POST(
 
       // Update connection status — use actual fill progress for last_sync_at
       // so incremental sync resumes from where we left off, not "now"
+      // If no fills were fetched, keep the existing cursor to avoid skipping data
       const syncCursor = result.latestFillTime
         ? new Date(result.latestFillTime).toISOString()
-        : new Date().toISOString();
+        : conn.last_sync_at;
       const { error: updateError } = await supabase
         .from("broker_connections")
         .update({
