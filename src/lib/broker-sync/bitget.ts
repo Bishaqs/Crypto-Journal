@@ -134,7 +134,7 @@ export async function testBitgetConnection(
  */
 export async function fetchBitgetFills(
   creds: BitgetCredentials,
-  options?: { startTime?: number; maxPages?: number; daysBack?: number; deadlineMs?: number; oldestFirst?: boolean },
+  options?: { startTime?: number; maxPages?: number; daysBack?: number; deadlineMs?: number; oldestFirst?: boolean; maxWindows?: number },
 ): Promise<BitgetSyncResult> {
   const rawFills: BitgetFill[] = [];
   const errors: string[] = [];
@@ -157,16 +157,26 @@ export async function fetchBitgetFills(
     windows.reverse();
   }
 
+  const maxWindows = options?.maxWindows ?? 2;
+  let windowsCompleted = 0;
+
   for (let winIdx = 0; winIdx < windows.length; winIdx++) {
     const win = windows[winIdx];
 
-    // Deadline guard: stop fetching if running out of time
-    if (options?.deadlineMs && Date.now() >= options.deadlineMs - 1500) {
+    // Cap windows per invocation so each request finishes within deadline
+    if (windowsCompleted >= maxWindows) {
+      errors.push(`Stopped after ${windowsCompleted} of ${windows.length} windows (chunk limit). Retry to continue.`);
+      break;
+    }
+
+    // Deadline guard: stop fetching if running out of time (3s margin for dedup/insert)
+    if (options?.deadlineMs && Date.now() >= options.deadlineMs - 3000) {
       errors.push(`Stopped early — ${windows.length - winIdx} of ${windows.length} windows remaining (approaching deadline).`);
       break;
     }
 
     let cursor: string | undefined;
+    let rateLimited = false;
 
     for (let page = 0; page < maxPagesPerWindow; page++) {
       const params = new URLSearchParams({ productType, limit: "100" });
@@ -190,6 +200,7 @@ export async function fetchBitgetFills(
             retries++;
             if (retries >= 3) {
               errors.push("Rate limited by Bitget after retries. Partial results.");
+              rateLimited = true;
               break;
             }
             await new Promise((r) => setTimeout(r, 2000 * retries));
@@ -234,8 +245,11 @@ export async function fetchBitgetFills(
         }
       }
 
-      if (!success) break; // Rate limited out of this window, move to next
+      if (rateLimited) break; // Rate limited — stop all windows
+      if (success) windowsCompleted++;
+      // On 5xx/network error (!success && !rateLimited), continue to next window
     }
+    if (rateLimited) break; // Propagate rate limit break to outer loop
   }
 
   return buildResult(rawFills, totalFetched, errors);
