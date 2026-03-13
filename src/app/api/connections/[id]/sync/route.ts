@@ -452,7 +452,7 @@ async function syncBitget(
           user_id: userId,
           symbol: closeOrder.symbol,
           position: polarity,
-          entry_price: null,
+          entry_price: 0,
           exit_price: closeOrder.vwap,
           quantity: closeOrder.totalSize || 1,
           fees: closeOrder.totalFees,
@@ -470,6 +470,8 @@ async function syncBitget(
           for (const id of closeOrder.fillIds) existingIds.add(id);
         } else {
           console.error(`[sync:bitget] Phase C: Close-only insert failed:`, insertError.message);
+          diag.insert_errors.push(`Close-only: ${insertError.message}`);
+          result.errors.push(`Close-only insert failed: ${insertError.message}`);
         }
       }
     }
