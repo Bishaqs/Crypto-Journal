@@ -34,16 +34,23 @@ export function ViewConnectionsTab() {
   }, [fetchConnections]);
 
   async function handleSync(id: string, fullSync = false) {
-    const MAX_RETRIES = 2;
+    const MAX_RETRIES = 5;
+    let totalImported = 0;
+    let totalFetched = 0;
+    let lastDiag = "";
+    let lastDuration = 0;
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       const isRetry = attempt > 0;
 
-      // Show retry progress
+      // Show retry progress with accumulated info
       if (isRetry) {
+        const progressMsg = totalImported > 0
+          ? `Syncing... (attempt ${attempt + 1}/${MAX_RETRIES + 1}, ${totalImported} imported so far)`
+          : `Syncing... (attempt ${attempt + 1}/${MAX_RETRIES + 1})`;
         setSyncResults((prev) => ({
           ...prev,
-          [id]: { status: "info", message: `Syncing... (retry ${attempt}/${MAX_RETRIES})`, progress: { currentRetry: attempt, maxRetries: MAX_RETRIES } },
+          [id]: { status: "info", message: progressMsg, progress: { currentRetry: attempt, maxRetries: MAX_RETRIES } },
         }));
       }
 
@@ -67,6 +74,15 @@ export function ViewConnectionsTab() {
           // Server returned non-JSON (e.g., Vercel timeout HTML page)
         }
 
+        // Accumulate progress across retries
+        totalImported += data.trades_imported ?? 0;
+        totalFetched += data.fetched ?? 0;
+        lastDuration = data.duration_ms ?? 0;
+        const d = data.diagnostics;
+        if (d) {
+          lastDiag = ` [${d.phase_a_fetched}F → ${d.phase_a_paired + d.phase_a_unmatched_opens}T → ${d.dedup_existing_ids}E → ${d.dedup_new_trades}N → ${d.insert_succeeded}I${lastDuration ? ` ${(lastDuration / 1000).toFixed(1)}s` : ""}]`;
+        }
+
         // Auto-retry on retryable conditions
         const shouldRetry = attempt < MAX_RETRIES && (
           data.retryable === true || res.status === 504 || (!resText && !res.ok)
@@ -87,23 +103,19 @@ export function ViewConnectionsTab() {
         } else if (res.status === 401) {
           result = { status: "error", message: "Session expired. Please log in again." };
         } else if (res.status === 504) {
-          result = { status: "error", message: `Sync timed out after ${attempt + 1} attempt(s).` };
+          result = { status: "error", message: `Server timed out (attempt ${attempt + 1}). ${totalFetched} fills fetched, ${totalImported} imported. Click sync to continue.` };
         } else if (!res.ok) {
-          const msg = data.error || `Server error (HTTP ${res.status}). Check Vercel logs.`;
-          result = { status: "error", message: msg };
+          const msg = data.error || `Server error (HTTP ${res.status}).`;
+          result = { status: "error", message: `${msg}${lastDiag}` };
         } else {
           const imported = data.trades_imported ?? 0;
           const apiErrors: string[] = data.api_errors ?? [];
-          const d = data.diagnostics;
-          const diagSuffix = d
-            ? ` [${d.phase_a_fetched}F → ${d.phase_a_paired + d.phase_a_unmatched_opens}T → ${d.dedup_existing_ids}E → ${d.dedup_new_trades}N → ${d.insert_succeeded}I]`
-            : "";
-          if (imported > 0) {
-            result = { status: "success", message: `${imported} trade${imported !== 1 ? "s" : ""} imported.${diagSuffix}`, trades_imported: imported };
+          if (totalImported > 0) {
+            result = { status: "success", message: `${totalImported} trade${totalImported !== 1 ? "s" : ""} imported.${lastDiag}`, trades_imported: totalImported };
           } else if (apiErrors.length > 0) {
-            result = { status: "error", message: `${apiErrors[0]}${diagSuffix}` };
+            result = { status: "error", message: `${apiErrors[0]}${lastDiag}` };
           } else {
-            result = { status: "info", message: `${data.message || "No new trades."}${diagSuffix}` };
+            result = { status: "info", message: `${data.message || "No new trades."}${lastDiag}` };
           }
           await fetchConnections();
         }
@@ -124,7 +136,9 @@ export function ViewConnectionsTab() {
 
         const result: SyncResult = {
           status: "error",
-          message: isAbort ? `Sync timed out after ${attempt + 1} attempt(s).` : "Network error during sync.",
+          message: isAbort
+            ? `Server timed out (attempt ${attempt + 1}). ${totalFetched} fills fetched, ${totalImported} imported. Click sync to continue.`
+            : "Network error during sync.",
         };
         setSyncResults((prev) => ({ ...prev, [id]: result }));
         setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 15_000);

@@ -62,7 +62,7 @@ export async function POST(
 
   // Parallel batch 1: rate limit + connection fetch (both need only user.id)
   const [rl, { data: conn, error: connError }] = await Promise.all([
-    rateLimit(`sync:${user.id}`, 5, 60_000),
+    rateLimit(`sync:${user.id}`, 15, 60_000),
     supabase
       .from("broker_connections")
       .select("*")
@@ -171,8 +171,9 @@ export async function POST(
     }
 
     const totalNew = result.imported + result.merged;
-    const hasDeadlineErrors = result.errors.some(e =>
-      e.includes("deadline") || e.includes("Timed out") || e.includes("Retry to") || e.includes("Stopped early"),
+    const hasRetryableErrors = result.errors.some(e =>
+      e.includes("deadline") || e.includes("Timed out") || e.includes("Retry to") ||
+      e.includes("Stopped early") || e.includes("Stopped after") || e.includes("Partial results"),
     );
     return NextResponse.json({
       trades_imported: result.imported,
@@ -182,7 +183,8 @@ export async function POST(
       fetched: result.fetched,
       api_errors: result.errors,
       dry_run: dryRun,
-      retryable: hasDeadlineErrors,
+      retryable: hasRetryableErrors,
+      duration_ms: Date.now() - startTime,
       diagnostics: result.diagnostics,
       message: dryRun
         ? `Dry run: ${result.diagnostics.dedup_new_trades} trades would be imported (${result.fetched} fills fetched).`
