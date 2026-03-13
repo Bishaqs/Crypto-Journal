@@ -141,7 +141,7 @@ export async function fetchBitgetFills(
   let totalFetched = 0;
   const productType = "USDT-FUTURES";
   const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-  const maxPagesPerWindow = options?.maxPages ?? 50;
+  const maxPagesPerWindow = options?.maxPages ?? 5;
 
   const defaultDays = options?.daysBack ?? 14;
   const earliest = options?.startTime ?? Date.now() - defaultDays * 24 * 60 * 60 * 1000;
@@ -169,8 +169,8 @@ export async function fetchBitgetFills(
       break;
     }
 
-    // Deadline guard: stop fetching if running out of time (3s margin for dedup/insert)
-    if (options?.deadlineMs && Date.now() >= options.deadlineMs - 3000) {
+    // Deadline guard: stop fetching if running out of time (1.5s margin for dedup/insert)
+    if (options?.deadlineMs && Date.now() >= options.deadlineMs - 1500) {
       errors.push(`Stopped early — ${windows.length - winIdx} of ${windows.length} windows remaining (approaching deadline).`);
       break;
     }
@@ -179,6 +179,12 @@ export async function fetchBitgetFills(
     let rateLimited = false;
 
     for (let page = 0; page < maxPagesPerWindow; page++) {
+      // Deadline check per page — don't start another API call if time is up
+      if (options?.deadlineMs && Date.now() >= options.deadlineMs - 1500) {
+        errors.push(`Stopped mid-window at page ${page} — approaching deadline.`);
+        break;
+      }
+
       const params = new URLSearchParams({ productType, limit: "100" });
       params.set("startTime", win.start.toString());
       params.set("endTime", win.end.toString());
@@ -194,7 +200,10 @@ export async function fetchBitgetFills(
       while (retries < 3 && !success) {
         try {
           const headers = buildHeaders(creds, "GET", fullPath);
-          const res = await fetch(BASE + fullPath, { headers });
+          const res = await fetch(BASE + fullPath, {
+            headers,
+            signal: AbortSignal.timeout(4000),
+          });
 
           if (res.status === 429) {
             retries++;
@@ -203,7 +212,7 @@ export async function fetchBitgetFills(
               rateLimited = true;
               break;
             }
-            await new Promise((r) => setTimeout(r, 2000 * retries));
+            await new Promise((r) => setTimeout(r, 500 * retries));
             continue;
           }
 
@@ -219,7 +228,7 @@ export async function fetchBitgetFills(
               errors.push(`Bitget server error (HTTP ${res.status}) after retries. Partial results.`);
               break; // Move to next window, not fatal abort
             }
-            await new Promise((r) => setTimeout(r, 2000 * retries));
+            await new Promise((r) => setTimeout(r, 500 * retries));
             continue;
           }
 
@@ -246,9 +255,9 @@ export async function fetchBitgetFills(
       }
 
       if (rateLimited) break; // Rate limited — stop all windows
-      if (success) windowsCompleted++;
-      // On 5xx/network error (!success && !rateLimited), continue to next window
     }
+    // Count completed windows (once per window, not per page)
+    windowsCompleted++;
     if (rateLimited) break; // Propagate rate limit break to outer loop
   }
 
