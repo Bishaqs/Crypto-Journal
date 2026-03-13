@@ -554,11 +554,14 @@ async function syncBitget(
   }
 
   const skipped = allTrades.length - newTrades.length;
-  // Only advance sync cursor when at least one trade was processed (imported, merged, or deduped).
-  // If all inserts fail (e.g., column constraint violations), keep cursor at conn.last_sync_at
-  // so the next sync re-fetches the same fills instead of permanently skipping them.
+  // Cursor advancement logic — three outcomes:
+  // 1. Fills processed (imported/merged/deduped) → advance to latest fill time
+  // 2. No fills fetched but windows scanned → advance past empty period (prevents cursor stalling)
+  // 3. Fills fetched but all failed → DON'T advance (retry same fills next time)
   const anyProgress = (imported + closeOnlyInserted + merged + skipped) > 0;
-  return { fetched: result.fetched, imported: imported + closeOnlyInserted, merged, skipped, failed, errors: result.errors, diagnostics: diag, latestFillTime: anyProgress ? latestFillTime : null };
+  const emptyWindowProgress = !anyProgress && result.fetched === 0 && result.lastWindowEnd !== null;
+  const cursorTime = anyProgress ? latestFillTime : emptyWindowProgress ? result.lastWindowEnd : null;
+  return { fetched: result.fetched, imported: imported + closeOnlyInserted, merged, skipped, failed, errors: result.errors, diagnostics: diag, latestFillTime: cursorTime };
 }
 
 // ── Helpers ───────────────────────────────────────────────────
