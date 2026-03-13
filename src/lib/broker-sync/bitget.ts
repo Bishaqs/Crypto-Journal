@@ -68,6 +68,8 @@ export type BitgetSyncResult = {
   allFillIds: string[];
   /** Timestamp (ms) of the most recent fill fetched, for tracking sync progress. */
   latestFillTime: number | null;
+  /** End time (ms) of the last processed window. Used to advance cursor past empty periods. */
+  lastWindowEnd: number | null;
 };
 
 // ── Signature ──────────────────────────────────────────────────
@@ -161,6 +163,7 @@ export async function fetchBitgetFills(
 
   const maxWindows = options?.maxWindows ?? 2;
   let windowsCompleted = 0;
+  let lastWindowEnd: number | null = null;
 
   for (let winIdx = 0; winIdx < windows.length; winIdx++) {
     const win = windows[winIdx];
@@ -259,11 +262,12 @@ export async function fetchBitgetFills(
       if (rateLimited) break; // Rate limited — stop all windows
     }
     // Count completed windows (once per window, not per page)
+    lastWindowEnd = win.end;
     windowsCompleted++;
     if (rateLimited) break; // Propagate rate limit break to outer loop
   }
 
-  return buildResult(rawFills, totalFetched, errors);
+  return { ...buildResult(rawFills, totalFetched, errors), lastWindowEnd };
 }
 
 /** Build the final sync result from collected fills. */
@@ -282,7 +286,7 @@ function buildResult(
       latestFillTime = t;
     }
   }
-  return { ...paired, fetched: totalFetched, errors, allFillIds, latestFillTime };
+  return { ...paired, fetched: totalFetched, errors, allFillIds, latestFillTime, lastWindowEnd: null };
 }
 
 // ── Aggregation & Pairing ──────────────────────────────────────
@@ -323,9 +327,14 @@ function aggregateByOrder(rawFills: BitgetFill[]): AggregatedOrder[] {
       const size = parseFloat(f.baseVolume) || parseFloat(f.size as string) || 0;
       totalNotional += price * size;
       totalSize += size;
-      const fee = f.feeDetail?.[0]?.totalFee
-        ? Math.abs(parseFloat(f.feeDetail[0].totalFee))
-        : Math.abs(parseFloat(f.fee ?? "0") || 0);
+      let fee = 0;
+      if (f.feeDetail && f.feeDetail.length > 0) {
+        for (const fd of f.feeDetail) {
+          fee += Math.abs(parseFloat(fd.totalFee) || 0);
+        }
+      } else {
+        fee = Math.abs(parseFloat(f.fee ?? "0") || 0);
+      }
       totalFees += fee;
       totalProfit += parseFloat(f.profit) || 0;
       const time = parseInt(f.cTime);
