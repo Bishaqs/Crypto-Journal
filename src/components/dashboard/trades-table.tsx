@@ -23,7 +23,7 @@ import {
 const DASH = <span className="text-muted/30">{"\u2014"}</span>;
 
 function getReturnPct(trade: Trade): string | null {
-  if (trade.exit_price === null || trade.entry_price === 0) return null;
+  if (!trade.entry_price || trade.exit_price === null) return null;
   const direction = trade.position === "long" ? 1 : -1;
   const pct = ((trade.exit_price - trade.entry_price) / trade.entry_price) * 100 * direction;
   return `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
