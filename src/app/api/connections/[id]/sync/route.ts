@@ -444,24 +444,17 @@ async function syncBitget(
           for (const id of closeOrder.fillIds) existingIds.add(id);
         }
       } else {
-        // No matching open found — store as close-only trade with back-calculated entry
+        // No matching open found — store as close-only trade (entry unknown)
         console.log(`[sync:bitget] Phase C: No open trade found for close ${closeOrder.orderId} (${closeOrder.symbol}, ${polarity}). Storing as close-only.`);
-        const pnl = closeOrder.totalProfit || 0;
-        const qty = closeOrder.totalSize || 1;
-        // long PnL = (exit - entry) × qty → entry = exit - pnl/qty
-        // short PnL = (entry - exit) × qty → entry = exit + pnl/qty
-        const calculatedEntry = polarity === "long"
-          ? closeOrder.vwap - pnl / qty
-          : closeOrder.vwap + pnl / qty;
         const closeTags = ["bitget-api-sync", "close-only", ...closeOrder.fillIds.map((id) => `close-fill:${id}`)];
 
         const { error: insertError } = await supabase.from("trades").insert({
           user_id: userId,
           symbol: closeOrder.symbol,
           position: polarity,
-          entry_price: pnl !== 0 ? calculatedEntry : null,
+          entry_price: null,
           exit_price: closeOrder.vwap,
-          quantity: qty,
+          quantity: closeOrder.totalSize || 1,
           fees: closeOrder.totalFees,
           open_timestamp: new Date(closeOrder.earliestTime).toISOString(),
           close_timestamp: new Date(closeOrder.earliestTime).toISOString(),

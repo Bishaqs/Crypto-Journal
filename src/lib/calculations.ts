@@ -730,7 +730,7 @@ export function formatDuration(openTs: string, closeTs: string | null): string {
 }
 
 export function getReturnPct(trade: { entry_price: number; exit_price: number | null; position: "long" | "short" }): string | null {
-  if (trade.exit_price === null || trade.entry_price === 0) return null;
+  if (!trade.entry_price || trade.exit_price === null) return null;
   const direction = trade.position === "long" ? 1 : -1;
   const pct = ((trade.exit_price - trade.entry_price) / trade.entry_price) * 100 * direction;
   return `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
