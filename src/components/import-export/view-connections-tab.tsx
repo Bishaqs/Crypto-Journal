@@ -80,8 +80,9 @@ export function ViewConnectionsTab() {
         lastDuration = data.duration_ms ?? 0;
         const d = data.diagnostics;
         if (d) {
+          const unmatched = d.phase_a_unmatched_closes ? `+${d.phase_a_unmatched_closes}U` : "";
           const mergeInfo = (d.cross_sync_merged || d.cross_sync_close_only) ? ` ${d.cross_sync_merged ?? 0}M${d.cross_sync_close_only ? `+${d.cross_sync_close_only}C` : ""}` : "";
-          lastDiag = ` [${d.phase_a_fetched}F → ${d.phase_a_paired + d.phase_a_unmatched_opens}T${mergeInfo} → ${d.dedup_existing_ids}E → ${d.dedup_new_trades}N → ${d.insert_succeeded + (d.cross_sync_close_only ?? 0)}I${lastDuration ? ` ${(lastDuration / 1000).toFixed(1)}s` : ""}]`;
+          lastDiag = ` [${d.phase_a_fetched}F → ${d.phase_a_paired + d.phase_a_unmatched_opens}T${unmatched}${mergeInfo} → ${d.dedup_existing_ids}E → ${d.dedup_new_trades}N → ${d.insert_succeeded + (d.cross_sync_close_only ?? 0)}I${lastDuration ? ` ${(lastDuration / 1000).toFixed(1)}s` : ""}]`;
         }
 
         // Auto-retry on retryable conditions

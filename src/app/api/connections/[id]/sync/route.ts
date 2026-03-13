@@ -442,6 +442,10 @@ async function syncBitget(
         if (!updateError) {
           merged++;
           for (const id of closeOrder.fillIds) existingIds.add(id);
+        } else {
+          console.error(`[sync:bitget] Phase C: Merge update failed for ${closeOrder.orderId}:`, updateError.message);
+          diag.insert_errors.push(`Merge: ${updateError.message}`);
+          result.errors.push(`Merge update failed: ${updateError.message}`);
         }
       } else {
         // No matching open found — store as close-only trade (entry unknown)
