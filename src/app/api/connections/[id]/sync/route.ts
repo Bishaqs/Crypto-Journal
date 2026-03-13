@@ -550,7 +550,11 @@ async function syncBitget(
   }
 
   const skipped = allTrades.length - newTrades.length;
-  return { fetched: result.fetched, imported: imported + closeOnlyInserted, merged, skipped, failed, errors: result.errors, diagnostics: diag, latestFillTime };
+  // Only advance sync cursor when at least one trade was processed (imported, merged, or deduped).
+  // If all inserts fail (e.g., column constraint violations), keep cursor at conn.last_sync_at
+  // so the next sync re-fetches the same fills instead of permanently skipping them.
+  const anyProgress = (imported + closeOnlyInserted + merged + skipped) > 0;
+  return { fetched: result.fetched, imported: imported + closeOnlyInserted, merged, skipped, failed, errors: result.errors, diagnostics: diag, latestFillTime: anyProgress ? latestFillTime : null };
 }
 
 // ── Helpers ───────────────────────────────────────────────────
