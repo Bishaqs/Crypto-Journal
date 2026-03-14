@@ -306,6 +306,7 @@ export const phantomTradeSchema = z.object({
   emotion: z.string().optional(),
   tags: z.array(z.string()).default([]),
   observed_at: z.string().min(1, "Observation time is required"),
+  order_type: z.enum(["observation", "limit"]).default("observation"),
 });
 
 export type PhantomTradeFormData = z.infer<typeof phantomTradeSchema>;

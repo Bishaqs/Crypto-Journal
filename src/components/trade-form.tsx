@@ -44,6 +44,7 @@ export function TradeForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [isWhatIf, setIsWhatIf] = useState(initialWhatIf || !!editPhantom);
+  const [orderType, setOrderType] = useState<"observation" | "limit">(editPhantom?.order_type ?? "observation");
 
   // Psychology state
   const [emotion, setEmotion] = useState<string | null>(editTrade?.emotion ?? editPhantom?.emotion ?? null);
@@ -132,6 +133,7 @@ export function TradeForm({
           emotion: emotion || undefined,
           tags: combinedTags,
           observed_at: formData.get("open_timestamp") as string,
+          order_type: orderType,
         };
 
         const phantomResult = phantomTradeSchema.safeParse(phantomRaw);
@@ -152,7 +154,7 @@ export function TradeForm({
         const phantomPayload = {
           ...phantomData,
           asset_type: "crypto" as const,
-          status: "active" as const,
+          status: (orderType === "limit" ? "pending" : "active") as string,
         };
 
         let dbError;
@@ -350,16 +352,45 @@ export function TradeForm({
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* What-if checkbox — only show when not editing an existing trade */}
           {!editTrade && (
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isWhatIf}
-                onChange={(e) => setIsWhatIf(e.target.checked)}
-                className="accent-purple-500 w-4 h-4"
-              />
-              <Ghost size={14} className="text-purple-400" />
-              <span className="text-xs text-muted">What-if (I didn&apos;t take this trade)</span>
-            </label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isWhatIf}
+                  onChange={(e) => {
+                    setIsWhatIf(e.target.checked);
+                    if (!e.target.checked) setOrderType("observation");
+                  }}
+                  className="accent-purple-500 w-4 h-4"
+                />
+                <Ghost size={14} className="text-purple-400" />
+                <span className="text-xs text-muted">What-if (I didn&apos;t take this trade)</span>
+              </label>
+              {isWhatIf && (
+                <div className="ml-6 flex items-center gap-4">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="order_type"
+                      checked={orderType === "observation"}
+                      onChange={() => setOrderType("observation")}
+                      className="accent-purple-500 w-3 h-3"
+                    />
+                    <span className="text-[11px] text-muted">Just logging</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="order_type"
+                      checked={orderType === "limit"}
+                      onChange={() => setOrderType("limit")}
+                      className="accent-amber-500 w-3 h-3"
+                    />
+                    <span className="text-[11px] text-amber-400">Monitor as limit order</span>
+                  </label>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Trade Source Toggle: CEX / DEX */}
