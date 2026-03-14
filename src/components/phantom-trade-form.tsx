@@ -147,7 +147,7 @@ export function PhantomTradeForm({
               name="symbol"
               defaultValue={editPhantom?.symbol ?? ""}
               placeholder="BTC"
-              className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
+              className="w-full rounded-lg bg-background border border-border text-foreground px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
             />
             {errors.symbol && <p className="text-xs text-red-400 mt-1">{errors.symbol}</p>}
           </div>
@@ -182,7 +182,7 @@ export function PhantomTradeForm({
               step="any"
               defaultValue={editPhantom?.entry_price ?? ""}
               placeholder="0.00"
-              className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
+              className="w-full rounded-lg bg-background border border-border text-foreground px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
             />
             {errors.entry_price && <p className="text-xs text-red-400 mt-1">{errors.entry_price}</p>}
           </div>
@@ -197,7 +197,7 @@ export function PhantomTradeForm({
                 step="any"
                 defaultValue={editPhantom?.stop_loss ?? ""}
                 placeholder="0.00"
-                className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
+                className="w-full rounded-lg bg-background border border-border text-foreground px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
               />
             </div>
             <div>
@@ -208,7 +208,7 @@ export function PhantomTradeForm({
                 step="any"
                 defaultValue={editPhantom?.profit_target ?? ""}
                 placeholder="0.00"
-                className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
+                className="w-full rounded-lg bg-background border border-border text-foreground px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
               />
             </div>
           </div>
@@ -220,7 +220,7 @@ export function PhantomTradeForm({
               name="observed_at"
               type="datetime-local"
               defaultValue={editPhantom?.observed_at ? new Date(editPhantom.observed_at).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16)}
-              className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
+              className="w-full rounded-lg bg-background border border-border text-foreground px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
             />
             {errors.observed_at && <p className="text-xs text-red-400 mt-1">{errors.observed_at}</p>}
           </div>
@@ -233,7 +233,7 @@ export function PhantomTradeForm({
               rows={3}
               defaultValue={editPhantom?.thesis ?? ""}
               placeholder="What setup did you see? Why did you pass?"
-              className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors resize-none"
+              className="w-full rounded-lg bg-background border border-border text-foreground px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors resize-none"
             />
           </div>
 
