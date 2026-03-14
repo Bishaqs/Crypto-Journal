@@ -278,3 +278,21 @@ export const forexTradeSchema = z.object({
 });
 
 export type ForexTradeFormData = z.infer<typeof forexTradeSchema>;
+
+// ─── Phantom Trade Schema ─────────────────────────────────────────────────────
+
+export const phantomTradeSchema = z.object({
+  symbol: z.string().min(1, "Symbol is required").transform((s) => s.toUpperCase()),
+  position: z.enum(["long", "short"]),
+  entry_price: z.coerce.number().positive("Entry price must be positive"),
+  stop_loss: z.coerce.number().positive("Stop loss must be positive").optional(),
+  profit_target: z.coerce.number().positive("Profit target must be positive").optional(),
+  thesis: z.string().optional(),
+  setup_type: z.string().optional(),
+  confidence: z.coerce.number().min(1).max(10).optional(),
+  emotion: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  observed_at: z.string().min(1, "Observation time is required"),
+});
+
+export type PhantomTradeFormData = z.infer<typeof phantomTradeSchema>;

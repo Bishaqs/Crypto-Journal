@@ -13,6 +13,7 @@ import { CosmeticProvider } from "@/lib/cosmetics";
 import { ChallengeProvider } from "@/lib/challenges";
 import { CoinsProvider } from "@/lib/coins";
 import { GuideProvider } from "@/components/stargate-guide";
+import { FlashNewsProvider } from "@/lib/news/flash-news-context";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { SubscriptionTier } from "@/lib/use-subscription";
@@ -28,6 +29,8 @@ const GuideMenu = dynamic(() => import("@/components/stargate-guide/guide-menu")
 const GuideHelp = dynamic(() => import("@/components/stargate-guide/guide-help").then(m => ({ default: m.GuideHelp })));
 const GuideSupport = dynamic(() => import("@/components/stargate-guide/guide-support").then(m => ({ default: m.GuideSupport })));
 const Heartbeat = dynamic(() => import("@/components/heartbeat").then(m => ({ default: m.Heartbeat })));
+const FlashNewsBanner = dynamic(() => import("@/components/news/flash-news-banner").then(m => ({ default: m.FlashNewsBanner })));
+const PhantomQuickAdd = dynamic(() => import("@/components/phantom-quick-add").then(m => ({ default: m.PhantomQuickAdd })));
 
 export default async function DashboardLayout({
   children,
@@ -86,12 +89,14 @@ export default async function DashboardLayout({
             <ChallengeProvider userId={user?.id}>
             <CoinsProvider userId={user?.id}>
             <GuideProvider>
+            <FlashNewsProvider>
               <OnboardingGate userId={user?.id} isReturningUser={isReturningUser} />
               <OnboardingTour>
                 <div className="flex h-screen overflow-hidden relative">
                   <Starfield />
                   <Sidebar />
                   <main id="dashboard-viewport" className="flex-1 overflow-y-auto px-4 md:px-8 py-6 pt-16 md:pt-6 transition-all duration-300 relative z-10">
+                    <FlashNewsBanner />
                     <ErrorBoundary>
                       {children}
                     </ErrorBoundary>
@@ -106,8 +111,10 @@ export default async function DashboardLayout({
                   <GuideHelp />
                   <GuideSupport />
                   <Heartbeat />
+                  <PhantomQuickAdd />
                 </div>
               </OnboardingTour>
+            </FlashNewsProvider>
             </GuideProvider>
             </CoinsProvider>
             </ChallengeProvider>

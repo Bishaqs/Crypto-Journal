@@ -536,3 +536,36 @@ export const LOT_SIZES: Record<ForexLotType, number> = {
   mini: 10000,
   micro: 1000,
 };
+
+// ─── Phantom Trades (Missed Opportunity Tracker) ─────────────────────────────
+
+export type PhantomTradeStatus = "active" | "resolved";
+export type PhantomTradeOutcome = "target_hit" | "stop_hit" | "neither" | "partial";
+
+export type PhantomTrade = {
+  id: string;
+  user_id: string;
+  symbol: string;
+  asset_type: AssetType;
+  position: "long" | "short";
+  entry_price: number;
+  stop_loss: number | null;
+  profit_target: number | null;
+  thesis: string | null;
+  setup_type: string | null;
+  confidence: number | null;
+  emotion: string | null;
+  tags: string[];
+  observed_at: string;
+  status: PhantomTradeStatus;
+  outcome: PhantomTradeOutcome | null;
+  outcome_price: number | null;
+  outcome_notes: string | null;
+  resolved_at: string | null;
+  price_high_since: number | null;
+  price_high_date: string | null;
+  price_low_since: number | null;
+  price_low_date: string | null;
+  created_at: string;
+  updated_at: string;
+};
