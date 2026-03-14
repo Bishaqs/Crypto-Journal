@@ -27,6 +27,7 @@ type SyncDiagnostics = {
   insert_errors: string[];
   sample_trade_keys?: string[];
   classification?: { opens: number; closes: number; in_memory_matched: number };
+  sample_fills?: Array<{ orderId: string; side: string; tradeSide?: string; profit: string; symbol: string }>;
 };
 
 type SyncOutput = {
@@ -293,6 +294,7 @@ async function syncBitget(
     closes: result.classificationStats.closes,
     in_memory_matched: result.classificationStats.inMemoryMatched,
   };
+  diag.sample_fills = result.sampleFills;
 
   const allTrades = [...result.pairedTrades, ...result.unmatchedOpens];
 

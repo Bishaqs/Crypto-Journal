@@ -72,6 +72,8 @@ export type BitgetSyncResult = {
   lastWindowEnd: number | null;
   /** Classification stats for diagnostics. */
   classificationStats: { opens: number; closes: number; inMemoryMatched: number };
+  /** Sample of raw fill data for debugging classification issues. */
+  sampleFills: Array<{ orderId: string; side: string; tradeSide?: string; profit: string; symbol: string }>;
 };
 
 // ── Signature ──────────────────────────────────────────────────
@@ -303,7 +305,15 @@ function buildResult(
       latestFillTime = t;
     }
   }
-  return { ...paired, fetched: totalFetched, errors, allFillIds, latestFillTime, lastWindowEnd: null, classificationStats: paired.classificationStats };
+  // Capture sample fills for debugging classification
+  const sampleFills = uniqueFills.slice(0, 10).map((f) => ({
+    orderId: f.orderId,
+    side: f.side,
+    tradeSide: f.tradeSide,
+    profit: f.profit,
+    symbol: f.symbol,
+  }));
+  return { ...paired, fetched: totalFetched, errors, allFillIds, latestFillTime, lastWindowEnd: null, classificationStats: paired.classificationStats, sampleFills };
 }
 
 // ── Aggregation & Pairing ──────────────────────────────────────
@@ -319,21 +329,26 @@ function classifyFill(fill: BitgetFill): "open" | "close" {
 }
 
 /** Classify an order by checking ALL fills — not just the first one.
- *  Fixes misclassification when fills[0] lacks tradeSide and has profit=0
- *  but later fills in the same order do have the signal. */
+ *  Handles both hedge mode (tradeSide="open"/"close") and one-way mode
+ *  (tradeSide="sell_single"/"buy_single") from Bitget V2 API. */
 function classifyOrderFills(fills: BitgetFill[]): "open" | "close" {
-  // Priority 1: Any fill with explicit tradeSide="close" → order is a close
+  // Priority 1: Any fill with explicit tradeSide="close" → order is a close (hedge mode)
   for (const fill of fills) {
     if (fill.tradeSide?.toLowerCase() === "close") return "close";
   }
-  // Priority 2: Any fill with nonzero profit → order is a close
+  // Priority 2: One-way mode — "sell_single"/"buy_single" don't indicate open/close,
+  // so we rely on the profit field. Any nonzero profit → close.
   for (const fill of fills) {
     if ((parseFloat(fill.profit) || 0) !== 0) return "close";
   }
-  // Priority 3: Any fill with explicit tradeSide="open" → order is an open
+  // Priority 3: Any fill with explicit tradeSide="open" → order is an open (hedge mode)
   for (const fill of fills) {
     if (fill.tradeSide?.toLowerCase() === "open") return "open";
   }
+  // Priority 4: One-way mode with profit=0 — use tradeSide as directional hint.
+  // In one-way mode, "sell_single" on a predominantly long account likely closes a long.
+  // BUT we can't be sure without position context, so fall back to "open".
+  // The in-memory cross-sync and Phase C will catch misclassified closes later.
   return "open";
 }
 
