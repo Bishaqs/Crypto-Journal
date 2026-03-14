@@ -8,7 +8,6 @@ import { calculateTradePnl } from "@/lib/calculations";
 import { Trade, PhantomTrade, Chain, DEX_PROTOCOLS, CHAINS } from "@/lib/types";
 import { X, Wallet, Building2, Trash2, Ghost } from "lucide-react";
 import { EmotionPicker, ConfidenceSlider, SetupTypePicker, ProcessScoreInput } from "./psychology-inputs";
-import { PreTradeMindset } from "./pre-trade-mindset";
 import { PreTradeChecklist } from "./pre-trade-checklist";
 import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
@@ -349,39 +348,19 @@ export function TradeForm({
       )}
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* What-If Toggle — only show when not editing an existing trade */}
+          {/* What-if checkbox — only show when not editing an existing trade */}
           {!editTrade && (
-            <div>
-              <div className="inline-flex rounded-lg border border-border overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setIsWhatIf(false)}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium transition-all ${
-                    !isWhatIf
-                      ? "bg-accent/15 text-accent"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                >
-                  Real Trade
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsWhatIf(true)}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium transition-all border-l border-border ${
-                    isWhatIf
-                      ? "bg-purple-500/15 text-purple-400"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                >
-                  <Ghost size={12} />
-                  What If
-                </button>
-              </div>
-            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isWhatIf}
+                onChange={(e) => setIsWhatIf(e.target.checked)}
+                className="accent-purple-500 w-4 h-4"
+              />
+              <Ghost size={14} className="text-purple-400" />
+              <span className="text-xs text-muted">What-if (I didn&apos;t take this trade)</span>
+            </label>
           )}
-
-          {/* Pre-trade mindset (collapsible) */}
-          <PreTradeMindset />
 
           {/* Trade Source Toggle: CEX / DEX — hidden in What If mode */}
           {!isWhatIf && (
