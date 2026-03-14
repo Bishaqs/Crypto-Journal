@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   Sparkles,
   Zap,
+  MessageSquare,
 } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
 import { createClient } from "@/lib/supabase/client";
@@ -286,6 +287,7 @@ function SettingsContent() {
   const [allAiProviders, setAllAiProviders] = useState<{ id: string; name: string; models: { id: string; label: string }[]; defaultModel: string }[]>([]);
   const [aiApiKey, setAiApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
+  const [aiCustomInstructions, setAiCustomInstructions] = useState("");
   const [aiEnhancedInsights, setAiEnhancedInsights] = useState(false);
   const [aiBehavioralAnalysis, setAiBehavioralAnalysis] = useState(false);
   const [aiConsentDisabled, setAiConsentDisabled] = useState(false);
@@ -303,6 +305,8 @@ function SettingsContent() {
     if (savedProvider) setAiProvider(savedProvider);
     if (savedModel) setAiModel(savedModel);
     if (savedApiKey) setAiApiKey(savedApiKey);
+    const savedInstructions = localStorage.getItem("stargate-ai-custom-instructions");
+    if (savedInstructions) setAiCustomInstructions(savedInstructions);
     const aiInsightsEnabled = localStorage.getItem("stargate-ai-enhanced-insights");
     if (aiInsightsEnabled === "true") setAiEnhancedInsights(true);
     const aiBehavioralEnabled = localStorage.getItem("stargate-ai-behavioral-analysis");
@@ -589,6 +593,29 @@ function SettingsContent() {
                 </div>
               </div>
             )}
+          </SectionCard>
+
+          {/* Custom Coaching Instructions */}
+          <SectionCard icon={MessageSquare} title="Custom Coach Instructions" description="Tell Nova how you want to be coached. These instructions are added to every conversation.">
+            <textarea
+              value={aiCustomInstructions}
+              onChange={(e) => {
+                const v = e.target.value.slice(0, 1000);
+                setAiCustomInstructions(v);
+                if (v) {
+                  localStorage.setItem("stargate-ai-custom-instructions", v);
+                } else {
+                  localStorage.removeItem("stargate-ai-custom-instructions");
+                }
+              }}
+              placeholder={"Examples:\n• Focus on my risk management and position sizing\n• Be very direct and critical — don't sugarcoat\n• I'm a beginner, explain concepts simply\n• Always compare my trades to my playbook rules\n• Focus on my crypto swing trades, ignore scalps"}
+              rows={4}
+              maxLength={1000}
+              className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/40 resize-none"
+            />
+            <p className="text-[11px] text-muted mt-1">
+              {aiCustomInstructions.length}/1000 characters — stored locally in your browser
+            </p>
           </SectionCard>
 
           {/* AI-Enhanced Dashboard Insights */}

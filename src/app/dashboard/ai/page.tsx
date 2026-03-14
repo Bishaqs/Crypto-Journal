@@ -143,17 +143,20 @@ export default function AIPage() {
   const [aiProvider, setAiProvider] = useState<string | undefined>();
   const [aiModel, setAiModel] = useState<string | undefined>();
   const [aiApiKey, setAiApiKey] = useState<string | undefined>();
+  const [customInstructions, setCustomInstructions] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
-  // Load AI provider preference from localStorage
+  // Load AI provider preference and custom instructions from localStorage
   useEffect(() => {
     const savedProvider = localStorage.getItem("stargate-ai-provider");
     const savedModel = localStorage.getItem("stargate-ai-model");
     const savedApiKey = localStorage.getItem("stargate-ai-api-key");
+    const savedInstructions = localStorage.getItem("stargate-ai-custom-instructions");
     if (savedProvider) setAiProvider(savedProvider);
     if (savedModel) setAiModel(savedModel);
     if (savedApiKey) setAiApiKey(savedApiKey);
+    if (savedInstructions) setCustomInstructions(savedInstructions);
   }, []);
 
   const TRADE_TABLE_MAP: Record<string, string> = {
@@ -221,6 +224,12 @@ export default function AIPage() {
     setMessages((prev) => [...prev, { role: "user", content: msg }]);
     setSending(true);
 
+    // Build conversation history from existing messages (excluding the message we just added)
+    const history = messages
+      .filter((m) => m.role !== "error")
+      .slice(-24)
+      .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
     try {
       const res = await fetch("/api/ai/stream", {
         method: "POST",
@@ -230,6 +239,8 @@ export default function AIPage() {
           trades,
           notes,
           playbooks,
+          history,
+          customInstructions: customInstructions || undefined,
           provider: aiProvider,
           model: aiModel,
           ...(aiApiKey ? { apiKey: aiApiKey } : {}),
