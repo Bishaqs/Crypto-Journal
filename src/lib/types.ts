@@ -547,8 +547,9 @@ export const LOT_SIZES: Record<ForexLotType, number> = {
 
 // ─── Phantom Trades (Missed Opportunity Tracker) ─────────────────────────────
 
-export type PhantomTradeStatus = "active" | "resolved";
+export type PhantomTradeStatus = "pending" | "active" | "resolved" | "cancelled";
 export type PhantomTradeOutcome = "target_hit" | "stop_hit" | "neither" | "partial";
+export type PhantomOrderType = "observation" | "limit";
 
 export type PhantomTrade = {
   id: string;
@@ -574,6 +575,10 @@ export type PhantomTrade = {
   price_high_date: string | null;
   price_low_since: number | null;
   price_low_date: string | null;
+  // Limit order fields
+  order_type: PhantomOrderType;
+  filled_at: string | null;
+  cancelled_at: string | null;
   // Playbook link
   playbook_id: string | null;
   created_at: string;
