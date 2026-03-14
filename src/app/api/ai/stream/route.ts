@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, extractImagesFromNotes } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 
 export async function POST(req: NextRequest) {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { message, trades, notes, context, provider: providerId, model: modelId, apiKey } = parsed.data;
+  const { message, trades, notes, playbooks, context, provider: providerId, model: modelId, apiKey } = parsed.data;
 
   const provider = getProvider(providerId, apiKey);
   if (!provider.isConfigured(apiKey)) {
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   }
 
   const model = resolveModel(provider.id, modelId);
-  const tradeContext = buildTradeContext(trades, context, notes);
+  const tradeContext = buildTradeContext(trades, context, notes) + buildPlaybookContext(playbooks);
   const imageData = notes.length > 0 ? extractImagesFromNotes(notes) : [];
   const images = imageData.map((i) => i.url);
   const imageContext = imageData.length > 0

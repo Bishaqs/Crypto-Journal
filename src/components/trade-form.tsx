@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
-import { tradeSchema, type TradeFormData } from "@/lib/validators";
+import { tradeSchema, phantomTradeSchema, type TradeFormData, type PhantomTradeFormData } from "@/lib/validators";
 import { calculateTradePnl } from "@/lib/calculations";
-import { Trade, Chain, DEX_PROTOCOLS, CHAINS } from "@/lib/types";
-import { X, Wallet, Building2, Trash2 } from "lucide-react";
+import { Trade, PhantomTrade, Chain, DEX_PROTOCOLS, CHAINS } from "@/lib/types";
+import { X, Wallet, Building2, Trash2, Ghost } from "lucide-react";
 import { EmotionPicker, ConfidenceSlider, SetupTypePicker, ProcessScoreInput } from "./psychology-inputs";
 import { PreTradeMindset } from "./pre-trade-mindset";
 import { PreTradeChecklist } from "./pre-trade-checklist";
@@ -14,6 +14,8 @@ import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
 import { getCustomTagPresets, addCustomTagPreset, isUserTag } from "@/lib/tag-manager";
 import { getCustomSetupPresets, addCustomSetupPreset, removeCustomSetupPreset } from "@/lib/setup-type-manager";
+import { PlaybookSelector, playbookToChecklistItems } from "./playbook-selector";
+import type { Playbook } from "@/lib/schemas/playbook";
 
 const NARRATIVE_OPTIONS = [
   "AI", "Memecoin", "RWA", "DeFi", "L2/Infra", "BTC ETF",
@@ -24,37 +26,45 @@ export function TradeForm({
   onClose,
   onSaved,
   editTrade,
+  editPhantom,
   onTradeCompleted,
   onDelete,
   variant = "modal",
+  initialWhatIf = false,
 }: {
   onClose: () => void;
   onSaved: () => void;
   editTrade?: Trade | null;
+  editPhantom?: PhantomTrade | null;
   onTradeCompleted?: (trade: { id: string; symbol: string; pnl: number; emotion: string | null; process_score: number | null }) => void;
   onDelete?: () => void;
   variant?: "modal" | "inline";
+  initialWhatIf?: boolean;
 }) {
   const supabase = createClient();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [isWhatIf, setIsWhatIf] = useState(initialWhatIf || !!editPhantom);
 
   // Psychology state
-  const [emotion, setEmotion] = useState<string | null>(editTrade?.emotion ?? null);
-  const [confidence, setConfidence] = useState<number | null>(editTrade?.confidence ?? null);
-  const [setupType, setSetupType] = useState<string | null>(editTrade?.setup_type ?? null);
+  const [emotion, setEmotion] = useState<string | null>(editTrade?.emotion ?? editPhantom?.emotion ?? null);
+  const [confidence, setConfidence] = useState<number | null>(editTrade?.confidence ?? editPhantom?.confidence ?? null);
+  const [setupType, setSetupType] = useState<string | null>(editTrade?.setup_type ?? editPhantom?.setup_type ?? null);
   const [setupPresets, setSetupPresets] = useState<string[]>([]);
   const [processScore, setProcessScore] = useState<number | null>(editTrade?.process_score ?? null);
   const [checklist, setChecklist] = useState<Record<string, boolean>>(editTrade?.checklist ?? {});
   const [review, setReview] = useState<Record<string, string>>(editTrade?.review ?? {});
+  const [playbookId, setPlaybookId] = useState<string | null>((editTrade as Record<string, unknown>)?.playbook_id as string | null ?? null);
+  const [selectedPlaybook, setSelectedPlaybook] = useState<Playbook | null>(null);
 
   useEffect(() => {
     setSetupPresets(getCustomSetupPresets());
   }, []);
 
   // Tags state (chip-based)
-  const initTags = (editTrade?.tags ?? []).filter((t) => !t.startsWith("narrative:"));
-  const initNarrative = editTrade?.tags?.find((t) => t.startsWith("narrative:"))?.replace("narrative:", "") ?? "";
+  const sourceTags = editTrade?.tags ?? editPhantom?.tags ?? [];
+  const initTags = sourceTags.filter((t) => !t.startsWith("narrative:"));
+  const initNarrative = sourceTags.find((t) => t.startsWith("narrative:"))?.replace("narrative:", "") ?? "";
   const [tags, setTags] = useState<string[]>(initTags);
   const [narrative, setNarrative] = useState(initNarrative);
   const [customNarrative, setCustomNarrative] = useState(
@@ -100,6 +110,73 @@ export function TradeForm({
 
     try {
       const formData = new FormData(e.currentTarget);
+      const combinedTags = [
+        ...tags,
+        ...(narrative === "other" && customNarrative.trim()
+          ? [`narrative:${customNarrative.trim().toLowerCase()}`]
+          : narrative && narrative !== "other"
+            ? [`narrative:${narrative.toLowerCase()}`]
+            : []),
+      ];
+
+      // ─── What-If path: save to phantom_trades ───────────────────────────
+      if (isWhatIf) {
+        const phantomRaw = {
+          symbol: formData.get("symbol") as string,
+          position: formData.get("position") as string,
+          entry_price: formData.get("entry_price") as string,
+          stop_loss: formData.get("stop_loss") as string || undefined,
+          profit_target: formData.get("profit_target") as string || undefined,
+          thesis: formData.get("notes") as string || undefined,
+          setup_type: setupType || undefined,
+          confidence: confidence || undefined,
+          emotion: emotion || undefined,
+          tags: combinedTags,
+          observed_at: formData.get("open_timestamp") as string,
+        };
+
+        const phantomResult = phantomTradeSchema.safeParse(phantomRaw);
+        if (!phantomResult.success) {
+          const fieldErrors: Record<string, string> = {};
+          for (const issue of phantomResult.error.issues) {
+            const field = issue.path[0] as string;
+            // Map phantom field names back to form field names for display
+            if (field === "observed_at") fieldErrors["open_timestamp"] = issue.message;
+            else if (field === "thesis") fieldErrors["notes"] = issue.message;
+            else fieldErrors[field] = issue.message;
+          }
+          setErrors(fieldErrors);
+          return;
+        }
+
+        const phantomData: PhantomTradeFormData = phantomResult.data;
+        const phantomPayload = {
+          ...phantomData,
+          asset_type: "crypto" as const,
+          status: "active" as const,
+        };
+
+        let dbError;
+        if (editPhantom) {
+          ({ error: dbError } = await supabase
+            .from("phantom_trades")
+            .update(phantomPayload)
+            .eq("id", editPhantom.id));
+        } else {
+          ({ error: dbError } = await supabase.from("phantom_trades").insert(phantomPayload));
+        }
+
+        if (dbError) {
+          setErrors({ _form: dbError.message });
+          return;
+        }
+
+        onSaved();
+        onClose();
+        return;
+      }
+
+      // ─── Normal trade path: save to trades ──────────────────────────────
       const raw = {
         symbol: formData.get("symbol") as string,
         position: formData.get("position") as string,
@@ -110,20 +187,14 @@ export function TradeForm({
         open_timestamp: formData.get("open_timestamp") as string,
         close_timestamp: formData.get("close_timestamp") as string || undefined,
         notes: formData.get("notes") as string || undefined,
-        tags: [
-          ...tags,
-          ...(narrative === "other" && customNarrative.trim()
-            ? [`narrative:${customNarrative.trim().toLowerCase()}`]
-            : narrative && narrative !== "other"
-              ? [`narrative:${narrative.toLowerCase()}`]
-              : []),
-        ],
+        tags: combinedTags,
         emotion: emotion || undefined,
         confidence: confidence || undefined,
         setup_type: setupType || undefined,
         process_score: processScore || undefined,
         checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
         review: Object.values(review).some((v) => v.length > 0) ? review : undefined,
+        playbook_id: playbookId || undefined,
         // DEX fields
         trade_source: tradeSource,
         chain: tradeSource === "dex" && chain ? chain : undefined,
@@ -264,8 +335,9 @@ export function TradeForm({
     <>
       {variant === "modal" && (
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-lg font-semibold">
-            {editTrade ? "Edit Trade" : "Log Trade"}
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            {isWhatIf && <Ghost size={18} className="text-purple-400" />}
+            {editTrade ? "Edit Trade" : editPhantom ? "Edit Setup" : isWhatIf ? "Log What-If Setup" : "Log Trade"}
           </h2>
           <button
             onClick={onClose}
@@ -277,10 +349,42 @@ export function TradeForm({
       )}
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* What-If Toggle — only show when not editing an existing trade */}
+          {!editTrade && (
+            <div>
+              <div className="inline-flex rounded-lg border border-border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsWhatIf(false)}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium transition-all ${
+                    !isWhatIf
+                      ? "bg-accent/15 text-accent"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  Real Trade
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsWhatIf(true)}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium transition-all border-l border-border ${
+                    isWhatIf
+                      ? "bg-purple-500/15 text-purple-400"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  <Ghost size={12} />
+                  What If
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Pre-trade mindset (collapsible) */}
           <PreTradeMindset />
 
-          {/* Trade Source Toggle: CEX / DEX */}
+          {/* Trade Source Toggle: CEX / DEX — hidden in What If mode */}
+          {!isWhatIf && (
           <div>
             <label className="block text-xs text-muted mb-1.5">Trade Source</label>
             <div className="inline-flex rounded-lg border border-border overflow-hidden">
@@ -310,9 +414,10 @@ export function TradeForm({
               </button>
             </div>
           </div>
+          )}
 
-          {/* DEX-specific fields */}
-          {tradeSource === "dex" && (
+          {/* DEX-specific fields — hidden in What If mode */}
+          {!isWhatIf && tradeSource === "dex" && (
             <div className="space-y-3 p-3 rounded-lg border border-accent/20 bg-accent/5">
               <p className="text-[10px] uppercase tracking-wider text-accent/60 font-semibold">
                 On-Chain Details
@@ -389,7 +494,7 @@ export function TradeForm({
               <label className="block text-xs text-muted mb-1">Symbol</label>
               <input
                 name="symbol"
-                defaultValue={editTrade?.symbol ?? ""}
+                defaultValue={editTrade?.symbol ?? editPhantom?.symbol ?? ""}
                 placeholder="BTCUSDT"
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
@@ -401,7 +506,7 @@ export function TradeForm({
               <label className="block text-xs text-muted mb-1">Position</label>
               <select
                 name="position"
-                defaultValue={editTrade?.position ?? "long"}
+                defaultValue={editTrade?.position ?? editPhantom?.position ?? "long"}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               >
                 <option value="long">Long</option>
@@ -411,14 +516,14 @@ export function TradeForm({
           </div>
 
           {/* Prices */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid gap-4 ${isWhatIf ? "grid-cols-1" : "grid-cols-2"}`}>
             <div>
               <label className="block text-xs text-muted mb-1">Entry Price</label>
               <input
                 name="entry_price"
                 type="number"
                 step="any"
-                defaultValue={editTrade?.entry_price ?? ""}
+                defaultValue={editTrade?.entry_price ?? editPhantom?.entry_price ?? ""}
                 placeholder="0.00"
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
@@ -426,6 +531,7 @@ export function TradeForm({
                 <p className="text-xs text-loss mt-1">{errors.entry_price}</p>
               )}
             </div>
+            {!isWhatIf && (
             <div>
               <label className="block text-xs text-muted mb-1">
                 Exit Price <span className="text-muted/60">(blank if open)</span>
@@ -440,21 +546,24 @@ export function TradeForm({
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
             </div>
+            )}
           </div>
 
           {/* Trade Planning */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">Stop Loss <span className="text-muted/60">(optional)</span></label>
-              <input name="stop_loss" type="number" step="any" defaultValue={editTrade?.stop_loss ?? ""} placeholder="0.00" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+              <input name="stop_loss" type="number" step="any" defaultValue={editTrade?.stop_loss ?? editPhantom?.stop_loss ?? ""} placeholder="0.00" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
             </div>
             <div>
               <label className="block text-xs text-muted mb-1">Profit Target <span className="text-muted/60">(optional)</span></label>
-              <input name="profit_target" type="number" step="any" defaultValue={editTrade?.profit_target ?? ""} placeholder="0.00" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+              <input name="profit_target" type="number" step="any" defaultValue={editTrade?.profit_target ?? editPhantom?.profit_target ?? ""} placeholder="0.00" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
             </div>
           </div>
 
-          {/* MAE / MFE */}
+          {/* MAE / MFE — hidden in What If mode */}
+          {!isWhatIf && (
+          <>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">Price MAE <span className="text-muted/60">(optional)</span></label>
@@ -505,18 +614,24 @@ export function TradeForm({
               />
             </div>
           </div>
+          </>
+          )}
 
-          {/* Timestamps */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Timestamp */}
+          <div className={`grid gap-4 ${isWhatIf ? "grid-cols-1" : "grid-cols-2"}`}>
             <div>
-              <label className="block text-xs text-muted mb-1">Open Time</label>
+              <label className="block text-xs text-muted mb-1">{isWhatIf ? "Observed At" : "Open Time"}</label>
               <input
                 name="open_timestamp"
                 type="datetime-local"
                 defaultValue={
                   editTrade?.open_timestamp
                     ? editTrade.open_timestamp.slice(0, 16)
-                    : ""
+                    : editPhantom?.observed_at
+                      ? editPhantom.observed_at.slice(0, 16)
+                      : isWhatIf
+                        ? new Date().toISOString().slice(0, 16)
+                        : ""
                 }
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
@@ -524,6 +639,7 @@ export function TradeForm({
                 <p className="text-xs text-loss mt-1">{errors.open_timestamp}</p>
               )}
             </div>
+            {!isWhatIf && (
             <div>
               <label className="block text-xs text-muted mb-1">
                 Close Time <span className="text-muted/60">(blank if open)</span>
@@ -539,6 +655,7 @@ export function TradeForm({
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
             </div>
+            )}
           </div>
 
           {/* Tags */}
@@ -585,14 +702,16 @@ export function TradeForm({
             )}
           </div>
 
-          {/* Notes */}
+          {/* Notes / Thesis */}
           <div>
-            <label className="block text-xs text-muted mb-1">Notes</label>
+            <label className="block text-xs text-muted mb-1">
+              {isWhatIf ? "Thesis" : "Notes"}
+            </label>
             <textarea
               name="notes"
-              rows={2}
-              defaultValue={editTrade?.notes ?? ""}
-              placeholder="Why did you take this trade?"
+              rows={isWhatIf ? 3 : 2}
+              defaultValue={editTrade?.notes ?? editPhantom?.thesis ?? ""}
+              placeholder={isWhatIf ? "What setup did you see? Why did you consider it?" : "Why did you take this trade?"}
               className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent resize-none"
             />
           </div>
@@ -603,6 +722,22 @@ export function TradeForm({
               Psychology
             </p>
 
+            <PlaybookSelector
+              value={playbookId}
+              onChange={(id, pb) => {
+                setPlaybookId(id);
+                setSelectedPlaybook(pb);
+                if (pb) {
+                  setSetupType(pb.name);
+                  // Reset checklist to playbook rules
+                  const pbItems = playbookToChecklistItems(pb);
+                  if (pbItems) setChecklist(Object.fromEntries(pbItems.map((item) => [item.key, false])));
+                } else {
+                  setChecklist({});
+                }
+              }}
+              assetClass="crypto"
+            />
             <EmotionPicker value={emotion} onChange={setEmotion} />
             <ConfidenceSlider value={confidence} onChange={setConfidence} />
             <SetupTypePicker
@@ -612,10 +747,14 @@ export function TradeForm({
               onSavePreset={(name) => setSetupPresets(addCustomSetupPreset(name))}
               onRemovePreset={(name) => setSetupPresets(removeCustomSetupPreset(name))}
             />
-            <PreTradeChecklist value={checklist} onChange={setChecklist} />
+            <PreTradeChecklist
+              value={checklist}
+              onChange={setChecklist}
+              items={playbookToChecklistItems(selectedPlaybook)}
+            />
 
-            {/* Post-trade fields only show when there's an exit price */}
-            {hasExit && (
+            {/* Post-trade fields only show when there's an exit price and not in What If mode */}
+            {!isWhatIf && hasExit && (
               <>
                 <div className="border-t border-border/50 pt-4">
                   <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold mb-3">
@@ -648,9 +787,21 @@ export function TradeForm({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 rounded-lg bg-accent text-background font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"
+              className={`flex-1 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                isWhatIf
+                  ? "bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:bg-purple-500/30"
+                  : "bg-accent text-background hover:bg-accent-hover"
+              }`}
             >
-              {saving ? "Saving..." : editTrade ? "Update Trade" : "Log Trade"}
+              {saving
+                ? "Saving..."
+                : editTrade
+                  ? "Update Trade"
+                  : editPhantom
+                    ? "Update Setup"
+                    : isWhatIf
+                      ? "Log What-If Setup"
+                      : "Log Trade"}
             </button>
           </div>
         </form>

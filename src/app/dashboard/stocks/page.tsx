@@ -25,6 +25,7 @@ import {
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { StockTradeForm } from "@/components/stock-trade-form";
+import { NewsWidget } from "@/components/news/news-widget";
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -61,6 +62,7 @@ interface StockTrade {
   notes: string | null;
   tags: string[];
   pnl: number | null;
+  playbook_id: string | null;
   created_at: string;
 }
 
@@ -75,7 +77,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Confident", confidence: 8,
     setup_type: "Breakout", process_score: 9, checklist: null, review: null,
     notes: "Clean breakout above 178 resistance.", tags: ["momentum"],
-    pnl: 334.00, created_at: "2026-02-20T10:30:00Z",
+    pnl: 334.00, playbook_id: null, created_at: "2026-02-20T10:30:00Z",
   },
   {
     id: "st-2", user_id: "u1", symbol: "TSLA", company_name: "Tesla Inc.",
@@ -87,7 +89,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: "TSLA", emotion: "Excited", confidence: 7,
     setup_type: "Earnings Play", process_score: 7, checklist: null, review: null,
     notes: "Weekly calls on TSLA pre-earnings momentum.", tags: ["options", "earnings"],
-    pnl: 2593.50, created_at: "2026-02-19T09:35:00Z",
+    pnl: 2593.50, playbook_id: null, created_at: "2026-02-19T09:35:00Z",
   },
   {
     id: "st-3", user_id: "u1", symbol: "NVDA", company_name: "NVIDIA Corp.",
@@ -99,7 +101,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Anxious", confidence: 5,
     setup_type: "Gap Fill", process_score: 4, checklist: null, review: null,
     notes: "Pre-market gap down play, stopped out.", tags: ["gap"],
-    pnl: -128.00, created_at: "2026-02-18T07:15:00Z",
+    pnl: -128.00, playbook_id: null, created_at: "2026-02-18T07:15:00Z",
   },
   {
     id: "st-4", user_id: "u1", symbol: "JPM", company_name: "JPMorgan Chase",
@@ -111,7 +113,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Calm", confidence: 8,
     setup_type: "Support Bounce", process_score: 8, checklist: null, review: null,
     notes: "Bounce off 50 DMA with strong volume.", tags: ["support"],
-    pnl: 140.00, created_at: "2026-02-18T10:00:00Z",
+    pnl: 140.00, playbook_id: null, created_at: "2026-02-18T10:00:00Z",
   },
   {
     id: "st-5", user_id: "u1", symbol: "AMZN", company_name: "Amazon.com",
@@ -123,7 +125,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Confident", confidence: 7,
     setup_type: "Breakdown", process_score: 8, checklist: null, review: null,
     notes: "After-hours short on weak guidance.", tags: ["short", "after-hours"],
-    pnl: 81.50, created_at: "2026-02-17T16:05:00Z",
+    pnl: 81.50, playbook_id: null, created_at: "2026-02-17T16:05:00Z",
   },
   {
     id: "st-6", user_id: "u1", symbol: "MSFT", company_name: "Microsoft Corp.",
@@ -135,7 +137,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: "MSFT", emotion: "FOMO", confidence: 4,
     setup_type: "Speculative", process_score: 3, checklist: null, review: null,
     notes: "Chased put entry, bad timing.", tags: ["options"],
-    pnl: -653.25, created_at: "2026-02-17T10:15:00Z",
+    pnl: -653.25, playbook_id: null, created_at: "2026-02-17T10:15:00Z",
   },
   {
     id: "st-7", user_id: "u1", symbol: "UNH", company_name: "UnitedHealth Group",
@@ -147,7 +149,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Calm", confidence: 8,
     setup_type: "Trend Continuation", process_score: 9, checklist: null, review: null,
     notes: "Healthcare rotation, clean uptrend.", tags: ["trend"],
-    pnl: 61.40, created_at: "2026-02-19T10:45:00Z",
+    pnl: 61.40, playbook_id: null, created_at: "2026-02-19T10:45:00Z",
   },
   {
     id: "st-8", user_id: "u1", symbol: "GS", company_name: "Goldman Sachs",
@@ -159,7 +161,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Confident", confidence: 7,
     setup_type: "Sector Momentum", process_score: 7, checklist: null, review: null,
     notes: "Financials leading, rode the wave.", tags: ["sector"],
-    pnl: 77.00, created_at: "2026-02-20T09:40:00Z",
+    pnl: 77.00, playbook_id: null, created_at: "2026-02-20T09:40:00Z",
   },
   {
     id: "st-9", user_id: "u1", symbol: "AAPL", company_name: "Apple Inc.",
@@ -171,7 +173,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Calm", confidence: 6,
     setup_type: "Gap Up", process_score: 6, checklist: null, review: null,
     notes: "Pre-market scalp on gap up.", tags: ["scalp", "pre-market"],
-    pnl: 59.00, created_at: "2026-02-21T07:00:00Z",
+    pnl: 59.00, playbook_id: null, created_at: "2026-02-21T07:00:00Z",
   },
   {
     id: "st-10", user_id: "u1", symbol: "XLF", company_name: "Financial Select SPDR",
@@ -183,7 +185,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Calm", confidence: 7,
     setup_type: "Swing", process_score: 7, checklist: null, review: null,
     notes: "Swing trade on financials rotation.", tags: ["swing"],
-    pnl: null, created_at: "2026-02-22T10:00:00Z",
+    pnl: null, playbook_id: null, created_at: "2026-02-22T10:00:00Z",
   },
 ];
 
@@ -635,6 +637,9 @@ export default function StocksDashboardPage() {
           day trades in the current window.
         </p>
       </div>
+
+      {/* News Widget */}
+      <NewsWidget asset="stocks" />
 
       {/* Stock trade form modal */}
       {showForm && (

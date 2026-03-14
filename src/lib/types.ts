@@ -44,6 +44,8 @@ export type Trade = {
   // Broker sync fields (populated by API sync, null for manual trades)
   broker_name: string | null;
   broker_order_id: string | null;
+  // Playbook link
+  playbook_id: string | null;
   created_at: string;
 };
 
@@ -251,6 +253,8 @@ export type StockTrade = {
   price_mfe: number | null;
   mfe_timestamp: string | null;
   mae_timestamp: string | null;
+  // Playbook link
+  playbook_id: string | null;
   created_at: string;
 };
 
@@ -424,6 +428,8 @@ export type CommodityTrade = {
   price_mfe: number | null;
   mfe_timestamp: string | null;
   mae_timestamp: string | null;
+  // Playbook link
+  playbook_id: string | null;
   created_at: string;
 };
 
@@ -518,6 +524,8 @@ export type ForexTrade = {
   price_mfe: number | null;
   mfe_timestamp: string | null;
   mae_timestamp: string | null;
+  // Playbook link
+  playbook_id: string | null;
   created_at: string;
 };
 
@@ -566,6 +574,8 @@ export type PhantomTrade = {
   price_high_date: string | null;
   price_low_since: number | null;
   price_low_date: string | null;
+  // Playbook link
+  playbook_id: string | null;
   created_at: string;
   updated_at: string;
 };

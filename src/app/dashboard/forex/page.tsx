@@ -24,6 +24,7 @@ import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { ForexTradeForm } from "@/components/forex-trade-form";
 import type { ForexTrade } from "@/lib/types";
+import { NewsWidget } from "@/components/news/news-widget";
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -41,7 +42,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Confident", confidence: 8, setup_type: "Trend Follow",
     process_score: 9, checklist: null, review: null,
     notes: "Clean trend continuation on EUR/USD during London session.", tags: ["trend", "major"],
-    stop_loss: null, profit_target: null, pnl: 693, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-20T08:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 693, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-20T08:00:00Z",
   },
   {
     id: "fx-2", user_id: "u1", pair: "GBP/USD", base_currency: "GBP", quote_currency: "USD",
@@ -54,7 +55,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Breakout",
     process_score: 8, checklist: null, review: null,
     notes: "GBP weakness on US data release.", tags: ["news", "major"],
-    stop_loss: null, profit_target: null, pnl: 1186, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-19T13:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 1186, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-19T13:00:00Z",
   },
   {
     id: "fx-3", user_id: "u1", pair: "USD/JPY", base_currency: "USD", quote_currency: "JPY",
@@ -67,7 +68,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Anxious", confidence: 5, setup_type: "Reversal",
     process_score: 4, checklist: null, review: null,
     notes: "Tried to catch falling knife on JPY. Bad idea.", tags: ["reversal"],
-    stop_loss: null, profit_target: null, pnl: -207, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-18T01:00:00Z",
+    stop_loss: null, profit_target: null, pnl: -207, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-18T01:00:00Z",
   },
   {
     id: "fx-4", user_id: "u1", pair: "EUR/GBP", base_currency: "EUR", quote_currency: "GBP",
@@ -80,7 +81,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Range",
     process_score: 7, checklist: null, review: null,
     notes: "EUR/GBP range trade. Clean entry at support.", tags: ["range", "minor"],
-    stop_loss: null, profit_target: null, pnl: 492, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-19T08:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 492, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-19T08:30:00Z",
   },
   {
     id: "fx-5", user_id: "u1", pair: "GBP/JPY", base_currency: "GBP", quote_currency: "JPY",
@@ -93,7 +94,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Excited", confidence: 6, setup_type: "Breakdown",
     process_score: 7, checklist: null, review: null,
     notes: "GBP/JPY short during overlap. Volatile but profitable.", tags: ["volatile", "minor"],
-    stop_loss: null, profit_target: null, pnl: 1393, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-18T08:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 1393, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-18T08:00:00Z",
   },
   {
     id: "fx-6", user_id: "u1", pair: "USD/TRY", base_currency: "USD", quote_currency: "TRY",
@@ -106,7 +107,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Confident", confidence: 6, setup_type: "Carry Trade",
     process_score: 6, checklist: null, review: null,
     notes: "Carry trade on TRY weakness. High spread but favorable swap.", tags: ["exotic", "carry"],
-    stop_loss: null, profit_target: null, pnl: 6477, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-17T10:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 6477, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-17T10:00:00Z",
   },
   {
     id: "fx-7", user_id: "u1", pair: "EUR/USD", base_currency: "EUR", quote_currency: "USD",
@@ -119,7 +120,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "FOMO", confidence: 4, setup_type: "Scalp",
     process_score: 3, checklist: null, review: null,
     notes: "Chased EUR reversal. Stopped out quickly.", tags: ["fomo", "scalp"],
-    stop_loss: null, profit_target: null, pnl: -307, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-17T14:00:00Z",
+    stop_loss: null, profit_target: null, pnl: -307, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-17T14:00:00Z",
   },
   {
     id: "fx-8", user_id: "u1", pair: "AUD/USD", base_currency: "AUD", quote_currency: "USD",
@@ -132,7 +133,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Trend Follow",
     process_score: null, checklist: null, review: null,
     notes: "AUD/USD trend continuation. Watching for 0.6600 target.", tags: ["trend", "open"],
-    stop_loss: null, profit_target: null, pnl: null, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-21T22:00:00Z",
+    stop_loss: null, profit_target: null, pnl: null, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-21T22:00:00Z",
   },
 ];
 
@@ -494,6 +495,9 @@ export default function ForexDashboardPage() {
           })}
         </div>
       </div>
+
+      {/* News Widget */}
+      <NewsWidget asset="forex" />
 
       {/* Trade form modal */}
       {showForm && (

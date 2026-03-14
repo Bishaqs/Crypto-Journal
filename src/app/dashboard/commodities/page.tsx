@@ -25,6 +25,7 @@ import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CommodityTradeForm } from "@/components/commodity-trade-form";
 import type { CommodityTrade } from "@/lib/types";
+import { NewsWidget } from "@/components/news/news-widget";
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -44,7 +45,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Confident", confidence: 8, setup_type: "Trend Follow",
     process_score: 9, checklist: null, review: null,
     notes: "Gold breaking above resistance with strong volume.", tags: ["momentum", "metals"],
-    stop_loss: null, profit_target: null, pnl: 5528, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-20T09:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 5528, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-20T09:00:00Z",
   },
   {
     id: "ct-2", user_id: "u1", symbol: "CL", commodity_name: "Crude Oil (WTI)",
@@ -59,7 +60,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Breakout",
     process_score: 8, checklist: null, review: null,
     notes: "Short crude on inventory build report.", tags: ["energy", "news"],
-    stop_loss: null, profit_target: null, pnl: 6732, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-19T08:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 6732, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-19T08:30:00Z",
   },
   {
     id: "ct-3", user_id: "u1", symbol: "ZW", commodity_name: "Wheat",
@@ -74,7 +75,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Anxious", confidence: 5, setup_type: "Reversal",
     process_score: 4, checklist: null, review: null,
     notes: "Wheat reversal play, stopped out.", tags: ["grains"],
-    stop_loss: null, profit_target: null, pnl: -381, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-18T10:00:00Z",
+    stop_loss: null, profit_target: null, pnl: -381, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-18T10:00:00Z",
   },
   {
     id: "ct-4", user_id: "u1", symbol: "NG", commodity_name: "Natural Gas",
@@ -89,7 +90,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Excited", confidence: 7, setup_type: "News",
     process_score: 7, checklist: null, review: null,
     notes: "Cold weather forecast driving nat gas higher.", tags: ["energy", "weather"],
-    stop_loss: null, profit_target: null, pnl: 13475, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-17T09:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 13475, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-17T09:30:00Z",
   },
   {
     id: "ct-5", user_id: "u1", symbol: "SI", commodity_name: "Silver",
@@ -104,7 +105,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Calm", confidence: 8, setup_type: "Trend Follow",
     process_score: 8, checklist: null, review: null,
     notes: "Silver following gold breakout.", tags: ["metals", "correlation"],
-    stop_loss: null, profit_target: null, pnl: 5490, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-20T10:15:00Z",
+    stop_loss: null, profit_target: null, pnl: 5490, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-20T10:15:00Z",
   },
   {
     id: "ct-6", user_id: "u1", symbol: "KC", commodity_name: "Coffee",
@@ -119,7 +120,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "FOMO", confidence: 4, setup_type: "Scalp",
     process_score: 3, checklist: null, review: null,
     notes: "Chased coffee rally, bad entry.", tags: ["softs"],
-    stop_loss: null, profit_target: null, pnl: -2333, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-19T09:00:00Z",
+    stop_loss: null, profit_target: null, pnl: -2333, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-19T09:00:00Z",
   },
   {
     id: "ct-7", user_id: "u1", symbol: "LE", commodity_name: "Live Cattle",
@@ -134,7 +135,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Calm", confidence: 6, setup_type: "Range",
     process_score: 7, checklist: null, review: null,
     notes: "Cattle at support, good risk/reward.", tags: ["livestock"],
-    stop_loss: null, profit_target: null, pnl: 1830, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-18T09:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 1830, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-18T09:30:00Z",
   },
   {
     id: "ct-8", user_id: "u1", symbol: "ZC", commodity_name: "Corn",
@@ -149,7 +150,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Confident", confidence: 7, setup_type: "Breakdown",
     process_score: null, checklist: null, review: null,
     notes: "Short corn on weak demand data.", tags: ["grains", "swing"],
-    stop_loss: null, profit_target: null, pnl: null, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, created_at: "2026-02-21T10:00:00Z",
+    stop_loss: null, profit_target: null, pnl: null, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-21T10:00:00Z",
   },
 ];
 
@@ -515,6 +516,9 @@ export default function CommoditiesDashboardPage() {
           })}
         </div>
       </div>
+
+      {/* News Widget */}
+      <NewsWidget asset="commodities" />
 
       {/* Trade form modal */}
       {showForm && (

@@ -12,6 +12,8 @@ import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
 import { getCustomTagPresets, addCustomTagPreset } from "@/lib/tag-manager";
 import { getCustomSetupPresets, addCustomSetupPreset, removeCustomSetupPreset } from "@/lib/setup-type-manager";
+import { PlaybookSelector, playbookToChecklistItems } from "./playbook-selector";
+import type { Playbook } from "@/lib/schemas/playbook";
 
 const SESSION_LABELS: Record<string, string> = {
   london: "London",
@@ -68,6 +70,8 @@ export function ForexTradeForm({
   const [processScore, setProcessScore] = useState<number | null>(editTrade?.process_score ?? null);
   const [checklist, setChecklist] = useState<Record<string, boolean>>(editTrade?.checklist ?? {});
   const [review, setReview] = useState<Record<string, string>>(editTrade?.review ?? {});
+  const [playbookId, setPlaybookId] = useState<string | null>((editTrade as Record<string, unknown>)?.playbook_id as string | null ?? null);
+  const [selectedPlaybook, setSelectedPlaybook] = useState<Playbook | null>(null);
   const [tags, setTags] = useState<string[]>(editTrade?.tags ?? []);
 
   useEffect(() => {
@@ -114,6 +118,7 @@ export function ForexTradeForm({
         process_score: processScore ?? undefined,
         checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
         review: Object.keys(review).length > 0 ? review : undefined,
+        playbook_id: playbookId || undefined,
         notes: formData.get("notes") || undefined,
         tags,
         stop_loss: formData.get("stop_loss") || undefined,
@@ -419,6 +424,21 @@ export function ForexTradeForm({
             <p className="text-[10px] uppercase tracking-wider text-muted font-semibold">Psychology</p>
             <EmotionPicker value={emotion} onChange={setEmotion} />
             <ConfidenceSlider value={confidence} onChange={setConfidence} />
+            <PlaybookSelector
+              value={playbookId}
+              onChange={(id, pb) => {
+                setPlaybookId(id);
+                setSelectedPlaybook(pb);
+                if (pb) {
+                  setSetupType(pb.name);
+                  const pbItems = playbookToChecklistItems(pb);
+                  if (pbItems) setChecklist(Object.fromEntries(pbItems.map((item) => [item.key, false])));
+                } else {
+                  setChecklist({});
+                }
+              }}
+              assetClass="forex"
+            />
             <SetupTypePicker
               value={setupType}
               onChange={setSetupType}
@@ -428,7 +448,7 @@ export function ForexTradeForm({
             />
 
             {/* Pre-Trade Checklist */}
-            <PreTradeChecklist value={checklist} onChange={setChecklist} />
+            <PreTradeChecklist value={checklist} onChange={setChecklist} items={playbookToChecklistItems(selectedPlaybook)} />
 
             {/* Post-Trade Review (only if exit price is present) */}
             <PostTradeReview value={review} onChange={setReview} />

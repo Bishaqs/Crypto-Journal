@@ -12,6 +12,15 @@ export const EMOTIONS = [
   "Revenge",
   "Bored",
   "Confident",
+  "Greedy",
+  "Fearful",
+  "Disciplined",
+  "Hopeful",
+  "Impatient",
+  "Regretful",
+  "Overconfident",
+  "Confused",
+  "Indifferent",
 ] as const;
 
 export const SETUP_TYPES = [
@@ -117,6 +126,7 @@ export const tradeSchema = z.object({
   price_mfe: z.coerce.number().positive().optional(),
   mfe_timestamp: z.string().optional(),
   mae_timestamp: z.string().optional(),
+  playbook_id: z.string().uuid().optional(),
 });
 
 export type TradeFormData = z.infer<typeof tradeSchema>;
@@ -158,6 +168,7 @@ export const stockTradeSchema = z.object({
   price_mfe: z.coerce.number().positive().optional(),
   mfe_timestamp: z.string().optional(),
   mae_timestamp: z.string().optional(),
+  playbook_id: z.string().uuid().optional(),
 });
 
 export type StockTradeFormData = z.infer<typeof stockTradeSchema>;
@@ -222,6 +233,7 @@ export const commodityTradeSchema = z.object({
   price_mfe: z.coerce.number().positive().optional(),
   mfe_timestamp: z.string().optional(),
   mae_timestamp: z.string().optional(),
+  playbook_id: z.string().uuid().optional(),
 });
 
 export type CommodityTradeFormData = z.infer<typeof commodityTradeSchema>;
@@ -275,6 +287,7 @@ export const forexTradeSchema = z.object({
   price_mfe: z.coerce.number().positive().optional(),
   mfe_timestamp: z.string().optional(),
   mae_timestamp: z.string().optional(),
+  playbook_id: z.string().uuid().optional(),
 });
 
 export type ForexTradeFormData = z.infer<typeof forexTradeSchema>;

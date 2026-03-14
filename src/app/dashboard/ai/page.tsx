@@ -117,9 +117,24 @@ Based on your trading data, here are some observations:
 
 *AI Coach is currently in demo mode. Contact your administrator to enable live analysis.*`;
 
+type PlaybookEntry = {
+  id: string;
+  name: string;
+  description: string;
+  entry_rules: string[];
+  exit_rules: string[];
+  stop_loss_strategy: string | null;
+  risk_per_trade: string | null;
+  timeframes: string[];
+  tags: string[];
+  asset_class: string;
+  is_active: boolean;
+};
+
 export default function AIPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [notes, setNotes] = useState<JournalNote[]>([]);
+  const [playbooks, setPlaybooks] = useState<PlaybookEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -178,9 +193,21 @@ export default function AIPage() {
     setNotes((data as JournalNote[]) ?? []);
   }, [supabase]);
 
+  const fetchPlaybooks = useCallback(async () => {
+    try {
+      const res = await fetch("/api/playbook");
+      if (res.ok) {
+        const data = await res.json();
+        setPlaybooks(data.playbooks ?? []);
+      }
+    } catch {
+      // Playbooks table may not exist yet — silently continue
+    }
+  }, []);
+
   useEffect(() => {
-    Promise.all([fetchTrades(), fetchNotes()]).then(() => setLoading(false));
-  }, [fetchTrades, fetchNotes]);
+    Promise.all([fetchTrades(), fetchNotes(), fetchPlaybooks()]).then(() => setLoading(false));
+  }, [fetchTrades, fetchNotes, fetchPlaybooks]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -202,6 +229,7 @@ export default function AIPage() {
           message: msg,
           trades,
           notes,
+          playbooks,
           provider: aiProvider,
           model: aiModel,
           ...(aiApiKey ? { apiKey: aiApiKey } : {}),
