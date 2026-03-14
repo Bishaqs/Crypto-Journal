@@ -4,6 +4,11 @@
 
 export type ProviderId = "anthropic" | "openai" | "google";
 
+export type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export type MessageOptions = {
   system: string;
   userMessage: string;
@@ -13,6 +18,8 @@ export type MessageOptions = {
   apiKey?: string;
   /** Optional image URLs or base64 data URIs from journal notes */
   images?: string[];
+  /** Conversation history. When provided, replaces the single userMessage with a multi-turn conversation. */
+  messages?: ChatMessage[];
 };
 
 export interface AIProvider {

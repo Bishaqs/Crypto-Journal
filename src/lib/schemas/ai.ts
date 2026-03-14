@@ -62,6 +62,11 @@ export const AiChatSchema = z.object({
   context: z.object({
     weeklyReport: z.string().optional(),
   }).passthrough().optional().default({}),
+  history: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().max(10000),
+  })).max(24).optional().default([]),
+  customInstructions: z.string().max(1500).optional().default(""),
   provider: z.string().optional(),
   model: z.string().optional(),
   apiKey: z.string().max(256).optional(),

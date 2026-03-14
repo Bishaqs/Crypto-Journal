@@ -4,7 +4,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { GoogleGenerativeAI, type Part } from "@google/generative-ai";
-import type { AIProvider, MessageOptions, ProviderId } from "./types";
+import type { AIProvider, ChatMessage, MessageOptions, ProviderId } from "./types";
 import { PROVIDER_CONFIGS, DEFAULT_PROVIDER } from "./config";
 
 // ---------------------------------------------------------------------------
@@ -32,12 +32,12 @@ class AnthropicProvider implements AIProvider {
     return new Anthropic({ apiKey: apiKey || process.env.ANTHROPIC_API_KEY! });
   }
 
-  private buildContent(opts: MessageOptions): string | Anthropic.MessageCreateParams["messages"][0]["content"] {
-    if (!opts.images?.length) return opts.userMessage;
+  private buildContent(text: string, images?: string[]): string | Anthropic.MessageCreateParams["messages"][0]["content"] {
+    if (!images?.length) return text;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const blocks: any[] = [{ type: "text", text: opts.userMessage }];
-    for (const url of opts.images) {
+    const blocks: any[] = [{ type: "text", text }];
+    for (const url of images) {
       const dataUri = parseDataUri(url);
       if (dataUri) {
         blocks.push({
@@ -54,13 +54,24 @@ class AnthropicProvider implements AIProvider {
     return blocks;
   }
 
+  private buildMessages(opts: MessageOptions): Anthropic.MessageCreateParams["messages"] {
+    if (opts.messages?.length) {
+      return opts.messages.map((m, i) => ({
+        role: m.role,
+        // Attach images to the first user message only (contains trade context)
+        content: m.role === "user" && i === 0 ? this.buildContent(m.content, opts.images) : m.content,
+      }));
+    }
+    return [{ role: "user" as const, content: this.buildContent(opts.userMessage, opts.images) }];
+  }
+
   async chat(opts: MessageOptions): Promise<string> {
     const client = this.getClient(opts.apiKey);
     const response = await client.messages.create({
       model: opts.model,
       max_tokens: opts.maxTokens,
       system: opts.system,
-      messages: [{ role: "user", content: this.buildContent(opts) }],
+      messages: this.buildMessages(opts),
     });
     return response.content
       .filter((block) => block.type === "text")
@@ -74,7 +85,7 @@ class AnthropicProvider implements AIProvider {
       model: opts.model,
       max_tokens: opts.maxTokens,
       system: opts.system,
-      messages: [{ role: "user", content: this.buildContent(opts) }],
+      messages: this.buildMessages(opts),
     });
     for await (const event of stream) {
       if (
@@ -102,16 +113,36 @@ class OpenAIProvider implements AIProvider {
     return new OpenAI({ apiKey: apiKey || process.env.OPENAI_API_KEY! });
   }
 
-  private buildContent(opts: MessageOptions): string | OpenAI.ChatCompletionContentPart[] {
-    if (!opts.images?.length) return opts.userMessage;
+  private buildContent(text: string, images?: string[]): string | OpenAI.ChatCompletionContentPart[] {
+    if (!images?.length) return text;
 
     const parts: OpenAI.ChatCompletionContentPart[] = [
-      { type: "text", text: opts.userMessage },
+      { type: "text", text },
     ];
-    for (const url of opts.images) {
+    for (const url of images) {
       parts.push({ type: "image_url", image_url: { url } });
     }
     return parts;
+  }
+
+  private buildMessages(opts: MessageOptions): OpenAI.ChatCompletionMessageParam[] {
+    const msgs: OpenAI.ChatCompletionMessageParam[] = [
+      { role: "system", content: opts.system },
+    ];
+    if (opts.messages?.length) {
+      for (let i = 0; i < opts.messages.length; i++) {
+        const m = opts.messages[i];
+        if (m.role === "user") {
+          // Attach images to first user message only
+          msgs.push({ role: "user", content: i === 0 ? this.buildContent(m.content, opts.images) : m.content });
+        } else {
+          msgs.push({ role: "assistant", content: m.content });
+        }
+      }
+    } else {
+      msgs.push({ role: "user", content: this.buildContent(opts.userMessage, opts.images) });
+    }
+    return msgs;
   }
 
   async chat(opts: MessageOptions): Promise<string> {
@@ -119,10 +150,7 @@ class OpenAIProvider implements AIProvider {
     const response = await client.chat.completions.create({
       model: opts.model,
       max_tokens: opts.maxTokens,
-      messages: [
-        { role: "system", content: opts.system },
-        { role: "user", content: this.buildContent(opts) },
-      ],
+      messages: this.buildMessages(opts),
     });
     return response.choices[0]?.message?.content ?? "";
   }
@@ -133,10 +161,7 @@ class OpenAIProvider implements AIProvider {
       model: opts.model,
       max_tokens: opts.maxTokens,
       stream: true,
-      messages: [
-        { role: "system", content: opts.system },
-        { role: "user", content: this.buildContent(opts) },
-      ],
+      messages: this.buildMessages(opts),
     });
     for await (const chunk of stream) {
       const text = chunk.choices[0]?.delta?.content;
@@ -161,11 +186,11 @@ class GoogleProvider implements AIProvider {
   }
 
   /** Build Gemini Part[] with text + images. HTTP URLs are fetched and converted to base64. */
-  private async buildParts(opts: MessageOptions): Promise<string | Part[]> {
-    if (!opts.images?.length) return opts.userMessage;
+  private async buildParts(text: string, images?: string[]): Promise<string | Part[]> {
+    if (!images?.length) return text;
 
-    const parts: Part[] = [{ text: opts.userMessage }];
-    for (const url of opts.images) {
+    const parts: Part[] = [{ text }];
+    for (const url of images) {
       const dataUri = parseDataUri(url);
       if (dataUri) {
         parts.push({ inlineData: { mimeType: dataUri.mimeType, data: dataUri.data } });
@@ -192,7 +217,22 @@ class GoogleProvider implements AIProvider {
       model: opts.model,
       systemInstruction: opts.system,
     });
-    const content = await this.buildParts(opts);
+
+    if (opts.messages?.length) {
+      const history = opts.messages.slice(0, -1).map((m) => ({
+        role: m.role === "assistant" ? "model" as const : "user" as const,
+        parts: [{ text: m.content }],
+      }));
+      const lastMsg = opts.messages[opts.messages.length - 1];
+      const chat = model.startChat({ history });
+      const lastContent = lastMsg.role === "user" && opts.messages.indexOf(lastMsg) === 0
+        ? await this.buildParts(lastMsg.content, opts.images)
+        : lastMsg.content;
+      const result = await chat.sendMessage(lastContent);
+      return result.response.text();
+    }
+
+    const content = await this.buildParts(opts.userMessage, opts.images);
     const result = await model.generateContent(content);
     return result.response.text();
   }
@@ -203,7 +243,39 @@ class GoogleProvider implements AIProvider {
       model: opts.model,
       systemInstruction: opts.system,
     });
-    const content = await this.buildParts(opts);
+
+    if (opts.messages?.length) {
+      // For multi-turn: use startChat with history, stream the last message
+      const allButLast = opts.messages.slice(0, -1);
+      const lastMsg = opts.messages[opts.messages.length - 1];
+
+      // Build history — attach images to first user message
+      const history: { role: "user" | "model"; parts: Part[] }[] = [];
+      for (let i = 0; i < allButLast.length; i++) {
+        const m = allButLast[i];
+        const role = m.role === "assistant" ? "model" as const : "user" as const;
+        if (m.role === "user" && i === 0 && opts.images?.length) {
+          const parts = await this.buildParts(m.content, opts.images);
+          history.push({ role, parts: Array.isArray(parts) ? parts : [{ text: parts }] });
+        } else {
+          history.push({ role, parts: [{ text: m.content }] });
+        }
+      }
+
+      const chat = model.startChat({ history });
+      // If the first message IS the last message (single-turn with messages array), attach images
+      const lastContent = opts.messages.length === 1 && opts.images?.length
+        ? await this.buildParts(lastMsg.content, opts.images)
+        : lastMsg.content;
+      const result = await chat.sendMessageStream(lastContent);
+      for await (const chunk of result.stream) {
+        const text = chunk.text();
+        if (text) yield text;
+      }
+      return;
+    }
+
+    const content = await this.buildParts(opts.userMessage, opts.images);
     const result = await model.generateContentStream(content);
     for await (const chunk of result.stream) {
       const text = chunk.text();

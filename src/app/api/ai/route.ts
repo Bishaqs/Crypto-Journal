@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { message, trades, notes, playbooks, context, provider: providerId, model: modelId, apiKey } = parsed.data;
+  const { message, trades, notes, playbooks, context, history, customInstructions, provider: providerId, model: modelId, apiKey } = parsed.data;
 
   const provider = getProvider(providerId, apiKey);
   if (!provider.isConfigured(apiKey)) {
@@ -51,14 +51,37 @@ export async function POST(req: NextRequest) {
     ? `\n\n## Attached Images (${imageData.length})\n${imageData.map((img, i) => `- Image ${i + 1}: from journal entry "${img.noteTitle}" (${img.noteDate})`).join("\n")}\n`
     : "";
 
+  const systemPrompt = customInstructions
+    ? `${AI_CHAT_SYSTEM_PROMPT}\n\n## Trader's Personal Coaching Preferences\nThe trader has provided these instructions for how you should coach them. Follow them:\n${customInstructions}`
+    : AI_CHAT_SYSTEM_PROMPT;
+
+  const contextPrefix = `Here is my trading data:\n\n${tradeContext}${imageContext}\n\nMy question: `;
+
+  let chatMessages: { role: "user" | "assistant"; content: string }[] | undefined;
+  if (history && history.length > 0) {
+    chatMessages = [];
+    const firstHistoryMsg = history[0];
+    if (firstHistoryMsg.role === "user") {
+      chatMessages.push({ role: "user", content: `${contextPrefix}${firstHistoryMsg.content}` });
+    } else {
+      chatMessages.push({ role: "user", content: `${contextPrefix}(context loaded)` });
+      chatMessages.push(firstHistoryMsg);
+    }
+    for (let i = 1; i < history.length; i++) {
+      chatMessages.push(history[i]);
+    }
+    chatMessages.push({ role: "user", content: message });
+  }
+
   try {
     const text = await provider.chat({
-      system: AI_CHAT_SYSTEM_PROMPT,
-      userMessage: `Here is my trading data:\n\n${tradeContext}${imageContext}\n\nMy question: ${message}`,
+      system: systemPrompt,
+      userMessage: `${contextPrefix}${message}`,
       maxTokens: 2048,
       model,
       apiKey,
       images,
+      messages: chatMessages,
     });
 
     return NextResponse.json({ response: text });
