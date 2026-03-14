@@ -13,6 +13,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { hasStockAccess } from "@/lib/addons";
 import { StockTradeForm } from "@/components/stock-trade-form";
+// PhantomTradeForm replaced by TradeForm with initialWhatIf prop
 
 type ActionItem = { key: string; tKey: string; icon: typeof Zap; stockGated?: boolean };
 
