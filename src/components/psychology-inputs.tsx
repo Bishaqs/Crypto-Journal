@@ -157,21 +157,36 @@ export function ConfidenceSlider({
 export function SetupTypePicker({
   value,
   onChange,
+  savedPresets = [],
+  onSavePreset,
+  onRemovePreset,
 }: {
   value: string | null;
   onChange: (setupType: string | null) => void;
+  savedPresets?: string[];
+  onSavePreset?: (name: string) => void;
+  onRemovePreset?: (name: string) => void;
 }) {
+  const isCustomPreset = value === "Custom" || (value !== null && !SETUP_TYPES.includes(value as typeof SETUP_TYPES[number]) && !savedPresets.includes(value));
+  const customText = isCustomPreset && value !== "Custom" ? value : "";
+
   return (
     <div>
       <label className="block text-xs text-muted mb-2">Setup Type</label>
       <div className="flex flex-wrap gap-2">
         {SETUP_TYPES.map((setup) => {
-          const isSelected = value === setup;
+          const isSelected = setup === "Custom" ? isCustomPreset : value === setup;
           return (
             <button
               key={setup}
               type="button"
-              onClick={() => onChange(isSelected ? null : setup)}
+              onClick={() => {
+                if (setup === "Custom") {
+                  onChange(isCustomPreset ? null : "Custom");
+                } else {
+                  onChange(isSelected ? null : setup);
+                }
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
                 isSelected
                   ? "bg-accent/10 border-accent/30 text-accent shadow-sm"
@@ -182,7 +197,56 @@ export function SetupTypePicker({
             </button>
           );
         })}
+        {savedPresets.map((preset) => {
+          const isSelected = value === preset;
+          return (
+            <button
+              key={`saved-${preset}`}
+              type="button"
+              onClick={() => onChange(isSelected ? null : preset)}
+              className={`group flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
+                isSelected
+                  ? "bg-accent/10 border-accent/30 text-accent shadow-sm"
+                  : "bg-background border-border text-muted hover:text-foreground hover:border-accent/30"
+              }`}
+            >
+              {preset}
+              {onRemovePreset && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemovePreset(preset);
+                    if (value === preset) onChange(null);
+                  }}
+                  className="ml-0.5 opacity-0 group-hover:opacity-100 text-muted hover:text-red-400 transition-opacity cursor-pointer"
+                >
+                  x
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
+      {isCustomPreset && (
+        <div className="mt-2 flex gap-2">
+          <input
+            type="text"
+            value={customText}
+            onChange={(e) => onChange(e.target.value || "Custom")}
+            placeholder="Name your setup..."
+            className="flex-1 px-3 py-2 rounded-lg bg-background border border-border/40 text-sm text-foreground focus:outline-none focus:border-accent/50 transition-colors placeholder-muted-foreground/50"
+          />
+          {onSavePreset && customText && (
+            <button
+              type="button"
+              onClick={() => onSavePreset(customText)}
+              className="px-3 py-2 rounded-lg text-xs font-medium border border-accent/30 text-accent bg-accent/10 hover:bg-accent/20 transition-colors"
+            >
+              Save
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

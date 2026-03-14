@@ -9,6 +9,7 @@ import { X } from "lucide-react";
 import { EmotionPicker, ConfidenceSlider, SetupTypePicker } from "./psychology-inputs";
 import { TagInput } from "./tag-input";
 import { getCustomTagPresets, addCustomTagPreset, isUserTag } from "@/lib/tag-manager";
+import { getCustomSetupPresets, addCustomSetupPreset, removeCustomSetupPreset } from "@/lib/setup-type-manager";
 
 export function PhantomTradeForm({
   onClose,
@@ -28,9 +29,16 @@ export function PhantomTradeForm({
   const [confidence, setConfidence] = useState<number | null>(editPhantom?.confidence ?? null);
   const [setupType, setSetupType] = useState<string | null>(editPhantom?.setup_type ?? null);
 
+  // Setup presets
+  const [setupPresets, setSetupPresets] = useState<string[]>([]);
+
   // Tags
   const [tags, setTags] = useState<string[]>(editPhantom?.tags ?? []);
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSetupPresets(getCustomSetupPresets());
+  }, []);
 
   useEffect(() => {
     async function fetchTags() {
@@ -104,7 +112,7 @@ export function PhantomTradeForm({
       onSaved();
       onClose();
     } catch (err) {
-      setErrors({ form: err instanceof Error ? err.message : "Failed to save phantom trade" });
+      setErrors({ form: err instanceof Error ? err.message : "Failed to save setup" });
     } finally {
       setSaving(false);
     }
@@ -122,7 +130,7 @@ export function PhantomTradeForm({
         </button>
 
         <h2 className="text-lg font-bold mb-4">
-          {editPhantom ? "Edit Phantom Trade" : "Log Phantom Trade"}
+          {editPhantom ? "Edit Setup" : "Log What-If Setup"}
         </h2>
 
         {errors.form && (
@@ -139,7 +147,7 @@ export function PhantomTradeForm({
               name="symbol"
               defaultValue={editPhantom?.symbol ?? ""}
               placeholder="BTC"
-              className="w-full rounded-lg bg-muted/50 border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
             />
             {errors.symbol && <p className="text-xs text-red-400 mt-1">{errors.symbol}</p>}
           </div>
@@ -174,7 +182,7 @@ export function PhantomTradeForm({
               step="any"
               defaultValue={editPhantom?.entry_price ?? ""}
               placeholder="0.00"
-              className="w-full rounded-lg bg-muted/50 border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
             />
             {errors.entry_price && <p className="text-xs text-red-400 mt-1">{errors.entry_price}</p>}
           </div>
@@ -189,7 +197,7 @@ export function PhantomTradeForm({
                 step="any"
                 defaultValue={editPhantom?.stop_loss ?? ""}
                 placeholder="0.00"
-                className="w-full rounded-lg bg-muted/50 border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
               />
             </div>
             <div>
@@ -200,7 +208,7 @@ export function PhantomTradeForm({
                 step="any"
                 defaultValue={editPhantom?.profit_target ?? ""}
                 placeholder="0.00"
-                className="w-full rounded-lg bg-muted/50 border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
               />
             </div>
           </div>
@@ -212,7 +220,7 @@ export function PhantomTradeForm({
               name="observed_at"
               type="datetime-local"
               defaultValue={editPhantom?.observed_at ? new Date(editPhantom.observed_at).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16)}
-              className="w-full rounded-lg bg-muted/50 border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
             />
             {errors.observed_at && <p className="text-xs text-red-400 mt-1">{errors.observed_at}</p>}
           </div>
@@ -225,14 +233,20 @@ export function PhantomTradeForm({
               rows={3}
               defaultValue={editPhantom?.thesis ?? ""}
               placeholder="What setup did you see? Why did you pass?"
-              className="w-full rounded-lg bg-muted/50 border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+              className="w-full rounded-lg bg-background border border-border/40 px-3 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors resize-none"
             />
           </div>
 
           {/* Setup Type */}
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-2">Setup Type</label>
-            <SetupTypePicker value={setupType} onChange={setSetupType} />
+            <SetupTypePicker
+              value={setupType}
+              onChange={setSetupType}
+              savedPresets={setupPresets}
+              onSavePreset={(name) => setSetupPresets(addCustomSetupPreset(name))}
+              onRemovePreset={(name) => setSetupPresets(removeCustomSetupPreset(name))}
+            />
           </div>
 
           {/* Emotion */}
@@ -261,9 +275,9 @@ export function PhantomTradeForm({
           <button
             type="submit"
             disabled={saving}
-            className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-50 transition-colors"
+            className="w-full rounded-lg bg-accent/20 border border-accent/30 text-accent px-4 py-2.5 text-sm font-semibold hover:bg-accent/30 disabled:opacity-50 transition-colors"
           >
-            {saving ? "Saving..." : editPhantom ? "Update Phantom" : "Log Phantom Trade"}
+            {saving ? "Saving..." : editPhantom ? "Update Setup" : "Log Setup"}
           </button>
         </form>
       </div>
