@@ -70,6 +70,8 @@ export type BitgetSyncResult = {
   latestFillTime: number | null;
   /** End time (ms) of the last processed window. Used to advance cursor past empty periods. */
   lastWindowEnd: number | null;
+  /** Classification stats for diagnostics. */
+  classificationStats: { opens: number; closes: number; inMemoryMatched: number };
 };
 
 // ── Signature ──────────────────────────────────────────────────
@@ -276,8 +278,23 @@ function buildResult(
   totalFetched: number,
   errors: string[],
 ): BitgetSyncResult {
-  const allFillIds = rawFills.map((f) => f.tradeId);
-  const paired = pairBitgetFills(rawFills);
+  // Deduplicate fills by tradeId — overlapping 7-day windows can return the
+  // same fill twice, which would double quantity/fees in aggregateByOrder.
+  const seen = new Set<string>();
+  const uniqueFills: BitgetFill[] = [];
+  for (const f of rawFills) {
+    if (!seen.has(f.tradeId)) {
+      seen.add(f.tradeId);
+      uniqueFills.push(f);
+    }
+  }
+  if (uniqueFills.length < rawFills.length) {
+    const dupeCount = rawFills.length - uniqueFills.length;
+    errors.push(`Deduplicated ${dupeCount} duplicate fill${dupeCount !== 1 ? "s" : ""} from overlapping windows.`);
+  }
+
+  const allFillIds = uniqueFills.map((f) => f.tradeId);
+  const paired = pairBitgetFills(uniqueFills);
   // Track the most recent fill time for sync progress cursor
   let latestFillTime: number | null = null;
   for (const f of rawFills) {
@@ -286,7 +303,7 @@ function buildResult(
       latestFillTime = t;
     }
   }
-  return { ...paired, fetched: totalFetched, errors, allFillIds, latestFillTime, lastWindowEnd: null };
+  return { ...paired, fetched: totalFetched, errors, allFillIds, latestFillTime, lastWindowEnd: null, classificationStats: paired.classificationStats };
 }
 
 // ── Aggregation & Pairing ──────────────────────────────────────
@@ -299,6 +316,25 @@ function classifyFill(fill: BitgetFill): "open" | "close" {
   if (ts === "open" || ts === "close") return ts;
   const profit = parseFloat(fill.profit) || 0;
   return profit !== 0 ? "close" : "open";
+}
+
+/** Classify an order by checking ALL fills — not just the first one.
+ *  Fixes misclassification when fills[0] lacks tradeSide and has profit=0
+ *  but later fills in the same order do have the signal. */
+function classifyOrderFills(fills: BitgetFill[]): "open" | "close" {
+  // Priority 1: Any fill with explicit tradeSide="close" → order is a close
+  for (const fill of fills) {
+    if (fill.tradeSide?.toLowerCase() === "close") return "close";
+  }
+  // Priority 2: Any fill with nonzero profit → order is a close
+  for (const fill of fills) {
+    if ((parseFloat(fill.profit) || 0) !== 0) return "close";
+  }
+  // Priority 3: Any fill with explicit tradeSide="open" → order is an open
+  for (const fill of fills) {
+    if (fill.tradeSide?.toLowerCase() === "open") return "open";
+  }
+  return "open";
 }
 
 /** Group raw fills by orderId into aggregated orders. */
@@ -346,7 +382,7 @@ function aggregateByOrder(rawFills: BitgetFill[]): AggregatedOrder[] {
       orderId: fills[0].orderId || fills[0].tradeId,
       symbol: fills[0].symbol,
       side: (fills[0].side ?? "buy").toLowerCase(),
-      tradeSide: classifyFill(fills[0]),
+      tradeSide: classifyOrderFills(fills),
       vwap: totalSize > 0 ? totalNotional / totalSize : 0,
       totalSize,
       totalFees,
@@ -364,6 +400,7 @@ type PairResult = {
   pairedTrades: MappedTrade[];
   unmatchedOpens: MappedTrade[];
   unmatchedCloses: AggregatedOrder[];
+  classificationStats: { opens: number; closes: number; inMemoryMatched: number };
 };
 
 /**
@@ -375,6 +412,7 @@ function pairBitgetFills(rawFills: BitgetFill[]): PairResult {
 
   const opens = orders.filter((o) => o.tradeSide === "open");
   const closes = orders.filter((o) => o.tradeSide === "close");
+  const classificationStats = { opens: opens.length, closes: closes.length, inMemoryMatched: 0 };
 
   // Build open pool keyed by "SYMBOL|polarity" (buy open=long, sell open=short)
   type OpenTracker = { order: AggregatedOrder; remainingQty: number };
@@ -474,7 +512,9 @@ function pairBitgetFills(rawFills: BitgetFill[]): PairResult {
           open_timestamp: new Date(o.earliestTime).toISOString(),
           close_timestamp: null,
           pnl: null,
-          broker_order_id: o.orderId,
+          broker_order_id: tracker.remainingQty < o.totalSize
+            ? `${o.orderId}:partial`
+            : o.orderId,
           broker_name: "Bitget",
           trade_source: "cex",
           tags,
@@ -483,5 +523,36 @@ function pairBitgetFills(rawFills: BitgetFill[]): PairResult {
     }
   }
 
-  return { pairedTrades, unmatchedOpens, unmatchedCloses };
+  // Second pass: match remaining unmatched closes to unmatched opens in-memory.
+  // This catches same-invocation pairs that FIFO missed (e.g., classification
+  // edge cases, or opens/closes arriving in unexpected order).
+  const remainingCloses: AggregatedOrder[] = [];
+  for (const close of unmatchedCloses) {
+    const polarity: "long" | "short" = close.side === "sell" ? "long" : "short";
+    const openIdx = unmatchedOpens.findIndex(
+      (o) => o.symbol === close.symbol && o.position === polarity && o.exit_price === null,
+    );
+    if (openIdx >= 0) {
+      const open = unmatchedOpens[openIdx];
+      const closeFillIds = close.fillIds;
+      const tags = [...open.tags];
+      for (const id of closeFillIds) tags.push(`close-fill:${id}`);
+
+      pairedTrades.push({
+        ...open,
+        exit_price: close.vwap,
+        close_timestamp: new Date(close.earliestTime).toISOString(),
+        pnl: close.totalProfit || null,
+        fees: open.fees + close.totalFees,
+        quantity: Math.min(open.quantity, close.totalSize),
+        tags,
+      });
+      unmatchedOpens.splice(openIdx, 1);
+      classificationStats.inMemoryMatched++;
+    } else {
+      remainingCloses.push(close);
+    }
+  }
+
+  return { pairedTrades, unmatchedOpens, unmatchedCloses: remainingCloses, classificationStats };
 }
