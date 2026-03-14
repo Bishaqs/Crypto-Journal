@@ -28,8 +28,7 @@ import { StreakWidget } from "@/components/dashboard/streak-widget";
 import { AISummaryWidget } from "@/components/dashboard/ai-summary-widget";
 import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
-import { Plus, Sparkles, Download, Upload, Activity, Dices, TrendingUp, Calculator, Bitcoin, ChevronDown, Ghost } from "lucide-react";
-import { PhantomTradeForm } from "@/components/phantom-trade-form";
+import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Bitcoin } from "lucide-react";
 import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CSVImportModal } from "@/components/csv-import-modal";
@@ -53,8 +52,6 @@ export default function DashboardPage() {
   const [showImport, setShowImport] = useState(false);
   const [postTradeData, setPostTradeData] = useState<{ id: string; symbol: string; pnl: number } | null>(null);
   const [deletingTrade, setDeletingTrade] = useState<Trade | null>(null);
-  const [showPhantomForm, setShowPhantomForm] = useState(false);
-  const [showLogDropdown, setShowLogDropdown] = useState(false);
   const { filterTrades } = useDateRange();
   const { filterByAccount } = useAccount();
   const { viewMode, setViewModeTo } = useTheme();
@@ -255,54 +252,17 @@ export default function DashboardPage() {
             <Download size={14} />
             {t("common.export")}
           </button>
-          <div id="tour-log-trade" className="relative">
-            <div className="flex items-stretch rounded-xl overflow-hidden animate-[cosmic-pulse_3s_ease-in-out_infinite]">
-              <button
-                onClick={() => {
-                  setEditTrade(null);
-                  setShowForm(true);
-                  setShowLogDropdown(false);
-                }}
-                className="flex items-center gap-2 px-5 py-2.5 bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300"
-              >
-                <Plus size={18} />
-                {t("dashboard.logTrade")}
-              </button>
-              <button
-                onClick={() => setShowLogDropdown((prev) => !prev)}
-                className="flex items-center px-2 bg-accent text-background border-l border-background/20 hover:bg-accent-hover transition-all duration-300"
-              >
-                <ChevronDown size={14} />
-              </button>
-            </div>
-            {showLogDropdown && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowLogDropdown(false)} />
-                <div className="absolute right-0 top-full mt-1 z-50 w-48 rounded-xl bg-surface border border-border shadow-xl overflow-hidden">
-                  <button
-                    onClick={() => {
-                      setEditTrade(null);
-                      setShowForm(true);
-                      setShowLogDropdown(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-accent/10 transition-colors"
-                  >
-                    <TrendingUp size={14} className="text-accent" />
-                    Real Trade
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowPhantomForm(true);
-                      setShowLogDropdown(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-accent/10 transition-colors"
-                  >
-                    <Ghost size={14} className="text-purple-400" />
-                    What-If Setup
-                  </button>
-                </div>
-              </>
-            )}
+          <div id="tour-log-trade">
+            <button
+              onClick={() => {
+                setEditTrade(null);
+                setShowForm(true);
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300 animate-[cosmic-pulse_3s_ease-in-out_infinite]"
+            >
+              <Plus size={18} />
+              {t("dashboard.logTrade")}
+            </button>
           </div>
         </div>
       </div>
@@ -528,13 +488,6 @@ export default function DashboardPage() {
             setEditTrade(null);
             setDeletingTrade(trade);
           } : undefined}
-        />
-      )}
-
-      {showPhantomForm && (
-        <PhantomTradeForm
-          onClose={() => setShowPhantomForm(false)}
-          onSaved={fetchTrades}
         />
       )}
 

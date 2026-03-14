@@ -362,8 +362,7 @@ export function TradeForm({
             </label>
           )}
 
-          {/* Trade Source Toggle: CEX / DEX — hidden in What If mode */}
-          {!isWhatIf && (
+          {/* Trade Source Toggle: CEX / DEX */}
           <div>
             <label className="block text-xs text-muted mb-1.5">Trade Source</label>
             <div className="inline-flex rounded-lg border border-border overflow-hidden">
@@ -393,10 +392,9 @@ export function TradeForm({
               </button>
             </div>
           </div>
-          )}
 
-          {/* DEX-specific fields — hidden in What If mode */}
-          {!isWhatIf && tradeSource === "dex" && (
+          {/* DEX-specific fields */}
+          {tradeSource === "dex" && (
             <div className="space-y-3 p-3 rounded-lg border border-accent/20 bg-accent/5">
               <p className="text-[10px] uppercase tracking-wider text-accent/60 font-semibold">
                 On-Chain Details
@@ -495,7 +493,7 @@ export function TradeForm({
           </div>
 
           {/* Prices */}
-          <div className={`grid gap-4 ${isWhatIf ? "grid-cols-1" : "grid-cols-2"}`}>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">Entry Price</label>
               <input
@@ -510,7 +508,6 @@ export function TradeForm({
                 <p className="text-xs text-loss mt-1">{errors.entry_price}</p>
               )}
             </div>
-            {!isWhatIf && (
             <div>
               <label className="block text-xs text-muted mb-1">
                 Exit Price <span className="text-muted/60">(blank if open)</span>
@@ -525,7 +522,6 @@ export function TradeForm({
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
             </div>
-            )}
           </div>
 
           {/* Trade Planning */}
@@ -540,9 +536,7 @@ export function TradeForm({
             </div>
           </div>
 
-          {/* MAE / MFE — hidden in What If mode */}
-          {!isWhatIf && (
-          <>
+          {/* MAE / MFE */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">Price MAE <span className="text-muted/60">(optional)</span></label>
@@ -593,13 +587,11 @@ export function TradeForm({
               />
             </div>
           </div>
-          </>
-          )}
 
           {/* Timestamp */}
-          <div className={`grid gap-4 ${isWhatIf ? "grid-cols-1" : "grid-cols-2"}`}>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-muted mb-1">{isWhatIf ? "Observed At" : "Open Time"}</label>
+              <label className="block text-xs text-muted mb-1">Open Time</label>
               <input
                 name="open_timestamp"
                 type="datetime-local"
@@ -608,9 +600,7 @@ export function TradeForm({
                     ? editTrade.open_timestamp.slice(0, 16)
                     : editPhantom?.observed_at
                       ? editPhantom.observed_at.slice(0, 16)
-                      : isWhatIf
-                        ? new Date().toISOString().slice(0, 16)
-                        : ""
+                      : ""
                 }
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
@@ -618,7 +608,6 @@ export function TradeForm({
                 <p className="text-xs text-loss mt-1">{errors.open_timestamp}</p>
               )}
             </div>
-            {!isWhatIf && (
             <div>
               <label className="block text-xs text-muted mb-1">
                 Close Time <span className="text-muted/60">(blank if open)</span>
@@ -634,7 +623,6 @@ export function TradeForm({
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
             </div>
-            )}
           </div>
 
           {/* Tags */}
@@ -683,14 +671,12 @@ export function TradeForm({
 
           {/* Notes / Thesis */}
           <div>
-            <label className="block text-xs text-muted mb-1">
-              {isWhatIf ? "Thesis" : "Notes"}
-            </label>
+            <label className="block text-xs text-muted mb-1">Notes</label>
             <textarea
               name="notes"
-              rows={isWhatIf ? 3 : 2}
+              rows={2}
               defaultValue={editTrade?.notes ?? editPhantom?.thesis ?? ""}
-              placeholder={isWhatIf ? "What setup did you see? Why did you consider it?" : "Why did you take this trade?"}
+              placeholder="Why did you take this trade?"
               className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent resize-none"
             />
           </div>
@@ -732,8 +718,8 @@ export function TradeForm({
               items={playbookToChecklistItems(selectedPlaybook)}
             />
 
-            {/* Post-trade fields only show when there's an exit price and not in What If mode */}
-            {!isWhatIf && hasExit && (
+            {/* Post-trade fields only show when there's an exit price */}
+            {hasExit && (
               <>
                 <div className="border-t border-border/50 pt-4">
                   <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold mb-3">
