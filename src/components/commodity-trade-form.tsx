@@ -9,7 +9,8 @@ import { EmotionPicker, ConfidenceSlider, SetupTypePicker, ProcessScoreInput } f
 import { PreTradeChecklist } from "./pre-trade-checklist";
 import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
-import { getCustomTagPresets } from "@/lib/tag-manager";
+import { getCustomTagPresets, addCustomTagPreset, isUserTag } from "@/lib/tag-manager";
+import { getCustomSetupPresets, addCustomSetupPreset, removeCustomSetupPreset } from "@/lib/setup-type-manager";
 
 const CATEGORY_LABELS: Record<string, string> = {
   metals: "Metals",
@@ -50,9 +51,14 @@ export function CommodityTradeForm({
   const [emotion, setEmotion] = useState<string | null>(editTrade?.emotion ?? null);
   const [confidence, setConfidence] = useState<number | null>(editTrade?.confidence ?? null);
   const [setupType, setSetupType] = useState<string | null>(editTrade?.setup_type ?? null);
+  const [setupPresets, setSetupPresets] = useState<string[]>([]);
   const [processScore, setProcessScore] = useState<number | null>(editTrade?.process_score ?? null);
   const [checklist, setChecklist] = useState<Record<string, boolean>>(editTrade?.checklist ?? {});
   const [review, setReview] = useState<Record<string, string>>(editTrade?.review ?? {});
+
+  useEffect(() => {
+    setSetupPresets(getCustomSetupPresets());
+  }, []);
 
   // Tags state
   const [tags, setTags] = useState<string[]>(editTrade?.tags ?? []);
@@ -71,7 +77,7 @@ export function CommodityTradeForm({
       const allTags = new Set<string>();
       if (data) {
         data.forEach((row: { tags: string[] | null }) => {
-          row.tags?.forEach((t) => allTags.add(t));
+          row.tags?.forEach((t) => { if (isUserTag(t)) allTags.add(t); });
         });
       }
       const presets = getCustomTagPresets();
@@ -640,6 +646,7 @@ export function CommodityTradeForm({
               onChange={setTags}
               suggestions={tagSuggestions}
               placeholder="Type tag and press Enter..."
+              onTagAdded={(tag) => addCustomTagPreset(tag)}
             />
           </div>
 
@@ -663,7 +670,13 @@ export function CommodityTradeForm({
 
             <EmotionPicker value={emotion} onChange={setEmotion} />
             <ConfidenceSlider value={confidence} onChange={setConfidence} />
-            <SetupTypePicker value={setupType} onChange={setSetupType} />
+            <SetupTypePicker
+              value={setupType}
+              onChange={setSetupType}
+              savedPresets={setupPresets}
+              onSavePreset={(name) => setSetupPresets(addCustomSetupPreset(name))}
+              onRemovePreset={(name) => setSetupPresets(removeCustomSetupPreset(name))}
+            />
             <PreTradeChecklist value={checklist} onChange={setChecklist} />
 
             {hasExit && (
