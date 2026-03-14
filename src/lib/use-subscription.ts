@@ -21,6 +21,7 @@ const FEATURE_TIERS: Record<string, SubscriptionTier[]> = {
   "tax-reports": ["max"],
   "stock-trading": ["max"],
   "auto-link-notes": ["max"],
+  "phantom-trades": ["pro", "max"],
 };
 
 export function clearSubscriptionCache() {

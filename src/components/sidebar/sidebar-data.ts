@@ -45,6 +45,8 @@ import {
   HelpCircle,
   UserCircle,
   MessageSquareText,
+  Newspaper,
+  Ghost,
 } from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -98,6 +100,7 @@ export const coreItems: NavItem[] = [
   { href: "/dashboard/challenges", label: "Quests", icon: Target },
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy, tourId: "tour-achievements" },
   { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users },
+  { href: "/dashboard/trades/phantoms", label: "Phantom Trades", icon: Ghost },
 ];
 
 const analysisTopItems: NavItem[] = [
@@ -156,6 +159,8 @@ const intelligenceItems: NavItem[] = [
 
 const marketToolsItemsFull: NavItem[] = [
   { href: "/dashboard/market", label: "Market Overview", icon: Globe },
+  { href: "/dashboard/news", label: "Market News", icon: Newspaper },
+  { href: "/dashboard/economic-calendar", label: "Economic Calendar", icon: CalendarDays },
   { href: "/dashboard/screener", label: "Token Screener", icon: Search },
   { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
   { href: "/dashboard/funding-rates", label: "Derivatives", icon: BarChart3 },
@@ -167,6 +172,8 @@ const marketToolsItemsFull: NavItem[] = [
 
 const marketToolsItemsSimple: NavItem[] = [
   { href: "/dashboard/market", label: "Market Overview", icon: Globe },
+  { href: "/dashboard/news", label: "Market News", icon: Newspaper },
+  { href: "/dashboard/economic-calendar", label: "Economic Calendar", icon: CalendarDays },
   { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
   { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
   { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
@@ -259,7 +266,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     key: "journal",
     label: "Journal",
     icon: BookOpen,
-    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5]],
+    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5], coreItems[10]],
   },
   {
     key: "analytics",
@@ -311,6 +318,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Day Grouped": "sidebar.dayGrouped", "Calendar Grouped": "sidebar.calendarGrouped",
   Insights: "sidebar.insights", "AI Coach": "sidebar.aiCoach",
   "Weekly Reports": "sidebar.weeklyReports", "Market Overview": "sidebar.marketOverview",
+  "Market News": "sidebar.marketNews",
   "Token Screener": "sidebar.tokenScreener", "Heat Maps": "sidebar.heatMaps",
   Derivatives: "sidebar.derivatives", "DCA Calculator": "sidebar.dcaCalculator",
   "Risk Calculator": "sidebar.riskCalculator", Playbook: "sidebar.playbook",
@@ -321,6 +329,7 @@ export const LABEL_KEY: Record<string, string> = {
   Feedback: "sidebar.feedback",
   "Help Center": "sidebar.helpCenter",
   "Import / Export": "sidebar.importExport",
+  "Phantom Trades": "sidebar.phantomTrades",
 };
 
 export const SECTION_KEY: Record<string, string> = {
@@ -358,17 +367,29 @@ export function resolveItems(items: NavItem[], assetContext: "crypto" | "stocks"
   if (assetContext === "stocks") {
     return items
       .filter(item => !["/dashboard/dca", "/dashboard/screener", "/dashboard/funding-rates", "/dashboard/prop-firm", "/dashboard/simulations"].includes(item.href))
-      .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/stocks/market" } : item);
+      .map(item => {
+        if (item.href === "/dashboard/market") return { ...item, href: "/dashboard/stocks/market" };
+        if (item.href === "/dashboard/news") return { ...item, href: "/dashboard/stocks/news" };
+        return item;
+      });
   }
   if (assetContext === "commodities") {
     return items
       .filter(item => !["/dashboard/screener", "/dashboard/funding-rates", "/dashboard/prop-firm", "/dashboard/simulations", "/dashboard/stocks/options-analysis"].includes(item.href))
-      .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/commodities/market" } : item);
+      .map(item => {
+        if (item.href === "/dashboard/market") return { ...item, href: "/dashboard/commodities/market" };
+        if (item.href === "/dashboard/news") return { ...item, href: "/dashboard/commodities/news" };
+        return item;
+      });
   }
   if (assetContext === "forex") {
     return items
       .filter(item => !["/dashboard/screener", "/dashboard/funding-rates", "/dashboard/prop-firm", "/dashboard/simulations", "/dashboard/stocks/options-analysis", "/dashboard/heatmaps"].includes(item.href))
-      .map(item => item.href === "/dashboard/market" ? { ...item, href: "/dashboard/forex/market" } : item);
+      .map(item => {
+        if (item.href === "/dashboard/market") return { ...item, href: "/dashboard/forex/market" };
+        if (item.href === "/dashboard/news") return { ...item, href: "/dashboard/forex/news" };
+        return item;
+      });
   }
   return items.filter(item => !item.href.startsWith("/dashboard/stocks/"));
 }
@@ -435,7 +456,7 @@ export function getCategoryForPath(pathname: string): string | null {
   const analyticsPrefixes = ["/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/commodities/analytics", "/dashboard/forex/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/insights", "/dashboard/ai", "/dashboard/reports"];
   if (analyticsPrefixes.some(p => pathname.startsWith(p))) return "analytics";
 
-  const toolsPrefixes = ["/dashboard/market", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/screener", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/dca", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
+  const toolsPrefixes = ["/dashboard/market", "/dashboard/news", "/dashboard/stocks/news", "/dashboard/commodities/news", "/dashboard/forex/news", "/dashboard/economic-calendar", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/screener", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/dca", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
   if (toolsPrefixes.some(p => pathname.startsWith(p))) return "tools";
 
   return null;
