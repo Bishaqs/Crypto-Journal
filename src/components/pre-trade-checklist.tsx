@@ -13,13 +13,16 @@ const DEFAULT_CHECKLIST_ITEMS = [
 export function PreTradeChecklist({
   value,
   onChange,
+  items,
 }: {
   value: Record<string, boolean>;
   onChange: (checklist: Record<string, boolean>) => void;
+  items?: { key: string; label: string }[];
 }) {
   const [expanded, setExpanded] = useState(false);
+  const checklistItems = items ?? DEFAULT_CHECKLIST_ITEMS;
   const checkedCount = Object.values(value).filter(Boolean).length;
-  const allChecked = checkedCount === DEFAULT_CHECKLIST_ITEMS.length;
+  const allChecked = checkedCount === checklistItems.length;
 
   function toggle(key: string) {
     onChange({ ...value, [key]: !value[key] });
@@ -42,7 +45,7 @@ export function PreTradeChecklist({
             Pre-Trade Checklist
           </span>
           <span className="text-[10px] text-muted">
-            {checkedCount}/{DEFAULT_CHECKLIST_ITEMS.length}
+            {checkedCount}/{checklistItems.length}
           </span>
         </div>
         {expanded ? (
@@ -54,7 +57,7 @@ export function PreTradeChecklist({
 
       {expanded && (
         <div className="px-4 py-3 space-y-2 border-t border-border bg-surface">
-          {DEFAULT_CHECKLIST_ITEMS.map((item) => (
+          {checklistItems.map((item) => (
             <label
               key={item.key}
               className="flex items-center gap-3 cursor-pointer group"

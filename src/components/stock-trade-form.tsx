@@ -11,6 +11,8 @@ import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
 import { getCustomTagPresets, addCustomTagPreset, isUserTag } from "@/lib/tag-manager";
 import { getCustomSetupPresets, addCustomSetupPreset, removeCustomSetupPreset } from "@/lib/setup-type-manager";
+import { PlaybookSelector, playbookToChecklistItems } from "./playbook-selector";
+import type { Playbook } from "@/lib/schemas/playbook";
 
 const MARKET_SESSIONS = [
   { value: "pre_market", label: "Pre-Market" },
@@ -50,6 +52,8 @@ export function StockTradeForm({
   const [processScore, setProcessScore] = useState<number | null>(editTrade?.process_score ?? null);
   const [checklist, setChecklist] = useState<Record<string, boolean>>(editTrade?.checklist ?? {});
   const [review, setReview] = useState<Record<string, string>>(editTrade?.review ?? {});
+  const [playbookId, setPlaybookId] = useState<string | null>((editTrade as Record<string, unknown>)?.playbook_id as string | null ?? null);
+  const [selectedPlaybook, setSelectedPlaybook] = useState<Playbook | null>(null);
 
   useEffect(() => {
     setSetupPresets(getCustomSetupPresets());
@@ -130,6 +134,7 @@ export function StockTradeForm({
         process_score: processScore || undefined,
         checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
         review: Object.values(review).some((v) => v.length > 0) ? review : undefined,
+        playbook_id: playbookId || undefined,
         notes: (formData.get("notes") as string) || undefined,
         tags,
         stop_loss: formData.get("stop_loss") as string || undefined,
@@ -615,6 +620,21 @@ export function StockTradeForm({
 
             <EmotionPicker value={emotion} onChange={setEmotion} />
             <ConfidenceSlider value={confidence} onChange={setConfidence} />
+            <PlaybookSelector
+              value={playbookId}
+              onChange={(id, pb) => {
+                setPlaybookId(id);
+                setSelectedPlaybook(pb);
+                if (pb) {
+                  setSetupType(pb.name);
+                  const pbItems = playbookToChecklistItems(pb);
+                  if (pbItems) setChecklist(Object.fromEntries(pbItems.map((item) => [item.key, false])));
+                } else {
+                  setChecklist({});
+                }
+              }}
+              assetClass="stocks"
+            />
             <SetupTypePicker
               value={setupType}
               onChange={setSetupType}
@@ -622,7 +642,7 @@ export function StockTradeForm({
               onSavePreset={(name) => setSetupPresets(addCustomSetupPreset(name))}
               onRemovePreset={(name) => setSetupPresets(removeCustomSetupPreset(name))}
             />
-            <PreTradeChecklist value={checklist} onChange={setChecklist} />
+            <PreTradeChecklist value={checklist} onChange={setChecklist} items={playbookToChecklistItems(selectedPlaybook)} />
 
             {/* Post-trade fields only show when there's an exit price */}
             {hasExit && (

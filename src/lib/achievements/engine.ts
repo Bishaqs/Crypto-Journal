@@ -46,6 +46,7 @@ export async function computeProgress(
     checkinsResult,
     plansResult,
     userLevelResult,
+    playbooksResult,
   ] = await Promise.all([
     supabase
       .from("behavioral_logs")
@@ -73,6 +74,10 @@ export async function computeProgress(
       .select("current_level")
       .eq("user_id", userId)
       .maybeSingle(),
+    supabase
+      .from("playbooks")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId),
   ]);
 
   const trades = (tradesResult.data ?? []) as Array<{
@@ -87,6 +92,7 @@ export async function computeProgress(
   const journalNotes = journalNotesResult.data ?? [];
   const checkins = checkinsResult.data ?? [];
   const plans = plansResult.data ?? [];
+  const playbookCount = playbooksResult.count ?? 0;
   const userLevel = userLevelResult.data;
 
   // ── Pre-compute trade metrics ────────────────────────────────
@@ -404,7 +410,7 @@ export async function computeProgress(
     // New Analysis
     unique_tags_used: allTags.size,
     trades_with_timeframe_tag: tradesWithTimeframeTag,
-    playbook_entries: 0, // TODO: when playbook table exists
+    playbook_entries: playbookCount,
     unique_sectors_traded: uniqueSectors.size,
     trades_with_review: tradesWithReview,
     consistent_setup_usage: maxSetupUsage,

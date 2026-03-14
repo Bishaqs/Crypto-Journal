@@ -86,11 +86,58 @@ When the user asks about images or visual content:
 - If you cannot make out details in an image, say so honestly rather than giving generic analysis
 - Do NOT just say "I can see your images" and then ignore them — describe specific visual details
 
+## Playbook Rule Adherence
+
+The trader may have documented setups in their Playbook (see the "Trader's Playbook" section in the data below).
+When analyzing trades with playbook context available:
+
+1. **Match trades to playbooks**: If a trade has a \`playbook_id\` or \`playbook_name\`, it was explicitly linked to that playbook setup. If it only has a \`setup_type\`, check if it matches a playbook name or tag.
+2. **Grade rule adherence**: For linked trades, evaluate how many entry/exit rules were followed based on the checklist data, post-trade review, trade memo, and trade parameters (stop loss placement, entry timing, position size). Give a concrete score like "4/5 entry rules followed" and name the specific rule that was broken.
+3. **Flag impulse trades**: Trades with NO setup_type AND no playbook link are potential impulse/FOMO trades. Flag them and ask: "What was your thesis for this trade? Which playbook setup does it match?"
+4. **Rule violation callouts**: When trade data contradicts a playbook rule, cite the exact rule. Example: "Your '4H Range Breakout' playbook says 'Wait for 4H candle CLOSE — no wicks', but this trade was opened mid-candle at 14:23 (before the 16:00 close)."
+5. **Playbook performance comparison**: When asked, compare win rates, avg P&L, process scores, and R:R across playbooks. Identify which setups are working and which need revision or retirement.
+6. **Suggest playbook matches**: For unlinked trades with a setup_type, suggest which playbook it most closely matches. For trades with no setup at all, suggest which playbook the entry pattern resembles.
+7. **Process score vs rule adherence**: Cross-reference the trader's self-assessed process_score with actual rule adherence. A high process score but multiple broken rules = self-awareness gap. A low process score with rules actually followed = the trader is being too hard on themselves.
+
 Format rules:
 - Use markdown for formatting
 - Keep responses focused and concise (200-500 words typically)
 - Use bullet points for actionable items
 - Bold key insights`;
+
+/** Build a text summary of the trader's playbook setups for AI context. */
+export function buildPlaybookContext(playbooks: Record<string, unknown>[]): string {
+  if (!playbooks || playbooks.length === 0) return "";
+
+  const active = playbooks.filter((pb) => pb.is_active !== false);
+  if (active.length === 0) return "";
+
+  let ctx = `\n## Trader's Playbook (${active.length} active setup${active.length !== 1 ? "s" : ""})\n`;
+  ctx += `These are the trader's self-defined setups with specific entry/exit rules. Use them to evaluate rule adherence on every trade.\n\n`;
+
+  for (const pb of active) {
+    const entryRules = Array.isArray(pb.entry_rules) ? pb.entry_rules : [];
+    const exitRules = Array.isArray(pb.exit_rules) ? pb.exit_rules : [];
+    const tags = Array.isArray(pb.tags) ? pb.tags : [];
+    ctx += `### ${pb.name} (ID: ${pb.id})\n`;
+    ctx += `Asset class: ${pb.asset_class || "all"}`;
+    if (tags.length > 0) ctx += ` | Tags: ${tags.join(", ")}`;
+    ctx += "\n";
+    if (pb.description) ctx += `${pb.description}\n`;
+    if (entryRules.length > 0) {
+      ctx += `Entry rules:\n${entryRules.map((r: string, i: number) => `  ${i + 1}. ${r}`).join("\n")}\n`;
+    }
+    if (exitRules.length > 0) {
+      ctx += `Exit rules:\n${exitRules.map((r: string, i: number) => `  ${i + 1}. ${r}`).join("\n")}\n`;
+    }
+    if (pb.stop_loss_strategy) ctx += `Stop loss: ${pb.stop_loss_strategy}\n`;
+    if (pb.risk_per_trade) ctx += `Risk per trade: ${pb.risk_per_trade}\n`;
+    const timeframes = Array.isArray(pb.timeframes) ? pb.timeframes : [];
+    if (timeframes.length > 0) ctx += `Timeframes: ${timeframes.join(", ")}\n`;
+    ctx += "\n";
+  }
+  return ctx;
+}
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -333,7 +380,8 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
       ? String(t.close_timestamp).split("T")[0]
       : String(t.open_timestamp).split("T")[0];
     const assetType = t._assetType ? ` [${t._assetType}]` : "";
-    summary += `- ${date} | ${t.symbol} ${t.position}${assetType} | P&L: ${pnl} | Emotion: ${t.emotion || "—"} | Confidence: ${t.confidence ?? "—"}/10 | Process: ${t.process_score ?? "—"}/10 | Setup: ${t.setup_type || "—"}`;
+    const playbookRef = t.playbook_name ? ` | Playbook: ${t.playbook_name}` : t.playbook_id ? ` | Playbook ID: ${t.playbook_id}` : "";
+    summary += `- ${date} | ${t.symbol} ${t.position}${assetType} | P&L: ${pnl} | Emotion: ${t.emotion || "—"} | Confidence: ${t.confidence ?? "—"}/10 | Process: ${t.process_score ?? "—"}/10 | Setup: ${t.setup_type || "—"}${playbookRef}`;
     if (t.notes) summary += ` | Trade memo: ${String(t.notes).slice(0, 80)}`;
     summary += "\n";
   }
