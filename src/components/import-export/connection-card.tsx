@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, RotateCcw, Trash2, Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { RefreshCw, RotateCcw, Trash2, Clock, AlertTriangle, CheckCircle2, Loader2, Wrench } from "lucide-react";
 import type { BrokerConnection, ConnectionStatus, SyncResult } from "@/lib/import-export-types";
 
 const STATUS_CONFIG: Record<ConnectionStatus, { label: string; className: string }> = {
@@ -16,17 +16,20 @@ export function ConnectionCard({
   connection,
   onSync,
   onFullSync,
+  onRepair,
   onDelete,
   syncResult,
 }: {
   connection: BrokerConnection;
   onSync: (id: string) => Promise<void>;
   onFullSync: (id: string) => Promise<void>;
+  onRepair: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   syncResult?: SyncResult;
 }) {
   const [syncing, setSyncing] = useState(false);
   const [fullSyncing, setFullSyncing] = useState(false);
+  const [repairing, setRepairing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -47,6 +50,15 @@ export function ConnectionCard({
       await onFullSync(connection.id);
     } finally {
       setFullSyncing(false);
+    }
+  }
+
+  async function handleRepair() {
+    setRepairing(true);
+    try {
+      await onRepair(connection.id);
+    } finally {
+      setRepairing(false);
     }
   }
 
@@ -140,7 +152,7 @@ export function ConnectionCard({
             )}
             <button
               onClick={handleSync}
-              disabled={syncing || fullSyncing}
+              disabled={syncing || fullSyncing || repairing}
               className="p-2 rounded-lg border border-border text-muted hover:text-accent hover:border-accent/30 transition-all disabled:opacity-30"
               title="Sync new trades"
             >
@@ -148,11 +160,19 @@ export function ConnectionCard({
             </button>
             <button
               onClick={handleFullSync}
-              disabled={syncing || fullSyncing}
+              disabled={syncing || fullSyncing || repairing}
               className="p-2 rounded-lg border border-border text-muted hover:text-accent hover:border-accent/30 transition-all disabled:opacity-30"
               title="Full re-sync (re-fetch all trades)"
             >
               {fullSyncing ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+            </button>
+            <button
+              onClick={handleRepair}
+              disabled={syncing || fullSyncing || repairing}
+              className="p-2 rounded-lg border border-border text-muted hover:text-yellow-400 hover:border-yellow-400/30 transition-all disabled:opacity-30"
+              title="Fix duplicates + reset cursor"
+            >
+              {repairing ? <Loader2 size={14} className="animate-spin" /> : <Wrench size={14} />}
             </button>
             <button
               onClick={() => setConfirmDelete(true)}

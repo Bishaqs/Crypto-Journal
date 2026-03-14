@@ -26,6 +26,7 @@ type SyncDiagnostics = {
   insert_failed: number;
   insert_errors: string[];
   sample_trade_keys?: string[];
+  classification?: { opens: number; closes: number; in_memory_matched: number };
 };
 
 type SyncOutput = {
@@ -274,7 +275,9 @@ async function syncBitget(
   const isFullSync = lastSyncAt === null;
   const phaseAStart = Date.now();
   console.log(`[sync:bitget] Phase A: Fetching fills. lastSync=${lastSyncAt ?? "null"}, daysBack=${daysBack ?? "default"}, oldestFirst=${isFullSync}`);
-  const fetchStart = lastSyncAt ? new Date(lastSyncAt).getTime() : undefined;
+  // Add 1ms to skip the last-synced fill — Bitget's startTime is inclusive,
+  // so using the exact latestFillTime re-fetches it every sync.
+  const fetchStart = lastSyncAt ? new Date(lastSyncAt).getTime() + 1 : undefined;
   const result = await fetchBitgetFills(creds, { startTime: fetchStart, daysBack, deadlineMs: deadline, oldestFirst: isFullSync });
   latestFillTime = result.latestFillTime;
   console.log(`[sync:bitget] Phase A: ${result.fetched} fills in ${Date.now() - phaseAStart}ms (${result.pairedTrades.length} paired, ${result.unmatchedOpens.length} open, ${result.unmatchedCloses.length} close, latestFill=${latestFillTime ? new Date(latestFillTime).toISOString() : "none"})`);
@@ -285,6 +288,11 @@ async function syncBitget(
   diag.phase_a_unmatched_closes = result.unmatchedCloses.length;
   diag.phase_a_all_fill_ids = result.allFillIds.length;
   diag.phase_a_api_errors = [...result.errors];
+  diag.classification = {
+    opens: result.classificationStats.opens,
+    closes: result.classificationStats.closes,
+    in_memory_matched: result.classificationStats.inMemoryMatched,
+  };
 
   const allTrades = [...result.pairedTrades, ...result.unmatchedOpens];
 
@@ -387,14 +395,56 @@ async function syncBitget(
     diag.sample_trade_keys = Object.keys(newTrades[0]);
   }
 
-  // Deadline check before Phase C
+  // Deadline check before Phase D1
   if (Date.now() >= deadline) {
     console.log(`[sync:bitget] Deadline reached after Phase B. ${newTrades.length} new trades identified but not inserted.`);
     return mkResult({ errors: [...result.errors, `Timed out during dedup. ${newTrades.length} new trades found but not inserted. Retry to continue.`] });
   }
 
+  // Split new trades: opens first (so Phase C cross-sync can find them in DB)
+  const newOpens = newTrades.filter((t) => t.exit_price === null);
+  const newPaired = newTrades.filter((t) => t.exit_price !== null);
+
+  // Phase D1: Insert unmatched opens first — Phase C needs them in DB
+  const phaseD1Start = Date.now();
+  let imported = 0;
+  let failed = 0;
+  const CHUNK_SIZE = 20;
+
+  if (!dryRun && newOpens.length > 0) {
+    console.log(`[sync:bitget] Phase D1: Inserting ${newOpens.length} open trades before cross-sync`);
+    for (let i = 0; i < newOpens.length; i += CHUNK_SIZE) {
+      if (Date.now() >= deadline) {
+        const remaining = newOpens.length - i;
+        result.errors.push(`D1 insert incomplete — ${remaining} opens remaining (deadline). Retry to finish.`);
+        break;
+      }
+
+      const chunk = newOpens.slice(i, i + CHUNK_SIZE);
+      const rows = chunk.map((trade: MappedTrade) => ({ user_id: userId, ...trade }));
+
+      const { error: insertError } = await supabase.from("trades").insert(rows);
+      if (insertError) {
+        console.error("[sync:bitget] D1 insert failed:", insertError.message, insertError.code);
+        diag.insert_errors.push(insertError.message);
+        result.errors.push(`D1 insert error: ${insertError.message}`);
+        for (const row of rows) {
+          const { error: singleErr } = await supabase.from("trades").insert(row);
+          if (singleErr) {
+            failed++;
+          } else {
+            imported++;
+          }
+        }
+      } else {
+        imported += chunk.length;
+      }
+    }
+    console.log(`[sync:bitget] Phase D1: ${imported} opens inserted in ${Date.now() - phaseD1Start}ms`);
+  }
+
   // Phase C: Cross-sync matching — update existing open trades with close data
-  // If no matching open is found, store as a close-only trade with back-calculated entry price
+  // Now includes opens just inserted in D1, so same-invocation matching works
   const phaseCStart = Date.now();
   let merged = 0;
   let closeOnlyInserted = 0;
@@ -448,35 +498,8 @@ async function syncBitget(
           result.errors.push(`Merge update failed: ${updateError.message}`);
         }
       } else {
-        // No matching open found — store as close-only trade (entry unknown)
-        console.log(`[sync:bitget] Phase C: No open trade found for close ${closeOrder.orderId} (${closeOrder.symbol}, ${polarity}). Storing as close-only.`);
-        const closeTags = ["bitget-api-sync", "close-only", ...closeOrder.fillIds.map((id) => `close-fill:${id}`)];
-
-        const { error: insertError } = await supabase.from("trades").insert({
-          user_id: userId,
-          symbol: closeOrder.symbol,
-          position: polarity,
-          entry_price: 0,
-          exit_price: closeOrder.vwap,
-          quantity: closeOrder.totalSize || 1,
-          fees: closeOrder.totalFees,
-          open_timestamp: new Date(closeOrder.earliestTime).toISOString(),
-          close_timestamp: new Date(closeOrder.earliestTime).toISOString(),
-          pnl: closeOrder.totalProfit || null,
-          broker_order_id: closeOrder.orderId,
-          broker_name: "Bitget",
-          trade_source: "cex",
-          tags: closeTags,
-        });
-
-        if (!insertError) {
-          closeOnlyInserted++;
-          for (const id of closeOrder.fillIds) existingIds.add(id);
-        } else {
-          console.error(`[sync:bitget] Phase C: Close-only insert failed:`, insertError.message);
-          diag.insert_errors.push(`Close-only: ${insertError.message}`);
-          result.errors.push(`Close-only insert failed: ${insertError.message}`);
-        }
+        console.log(`[sync:bitget] Phase C: No open trade found for close ${closeOrder.orderId} (${closeOrder.symbol}, ${polarity}). Skipping — open may be outside sync window.`);
+        for (const id of closeOrder.fillIds) existingIds.add(id);
       }
     }
   }
@@ -484,43 +507,31 @@ async function syncBitget(
   diag.cross_sync_close_only = closeOnlyInserted;
   console.log(`[sync:bitget] Phase C: Cross-sync complete in ${Date.now() - phaseCStart}ms. Merged ${merged}, close-only ${closeOnlyInserted}.`);
 
-  // Deadline check before Phase D
-  if (Date.now() >= deadline) {
-    console.log(`[sync:bitget] Deadline reached after Phase C. ${newTrades.length} new trades not inserted.`);
-    return mkResult({ merged, errors: [...result.errors, `Timed out before insert. ${newTrades.length} new trades found. Retry to import.`] });
-  }
+  // Phase D2: Insert paired trades (already have exit data)
+  if (!dryRun && newPaired.length > 0) {
+    const phaseD2Start = Date.now();
+    console.log(`[sync:bitget] Phase D2: Inserting ${newPaired.length} paired trades`);
+    diag.insert_attempted = newOpens.length + newPaired.length;
 
-  // Phase D: Insert new trades in chunks
-  const phaseDStart = Date.now();
-  let imported = 0;
-  let failed = 0;
-
-  if (!dryRun && newTrades.length > 0) {
-    const CHUNK_SIZE = 20;
-    diag.insert_attempted = newTrades.length;
-
-    for (let i = 0; i < newTrades.length; i += CHUNK_SIZE) {
+    for (let i = 0; i < newPaired.length; i += CHUNK_SIZE) {
       if (Date.now() >= deadline) {
-        const remaining = newTrades.length - i;
-        result.errors.push(`Insert incomplete — ${remaining} trades remaining (deadline). Retry to finish.`);
+        const remaining = newPaired.length - i;
+        result.errors.push(`D2 insert incomplete — ${remaining} paired trades remaining (deadline). Retry to finish.`);
         break;
       }
 
-      const chunk = newTrades.slice(i, i + CHUNK_SIZE);
+      const chunk = newPaired.slice(i, i + CHUNK_SIZE);
       const rows = chunk.map((trade: MappedTrade) => ({ user_id: userId, ...trade }));
 
       const { error: insertError } = await supabase.from("trades").insert(rows);
       if (insertError) {
-        console.error("[sync:bitget] Insert failed:", insertError.message, insertError.code);
+        console.error("[sync:bitget] D2 insert failed:", insertError.message, insertError.code);
         diag.insert_errors.push(insertError.message);
-        result.errors.push(`Insert error: ${insertError.message}`);
-
-        // Retry individual rows to isolate the bad one
+        result.errors.push(`D2 insert error: ${insertError.message}`);
         for (const row of rows) {
           const { error: singleErr } = await supabase.from("trades").insert(row);
           if (singleErr) {
             failed++;
-            console.error("[sync:bitget] Single insert failed:", singleErr.message);
           } else {
             imported++;
           }
@@ -529,29 +540,18 @@ async function syncBitget(
         imported += chunk.length;
       }
     }
+    console.log(`[sync:bitget] Phase D2: Paired insert complete in ${Date.now() - phaseD2Start}ms`);
+  } else if (!dryRun) {
+    diag.insert_attempted = newOpens.length;
   }
 
   diag.insert_succeeded = imported;
   diag.insert_failed = failed;
-  console.log(`[sync:bitget] Phase D: Insert complete in ${Date.now() - phaseDStart}ms. ${imported} succeeded, ${failed} failed.`);
+  console.log(`[sync:bitget] Phases D1+D2: ${imported} total succeeded, ${failed} failed.`);
 
-  // Legacy cleanup: remove old fill-level rows AFTER successful insert.
-  // Only run on incremental sync — on full re-sync there's no benefit.
-  // Moved after insert so we never delete data without replacements existing.
-  if (!dryRun && !isFullSync && imported > 0 && result.allFillIds.length > 0 && Date.now() < deadline) {
-    diag.legacy_cleanup_skipped = false;
-    const CLEANUP_CHUNK = 200;
-    for (let i = 0; i < result.allFillIds.length; i += CLEANUP_CHUNK) {
-      if (Date.now() >= deadline) break;
-      const chunk = result.allFillIds.slice(i, i + CLEANUP_CHUNK);
-      await supabase
-        .from("trades")
-        .delete()
-        .eq("user_id", userId)
-        .eq("broker_name", "Bitget")
-        .in("broker_order_id", chunk);
-    }
-  }
+  // Legacy cleanup removed — was deleting valid trades by matching broker_order_id
+  // against fill tradeIds, which can collide and destroy just-inserted or existing trades.
+  diag.legacy_cleanup_skipped = true;
 
   const skipped = allTrades.length - newTrades.length;
   // Cursor advancement logic — three outcomes:

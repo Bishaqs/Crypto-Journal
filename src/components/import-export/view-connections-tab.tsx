@@ -153,6 +153,23 @@ export function ViewConnectionsTab() {
     return handleSync(id, true);
   }
 
+  async function handleRepair(id: string) {
+    setSyncResults((prev) => ({ ...prev, [id]: { status: "info", message: "Repairing: removing duplicates and resetting cursor..." } }));
+    try {
+      const res = await fetch(`/api/connections/${id}/repair?mode=dedup-resync`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSyncResults((prev) => ({ ...prev, [id]: { status: "error", message: data.error || "Repair failed." } }));
+      } else {
+        setSyncResults((prev) => ({ ...prev, [id]: { status: "success", message: data.message || "Repair complete." } }));
+        await fetchConnections();
+      }
+    } catch {
+      setSyncResults((prev) => ({ ...prev, [id]: { status: "error", message: "Network error during repair." } }));
+    }
+    setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 15_000);
+  }
+
   async function handleDelete(id: string) {
     try {
       const res = await fetch(`/api/connections/${id}`, { method: "DELETE" });
@@ -243,6 +260,7 @@ export function ViewConnectionsTab() {
                 connection={conn}
                 onSync={handleSync}
                 onFullSync={handleFullSync}
+                onRepair={handleRepair}
                 onDelete={handleDelete}
                 syncResult={syncResults[conn.id]}
               />
