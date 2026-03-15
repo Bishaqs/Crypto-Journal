@@ -341,15 +341,44 @@ export function LegalPrivacyTab({
   const [downloading, setDownloading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Load saved privacy preferences
+  // Load saved privacy preferences from database (GDPR Art. 7 compliant)
   useEffect(() => {
-    const savedAiConsent = localStorage.getItem("stargate-privacy-ai-consent");
-    if (savedAiConsent === "false") setAiConsent(false);
-    const savedAnonUsage = localStorage.getItem("stargate-privacy-anon-usage");
-    if (savedAnonUsage === "false") setAnonUsage(false);
+    async function loadConsents() {
+      try {
+        const res = await fetch("/api/consent");
+        if (res.ok) {
+          const { consents } = await res.json();
+          const ai = consents.find(
+            (c: { consent_type: string; granted: boolean }) =>
+              c.consent_type === "ai_data_processing"
+          );
+          if (ai) setAiConsent(ai.granted);
+        }
+      } catch {
+        // Fall back to localStorage
+        const savedAiConsent = localStorage.getItem("stargate-privacy-ai-consent");
+        if (savedAiConsent === "false") setAiConsent(false);
+      }
+      const savedAnonUsage = localStorage.getItem("stargate-privacy-anon-usage");
+      if (savedAnonUsage === "false") setAnonUsage(false);
+    }
+    loadConsents();
   }, []);
 
-  function savePrivacy() {
+  async function savePrivacy() {
+    // Save AI consent to database (GDPR-compliant: timestamped, versioned, server-side)
+    try {
+      await fetch("/api/consent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consent_type: "ai_data_processing",
+          granted: aiConsent,
+        }),
+      });
+    } catch {
+      // Fallback to localStorage if API fails
+    }
     localStorage.setItem("stargate-privacy-ai-consent", String(aiConsent));
     localStorage.setItem("stargate-privacy-anon-usage", String(anonUsage));
     setPrivacySaved(true);

@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { DateRangeProvider } from "@/lib/date-range-context";
 import { AccountProvider } from "@/lib/account-context";
 import { I18nProvider } from "@/lib/i18n";
+import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,7 +42,10 @@ export default function RootLayout({
         <I18nProvider>
           <ThemeProvider>
             <DateRangeProvider>
-              <AccountProvider>{children}</AccountProvider>
+              <AccountProvider>
+                {children}
+                <CookieConsent />
+              </AccountProvider>
             </DateRangeProvider>
           </ThemeProvider>
         </I18nProvider>

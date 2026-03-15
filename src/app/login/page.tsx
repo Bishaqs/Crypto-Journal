@@ -106,6 +106,7 @@ export default function LoginPage() {
   const [cardCvc, setCardCvc] = useState("");
   const [cardName, setCardName] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const inviteCodeRef = useRef<string | null>(null);
   const refCodeRef = useRef<string | null>(null);
   const router = useRouter();
@@ -134,6 +135,12 @@ export default function LoginPage() {
 
     if (isSignUp && password !== confirmPassword) {
       setError("Passwords don't match.");
+      setLoading(false);
+      return;
+    }
+
+    if (isSignUp && !ageConfirmed) {
+      setError("You must confirm that you are at least 18 years old.");
       setLoading(false);
       return;
     }
@@ -489,6 +496,23 @@ export default function LoginPage() {
                       placeholder="Repeat your password"
                     />
                   </div>
+                )}
+
+                {isSignUp && (
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={ageConfirmed}
+                      onChange={(e) => setAgeConfirmed(e.target.checked)}
+                      className="mt-0.5 accent-accent"
+                    />
+                    <span className="text-xs text-muted leading-relaxed">
+                      I confirm that I am at least 18 years old and agree to the{" "}
+                      <a href="/terms" target="_blank" className="text-accent hover:underline">Terms of Service</a>
+                      {" "}and{" "}
+                      <a href="/privacy" target="_blank" className="text-accent hover:underline">Privacy Policy</a>.
+                    </span>
+                  </label>
                 )}
 
                 {error && (

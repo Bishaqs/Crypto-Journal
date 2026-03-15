@@ -683,11 +683,21 @@ export default function TaxesPage() {
 
       {/* Universal disclaimer — all jurisdictions */}
       {jurisdiction !== "us" && jurisdiction !== "other" && (
-        <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
-          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
-          <p className="text-[11px] text-muted leading-relaxed">
-            <strong className="text-amber-500">Disclaimer:</strong> This is for informational purposes only and does not constitute tax advice. Tax rules for {currentJurisdiction?.name} may change. Always consult a qualified tax professional in your jurisdiction.
-          </p>
+        <div className="space-y-2">
+          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
+            <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+            <p className="text-[11px] text-muted leading-relaxed">
+              <strong className="text-amber-500">Disclaimer:</strong> This is for informational purposes only and does not constitute tax advice. Tax rules for {currentJurisdiction?.name} may change. Always consult a qualified tax professional in your jurisdiction.
+            </p>
+          </div>
+          {jurisdiction === "de" && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
+              <Scale size={14} className="text-amber-500 mt-0.5 shrink-0" />
+              <p className="text-[11px] text-muted leading-relaxed">
+                <strong className="text-amber-500">Hinweis (StBerG):</strong> Steuerliche Datenaufbereitung &mdash; keine Steuerberatung im Sinne des Steuerberatungsgesetzes (StBerG). F&uuml;r individuelle steuerliche Fragen wenden Sie sich bitte an einen Steuerberater oder Lohnsteuerhilfeverein.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
