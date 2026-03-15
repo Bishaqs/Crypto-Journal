@@ -7,7 +7,10 @@ import { tradeSchema, phantomTradeSchema, type TradeFormData, type PhantomTradeF
 import { calculateTradePnl } from "@/lib/calculations";
 import { Trade, PhantomTrade, Chain, DEX_PROTOCOLS, CHAINS } from "@/lib/types";
 import { X, Wallet, Building2, Trash2, Ghost } from "lucide-react";
-import { EmotionPicker, ConfidenceSlider, SetupTypePicker, ProcessScoreInput } from "./psychology-inputs";
+import { EmotionPicker, EmotionQuadrantPicker, ConfidenceSlider, SetupTypePicker, ProcessScoreInput, FlowStateInput } from "./psychology-inputs";
+import { usePsychologyTier } from "@/lib/psychology-tier-context";
+import type { FlowState, CognitiveDistortion } from "@/lib/types";
+import { COGNITIVE_DISTORTIONS, DEFENSE_MECHANISMS } from "@/lib/validators";
 import { PreTradeChecklist } from "./pre-trade-checklist";
 import { PostTradeReview } from "./post-trade-review";
 import { TagInput } from "./tag-input";
@@ -46,6 +49,9 @@ export function TradeForm({
   const [isWhatIf, setIsWhatIf] = useState(initialWhatIf || !!editPhantom);
   const [orderType, setOrderType] = useState<"observation" | "limit">(editPhantom?.order_type ?? "observation");
 
+  // Psychology tier
+  const { tier, isAdvanced, isExpert } = usePsychologyTier();
+
   // Psychology state
   const [emotion, setEmotion] = useState<string | null>(editTrade?.emotion ?? editPhantom?.emotion ?? null);
   const [confidence, setConfidence] = useState<number | null>(editTrade?.confidence ?? editPhantom?.confidence ?? null);
@@ -56,6 +62,10 @@ export function TradeForm({
   const [review, setReview] = useState<Record<string, string>>(editTrade?.review ?? {});
   const [playbookId, setPlaybookId] = useState<string | null>((editTrade as Record<string, unknown>)?.playbook_id as string | null ?? null);
   const [selectedPlaybook, setSelectedPlaybook] = useState<Playbook | null>(null);
+
+  // Expert tier state
+  const [flowState, setFlowState] = useState<FlowState | null>((editTrade?.review as Record<string, string> | null)?.flow_state as FlowState | null ?? null);
+  const [internalDialogue, setInternalDialogue] = useState((editTrade?.review as Record<string, string> | null)?.internal_dialogue ?? "");
 
   useEffect(() => {
     setSetupPresets(getCustomSetupPresets());
@@ -194,7 +204,14 @@ export function TradeForm({
         setup_type: setupType || undefined,
         process_score: processScore || undefined,
         checklist: Object.keys(checklist).length > 0 ? checklist : undefined,
-        review: Object.values(review).some((v) => v.length > 0) ? review : undefined,
+        review: (() => {
+          const r = { ...review };
+          if (isExpert) {
+            if (flowState) r.flow_state = flowState;
+            if (internalDialogue.trim()) r.internal_dialogue = internalDialogue.trim();
+          }
+          return Object.values(r).some((v) => v.length > 0) ? r : undefined;
+        })(),
         playbook_id: playbookId || undefined,
         // DEX fields
         trade_source: tradeSource,
@@ -734,20 +751,53 @@ export function TradeForm({
               }}
               assetClass="crypto"
             />
-            <EmotionPicker value={emotion} onChange={setEmotion} />
-            <ConfidenceSlider value={confidence} onChange={setConfidence} />
-            <SetupTypePicker
-              value={setupType}
-              onChange={setSetupType}
-              savedPresets={setupPresets}
-              onSavePreset={(name) => setSetupPresets(addCustomSetupPreset(name))}
-              onRemovePreset={(name) => setSetupPresets(removeCustomSetupPreset(name))}
-            />
-            <PreTradeChecklist
-              value={checklist}
-              onChange={setChecklist}
-              items={playbookToChecklistItems(selectedPlaybook)}
-            />
+            {/* Emotion — tier-aware */}
+            {tier === "simple" ? (
+              <EmotionQuadrantPicker value={emotion} onChange={setEmotion} />
+            ) : (
+              <EmotionPicker value={emotion} onChange={setEmotion} />
+            )}
+
+            {/* Confidence + Setup — hidden in Simple tier */}
+            {isAdvanced && (
+              <>
+                <ConfidenceSlider value={confidence} onChange={setConfidence} />
+                <SetupTypePicker
+                  value={setupType}
+                  onChange={setSetupType}
+                  savedPresets={setupPresets}
+                  onSavePreset={(name) => setSetupPresets(addCustomSetupPreset(name))}
+                  onRemovePreset={(name) => setSetupPresets(removeCustomSetupPreset(name))}
+                />
+                <PreTradeChecklist
+                  value={checklist}
+                  onChange={setChecklist}
+                  items={playbookToChecklistItems(selectedPlaybook)}
+                />
+              </>
+            )}
+
+            {/* Expert tier — deep psychology fields */}
+            {isExpert && (
+              <div className="border-t border-accent/10 pt-4 space-y-4">
+                <p className="text-[10px] uppercase tracking-wider text-accent/50 font-semibold">
+                  Deep Psychology
+                </p>
+                <FlowStateInput value={flowState} onChange={setFlowState} />
+                <div>
+                  <label className="block text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1.5">
+                    Internal Dialogue
+                  </label>
+                  <textarea
+                    value={internalDialogue}
+                    onChange={(e) => setInternalDialogue(e.target.value)}
+                    placeholder="What story am I telling myself about this trade?"
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs text-foreground placeholder:text-muted/40 focus:outline-none focus:border-accent/50 transition-all resize-none"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Post-trade fields only show when there's an exit price */}
             {hasExit && (
@@ -756,7 +806,7 @@ export function TradeForm({
                   <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold mb-3">
                     Post-Trade Review
                   </p>
-                  <ProcessScoreInput value={processScore} onChange={setProcessScore} />
+                  {isAdvanced && <ProcessScoreInput value={processScore} onChange={setProcessScore} />}
                 </div>
                 <PostTradeReview value={review} onChange={setReview} />
               </>

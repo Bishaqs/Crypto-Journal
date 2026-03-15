@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { EmotionPicker, ProcessScoreInput } from "@/components/psychology-inputs";
+import { EmotionPicker, EmotionQuadrantPicker, ProcessScoreInput, FlowStateInput } from "@/components/psychology-inputs";
+import { usePsychologyTier } from "@/lib/psychology-tier-context";
 import { X, TrendingUp, TrendingDown } from "lucide-react";
+import type { FlowState } from "@/lib/types";
 
 interface PostTradePromptProps {
   tradeId: string;
@@ -13,9 +15,11 @@ interface PostTradePromptProps {
 }
 
 export function PostTradePrompt({ tradeId, symbol, pnl, onClose }: PostTradePromptProps) {
+  const { tier, isAdvanced, isExpert } = usePsychologyTier();
   const [emotion, setEmotion] = useState<string | null>(null);
   const [processScore, setProcessScore] = useState<number | null>(null);
   const [improve, setImprove] = useState("");
+  const [flowState, setFlowState] = useState<FlowState | null>(null);
   const [saving, setSaving] = useState(false);
   const supabase = createClient();
 
@@ -29,9 +33,11 @@ export function PostTradePrompt({ tradeId, symbol, pnl, onClose }: PostTradeProm
     const update: Record<string, unknown> = {};
     if (emotion) update.emotion = emotion;
     if (processScore !== null) update.process_score = processScore;
-    if (improve.trim()) {
-      update.review = { improve: improve.trim() };
-    }
+
+    const reviewData: Record<string, string> = {};
+    if (improve.trim()) reviewData.improve = improve.trim();
+    if (flowState) reviewData.flow_state = flowState;
+    if (Object.keys(reviewData).length > 0) update.review = reviewData;
 
     await supabase.from("trades").update(update).eq("id", tradeId);
     setSaving(false);
@@ -65,17 +71,28 @@ export function PostTradePrompt({ tradeId, symbol, pnl, onClose }: PostTradeProm
 
         {/* Fields */}
         <div className="p-4 space-y-4">
-          {/* Emotion */}
+          {/* Emotion — tier-aware */}
           <div>
             <label className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-2 block">How did this trade feel?</label>
-            <EmotionPicker value={emotion} onChange={setEmotion} />
+            {tier === "simple" ? (
+              <EmotionQuadrantPicker value={emotion} onChange={setEmotion} label="" />
+            ) : (
+              <EmotionPicker value={emotion} onChange={setEmotion} label="" />
+            )}
           </div>
 
-          {/* Process Score */}
-          <div>
-            <label className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-2 block">Process Score</label>
-            <ProcessScoreInput value={processScore} onChange={setProcessScore} />
-          </div>
+          {/* Process Score — Advanced+ */}
+          {isAdvanced && (
+            <div>
+              <label className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-2 block">Process Score</label>
+              <ProcessScoreInput value={processScore} onChange={setProcessScore} />
+            </div>
+          )}
+
+          {/* Flow State — Expert */}
+          {isExpert && (
+            <FlowStateInput value={flowState} onChange={setFlowState} />
+          )}
 
           {/* Quick reflection */}
           <div>

@@ -404,6 +404,37 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
     summary += `\n## Additional Context\n${context.weeklyReport}\n`;
   }
 
+  // ─── Psychology Detection Results ───────────────────────────────────────────
+  try {
+    const { detectSelfSabotage, detectWealthThermostat, detectRiskHomeostasis, detectEndowmentEffect } = require("@/lib/calculations");
+    const typedTrades = closed as unknown as import("./types").Trade[];
+
+    const thermostat = detectWealthThermostat(typedTrades);
+    if (thermostat) {
+      summary += `\n## Wealth Thermostat Detected\n- Ceiling at $${thermostat.ceilingLevel} — hit ${thermostat.peakCount} times, avg retrace ${thermostat.avgRetracePercent}%\n`;
+    }
+
+    const sabotage = detectSelfSabotage(typedTrades);
+    for (const sig of sabotage) {
+      summary += `\n## Self-Sabotage: ${sig.type === "process_break" ? "Process Breaks" : "Profit Givebacks"}\n- ${sig.occurrences} occurrences detected\n`;
+    }
+
+    const homeostasis = detectRiskHomeostasis(typedTrades);
+    if (homeostasis) {
+      summary += `\n## Risk Homeostasis\n- Position sizes change ${homeostasis.changePercent}% after losses vs wins (${homeostasis.direction})\n`;
+    }
+
+    const endowment = detectEndowmentEffect(typedTrades);
+    if (endowment.length > 0) {
+      summary += `\n## Disposition Effect\n`;
+      for (const e of endowment.slice(0, 3)) {
+        summary += `- ${e.symbol}: holds losers ${e.ratio.toFixed(1)}x longer than winners (win: ${e.avgHoldWin.toFixed(1)}h, loss: ${e.avgHoldLoss.toFixed(1)}h)\n`;
+      }
+    }
+  } catch {
+    // Detection functions may not be available in all contexts
+  }
+
   // Final context size safety — hard truncate if still too large
   if (summary.length > 60000) {
     return summary.slice(0, 60000) + "\n\n[Context truncated due to size — aggregate statistics above are computed from ALL data]";

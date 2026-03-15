@@ -209,6 +209,42 @@ export type ExpertSessionLog = {
   created_at: string;
 };
 
+// ─── Psychology Detection Results (computed, not stored) ─────────────────────
+
+export type SelfSabotageSignal = {
+  type: "process_break" | "profit_giveback";
+  occurrences: number;
+  examples: { date: string; pnl: number; processScore: number | null }[];
+};
+
+export type WealthThermostat = {
+  ceilingLevel: number;
+  peakCount: number;
+  peaks: { date: string; pnl: number }[];
+  avgRetracePercent: number;
+};
+
+export type RiskHomeostasis = {
+  sizeAfterWin: number;
+  sizeAfterLoss: number;
+  changePercent: number;
+  direction: "compensating" | "doubling_down";
+};
+
+export type EndowmentEffect = {
+  symbol: string;
+  avgHoldWin: number; // hours
+  avgHoldLoss: number; // hours
+  ratio: number; // avgHoldLoss / avgHoldWin
+};
+
+export type PsychDevelopmentStage = {
+  stage: number; // 1-5
+  label: string;
+  criteria: { met: string[]; unmet: string[] };
+  nextStageHint: string;
+};
+
 // Stats derived from trades — these are calculated, not stored
 export type DashboardStats = {
   totalTrades: number;

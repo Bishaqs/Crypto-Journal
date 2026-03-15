@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Trade, PsychologyProfile, BehavioralLog, DailyCheckin } from "@/lib/types";
+import { Trade, PsychologyProfile, BehavioralLog, DailyCheckin, SelfSabotageSignal, WealthThermostat, RiskHomeostasis, EndowmentEffect, PsychDevelopmentStage } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { usePsychologyTier } from "@/lib/psychology-tier-context";
@@ -17,6 +17,11 @@ import {
   getConfidencePnlData,
   getProcessScorePnlData,
   calculateTradePnl,
+  detectSelfSabotage,
+  detectWealthThermostat,
+  detectRiskHomeostasis,
+  detectEndowmentEffect,
+  calculatePsychDevelopmentStage,
 } from "@/lib/calculations";
 import {
   BarChart,
@@ -34,6 +39,9 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
+  AreaChart,
+  Area,
+  ReferenceLine,
 } from "recharts";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
@@ -115,11 +123,20 @@ export default function PsychologyPage() {
   const riskInfo = profile ? RISK_PERSONALITIES.find((r) => r.id === profile.risk_personality) : null;
   const identityInfo = profile ? SELF_CONCEPT_IDENTITIES.find((i) => i.id === profile.self_concept_identity) : null;
 
-  // Cognitive distortion frequency from expert session logs
-  const distortionFrequency = behavioralLogs.reduce<Record<string, number>>((acc, _log) => {
-    // This would come from expert_session_logs in a full implementation
-    return acc;
-  }, {});
+  // Detection algorithms
+  const selfSabotage = detectSelfSabotage(closedTrades);
+  const wealthThermostat = detectWealthThermostat(closedTrades);
+  const riskHomeostasis = detectRiskHomeostasis(closedTrades);
+  const endowmentEffect = detectEndowmentEffect(closedTrades);
+  const devStage = calculatePsychDevelopmentStage(closedTrades, checkins, behavioralLogs);
+
+  // Equity curve for wealth thermostat chart
+  const equityCurve = (() => {
+    let cum = 0;
+    return closedTrades
+      .sort((a, b) => new Date(a.close_timestamp!).getTime() - new Date(b.close_timestamp!).getTime())
+      .map((t) => { cum += t.pnl!; return { date: t.close_timestamp!.split("T")[0], pnl: cum }; });
+  })();
 
   return (
     <div className="space-y-6 pb-20">
@@ -491,6 +508,156 @@ export default function PsychologyPage() {
           )}
         </section>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 4: PATTERN DETECTION (Advanced+) */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {isAdvanced && (closedTrades.length >= 10) && (
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <TrendingUp size={16} className="text-accent" />
+            Pattern Detection
+            <span className="text-[10px] text-accent/50 font-normal">Algorithmic</span>
+          </h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Wealth Thermostat */}
+            {wealthThermostat ? (
+              <div className="glass rounded-2xl border border-loss/20 p-5 lg:col-span-2" style={{ boxShadow: "var(--shadow-card)" }}>
+                <h3 className="text-xs font-semibold text-loss mb-1">Wealth Thermostat Detected</h3>
+                <p className="text-[10px] text-muted mb-3">
+                  Your equity has bounced off ~${wealthThermostat.ceilingLevel.toLocaleString()} {wealthThermostat.peakCount} times, retracing an average of {wealthThermostat.avgRetracePercent}% each time.
+                </p>
+                <ResponsiveContainer width="100%" height={180}>
+                  <AreaChart data={equityCurve}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+                    <XAxis dataKey="date" tick={{ fill: colors.tick, fontSize: 9 }} tickFormatter={(d: string) => d.slice(5)} />
+                    <YAxis tick={{ fill: colors.tick, fontSize: 9 }} />
+                    <Tooltip contentStyle={{ background: colors.tooltipBg, border: `1px solid ${colors.grid}`, borderRadius: 8, fontSize: 11 }} />
+                    <ReferenceLine y={wealthThermostat.ceilingLevel} stroke="#ef4444" strokeDasharray="5 5" label={{ value: `Ceiling: $${wealthThermostat.ceilingLevel}`, fill: "#ef4444", fontSize: 10 }} />
+                    <Area type="monotone" dataKey="pnl" stroke={colors.accent} fill={colors.accent} fillOpacity={0.1} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : equityCurve.length > 20 && (
+              <div className="glass rounded-2xl border border-win/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+                <h3 className="text-xs font-semibold text-win mb-1">No Wealth Thermostat</h3>
+                <p className="text-[10px] text-muted">Your equity curve doesn&apos;t show a repeated ceiling pattern. This is healthy growth.</p>
+              </div>
+            )}
+
+            {/* Risk Homeostasis */}
+            {riskHomeostasis && (
+              <div className="glass rounded-2xl border border-yellow-500/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+                <h3 className="text-xs font-semibold text-yellow-400 mb-2">Risk Homeostasis</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted">Avg size after win</span>
+                    <span className="text-foreground font-bold">${riskHomeostasis.sizeAfterWin.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted">Avg size after loss</span>
+                    <span className="text-foreground font-bold">${riskHomeostasis.sizeAfterLoss.toLocaleString()}</span>
+                  </div>
+                  <div className={`text-[10px] font-semibold mt-1 ${riskHomeostasis.direction === "doubling_down" ? "text-loss" : "text-yellow-400"}`}>
+                    {riskHomeostasis.direction === "doubling_down"
+                      ? `You size up ${riskHomeostasis.changePercent}% after losses — doubling down`
+                      : `You size down ${Math.abs(riskHomeostasis.changePercent)}% after losses — compensating`}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Self-Sabotage */}
+            {selfSabotage.length > 0 && (
+              <div className="glass rounded-2xl border border-loss/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+                <h3 className="text-xs font-semibold text-loss mb-2">Self-Sabotage Patterns</h3>
+                {selfSabotage.map((sig, i) => (
+                  <div key={i} className="mb-2">
+                    <div className="text-[10px] text-foreground font-medium">
+                      {sig.type === "process_break" ? "Process Breaks" : "Profit Givebacks"}: {sig.occurrences}x
+                    </div>
+                    <div className="text-[10px] text-muted">
+                      {sig.type === "process_break"
+                        ? "High-process streaks broken by sudden low-discipline trades"
+                        : "Profitable weeks followed by overtrading that gives back gains"}
+                    </div>
+                    {sig.examples.slice(0, 2).map((ex, j) => (
+                      <div key={j} className="text-[9px] text-muted/70 mt-0.5">
+                        {ex.date}: ${ex.pnl.toFixed(0)} (process: {ex.processScore ?? "—"})
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Endowment Effect */}
+            {endowmentEffect.length > 0 && (
+              <div className="glass rounded-2xl border border-yellow-500/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+                <h3 className="text-xs font-semibold text-yellow-400 mb-2">Disposition Effect by Symbol</h3>
+                <p className="text-[10px] text-muted mb-2">You hold losing positions longer than winners on these symbols:</p>
+                <div className="space-y-1.5">
+                  {endowmentEffect.slice(0, 5).map((e) => (
+                    <div key={e.symbol} className="flex items-center justify-between text-xs">
+                      <span className="text-foreground font-medium">{e.symbol}</span>
+                      <div className="text-[10px] text-muted">
+                        Win: {e.avgHoldWin.toFixed(1)}h | Loss: {e.avgHoldLoss.toFixed(1)}h |{" "}
+                        <span className={e.ratio > 2 ? "text-loss font-bold" : "text-yellow-400"}>{e.ratio.toFixed(1)}x</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 5: PSYCHOLOGICAL DEVELOPMENT (All tiers) */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <TrendingUp size={16} className="text-accent" />
+          Psychological Development
+        </h2>
+
+        <div className="glass rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+          {/* Stage Progress Bar */}
+          <div className="flex items-center gap-1 mb-4">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <div key={s} className="flex-1 flex flex-col items-center gap-1">
+                <div className={`w-full h-2 rounded-full transition-all ${
+                  s <= devStage.stage ? "bg-accent" : "bg-border/30"
+                }`} />
+                <span className={`text-[8px] ${s === devStage.stage ? "text-accent font-bold" : "text-muted/50"}`}>
+                  {s}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-sm font-bold text-foreground">
+            Stage {devStage.stage}: {devStage.label}
+          </div>
+          <p className="text-[10px] text-muted mt-1">{devStage.nextStageHint}</p>
+
+          {/* Criteria */}
+          <div className="mt-3 space-y-1">
+            {devStage.criteria.met.map((c, i) => (
+              <div key={i} className="flex items-center gap-1.5 text-[10px] text-win">
+                <span>&#10003;</span> {c}
+              </div>
+            ))}
+            {devStage.criteria.unmet.map((c, i) => (
+              <div key={i} className="flex items-center gap-1.5 text-[10px] text-muted/50">
+                <span>&#9675;</span> {c}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Tier upgrade prompts */}
       {tier === "simple" && (
