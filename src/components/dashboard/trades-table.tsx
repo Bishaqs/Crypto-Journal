@@ -1,18 +1,20 @@
 "use client";
 
+import { Fragment, useState } from "react";
 import { Trade } from "@/lib/types";
 import { useMemo } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/theme-context";
 import {
   formatDuration, calculateRMultiple, formatRMultiple, getTotalCommitment,
   getQuarterLabel, calculateTradeMAE, calculateTradeMFE, getMfeMaeRatio,
   getPriceMfePct, calculateBestExitPnl, calculateExitEfficiency,
   calculateBestExitR, getPriceMaePct, formatDurationMs, getTimeTillMfe,
-  getTimeTillMae, getTimeAfterMfe, getTimeAfterMae,
+  getTimeTillMae, getTimeAfterMfe, getTimeAfterMae, calculateTradePnl,
 } from "@/lib/calculations";
 import {
-  useTableState, Pagination,
+  useTableState, Pagination, TradeRowActions,
   type TradeTableColumn, type TableConfig,
 } from "@/components/trade-table";
 
@@ -251,14 +253,18 @@ export function TradesTable({
   trades: Trade[];
   onEdit?: (trade: Trade) => void;
 }) {
+  const router = useRouter();
   const { viewMode } = useTheme();
   const { paginatedData, totalItems, totalPages, state, actions } = useTableState(TABLE_CONFIG, trades);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Derive columns directly from viewMode — no localStorage race condition
   const displayColumns = useMemo(() =>
     viewMode === "full" ? POSITIONS_COLUMNS : POSITIONS_COLUMNS.filter(c => c.defaultVisible),
     [viewMode]
   );
+
+  const totalCols = displayColumns.length + 1; // +1 for actions column
 
   return (
     <div className="glass rounded-2xl border border-border/50 overflow-hidden flex flex-col" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -271,6 +277,7 @@ export function TradesTable({
           <table className="w-full">
             <thead className="bg-background/30 sticky top-0 z-10">
               <tr>
+                <th className="w-[80px] px-2 py-2.5" />
                 {displayColumns.map((col) => (
                   <th
                     key={col.id}
@@ -280,36 +287,88 @@ export function TradesTable({
                     {col.label} {state.sortKey === col.sortKey ? (state.sortDir === "asc" ? "\u2191" : "\u2193") : ""}
                   </th>
                 ))}
-                {onEdit && <th className="px-4 py-2.5" />}
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={displayColumns.length + (onEdit ? 1 : 0)} className="px-4 py-10 text-center text-muted text-sm">
+                  <td colSpan={totalCols} className="px-4 py-10 text-center text-muted text-sm">
                     No positions. Log your first trade.
                   </td>
                 </tr>
               ) : (
-                paginatedData.map((trade) => (
-                  <tr key={trade.id} className="hover:bg-surface-hover/50 transition-colors">
-                    {displayColumns.map((col) => (
-                      <td key={col.id} className={`px-4 py-2.5 ${col.align === "right" ? "text-right" : ""}`}>
-                        {col.renderCell(trade)}
-                      </td>
-                    ))}
-                    {onEdit && (
-                      <td className="px-4 py-2.5">
-                        <button
-                          onClick={() => onEdit(trade)}
-                          className="text-[10px] text-muted hover:text-accent transition-colors px-1.5 py-0.5 rounded-md hover:bg-accent/10"
-                        >
-                          Edit
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                ))
+                paginatedData.map((trade) => {
+                  const isExpanded = expandedId === trade.id;
+                  return (
+                    <Fragment key={trade.id}>
+                      <tr className="hover:bg-surface-hover/50 transition-colors">
+                        <td className="px-2 py-2.5">
+                          <TradeRowActions
+                            onView={() => router.push(`/dashboard/trades/${trade.id}`)}
+                            onEdit={onEdit ? () => onEdit(trade) : undefined}
+                            onExpand={() => setExpandedId(isExpanded ? null : trade.id)}
+                            isExpanded={isExpanded}
+                          />
+                        </td>
+                        {displayColumns.map((col) => (
+                          <td key={col.id} className={`px-4 py-2.5 ${col.align === "right" ? "text-right" : ""}`}>
+                            {col.renderCell(trade)}
+                          </td>
+                        ))}
+                      </tr>
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={totalCols} className="p-0">
+                            <div className="px-6 py-4 bg-background/50 border-b border-border/50 space-y-3">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Entry Price</span>
+                                  <p className="text-foreground font-medium mt-0.5">${trade.entry_price.toFixed(4)}</p>
+                                </div>
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Exit Price</span>
+                                  <p className="text-foreground font-medium mt-0.5">{trade.exit_price !== null ? `$${trade.exit_price.toFixed(4)}` : "—"}</p>
+                                </div>
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Quantity</span>
+                                  <p className="text-foreground font-medium mt-0.5">{trade.quantity}</p>
+                                </div>
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Fees</span>
+                                  <p className="text-foreground font-medium mt-0.5">${trade.fees.toFixed(2)}</p>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Setup</span>
+                                  <p className="text-foreground font-medium mt-0.5">{trade.setup_type ?? "—"}</p>
+                                </div>
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Emotion</span>
+                                  <p className="text-foreground font-medium mt-0.5">{trade.emotion ?? "—"}</p>
+                                </div>
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">R-Multiple</span>
+                                  <p className="text-foreground font-medium mt-0.5">{formatRMultiple(calculateRMultiple(trade)) ?? "—"}</p>
+                                </div>
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Duration</span>
+                                  <p className="text-foreground font-medium mt-0.5">{formatDuration(trade.open_timestamp, trade.close_timestamp)}</p>
+                                </div>
+                              </div>
+                              {trade.notes && (
+                                <div>
+                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Notes</span>
+                                  <p className="text-xs text-muted mt-0.5 leading-relaxed">{trade.notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })
               )}
             </tbody>
           </table>

@@ -23,9 +23,10 @@ import {
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import {
-  useTableState, Pagination, ViewTabs, TableSidebar,
+  useTableState, Pagination, ViewTabs, TableSidebar, TradeRowActions,
   type TradeTableColumn, type FilterDef, type TableConfig,
 } from "@/components/trade-table";
+import { TradeForm } from "@/components/trade-form";
 
 // --- Column definitions ---
 
@@ -341,6 +342,8 @@ export default function TradesPage() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editTrade, setEditTrade] = useState<Trade | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const supabase = createClient();
 
   const { state, visibleColumns, paginatedData, sortedFilteredData, totalItems, totalPages, actions } = useTableState(TABLE_CONFIG, trades);
@@ -511,6 +514,8 @@ export default function TradesPage() {
                       className="w-3.5 h-3.5 rounded border-border text-accent focus:ring-accent/30 bg-background"
                     />
                   </th>
+                  {/* Actions column */}
+                  <th className="w-[80px] px-2 py-3" />
                   {visibleColumns.map((col) => (
                     <th
                       key={col.id}
@@ -543,6 +548,14 @@ export default function TradesPage() {
                             className="w-3.5 h-3.5 rounded border-border text-accent focus:ring-accent/30 bg-background"
                           />
                         </td>
+                        <td className="px-2 py-3" onClick={(e) => e.stopPropagation()}>
+                          <TradeRowActions
+                            onView={() => router.push(`/dashboard/trades/${trade.id}`)}
+                            onEdit={() => { setEditTrade(trade); setShowForm(true); }}
+                            onExpand={() => setExpandedId(isExpanded ? null : trade.id)}
+                            isExpanded={isExpanded}
+                          />
+                        </td>
                         {visibleColumns.map((col) => (
                           <td
                             key={col.id}
@@ -554,7 +567,7 @@ export default function TradesPage() {
                       </tr>
                       {isExpanded && (
                         <tr>
-                          <td colSpan={visibleColumns.length + 1} className="p-0">
+                          <td colSpan={visibleColumns.length + 2} className="p-0">
                             <div className="px-4 py-4 bg-background/50 border-b border-border/50 space-y-3">
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                                 <div>
@@ -630,7 +643,7 @@ export default function TradesPage() {
                 })}
                 {paginatedData.length === 0 && (
                   <tr>
-                    <td colSpan={visibleColumns.length + 1} className="px-4 py-12 text-center text-muted">
+                    <td colSpan={visibleColumns.length + 2} className="px-4 py-12 text-center text-muted">
                       No trades match your filters
                     </td>
                   </tr>
@@ -672,6 +685,20 @@ export default function TradesPage() {
           exportFileName="crypto-trades"
         />
       </div>
+
+      {/* Edit Trade Modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-10 bg-black/60 overflow-y-auto">
+          <div className="relative w-full max-w-2xl mx-4 mb-10">
+            <TradeForm
+              editTrade={editTrade}
+              onClose={() => { setShowForm(false); setEditTrade(null); }}
+              onSaved={() => { setShowForm(false); setEditTrade(null); fetchTrades(); }}
+              variant="modal"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
