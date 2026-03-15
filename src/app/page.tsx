@@ -130,13 +130,6 @@ export default function LandingPage() {
               willChange: 'filter'
             }}
           />
-          <div className="absolute inset-0 lg:left-[20%] opacity-60">
-            <RealisticBlackHole
-              size="large"
-              color={bhColor}
-              opacity={theme === "solara" ? 0.3 : 0.7}
-            />
-          </div>
         </div>
 
         {/* Gradient overlays for text readability */}
