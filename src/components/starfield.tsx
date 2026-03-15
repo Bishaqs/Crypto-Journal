@@ -733,10 +733,21 @@ function VolcanoBackground() {
 
   return (
     <div ref={containerRef} className="absolute inset-0 bg-[#0a0504]">
-      {/* Layer 1: Multi-stop sky gradient — deep space to volcanic horizon */}
-      <div className="absolute inset-0" style={{
-        background: "linear-gradient(180deg, #000000 0%, #080410 15%, #1a0808 35%, #2a1505 55%, #4a2000 75%, #602500 90%, #803000 100%)",
-      }} />
+      {/* Layer 0: Background image */}
+      <img
+        src="/themes/vulcan-bg.webp"
+        alt=""
+        fetchPriority="high"
+        decoding="async"
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center',
+          zIndex: 0,
+          animation: 'vulcan-image-breathe 14s ease-in-out infinite',
+          willChange: 'filter'
+        }}
+      />
 
       {/* Layer 1.1: Faint stars in upper 40% */}
       <div className="absolute top-0 left-0 right-0 h-[40%]" style={{
