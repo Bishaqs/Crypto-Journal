@@ -1599,7 +1599,6 @@ export function Starfield() {
           position: 'absolute', inset: 0, zIndex: 0,
           background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.55) 100%)'
         }} />
-        <RealisticBlackHole size="medium" opacity={0.4} />
         <div className="stars-small" />
         <div className="stars-medium" />
         <div className="stars-large" />
