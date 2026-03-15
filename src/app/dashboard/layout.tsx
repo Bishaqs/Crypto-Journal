@@ -14,6 +14,7 @@ import { ChallengeProvider } from "@/lib/challenges";
 import { CoinsProvider } from "@/lib/coins";
 import { GuideProvider } from "@/components/stargate-guide";
 import { FlashNewsProvider } from "@/lib/news/flash-news-context";
+import { PsychologyTierProvider } from "@/lib/psychology-tier-context";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { SubscriptionTier } from "@/lib/use-subscription";
@@ -30,7 +31,7 @@ const GuideHelp = dynamic(() => import("@/components/stargate-guide/guide-help")
 const GuideSupport = dynamic(() => import("@/components/stargate-guide/guide-support").then(m => ({ default: m.GuideSupport })));
 const Heartbeat = dynamic(() => import("@/components/heartbeat").then(m => ({ default: m.Heartbeat })));
 const FlashNewsBanner = dynamic(() => import("@/components/news/flash-news-banner").then(m => ({ default: m.FlashNewsBanner })));
-const PhantomQuickAdd = dynamic(() => import("@/components/phantom-quick-add").then(m => ({ default: m.PhantomQuickAdd })));
+// PhantomQuickAdd removed — What If is now a toggle inside TradeForm
 
 export default async function DashboardLayout({
   children,
@@ -83,6 +84,7 @@ export default async function DashboardLayout({
 
   return (
     <SubscriptionProvider tier={tier} isOwner={isOwner} isTrial={isTrial}>
+      <PsychologyTierProvider userId={user?.id}>
       <AchievementProvider userId={user?.id}>
         <LevelProvider userId={user?.id}>
           <CosmeticProvider userId={user?.id}>
@@ -111,7 +113,6 @@ export default async function DashboardLayout({
                   <GuideHelp />
                   <GuideSupport />
                   <Heartbeat />
-                  <PhantomQuickAdd />
                 </div>
               </OnboardingTour>
             </FlashNewsProvider>
@@ -121,6 +122,7 @@ export default async function DashboardLayout({
           </CosmeticProvider>
         </LevelProvider>
       </AchievementProvider>
+      </PsychologyTierProvider>
     </SubscriptionProvider>
   );
 }

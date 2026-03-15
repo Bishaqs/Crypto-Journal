@@ -1,6 +1,9 @@
 "use client";
 
-import { EMOTIONS, JOURNAL_EMOTIONS, SETUP_TYPES } from "@/lib/validators";
+import { useState } from "react";
+import { EMOTIONS, JOURNAL_EMOTIONS, SETUP_TYPES, EMOTION_QUADRANTS, FLOW_STATES } from "@/lib/validators";
+import type { EmotionQuadrant } from "@/lib/validators";
+import type { FlowState } from "@/lib/types";
 
 // Emotion icons mapped to each emotion for visual recognition
 export const EMOTION_CONFIG: Record<string, { emoji: string; color: string }> = {
@@ -286,6 +289,171 @@ export function ProcessScoreInput({
               }`}
             >
               {n}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Emotion Quadrant Picker (Simple Tier) ──────────────────────────────────
+
+const QUADRANT_STYLES: Record<EmotionQuadrant, { bg: string; border: string; text: string; activeBg: string }> = {
+  danger: { bg: "bg-red-500/5", border: "border-red-500/20", text: "text-red-400", activeBg: "bg-red-500/15" },
+  caution: { bg: "bg-yellow-500/5", border: "border-yellow-500/20", text: "text-yellow-400", activeBg: "bg-yellow-500/15" },
+  edge: { bg: "bg-emerald-500/5", border: "border-emerald-500/20", text: "text-emerald-400", activeBg: "bg-emerald-500/15" },
+  baseline: { bg: "bg-blue-500/5", border: "border-blue-500/20", text: "text-blue-400", activeBg: "bg-blue-500/15" },
+};
+
+function getQuadrantForEmotion(emotion: string): EmotionQuadrant | null {
+  for (const [key, q] of Object.entries(EMOTION_QUADRANTS)) {
+    if ((q.emotions as readonly string[]).includes(emotion)) return key as EmotionQuadrant;
+  }
+  return null;
+}
+
+export function EmotionQuadrantPicker({
+  value,
+  onChange,
+  label = "How are you feeling?",
+}: {
+  value: string | null;
+  onChange: (emotion: string | null) => void;
+  label?: string;
+}) {
+  const [selectedQuadrant, setSelectedQuadrant] = useState<EmotionQuadrant | null>(
+    value ? getQuadrantForEmotion(value) : null
+  );
+  const [drillDown, setDrillDown] = useState(false);
+
+  function handleQuadrantClick(quadrant: EmotionQuadrant) {
+    if (selectedQuadrant === quadrant) {
+      // Toggle off
+      setSelectedQuadrant(null);
+      setDrillDown(false);
+      onChange(null);
+      return;
+    }
+    setSelectedQuadrant(quadrant);
+    // Auto-select the first emotion in the quadrant as default
+    const firstEmotion = EMOTION_QUADRANTS[quadrant].emotions[0];
+    onChange(firstEmotion);
+    setDrillDown(false);
+  }
+
+  function handleEmotionClick(emotion: string) {
+    onChange(value === emotion ? null : emotion);
+  }
+
+  return (
+    <div>
+      <label className="block text-xs text-muted mb-2">{label}</label>
+
+      {/* Quadrant grid */}
+      <div className="grid grid-cols-2 gap-2">
+        {(Object.entries(EMOTION_QUADRANTS) as [EmotionQuadrant, typeof EMOTION_QUADRANTS[EmotionQuadrant]][]).map(
+          ([key, q]) => {
+            const styles = QUADRANT_STYLES[key];
+            const isActive = selectedQuadrant === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleQuadrantClick(key)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
+                  isActive
+                    ? `${styles.activeBg} ${styles.border} ${styles.text} shadow-sm`
+                    : `${styles.bg} border-border/30 text-muted hover:${styles.border} hover:${styles.text}`
+                }`}
+              >
+                <span className="text-lg">{q.emoji}</span>
+                <div>
+                  <div className="text-xs font-semibold">{q.label}</div>
+                  <div className="text-[10px] opacity-70">{q.description.split(" — ")[0]}</div>
+                </div>
+              </button>
+            );
+          }
+        )}
+      </div>
+
+      {/* Selected emotion display + drill-down toggle */}
+      {selectedQuadrant && value && (
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-xs text-muted">Selected:</span>
+          <span className="text-xs font-medium text-foreground">
+            {EMOTION_CONFIG[value]?.emoji} {value}
+          </span>
+          <button
+            type="button"
+            onClick={() => setDrillDown(!drillDown)}
+            className="text-[10px] text-accent hover:text-accent/80 transition-colors ml-auto"
+          >
+            {drillDown ? "Hide options" : "Be more specific"}
+          </button>
+        </div>
+      )}
+
+      {/* Drill-down: specific emotions within the selected quadrant */}
+      {selectedQuadrant && drillDown && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {EMOTION_QUADRANTS[selectedQuadrant].emotions.map((emotion) => {
+            const config = EMOTION_CONFIG[emotion] ?? { emoji: "❓", color: "" };
+            const isSelected = value === emotion;
+            return (
+              <button
+                key={emotion}
+                type="button"
+                onClick={() => handleEmotionClick(emotion)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all duration-200 ${
+                  isSelected
+                    ? `${config.color} shadow-sm`
+                    : "bg-background border-border text-muted hover:text-foreground hover:border-accent/30"
+                }`}
+              >
+                <span>{config.emoji}</span>
+                {emotion}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Flow State Input (Expert Tier) ─────────────────────────────────────────
+
+export function FlowStateInput({
+  value,
+  onChange,
+}: {
+  value: FlowState | null;
+  onChange: (state: FlowState | null) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-xs text-muted mb-2">
+        Session Flow — How does trading feel right now?
+      </label>
+      <div className="flex gap-1">
+        {FLOW_STATES.map((fs) => {
+          const isSelected = value === fs.id;
+          return (
+            <button
+              key={fs.id}
+              type="button"
+              onClick={() => onChange(isSelected ? null : fs.id as FlowState)}
+              title={fs.description}
+              className={`flex-1 flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg text-[10px] font-medium border transition-all duration-200 ${
+                isSelected
+                  ? "bg-accent/15 border-accent/30 text-accent shadow-sm"
+                  : "bg-background border-border text-muted hover:text-foreground hover:border-accent/30"
+              }`}
+            >
+              <span className="text-sm">{fs.emoji}</span>
+              <span>{fs.label}</span>
             </button>
           );
         })}

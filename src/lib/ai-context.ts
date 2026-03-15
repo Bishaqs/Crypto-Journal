@@ -68,7 +68,32 @@ When playbook data exists:
 
 - Markdown formatting, bold key data points
 - Bullet points for action items
-- End substantive analyses with 1-2 pointed questions to keep the trader reflecting`;
+- End substantive analyses with 1-2 pointed questions to keep the trader reflecting
+
+## Psychology Tier Adaptation
+
+The trader uses a tiered psychology tracking system. Adapt your coaching depth:
+
+**Simple tier**: Focus on emotion-outcome correlations. Keep questions about feelings simple and direct. Use the 4-quadrant model (Danger/Caution/Edge/Baseline). Don't reference advanced concepts.
+
+**Advanced tier**: Reference triggers, biases, and physical states directly in your analysis. Challenge cognitive biases explicitly. Track pattern breaks across sessions. Mention sleep quality and cognitive load correlations when data is available.
+
+**Expert tier**: This trader has completed a full psychological profile. Reference their:
+- Risk personality archetype and how it manifests in their data
+- Money scripts (avoidance/worship/status/vigilance) and how they correlate with specific trading behaviors
+- Loss aversion coefficient — connect it to position management patterns
+- Decision style — adapt your communication accordingly (data for analytical, somatic awareness for intuitive)
+- Self-concept — reference who they said they want to be as a trader
+- Cognitive distortions they've flagged — track frequency and connect to outcomes
+- Somatic patterns — which body sensations precede their best/worst trades
+- Flow state correlation — when they trade in flow vs forced
+- Defense mechanisms — gently point out rationalization, denial, projection patterns
+
+Adapt coaching style to risk personality:
+- Conservative Guardian: validate caution, emphasize capital preservation wins
+- Calculated Risk-Taker: balance data with calculated risk-reward discussions
+- Aggressive Hunter: channel aggression through discipline framing
+- Adaptive Chameleon: help distinguish genuine adaptation from reactive shifting`;
 
 /** Build a text summary of the trader's playbook setups for AI context. */
 export function buildPlaybookContext(playbooks: Record<string, unknown>[]): string {
@@ -414,4 +439,121 @@ export function buildBehavioralContext(
   }
 
   return parts.join("\n") || "No behavioral data available.";
+}
+
+/** Build Expert psychology profile context for AI. */
+export function buildExpertPsychologyContext(
+  profile: {
+    risk_personality: string | null;
+    money_avoidance: number | null;
+    money_worship: number | null;
+    money_status: number | null;
+    money_vigilance: number | null;
+    decision_style: string | null;
+    position_attachment_score: number | null;
+    self_concept_text: string | null;
+    self_concept_identity: string | null;
+    loss_aversion_coefficient: number | null;
+  } | null,
+  sessionLogs: {
+    session_date: string;
+    somatic_areas: string[];
+    somatic_intensity: string | null;
+    flow_state: string | null;
+    cognitive_distortions: string[];
+    defense_mechanisms: string[];
+    internal_dialogue: string | null;
+  }[],
+  tier: string,
+): string {
+  const parts: string[] = [];
+
+  parts.push(`## Psychology Tier: ${tier}`);
+
+  if (!profile) {
+    if (tier === "expert") {
+      parts.push("(Expert tier active but profile assessment not yet completed)");
+    }
+    return parts.join("\n");
+  }
+
+  parts.push(`\n## Trader's Psychology Profile`);
+
+  if (profile.risk_personality) {
+    const labels: Record<string, string> = {
+      conservative_guardian: "Conservative Guardian — prioritizes capital preservation",
+      calculated_risk_taker: "Calculated Risk-Taker — data-driven decisions",
+      aggressive_hunter: "Aggressive Hunter — high conviction, comfortable with volatility",
+      adaptive_chameleon: "Adaptive Chameleon — adjusts to market conditions",
+    };
+    parts.push(`- **Risk Personality**: ${labels[profile.risk_personality] || profile.risk_personality}`);
+  }
+
+  parts.push(`- **Money Scripts**: Avoidance ${profile.money_avoidance?.toFixed(1) ?? "?"}/5, Worship ${profile.money_worship?.toFixed(1) ?? "?"}/5, Status ${profile.money_status?.toFixed(1) ?? "?"}/5, Vigilance ${profile.money_vigilance?.toFixed(1) ?? "?"}/5`);
+
+  if (profile.decision_style) {
+    parts.push(`- **Decision Style**: ${profile.decision_style}`);
+  }
+
+  if (profile.loss_aversion_coefficient) {
+    parts.push(`- **Loss Aversion**: ${profile.loss_aversion_coefficient.toFixed(1)}x (losses feel ${profile.loss_aversion_coefficient.toFixed(1)}x as painful as equivalent gains)`);
+  }
+
+  if (profile.position_attachment_score) {
+    parts.push(`- **Position Attachment**: ${profile.position_attachment_score.toFixed(1)}/5`);
+  }
+
+  if (profile.self_concept_text) {
+    parts.push(`- **Self-Concept**: "As a trader, I am ${profile.self_concept_text}"`);
+  }
+
+  if (profile.self_concept_identity) {
+    parts.push(`- **Identity Archetype**: ${profile.self_concept_identity.replace(/_/g, " ")}`);
+  }
+
+  // Session logs
+  if (sessionLogs.length > 0) {
+    parts.push(`\n## Expert Session Logs (${sessionLogs.length} sessions)`);
+
+    // Somatic patterns
+    const somaticCounts: Record<string, number> = {};
+    const distortionCounts: Record<string, number> = {};
+    const defenseCounts: Record<string, number> = {};
+    const flowCounts: Record<string, number> = {};
+
+    for (const log of sessionLogs) {
+      for (const area of log.somatic_areas) {
+        somaticCounts[area] = (somaticCounts[area] || 0) + 1;
+      }
+      for (const d of log.cognitive_distortions) {
+        distortionCounts[d] = (distortionCounts[d] || 0) + 1;
+      }
+      for (const dm of log.defense_mechanisms) {
+        defenseCounts[dm] = (defenseCounts[dm] || 0) + 1;
+      }
+      if (log.flow_state) {
+        flowCounts[log.flow_state] = (flowCounts[log.flow_state] || 0) + 1;
+      }
+    }
+
+    if (Object.keys(somaticCounts).length > 0) {
+      const sorted = Object.entries(somaticCounts).sort((a, b) => b[1] - a[1]);
+      parts.push(`- **Somatic patterns**: ${sorted.map(([area, count]) => `${area} (${count}x)`).join(", ")}`);
+    }
+
+    if (Object.keys(distortionCounts).length > 0) {
+      const sorted = Object.entries(distortionCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      parts.push(`- **Top cognitive distortions**: ${sorted.map(([d, count]) => `${d.replace(/_/g, " ")} (${count}x)`).join(", ")}`);
+    }
+
+    if (Object.keys(defenseCounts).length > 0) {
+      parts.push(`- **Defense mechanisms**: ${Object.entries(defenseCounts).map(([dm, count]) => `${dm} (${count}x)`).join(", ")}`);
+    }
+
+    if (Object.keys(flowCounts).length > 0) {
+      parts.push(`- **Flow state distribution**: ${Object.entries(flowCounts).map(([fs, count]) => `${fs} (${count}x)`).join(", ")}`);
+    }
+  }
+
+  return parts.join("\n");
 }

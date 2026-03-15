@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { X, Sun, Coffee, Zap } from "lucide-react";
 import { isTourComplete } from "@/lib/onboarding";
+import { usePsychologyTier } from "@/lib/psychology-tier-context";
 
 const MOOD_LEVELS = [
   { value: 1, emoji: "😞", label: "Awful" },
@@ -27,12 +28,31 @@ const TRAFFIC_LIGHTS = [
   { value: "red" as const, color: "bg-loss/10 border-loss/30 text-loss", label: "Sit out today", icon: Sun },
 ];
 
+const SLEEP_LEVELS = [
+  { value: 1, emoji: "😵", label: "Terrible" },
+  { value: 2, emoji: "😴", label: "Poor" },
+  { value: 3, emoji: "😐", label: "OK" },
+  { value: 4, emoji: "😊", label: "Good" },
+  { value: 5, emoji: "🌟", label: "Great" },
+];
+
+const COGNITIVE_LOAD_LEVELS = [
+  { value: 1, emoji: "🧘", label: "Clear" },
+  { value: 2, emoji: "💭", label: "Light" },
+  { value: 3, emoji: "🤔", label: "Moderate" },
+  { value: 4, emoji: "🧠", label: "Heavy" },
+  { value: 5, emoji: "🤯", label: "Overloaded" },
+];
+
 export function DailyCheckin() {
+  const { isAdvanced } = usePsychologyTier();
   const [show, setShow] = useState(false);
   const [mood, setMood] = useState<number | null>(null);
   const [energy, setEnergy] = useState<number | null>(null);
   const [focus, setFocus] = useState("");
   const [trafficLight, setTrafficLight] = useState<"green" | "yellow" | "red" | null>(null);
+  const [sleepQuality, setSleepQuality] = useState<number | null>(null);
+  const [cognitiveLoad, setCognitiveLoad] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   const supabase = createClient();
@@ -63,13 +83,18 @@ export function DailyCheckin() {
     if (!mood || !trafficLight) return;
     setSaving(true);
 
-    await supabase.from("daily_checkins").upsert({
+    const payload: Record<string, unknown> = {
       date: today,
       mood,
       energy,
       focus: focus || null,
       traffic_light: trafficLight,
-    }, { onConflict: "user_id,date" });
+    };
+    if (isAdvanced) {
+      payload.sleep_quality = sleepQuality;
+      payload.cognitive_load = cognitiveLoad;
+    }
+    await supabase.from("daily_checkins").upsert(payload, { onConflict: "user_id,date" });
 
     // Award XP for daily check-in
     try {
@@ -161,6 +186,52 @@ export function DailyCheckin() {
               className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
             />
           </div>
+
+          {/* Advanced: Sleep Quality */}
+          {isAdvanced && (
+            <div>
+              <label className="block text-xs text-muted mb-2">Sleep last night?</label>
+              <div className="flex gap-2">
+                {SLEEP_LEVELS.map((level) => (
+                  <button
+                    key={level.value}
+                    onClick={() => setSleepQuality(sleepQuality === level.value ? null : level.value)}
+                    className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border transition-all ${
+                      sleepQuality === level.value
+                        ? "bg-accent/10 border-accent/30 shadow-sm"
+                        : "bg-background border-border hover:border-accent/20"
+                    }`}
+                  >
+                    <span className="text-xl">{level.emoji}</span>
+                    <span className="text-[10px] text-muted">{level.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Advanced: Cognitive Load */}
+          {isAdvanced && (
+            <div>
+              <label className="block text-xs text-muted mb-2">Mental load right now?</label>
+              <div className="flex gap-2">
+                {COGNITIVE_LOAD_LEVELS.map((level) => (
+                  <button
+                    key={level.value}
+                    onClick={() => setCognitiveLoad(cognitiveLoad === level.value ? null : level.value)}
+                    className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border transition-all ${
+                      cognitiveLoad === level.value
+                        ? "bg-accent/10 border-accent/30 shadow-sm"
+                        : "bg-background border-border hover:border-accent/20"
+                    }`}
+                  >
+                    <span className="text-xl">{level.emoji}</span>
+                    <span className="text-[10px] text-muted">{level.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Traffic Light */}
           <div>

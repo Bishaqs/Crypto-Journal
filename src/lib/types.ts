@@ -88,6 +88,9 @@ export type DailyCheckin = {
   energy: number | null;
   focus: string | null;
   traffic_light: "green" | "yellow" | "red";
+  // Advanced tier fields
+  sleep_quality: number | null; // 1-5
+  cognitive_load: number | null; // 1-5
   created_at: string;
 };
 
@@ -112,6 +115,97 @@ export type BehavioralLog = {
   biases: string[];
   traffic_light: "green" | "yellow" | "red";
   note: string | null;
+  // Advanced tier fields
+  cognitive_load: number | null; // 1-5
+  sleep_quality: number | null; // 1-5
+  narrative_attachment: number | null; // 1-5
+  environment_context: Record<string, unknown>;
+  psychology_tier: PsychologyTier;
+  created_at: string;
+};
+
+// ─── Psychology Tier System ──────────────────────────────────────────────────
+
+export type PsychologyTier = "simple" | "advanced" | "expert";
+
+export type RiskPersonality = "conservative_guardian" | "calculated_risk_taker" | "aggressive_hunter" | "adaptive_chameleon";
+export type DecisionStyle = "intuitive" | "analytical" | "hybrid";
+export type SelfConceptIdentity = "disciplined_executor" | "pattern_hunter" | "contrarian" | "survivor" | "student";
+export type FlowState = "forced" | "effortful" | "neutral" | "smooth" | "flow";
+export type SomaticArea = "chest" | "stomach" | "jaw" | "shoulders" | "hands" | "none";
+export type SomaticIntensity = "light" | "moderate" | "strong";
+export type DecisionQualityTrend = "improving" | "stable" | "declining";
+
+export type CognitiveDistortion =
+  | "all_or_nothing"
+  | "catastrophizing"
+  | "fortune_telling"
+  | "mind_reading"
+  | "emotional_reasoning"
+  | "should_statements"
+  | "labeling"
+  | "magnification"
+  | "minimization"
+  | "personalization"
+  | "overgeneralization"
+  | "mental_filter";
+
+export type DefenseMechanism =
+  | "rationalization"
+  | "denial"
+  | "projection"
+  | "intellectualization";
+
+export type MoneyScripts = {
+  avoidance: number; // 1-5
+  worship: number; // 1-5
+  status: number; // 1-5
+  vigilance: number; // 1-5
+};
+
+export type UserPreferences = {
+  user_id: string;
+  psychology_tier: PsychologyTier;
+  preferences: Record<string, unknown>;
+  updated_at: string;
+};
+
+export type PsychologyProfile = {
+  id: string;
+  user_id: string;
+  version: number;
+  risk_personality: RiskPersonality | null;
+  risk_scenario_responses: Record<string, unknown>;
+  money_avoidance: number | null;
+  money_worship: number | null;
+  money_status: number | null;
+  money_vigilance: number | null;
+  money_script_responses: Record<string, unknown>;
+  decision_style: DecisionStyle | null;
+  decision_style_responses: Record<string, unknown>;
+  position_attachment_score: number | null;
+  attachment_responses: Record<string, unknown>;
+  self_concept_text: string | null;
+  self_concept_identity: SelfConceptIdentity | null;
+  loss_aversion_coefficient: number | null;
+  loss_aversion_responses: Record<string, unknown>;
+  completed_at: string | null;
+  reassess_after: string | null;
+  created_at: string;
+};
+
+export type ExpertSessionLog = {
+  id: string;
+  user_id: string;
+  session_date: string;
+  somatic_areas: SomaticArea[];
+  somatic_intensity: SomaticIntensity | null;
+  flow_state: FlowState | null;
+  cognitive_distortions: CognitiveDistortion[];
+  defense_mechanisms: DefenseMechanism[];
+  internal_dialogue: string | null;
+  decisions_count: number | null;
+  decision_quality_trend: DecisionQualityTrend | null;
   created_at: string;
 };
 
