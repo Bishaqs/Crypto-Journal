@@ -246,7 +246,12 @@ export async function fetchBitgetPositions(
         }
       }
 
+      const prevCursor = cursor;
       cursor = json.data?.endId ?? list[list.length - 1].positionId;
+      if (cursor === prevCursor) {
+        console.log(`[sync:positions] Cursor stuck at ${cursor} — stopping pagination`);
+        break;
+      }
       if (list.length < 100) break; // Last page
     } catch (err) {
       errors.push(err instanceof Error ? err.message : "Network error fetching positions");
@@ -254,7 +259,20 @@ export async function fetchBitgetPositions(
     }
   }
 
-  return { closedTrades, openTrades: [], fetched, errors, latestCloseTime };
+  // Deduplicate by positionId — broken pagination can return same positions on multiple pages
+  const seen = new Set<string>();
+  const uniqueTrades: MappedTrade[] = [];
+  for (const t of closedTrades) {
+    if (!seen.has(t.broker_order_id)) {
+      seen.add(t.broker_order_id);
+      uniqueTrades.push(t);
+    }
+  }
+  if (uniqueTrades.length < closedTrades.length) {
+    console.log(`[sync:positions] Deduped ${closedTrades.length} → ${uniqueTrades.length} positions (${closedTrades.length - uniqueTrades.length} duplicates from pagination)`);
+  }
+
+  return { closedTrades: uniqueTrades, openTrades: [], fetched, errors, latestCloseTime };
 }
 
 /** Raw response shape from GET /api/v2/mix/position/all-position */
