@@ -742,7 +742,7 @@ function pairBitgetFills(rawFills: BitgetFill[]): PairResult {
           fees: entry.order.totalFees * entryProportion + order.totalFees * closeProportion,
           open_timestamp: new Date(entry.order.earliestTime).toISOString(),
           close_timestamp: new Date(order.earliestTime).toISOString(),
-          pnl: order.totalProfit ? order.totalProfit * closeProportion : null,
+          pnl: order.totalProfit !== 0 ? order.totalProfit * closeProportion : 0,
           broker_order_id: entry.order.orderId,
           broker_name: "Bitget",
           trade_source: "cex",
