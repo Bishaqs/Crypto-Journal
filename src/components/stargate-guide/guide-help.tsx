@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { Send, ExternalLink, BookOpen, ArrowLeft, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -10,6 +9,7 @@ import {
   scoreFaq,
 } from "@/lib/help-content";
 import { useGuide } from "./guide-context";
+import { useHelpCenter } from "@/lib/help-center-context";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -32,7 +32,7 @@ const HTML_CLASSES =
 
 export function GuideHelp() {
   const { state, closeMenu, setMenuPanel } = useGuide();
-  const router = useRouter();
+  const helpCenter = useHelpCenter();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [submittedQuestions, setSubmittedQuestions] = useState<Set<string>>(new Set());
@@ -134,13 +134,13 @@ export function GuideHelp() {
     }
   }
 
-  function goToHelpCenter(query?: string) {
+  function goToHelpCenter(articleId?: string) {
     closeMenu();
-    router.push(
-      query
-        ? `/dashboard/help?q=${encodeURIComponent(query)}`
-        : "/dashboard/help",
-    );
+    if (articleId) {
+      helpCenter.openArticle(articleId);
+    } else {
+      helpCenter.openHelpCenter();
+    }
   }
 
   if (!open) return null;
@@ -240,10 +240,7 @@ export function GuideHelp() {
                         )}
                         {msg.matchId && (
                           <button
-                            onClick={() => {
-                              const entry = FAQ_MAP[msg.matchId!];
-                              if (entry) goToHelpCenter(entry.question);
-                            }}
+                            onClick={() => goToHelpCenter(msg.matchId!)}
                             className="mt-2 text-[10px] text-accent/60 hover:text-accent transition-colors flex items-center gap-1"
                           >
                             <ExternalLink size={10} />

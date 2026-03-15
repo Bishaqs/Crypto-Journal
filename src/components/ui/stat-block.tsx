@@ -9,6 +9,7 @@ export function StatBlock({
   icon: Icon,
   color = "text-foreground",
   tooltip,
+  articleId,
 }: {
   label: string;
   value: string;
@@ -16,6 +17,7 @@ export function StatBlock({
   icon: React.ElementType;
   color?: string;
   tooltip?: string;
+  articleId?: string;
 }) {
   return (
     <div
@@ -24,7 +26,7 @@ export function StatBlock({
     >
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] text-muted font-semibold uppercase tracking-widest flex items-center gap-1">
-          {label}{tooltip && <InfoTooltip text={tooltip} size={12} />}
+          {label}{tooltip && <InfoTooltip text={tooltip} size={12} articleId={articleId} />}
         </span>
         <div className="p-1.5 rounded-lg bg-accent/8">
           <Icon size={14} className="text-accent" />

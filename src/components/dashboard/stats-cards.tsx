@@ -16,6 +16,7 @@ function StatCard({
   icon: Icon,
   valueColor = "text-foreground",
   tooltip,
+  articleId,
 }: {
   label: string;
   value: string;
@@ -23,13 +24,14 @@ function StatCard({
   icon: React.ElementType;
   valueColor?: string;
   tooltip?: string;
+  articleId?: string;
 }) {
   return (
     <div className="relative glass rounded-2xl border border-border/50 p-5 overflow-hidden group hover:border-accent/30 hover:shadow-[0_0_20px_rgba(0,180,216,0.15)] hover:-translate-y-0.5 transition-all duration-300" style={{ boxShadow: "var(--shadow-card)" }}>
       <div className="absolute inset-0 bg-gradient-to-br from-accent-glow/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] text-muted font-medium uppercase tracking-widest flex items-center gap-1">{label}{tooltip && <InfoTooltip text={tooltip} size={12} />}</span>
+          <span className="text-[11px] text-muted font-medium uppercase tracking-widest flex items-center gap-1">{label}{tooltip && <InfoTooltip text={tooltip} size={12} articleId={articleId} />}</span>
           <div className="p-1.5 rounded-lg bg-accent/8">
             <Icon size={14} className="text-accent" />
           </div>
@@ -52,7 +54,7 @@ function WinRateCard({ stats }: { stats: DashboardStats }) {
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[11px] text-muted font-medium uppercase tracking-widest flex items-center gap-1">
-            Win Rate <InfoTooltip text="Percentage of trades that were profitable" size={12} />
+            Win Rate <InfoTooltip text="Percentage of trades that were profitable" size={12} articleId="an-win-rate" />
           </span>
           <span className="text-[11px] text-muted">
             {stats.totalTrades} trades
@@ -123,6 +125,7 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
         icon={TrendingUp}
         valueColor={stats.profitFactor >= 1 ? "text-win" : "text-loss"}
         tooltip="Gross wins divided by gross losses — above 1.0 means net positive"
+        articleId="an-profit-factor"
       />
       <StatCard
         label="Realized"

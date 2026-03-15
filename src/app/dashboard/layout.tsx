@@ -13,6 +13,7 @@ import { CosmeticProvider } from "@/lib/cosmetics";
 import { ChallengeProvider } from "@/lib/challenges";
 import { CoinsProvider } from "@/lib/coins";
 import { GuideProvider } from "@/components/stargate-guide";
+import { HelpCenterProvider } from "@/lib/help-center-context";
 import { FlashNewsProvider } from "@/lib/news/flash-news-context";
 import { PsychologyTierProvider } from "@/lib/psychology-tier-context";
 import { createClient } from "@/lib/supabase/server";
@@ -31,6 +32,7 @@ const GuideHelp = dynamic(() => import("@/components/stargate-guide/guide-help")
 const GuideSupport = dynamic(() => import("@/components/stargate-guide/guide-support").then(m => ({ default: m.GuideSupport })));
 const Heartbeat = dynamic(() => import("@/components/heartbeat").then(m => ({ default: m.Heartbeat })));
 const FlashNewsBanner = dynamic(() => import("@/components/news/flash-news-banner").then(m => ({ default: m.FlashNewsBanner })));
+const HelpCenterPanel = dynamic(() => import("@/components/help-center/help-center-panel").then(m => ({ default: m.HelpCenterPanel })));
 // PhantomQuickAdd removed — What If is now a toggle inside TradeForm
 
 export default async function DashboardLayout({
@@ -91,6 +93,7 @@ export default async function DashboardLayout({
             <ChallengeProvider userId={user?.id}>
             <CoinsProvider userId={user?.id}>
             <GuideProvider>
+            <HelpCenterProvider>
             <FlashNewsProvider>
               <OnboardingGate userId={user?.id} isReturningUser={isReturningUser} />
               <OnboardingTour>
@@ -113,9 +116,11 @@ export default async function DashboardLayout({
                   <GuideHelp />
                   <GuideSupport />
                   <Heartbeat />
+                  <HelpCenterPanel />
                 </div>
               </OnboardingTour>
             </FlashNewsProvider>
+            </HelpCenterProvider>
             </GuideProvider>
             </CoinsProvider>
             </ChallengeProvider>

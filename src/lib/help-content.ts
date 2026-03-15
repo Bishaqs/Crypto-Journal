@@ -5103,6 +5103,25 @@ export const FAQ_MAP: Record<string, FaqEntry> = Object.fromEntries(
   FAQ_ENTRIES.map((e) => [e.id, e])
 );
 
+/** Maps metric/stat names to FAQ article IDs for InfoTooltip click-to-help */
+export const METRIC_ARTICLE_MAP: Record<string, string> = {
+  "win-rate": "an-win-rate",
+  "expectancy": "an-expectancy",
+  "profit-factor": "an-profit-factor",
+  "r-value": "an-r-value",
+  "mfe-mae": "an-mfe-mae",
+  "equity-curve": "an-equity-curve",
+  "calendar": "an-calendar",
+  "execution": "an-execution",
+  "drawdown": "an-drawdown",
+  "hold-time": "an-hold-time",
+  "consecutive-losses": "an-consecutive-losses",
+  "gross-vs-net": "an-gross-vs-net",
+  "process-score": "tj-process-score",
+  "tags": "tj-tags",
+  "playbook": "an-playbook",
+};
+
 export function scoreFaq(entry: FaqEntry, query: string): number {
   if (!query) return 1;
   const q = query.toLowerCase().trim();
