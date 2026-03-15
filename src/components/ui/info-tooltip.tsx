@@ -3,15 +3,27 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Info } from "lucide-react";
+import { useHelpCenterSafe } from "@/lib/help-center-context";
 
 const TOOLTIP_W = 256; // w-64
 const PAD = 8;
 const GAP = 8;
 
-export function InfoTooltip({ text, size = 14, position = "below" }: { text: string; size?: number; position?: "above" | "below" }) {
+export function InfoTooltip({
+  text,
+  size = 14,
+  position = "below",
+  articleId,
+}: {
+  text: string;
+  size?: number;
+  position?: "above" | "below";
+  articleId?: string;
+}) {
   const [show, setShow] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const { openArticle } = useHelpCenterSafe();
 
   useEffect(() => {
     if (!show || !btnRef.current) { setCoords(null); return; }
@@ -22,6 +34,14 @@ export function InfoTooltip({ text, size = 14, position = "below" }: { text: str
     setCoords({ top, left });
   }, [show, position]);
 
+  function handleClick() {
+    if (articleId) {
+      openArticle(articleId);
+    } else {
+      setShow(!show);
+    }
+  }
+
   return (
     <span className="relative inline-flex items-center">
       <button
@@ -29,7 +49,7 @@ export function InfoTooltip({ text, size = 14, position = "below" }: { text: str
         type="button"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
-        onClick={() => setShow(!show)}
+        onClick={handleClick}
         className="text-muted/50 hover:text-muted transition-colors"
       >
         <Info size={size} />

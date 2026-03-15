@@ -9,6 +9,7 @@ import { StargateLogo } from "../stargate-logo";
 import { LevelBadge } from "./level-badge";
 import { RAIL_CATEGORIES, getCategoryForPath } from "./sidebar-data";
 import { useI18n } from "@/lib/i18n";
+import { useHelpCenter } from "@/lib/help-center-context";
 import type { AssetContext } from "@/lib/addons";
 
 const HOME_ICONS: Record<AssetContext, LucideIcon> = {
@@ -33,6 +34,7 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
   const pathname = usePathname();
   const currentCategory = getCategoryForPath(pathname);
   const { t } = useI18n();
+  const { state: helpState, openHelpCenter } = useHelpCenter();
   const [homePopupOpen, setHomePopupOpen] = useState(false);
   const homePopupRef = useRef<HTMLDivElement>(null);
 
@@ -174,17 +176,17 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
         >
           <MessageSquareText size={20} />
         </Link>
-        <Link
-          href="/dashboard/help"
+        <button
+          onClick={openHelpCenter}
           title={t("sidebar.helpCenter") || "Help Center"}
           className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
-            pathname.startsWith("/dashboard/help")
+            helpState.isOpen
               ? "text-accent bg-accent/10"
               : "text-muted hover:text-foreground hover:bg-surface-hover"
           }`}
         >
           <HelpCircle size={20} />
-        </Link>
+        </button>
         <Link
           href="/dashboard/settings"
           title={t("sidebar.settings") || "Settings"}
