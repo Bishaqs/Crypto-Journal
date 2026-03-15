@@ -111,6 +111,219 @@ export function buildHeaders(
 
 const BASE = "https://api.bitget.com";
 
+// ── Position-based sync (primary) ────────────────────────────
+
+/** Raw response shape from GET /api/v2/mix/position/history-position */
+export type BitgetHistoryPosition = {
+  positionId: string;
+  symbol: string;
+  holdSide: string;          // "long" | "short"
+  openAvgPrice: string;
+  closeAvgPrice: string;
+  openTotalPos: string;
+  closeTotalPos: string;
+  pnl: string;
+  netProfit: string;
+  totalFunding: string;
+  openFee: string;
+  closeFee: string;
+  marginCoin: string;
+  marginMode: string;        // "isolated" | "crossed"
+  posMode: string;           // "one_way_mode" | "hedge_mode"
+  ctime: string;             // open timestamp ms
+  utime: string;             // close timestamp ms
+};
+
+export type PositionSyncResult = {
+  closedTrades: MappedTrade[];
+  openTrades: MappedTrade[];
+  fetched: number;
+  errors: string[];
+  latestCloseTime: number | null;
+};
+
+/**
+ * Fetch closed positions from Bitget's history-position endpoint.
+ * Returns COMPLETE trades with entry+exit — no classification or pairing needed.
+ * Limitation: only data within 3 months.
+ */
+export async function fetchBitgetPositions(
+  creds: BitgetCredentials,
+  options?: { deadlineMs?: number; maxPages?: number },
+): Promise<PositionSyncResult> {
+  const closedTrades: MappedTrade[] = [];
+  const errors: string[] = [];
+  let fetched = 0;
+  let latestCloseTime: number | null = null;
+  const maxPages = options?.maxPages ?? 10;
+
+  let cursor: string | undefined;
+
+  for (let page = 0; page < maxPages; page++) {
+    if (options?.deadlineMs && Date.now() >= options.deadlineMs - 1500) {
+      errors.push(`Stopped after ${page} pages (deadline). Retry to continue.`);
+      break;
+    }
+
+    const params = new URLSearchParams({ productType: "USDT-FUTURES", marginCoin: "USDT", limit: "100" });
+    if (cursor) params.set("endId", cursor);
+
+    const path = "/api/v2/mix/position/history-position";
+    const query = "?" + params.toString();
+    const fullPath = path + query;
+
+    try {
+      const headers = buildHeaders(creds, "GET", fullPath);
+      const res = await fetch(BASE + fullPath, {
+        headers,
+        signal: AbortSignal.timeout(4000),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          errors.push("Auth failed. Check API key/secret/passphrase.");
+          break;
+        }
+        // 404 = endpoint not available for this account type — silent fallback to fills
+        if (res.status === 404) {
+          console.log(`[sync:positions] history-position returned 404 — endpoint not available, will use fills fallback`);
+          break;
+        }
+        errors.push(`Bitget server error (HTTP ${res.status}).`);
+        break;
+      }
+
+      const json = await res.json();
+      if (json.code !== "00000") {
+        errors.push(`Bitget API error: ${json.msg || json.code}`);
+        break;
+      }
+
+      const list: BitgetHistoryPosition[] = json.data?.list ?? [];
+      if (page === 0) {
+        console.log(`[sync:positions] history-position page 0: ${list.length} items. First:`, list[0] ? JSON.stringify(list[0]).slice(0, 300) : "none");
+      }
+      if (list.length === 0) break;
+
+      fetched += list.length;
+
+      for (const pos of list) {
+        const closePrice = parseFloat(pos.closeAvgPrice) || 0;
+        const closeTime = parseInt(pos.utime);
+
+        // Skip positions that haven't been closed (closeAvgPrice = 0 or missing)
+        if (closePrice <= 0) continue;
+
+        if (!isNaN(closeTime) && (latestCloseTime === null || closeTime > latestCloseTime)) {
+          latestCloseTime = closeTime;
+        }
+
+        const holdSide = pos.holdSide?.toLowerCase() as "long" | "short";
+        // Use netProfit (after fees+funding) for PnL. This value is already net,
+        // so fees stored separately are informational only — don't subtract again.
+        const rawNetProfit = parseFloat(pos.netProfit);
+        const rawPnl = parseFloat(pos.pnl);
+        const tradePnl = !isNaN(rawNetProfit) ? rawNetProfit : !isNaN(rawPnl) ? rawPnl : null;
+
+        closedTrades.push({
+          symbol: pos.symbol,
+          position: holdSide === "short" ? "short" : "long",
+          entry_price: parseFloat(pos.openAvgPrice) || 0,
+          exit_price: closePrice,
+          quantity: parseFloat(pos.closeTotalPos) || parseFloat(pos.openTotalPos) || 0,
+          fees: Math.abs(parseFloat(pos.openFee) || 0) + Math.abs(parseFloat(pos.closeFee) || 0),
+          pnl: tradePnl,
+          open_timestamp: new Date(parseInt(pos.ctime)).toISOString(),
+          close_timestamp: new Date(closeTime).toISOString(),
+          broker_order_id: pos.positionId,
+          broker_name: "Bitget",
+          trade_source: "cex",
+          tags: ["bitget-api-sync", "from-position-history"],
+        });
+      }
+
+      cursor = json.data?.endId ?? list[list.length - 1].positionId;
+      if (list.length < 100) break; // Last page
+    } catch (err) {
+      errors.push(err instanceof Error ? err.message : "Network error fetching positions");
+      break;
+    }
+  }
+
+  return { closedTrades, openTrades: [], fetched, errors, latestCloseTime };
+}
+
+/** Raw response shape from GET /api/v2/mix/position/get-all-position */
+type BitgetOpenPosition = {
+  positionId: string;
+  symbol: string;
+  holdSide: string;
+  openPriceAvg: string;
+  total: string;
+  available: string;
+  marginMode: string;
+  posMode: string;
+  unrealizedPL: string;
+  achievedProfits: string;
+  ctime: string;
+  utime: string;
+};
+
+/**
+ * Fetch currently-open positions (Live trades).
+ */
+export async function fetchBitgetOpenPositions(
+  creds: BitgetCredentials,
+): Promise<{ openTrades: MappedTrade[]; errors: string[] }> {
+  const path = "/api/v2/mix/position/get-all-position";
+  const query = "?productType=USDT-FUTURES";
+  const fullPath = path + query;
+
+  try {
+    const headers = buildHeaders(creds, "GET", fullPath);
+    const res = await fetch(BASE + fullPath, {
+      headers,
+      signal: AbortSignal.timeout(4000),
+    });
+
+    if (!res.ok) return { openTrades: [], errors: [`HTTP ${res.status}`] };
+
+    const json = await res.json();
+    if (json.code !== "00000") return { openTrades: [], errors: [json.msg || json.code] };
+
+    const list: BitgetOpenPosition[] = json.data ?? [];
+    console.log(`[sync:positions] get-all-position: ${list.length} items. First:`, list[0] ? JSON.stringify(list[0]).slice(0, 300) : "none");
+    const openTrades: MappedTrade[] = [];
+
+    for (const pos of list) {
+      // Use 'available' (current open qty), NOT 'total' (which includes closed qty)
+      const qty = parseFloat(pos.available) || 0;
+      if (qty < 1e-10) continue; // Skip closed positions
+
+      const holdSide = pos.holdSide?.toLowerCase() as "long" | "short";
+      openTrades.push({
+        symbol: pos.symbol,
+        position: holdSide === "short" ? "short" : "long",
+        entry_price: parseFloat(pos.openPriceAvg) || 0,
+        exit_price: null,
+        quantity: qty,
+        fees: 0, // Open positions don't have total fees yet
+        pnl: null,
+        open_timestamp: new Date(parseInt(pos.ctime)).toISOString(),
+        close_timestamp: null,
+        broker_order_id: pos.positionId,
+        broker_name: "Bitget",
+        trade_source: "cex",
+        tags: ["bitget-api-sync", "from-open-position"],
+      });
+    }
+
+    return { openTrades, errors: [] };
+  } catch (err) {
+    return { openTrades: [], errors: [err instanceof Error ? err.message : "Network error"] };
+  }
+}
+
 /**
  * Test connection by calling the account endpoint.
  */
@@ -318,15 +531,6 @@ function buildResult(
 
 // ── Aggregation & Pairing ──────────────────────────────────────
 
-const QTY_EPSILON = 1e-10;
-
-/** Classify a fill as "open" or "close" using tradeSide or profit heuristic. */
-function classifyFill(fill: BitgetFill): "open" | "close" {
-  const ts = fill.tradeSide?.toLowerCase();
-  if (ts === "open" || ts === "close") return ts;
-  const profit = parseFloat(fill.profit) || 0;
-  return profit !== 0 ? "close" : "open";
-}
 
 /** Classify an order by checking ALL fills — not just the first one.
  *  Handles both hedge mode (tradeSide="open"/"close") and one-way mode
@@ -352,15 +556,35 @@ function classifyOrderFills(fills: BitgetFill[]): "open" | "close" {
   return "open";
 }
 
-/** Group raw fills by orderId into aggregated orders. */
+/** Group raw fills into aggregated orders.
+ *  Primary key: orderId (when fills share one).
+ *  Secondary key: symbol|side|minute — merges iceberg/partial fills that have
+ *  unique orderIds but are logically one order (common in one-way mode). */
 function aggregateByOrder(rawFills: BitgetFill[]): AggregatedOrder[] {
   const groups = new Map<string, BitgetFill[]>();
 
+  // First pass: group by orderId
+  const byOrderId = new Map<string, BitgetFill[]>();
   for (const fill of rawFills) {
-    const key = fill.orderId || fill.tradeId;
-    const existing = groups.get(key);
-    if (existing) existing.push(fill);
-    else groups.set(key, [fill]);
+    const oid = fill.orderId || fill.tradeId;
+    if (!byOrderId.has(oid)) byOrderId.set(oid, []);
+    byOrderId.get(oid)!.push(fill);
+  }
+
+  // Second pass: merge single-fill "orders" that share symbol+side+minute
+  // These are iceberg fills with unique orderIds
+  for (const [oid, fills] of byOrderId) {
+    if (fills.length > 1) {
+      // Multiple fills share this orderId — genuine multi-fill order
+      groups.set(oid, fills);
+    } else {
+      // Single fill — might be an iceberg. Group by symbol+side+minute
+      const f = fills[0];
+      const minute = Math.floor(parseInt(f.cTime) / 60000);
+      const mergeKey = `${f.symbol}|${(f.side ?? "buy").toLowerCase()}|${minute}`;
+      if (!groups.has(mergeKey)) groups.set(mergeKey, []);
+      groups.get(mergeKey)!.push(f);
+    }
   }
 
   const orders: AggregatedOrder[] = [];
@@ -419,155 +643,218 @@ type PairResult = {
 };
 
 /**
- * Pair open/close orders into complete trades using FIFO matching.
- * Adapted from preprocessBitgetFutures() in csv-import.ts.
+ * Position-tracking approach: uses `side` (buy/sell) to determine trade direction
+ * instead of relying on `tradeSide`/`profit` classification (which fails in one-way mode).
+ *
+ * How it works:
+ * - Track net position per symbol chronologically
+ * - Buy = increase long / decrease short
+ * - Sell = increase short / decrease long
+ * - When position returns to zero → completed trade (paired)
+ * - Handles partial fills via quantity tracking
+ *
+ * This is how other trading journals (Tradervue, Kinfo, etc.) handle broker sync.
  */
 function pairBitgetFills(rawFills: BitgetFill[]): PairResult {
   const orders = aggregateByOrder(rawFills);
+  // orders are sorted by earliestTime ASC from aggregateByOrder
 
-  const opens = orders.filter((o) => o.tradeSide === "open");
-  const closes = orders.filter((o) => o.tradeSide === "close");
-  const classificationStats = { opens: opens.length, closes: closes.length, inMemoryMatched: 0 };
+  type Entry = { order: AggregatedOrder; remainingQty: number };
+  type Position = { direction: "long" | "short"; entries: Entry[]; totalQty: number };
+  const positions = new Map<string, Position>();
 
-  // Build open pool keyed by "SYMBOL|polarity" (buy open=long, sell open=short)
-  type OpenTracker = { order: AggregatedOrder; remainingQty: number };
-  const openPool = new Map<string, OpenTracker[]>();
-
-  for (const open of opens) {
-    const polarity = open.side === "buy" ? "long" : "short";
-    const key = `${open.symbol}|${polarity}`;
-    if (!openPool.has(key)) openPool.set(key, []);
-    openPool.get(key)!.push({ order: open, remainingQty: open.totalSize });
-  }
-
-  // FIFO match closes to opens
   const pairedTrades: MappedTrade[] = [];
-  const unmatchedCloses: AggregatedOrder[] = [];
+  const crossInvCloses: AggregatedOrder[] = [];
+  let matchedCount = 0;
 
-  for (const close of closes) {
-    // Close: sell closes a long, buy closes a short
-    const polarity: "long" | "short" = close.side === "sell" ? "long" : "short";
-    const key = `${close.symbol}|${polarity}`;
-    const pool = openPool.get(key) || [];
+  for (const order of orders) {
+    const isBuy = order.side === "buy";
+    const qty = order.totalSize;
+    const pos = positions.get(order.symbol);
 
-    let remainingCloseQty = close.totalSize;
-    const matchedOpens: { order: AggregatedOrder; qty: number }[] = [];
-
-    for (const tracker of pool) {
-      if (remainingCloseQty <= QTY_EPSILON) break;
-      if (tracker.remainingQty <= QTY_EPSILON) continue;
-
-      const matched = Math.min(tracker.remainingQty, remainingCloseQty);
-      matchedOpens.push({ order: tracker.order, qty: matched });
-      tracker.remainingQty -= matched;
-      if (Math.abs(tracker.remainingQty) < QTY_EPSILON) tracker.remainingQty = 0;
-      remainingCloseQty -= matched;
-      if (Math.abs(remainingCloseQty) < QTY_EPSILON) remainingCloseQty = 0;
-    }
-
-    if (matchedOpens.length > 0) {
-      const totalOpenQty = matchedOpens.reduce((s, m) => s + m.qty, 0);
-      const weightedEntry = matchedOpens.reduce(
-        (s, m) => s + m.order.vwap * m.qty, 0,
-      ) / totalOpenQty;
-
-      const openFees = matchedOpens.reduce((s, m) => {
-        const proportion = m.order.totalSize > 0 ? m.qty / m.order.totalSize : 1;
-        return s + m.order.totalFees * proportion;
-      }, 0);
-
-      const earliestOpen = matchedOpens[0].order;
-      const openFillIds = matchedOpens.flatMap((m) => m.order.fillIds);
-      const closeFillIds = close.fillIds;
-
-      const tags = ["bitget-api-sync"];
-      for (const id of closeFillIds) tags.push(`close-fill:${id}`);
-      for (const id of openFillIds.slice(1)) tags.push(`open-fill:${id}`);
-
-      pairedTrades.push({
-        symbol: close.symbol,
-        position: polarity,
-        entry_price: weightedEntry,
-        exit_price: close.vwap,
-        quantity: close.totalSize,
-        fees: openFees + close.totalFees,
-        open_timestamp: new Date(earliestOpen.earliestTime).toISOString(),
-        close_timestamp: new Date(close.earliestTime).toISOString(),
-        pnl: close.totalProfit || null,
-        broker_order_id: earliestOpen.orderId,
-        broker_name: "Bitget",
-        trade_source: "cex",
-        tags,
+    if (!pos) {
+      // No existing position → this fill opens a new one
+      positions.set(order.symbol, {
+        direction: isBuy ? "long" : "short",
+        entries: [{ order, remainingQty: qty }],
+        totalQty: qty,
       });
-    } else {
-      unmatchedCloses.push(close);
+      continue;
     }
-  }
 
-  // Remaining unmatched opens
-  const unmatchedOpens: MappedTrade[] = [];
-  for (const [, trackers] of openPool) {
-    for (const tracker of trackers) {
-      if (tracker.remainingQty > QTY_EPSILON) {
-        const o = tracker.order;
-        const polarity: "long" | "short" = o.side === "buy" ? "long" : "short";
+    const sameDir =
+      (pos.direction === "long" && isBuy) ||
+      (pos.direction === "short" && !isBuy);
+
+    if (sameDir) {
+      // Same direction → adding to position
+      pos.entries.push({ order, remainingQty: qty });
+      pos.totalQty += qty;
+    } else {
+      // Opposite direction → closing position (FIFO by entry time)
+      let closeRemaining = qty;
+
+      while (closeRemaining > 1e-10 && pos.entries.length > 0) {
+        const entry = pos.entries[0];
+        const matchQty = Math.min(entry.remainingQty, closeRemaining);
+
         const tags = ["bitget-api-sync"];
-        if (o.fillIds.length > 1) {
-          tags.push(`fills:${o.fillIds.length}`);
-          for (const fid of o.fillIds) tags.push(`fid:${fid}`);
+        for (const id of order.fillIds) tags.push(`close-fill:${id}`);
+        if (entry.order.fillIds.length > 1) {
+          tags.push(`fills:${entry.order.fillIds.length}`);
+          for (const fid of entry.order.fillIds) tags.push(`fid:${fid}`);
         }
 
-        unmatchedOpens.push({
-          symbol: o.symbol,
-          position: polarity,
-          entry_price: o.vwap,
-          exit_price: null,
-          quantity: tracker.remainingQty,
-          fees: o.totalFees * (tracker.remainingQty / o.totalSize),
-          open_timestamp: new Date(o.earliestTime).toISOString(),
-          close_timestamp: null,
-          pnl: null,
-          broker_order_id: tracker.remainingQty < o.totalSize
-            ? `${o.orderId}:partial`
-            : o.orderId,
+        const entryProportion = entry.order.totalSize > 0 ? matchQty / entry.order.totalSize : 1;
+        const closeProportion = qty > 0 ? matchQty / qty : 1;
+
+        pairedTrades.push({
+          symbol: order.symbol,
+          position: pos.direction,
+          entry_price: entry.order.vwap,
+          exit_price: order.vwap,
+          quantity: matchQty,
+          fees: entry.order.totalFees * entryProportion + order.totalFees * closeProportion,
+          open_timestamp: new Date(entry.order.earliestTime).toISOString(),
+          close_timestamp: new Date(order.earliestTime).toISOString(),
+          pnl: order.totalProfit ? order.totalProfit * closeProportion : null,
+          broker_order_id: entry.order.orderId,
           broker_name: "Bitget",
           trade_source: "cex",
           tags,
         });
+
+        matchedCount++;
+        closeRemaining -= matchQty;
+        entry.remainingQty -= matchQty;
+        pos.totalQty -= matchQty;
+        if (entry.remainingQty < 1e-10) pos.entries.shift();
+      }
+
+      if (closeRemaining > 1e-10) {
+        if (pos.entries.length === 0) {
+          // Position fully consumed → remainder opens opposite direction (position flip)
+          positions.set(order.symbol, {
+            direction: isBuy ? "long" : "short",
+            entries: [{ order: { ...order, totalSize: closeRemaining }, remainingQty: closeRemaining }],
+            totalQty: closeRemaining,
+          });
+        } else {
+          // Excess close beyond position — cross-invocation close
+          crossInvCloses.push({ ...order, totalSize: closeRemaining });
+        }
+      }
+
+      if (pos.totalQty < 1e-10 && pos.entries.length === 0) {
+        positions.delete(order.symbol);
       }
     }
   }
 
-  // Second pass: match remaining unmatched closes to unmatched opens in-memory.
-  // This catches same-invocation pairs that FIFO missed (e.g., classification
-  // edge cases, or opens/closes arriving in unexpected order).
-  const remainingCloses: AggregatedOrder[] = [];
-  for (const close of unmatchedCloses) {
-    const polarity: "long" | "short" = close.side === "sell" ? "long" : "short";
-    const openIdx = unmatchedOpens.findIndex(
-      (o) => o.symbol === close.symbol && o.position === polarity && o.exit_price === null,
-    );
-    if (openIdx >= 0) {
-      const open = unmatchedOpens[openIdx];
-      const closeFillIds = close.fillIds;
-      const tags = [...open.tags];
-      for (const id of closeFillIds) tags.push(`close-fill:${id}`);
-
-      pairedTrades.push({
-        ...open,
-        exit_price: close.vwap,
-        close_timestamp: new Date(close.earliestTime).toISOString(),
-        pnl: close.totalProfit || null,
-        fees: open.fees + close.totalFees,
-        quantity: Math.min(open.quantity, close.totalSize),
+  // Remaining positions → unmatched opens
+  const unmatchedOpens: MappedTrade[] = [];
+  for (const [, pos] of positions) {
+    for (const entry of pos.entries) {
+      if (entry.remainingQty < 1e-10) continue;
+      const tags = ["bitget-api-sync"];
+      if (entry.order.fillIds.length > 1) {
+        tags.push(`fills:${entry.order.fillIds.length}`);
+        for (const fid of entry.order.fillIds) tags.push(`fid:${fid}`);
+      }
+      const proportion = entry.order.totalSize > 0 ? entry.remainingQty / entry.order.totalSize : 1;
+      unmatchedOpens.push({
+        symbol: entry.order.symbol,
+        position: pos.direction,
+        entry_price: entry.order.vwap,
+        exit_price: null,
+        quantity: entry.remainingQty,
+        fees: entry.order.totalFees * proportion,
+        open_timestamp: new Date(entry.order.earliestTime).toISOString(),
+        close_timestamp: null,
+        pnl: null,
+        broker_order_id: entry.remainingQty < entry.order.totalSize - 1e-10
+          ? `${entry.order.orderId}:partial`
+          : entry.order.orderId,
+        broker_name: "Bitget",
+        trade_source: "cex",
         tags,
       });
-      unmatchedOpens.splice(openIdx, 1);
-      classificationStats.inMemoryMatched++;
-    } else {
-      remainingCloses.push(close);
     }
   }
 
-  return { pairedTrades, unmatchedOpens, unmatchedCloses: remainingCloses, classificationStats };
+  // Merge fills of the same order: combine trades with same symbol + open time + close time
+  // This handles iceberg/partial fills that have different orderIds but are logically one trade
+  const mergedPaired = mergeSameTimestampTrades(pairedTrades);
+  const mergedOpens = mergeSameTimestampTrades(unmatchedOpens);
+
+  // Diagnostics: keep old classification stats for debugging
+  const classifiedOpens = orders.filter((o) => o.tradeSide === "open").length;
+  const classifiedCloses = orders.filter((o) => o.tradeSide === "close").length;
+
+  return {
+    pairedTrades: mergedPaired,
+    unmatchedOpens: mergedOpens,
+    unmatchedCloses: crossInvCloses,
+    classificationStats: {
+      opens: classifiedOpens,
+      closes: classifiedCloses,
+      inMemoryMatched: matchedCount,
+    },
+  };
+}
+
+/** Merge trades with the same symbol + open_timestamp + close_timestamp into one combined trade.
+ *  Sums quantity, fees, PnL. Computes VWAP for entry/exit prices. */
+function mergeSameTimestampTrades(trades: MappedTrade[]): MappedTrade[] {
+  if (trades.length <= 1) return trades;
+
+  const groups = new Map<string, MappedTrade[]>();
+  for (const t of trades) {
+    // Truncate to minute — fills of the same order have timestamps within the same minute
+    const openMin = t.open_timestamp.slice(0, 16);
+    const closeMin = t.close_timestamp?.slice(0, 16) ?? "";
+    const key = `${t.symbol}|${t.position}|${openMin}|${closeMin}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(t);
+  }
+
+  const merged: MappedTrade[] = [];
+  for (const [, group] of groups) {
+    if (group.length === 1) {
+      merged.push(group[0]);
+      continue;
+    }
+
+    // Combine: VWAP prices, sum quantity/fees/pnl, merge tags
+    let totalQty = 0;
+    let totalEntryNotional = 0;
+    let totalExitNotional = 0;
+    let totalFees = 0;
+    let totalPnl = 0;
+    let hasPnl = false;
+    const allTags = new Set<string>();
+
+    for (const t of group) {
+      totalQty += t.quantity;
+      totalEntryNotional += t.entry_price * t.quantity;
+      if (t.exit_price !== null) totalExitNotional += t.exit_price * t.quantity;
+      totalFees += t.fees;
+      if (t.pnl !== null) { totalPnl += t.pnl; hasPnl = true; }
+      for (const tag of t.tags) allTags.add(tag);
+    }
+
+    merged.push({
+      ...group[0],
+      entry_price: totalQty > 0 ? totalEntryNotional / totalQty : group[0].entry_price,
+      exit_price: group[0].exit_price !== null
+        ? (totalQty > 0 ? totalExitNotional / totalQty : group[0].exit_price)
+        : null,
+      quantity: totalQty,
+      fees: totalFees,
+      pnl: hasPnl ? totalPnl : null,
+      tags: [...allTags],
+    });
+  }
+
+  return merged;
 }

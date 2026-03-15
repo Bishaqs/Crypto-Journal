@@ -66,6 +66,44 @@ export async function GET(
 
     const fillList = json.data?.fillList ?? [];
 
+    // Probe history-position endpoint (closed positions)
+    const hpPath = "/api/v2/mix/position/history-position";
+    const hpQuery = "?productType=USDT-FUTURES&marginCoin=USDT&limit=10";
+    const hpFullPath = hpPath + hpQuery;
+    const hpHeaders = buildHeaders(creds, "GET", hpFullPath);
+    let historyPositions: unknown[] = [];
+    let hpError = "";
+    try {
+      const hpRes = await fetch("https://api.bitget.com" + hpFullPath, { headers: hpHeaders, signal: AbortSignal.timeout(4000) });
+      const hpJson = await hpRes.json();
+      if (hpJson.code === "00000") {
+        historyPositions = (hpJson.data?.list ?? []).slice(0, 5);
+      } else {
+        hpError = hpJson.msg || `Code: ${hpJson.code}`;
+      }
+    } catch (e) {
+      hpError = e instanceof Error ? e.message : "Failed";
+    }
+
+    // Probe open positions endpoint
+    const opPath = "/api/v2/mix/position/get-all-position";
+    const opQuery = "?productType=USDT-FUTURES";
+    const opFullPath = opPath + opQuery;
+    const opHeaders = buildHeaders(creds, "GET", opFullPath);
+    let openPositions: unknown[] = [];
+    let opError = "";
+    try {
+      const opRes = await fetch("https://api.bitget.com" + opFullPath, { headers: opHeaders, signal: AbortSignal.timeout(4000) });
+      const opJson = await opRes.json();
+      if (opJson.code === "00000") {
+        openPositions = opJson.data ?? [];
+      } else {
+        opError = opJson.msg || `Code: ${opJson.code}`;
+      }
+    } catch (e) {
+      opError = e instanceof Error ? e.message : "Failed";
+    }
+
     return NextResponse.json({
       api_status: res.status,
       api_code: json.code,
@@ -100,8 +138,16 @@ export async function GET(
           time: new Date(parseInt(f.cTime)).toISOString(),
         }),
       ),
+      history_positions: historyPositions,
+      history_positions_count: historyPositions.length,
+      history_positions_error: hpError || undefined,
+      open_positions: openPositions,
+      open_positions_count: openPositions.length,
+      open_positions_error: opError || undefined,
       last_sync_at: conn.last_sync_at,
+      last_error: conn.last_error,
       connection_status: conn.status,
+      total_trades_synced: conn.total_trades_synced,
     });
   } catch (err) {
     return NextResponse.json(
