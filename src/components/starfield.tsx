@@ -773,149 +773,16 @@ function VolcanoBackground() {
         animation: !isReducedMotion ? "pulse 8s ease-in-out infinite alternate" : "none"
       }} />
 
-      {/* Layer 2: Background Mountain Silhouette (Parallax depth) */}
-      <svg
-        className="absolute bottom-0 left-0 w-full h-[55%] opacity-50"
-        viewBox="0 0 1600 700"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path d="M0,700 L0,480 L150,450 L250,380 L350,340 L450,220 L550,240 L650,200 L750,230 L850,150 L950,210 L1050,300 L1200,380 L1400,450 L1600,480 L1600,700 Z" fill="#080604" />
-      </svg>
-
-      {/* Layer 3: Main Mountain + Lava veins */}
-      <svg
-        className="absolute bottom-0 left-0 w-full h-[52%]"
-        viewBox="0 0 1600 700"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
+      {/* Heat distortion filter (preserved from removed SVG mountain layer) */}
+      <svg className="absolute w-0 h-0" aria-hidden="true">
         <defs>
-          <filter id="v-glow-sm" x="-10%" y="-10%" width="120%" height="120%">
-            <feGaussianBlur stdDeviation="1.5" />
-          </filter>
-          <filter id="v-glow-md" x="-15%" y="-15%" width="130%" height="130%">
-            <feGaussianBlur stdDeviation="3" />
-          </filter>
-          <filter id="v-glow-lg" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="4" />
-          </filter>
-          <filter id="v-glow-xl" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="8" />
-          </filter>
-          <filter id="v-glow-xxl" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="14" />
-          </filter>
-          <filter id="v-glow-ridge" x="-15%" y="-15%" width="130%" height="130%">
-            <feGaussianBlur stdDeviation="2.5" />
-          </filter>
-
           <filter id="heat-distortion" x="-20%" y="-20%" width="140%" height="140%">
             <feTurbulence id="heat-turb" type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="3" result="noise">
               {!isReducedMotion && <animate attributeName="seed" values="1;50;1" dur="8s" repeatCount="indefinite" />}
             </feTurbulence>
             <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
           </filter>
-
-          <filter id="mountain-texture" x="-10%" y="-10%" width="120%" height="120%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="noise" />
-            <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0" in="noise" result="coloredNoise" />
-            <feComposite in="coloredNoise" in2="SourceGraphic" operator="in" result="texture" />
-            <feComposite in="SourceGraphic" in2="texture" operator="over" />
-          </filter>
-
-          <linearGradient id="lava-river-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop className="lava-grad-stop-1" offset="20%" stopColor="#FFEEAA" />
-            <stop className="lava-grad-stop-2" offset="60%" stopColor="#FF8800" />
-            <stop offset="100%" stopColor="#FF2200" />
-          </linearGradient>
-
-          <filter id="lava-center-turb" x="-20%" y="-20%" width="140%" height="140%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" result="noise">
-              {!isReducedMotion && <animate attributeName="seed" values="1;20;1" dur="5s" repeatCount="indefinite" />}
-            </feTurbulence>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
         </defs>
-
-        {/* Mountain fill — jet-black, textured */}
-        <path d={MOUNTAIN_PATH} fill="#0c0a08" filter="url(#mountain-texture)" />
-
-        {/* ==== RIDGE EDGE LIGHTING — warm rim light along mountain contours ==== */}
-        {/* Far-left foothills */}
-        <path d="M0,520 L50,510 L100,490 L140,470 L180,440" stroke="#FF6040" strokeOpacity={0.10} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
-        {/* Left foothills up to left peak */}
-        <path d="M180,440 L210,410 L240,380 L265,355 L280,340 L290,330 L300,335 L315,350 L340,370 L360,365 L380,350 L395,330 L420,290 L438,258 L448,265 L458,240 L468,222 L478,198 L488,168 L496,150 L502,140 L508,128 L510,125" stroke="#FF8040" strokeOpacity={0.18} strokeWidth={2.0} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
-        {/* Left peak to saddle */}
-        <path d="M510,125 L513,128 L516,138 L520,145 L524,152 L530,155 L545,180 L565,210 L590,240 L620,268 L655,290 L690,305 L720,312 L745,310 L768,302" stroke="#FF7030" strokeOpacity={0.14} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
-        {/* Saddle to right peak */}
-        <path d="M768,302 L790,285 L815,255 L838,225 L858,195 L876,165 L890,142 L900,128 L906,115 L910,112" stroke="#FF6030" strokeOpacity={0.22} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
-        {/* Right peak descent — brightest, near main lava river */}
-        <path d="M910,112 L914,115 L920,130 L930,148 L942,172 L958,205 L976,240 L998,278 L1022,315 L1050,350 L1085,385 L1125,415" stroke="#FF5020" strokeOpacity={0.25} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
-        {/* Right foothills */}
-        <path d="M1125,415 L1175,445 L1240,472 L1320,498 L1420,518 L1510,530" stroke="#FF6040" strokeOpacity={0.10} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-ridge)" />
-
-        {/* ==== MAIN LAVA RIVER — Tapered filled polygon + centerline ==== */}
-        {/* Layer 1: Wide ambient heat bloom */}
-        <path d={MAIN_LAVA_RIVER_FILL} fill="#FF2200" fillOpacity={0.08} stroke="none" filter="url(#v-glow-xxl)" />
-        {/* Layer 2: Outer glow (animated) */}
-        <path className="lava-river-glow" d={MAIN_LAVA_RIVER_FILL} fill="#FF3300" fillOpacity={0.18} stroke="none" filter="url(#v-glow-lg)" />
-        {/* Layer 3: Bright body fill — slightly blurred edges */}
-        <path d={MAIN_LAVA_RIVER_FILL} fill="#FF4400" fillOpacity={0.45} stroke="none" filter="url(#v-glow-sm)" />
-        {/* Layer 4: Core fill — animated gradient */}
-        <path d={MAIN_LAVA_RIVER_FILL} fill="url(#lava-river-grad)" fillOpacity={0.60} stroke="none" />
-        {/* Layer 5: Yellow-orange centerline glow */}
-        <path d={MAIN_LAVA_RIVER_CENTER} stroke="#FF8800" strokeOpacity={0.70} strokeWidth={4.0} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#v-glow-md)" />
-        {/* Layer 6: White-hot centerline with turbulence */}
-        <path d={MAIN_LAVA_RIVER_CENTER} stroke="#FFDD66" strokeOpacity={0.85} strokeWidth={2.0} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#lava-center-turb)" />
-        {/* Layer 7: Brightest inner pinpoint */}
-        <path d={MAIN_LAVA_RIVER_CENTER} stroke="#FFEEAA" strokeOpacity={0.65} strokeWidth={0.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-
-        {/* Wide bloom layer behind thicker veins for ambient heat */}
-        {LAVA_VEINS.filter((v) => v.w >= 1.0).map((v, i) => (
-          <path
-            key={`bloom-${i}`}
-            d={v.d}
-            stroke={v.color}
-            strokeOpacity={v.opacity * 0.15}
-            strokeWidth={v.w * 5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            filter="url(#v-glow-xl)"
-          />
-        ))}
-
-        {/* Outer glow layer — softer, animated pulse */}
-        {LAVA_VEINS.map((v, i) => (
-          <path
-            key={`glow-${i}`}
-            className={`lava-glow-layer ${v.w >= 0.8 ? 'lava-vein-flow' : ''}`}
-            d={v.d}
-            stroke={v.color}
-            strokeOpacity={v.opacity * 0.50}
-            strokeWidth={v.w * 2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            filter={v.w >= 1.0 ? "url(#v-glow-lg)" : "url(#v-glow-md)"}
-          />
-        ))}
-
-        {/* Bright core layer — sharp, always visible */}
-        {LAVA_VEINS.map((v, i) => (
-          <path
-            key={`core-${i}`}
-            d={v.d}
-            stroke={v.color}
-            strokeOpacity={v.opacity}
-            strokeWidth={v.w}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            filter="url(#v-glow-sm)"
-          />
-        ))}
       </svg>
 
       {/* Layer 3.5: Heat Distortion Zone (above peaks) */}
