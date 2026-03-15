@@ -197,6 +197,28 @@
   --shadow-cosmic-hover: 0 0 40px rgba(255, 45, 149, 0.3), 0 0 80px rgba(180, 0, 255, 0.15);
 }
 
+/* ===== Pangaea (Jungle Planet) — lush primordial rainforest ===== */
+.pangaea {
+  --background: #0a1a0a;
+  --surface: rgba(8, 22, 8, 0.85);
+  --surface-hover: rgba(14, 32, 14, 0.9);
+  --border: rgba(30, 80, 30, 0.25);
+  --foreground: #d0e8d0;
+  --muted: #6a9a6a;
+  --accent: #44cc44;
+  --accent-hover: #55dd55;
+  --accent-glow: rgba(68, 204, 68, 0.25);
+  --accent-rgb: 68, 204, 68;
+  --win: #66ee66;
+  --win-glow: rgba(102, 238, 102, 0.2);
+  --loss: #ef4444;
+  --loss-glow: rgba(239, 68, 68, 0.15);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.3), 0 0 30px rgba(68, 204, 68, 0.05);
+  --shadow-glow: 0 0 20px rgba(68, 204, 68, 0.15);
+  --shadow-cosmic: 0 0 30px rgba(68, 204, 68, 0.2), 0 0 60px rgba(40, 160, 40, 0.1);
+  --shadow-cosmic-hover: 0 0 40px rgba(68, 204, 68, 0.3), 0 0 80px rgba(40, 160, 40, 0.15);
+}
+
 :root {
   --font-geist-sans: "Geist", sans-serif;
   --font-geist-mono: "Geist Mono", monospace;
@@ -823,6 +845,13 @@ body {
   background: rgba(15, 5, 30, 0.78);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 45, 149, 0.08);
+}
+
+.pangaea .glass {
+  background: rgba(6, 16, 6, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(68, 204, 68, 0.06);
 }
 
 /* Tour highlight glow on sidebar/target items */

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 
-export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "satoshi" | "synthwave";
+export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "satoshi" | "synthwave" | "pangaea";
 export type ViewMode = "simple" | "full";
 
 export const THEMES: { value: Theme; label: string; dot: string; locked?: boolean }[] = [
@@ -14,6 +14,7 @@ export const THEMES: { value: Theme; label: string; dot: string; locked?: boolea
   { value: "triton", label: "Triton", dot: "#0ea5e9" },
   { value: "satoshi", label: "Satoshi", dot: "#f7931a", locked: true },
   { value: "synthwave", label: "Synthwave", dot: "#ff2d95", locked: true },
+  { value: "pangaea", label: "Pangaea", dot: "#44cc44", locked: true },
 ];
 
 export const FREE_THEMES: Theme[] = ["solara", "obsidian"];
@@ -31,6 +32,7 @@ export function isLevel500Theme(theme: Theme): boolean {
 // Free-tier themes gated by player level (not subscription)
 export const LEVEL_GATED_THEMES: Partial<Record<Theme, number>> = {
   synthwave: 50,
+  pangaea: 100,
 };
 
 export function getLevelRequirement(theme: Theme): number | null {
@@ -61,7 +63,7 @@ const ThemeContext = createContext<ThemeContextType>({
   setReducedMotion: () => { },
 });
 
-const ALL_THEME_CLASSES: Theme[] = ["solara", "obsidian", "nebula", "cipher", "vulcan", "triton", "satoshi", "synthwave"];
+const ALL_THEME_CLASSES: Theme[] = ["solara", "obsidian", "nebula", "cipher", "vulcan", "triton", "satoshi", "synthwave", "pangaea"];
 
 // Migration map for users with old theme names in localStorage
 const THEME_MIGRATION: Record<string, Theme> = {

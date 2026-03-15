@@ -9,8 +9,7 @@ import { RealisticBlackHole } from "./realistic-black-hole";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { SatoshiBackground } from "./satoshi-background";
 import { SynthwaveBackground } from "./synthwave-background";
-// TODO: Create jungle-background component for Pangaea theme
-// import { JungleBackground } from "./jungle-background";
+import { JungleBackground } from "./jungle-background";
 
 /* ================================================================
    MATRIX — Dense binary rain covering the entire screen
@@ -1668,14 +1667,14 @@ export function Starfield() {
     );
   }
 
-  // Pangaea mode — lush jungle (TODO: create jungle-background component)
-  // if (theme === "pangaea") {
-  //   return (
-  //     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-  //       <JungleBackground />
-  //     </div>
-  //   );
-  // }
+  // Pangaea mode — lush jungle
+  if (theme === "pangaea") {
+    return (
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <JungleBackground />
+      </div>
+    );
+  }
 
   // Light mode: animated candlesticks
   return (
