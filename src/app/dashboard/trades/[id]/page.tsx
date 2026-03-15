@@ -41,6 +41,7 @@ import { TradeTimeline } from "@/components/trade-detail/trade-timeline";
 import { CollapsibleSection } from "@/components/trade-detail/collapsible-section";
 import { ExecutionsTable } from "@/components/trade-detail/executions-table";
 import { MultiTimeframeExit } from "@/components/trade-detail/multi-timeframe-exit";
+import { NoteLinkPicker } from "@/components/trade-detail/note-link-picker";
 
 // ---------------------------------------------------------------------------
 // TradingView Mini Chart
@@ -86,7 +87,7 @@ function TradingViewAdvancedChart({ symbol, colorTheme }: { symbol: string; colo
     el.innerHTML = "";
     const widgetDiv = document.createElement("div");
     widgetDiv.className = "tradingview-widget-container__widget";
-    widgetDiv.style.height = "700px";
+    widgetDiv.style.height = "900px";
     widgetDiv.style.width = "100%";
     el.appendChild(widgetDiv);
     const script = document.createElement("script");
@@ -109,7 +110,7 @@ function TradingViewAdvancedChart({ symbol, colorTheme }: { symbol: string; colo
     return () => { el.innerHTML = ""; };
   }, [symbol, colorTheme]);
 
-  return <div ref={containerRef} className="tradingview-widget-container rounded-xl overflow-hidden" style={{ height: 700 }} />;
+  return <div ref={containerRef} className="tradingview-widget-container rounded-xl overflow-hidden" style={{ height: 900 }} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +145,7 @@ export default function TradeDetailPage() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [linkedNotes, setLinkedNotes] = useState<JournalNote[]>([]);
+  const [showNotePicker, setShowNotePicker] = useState(false);
   const supabase = createClient();
 
   const tradeId = params.id as string;
@@ -461,7 +463,7 @@ export default function TradeDetailPage() {
         trade={trade}
         notes={linkedNotes}
         onCreateNote={() => router.push(`/dashboard/journal?new=true&link_trade=${trade.id}&asset=crypto`)}
-        onLinkExisting={() => router.push(`/dashboard/journal?link_existing=${trade.id}`)}
+        onLinkExisting={() => setShowNotePicker(true)}
         onRefresh={fetchLinkedNotes}
       />
 
@@ -470,7 +472,7 @@ export default function TradeDetailPage() {
         tradeId={trade.id}
         notes={linkedNotes}
         onCreateNote={() => router.push(`/dashboard/journal?new=true&link_trade=${trade.id}&asset=crypto`)}
-        onLinkExisting={() => router.push(`/dashboard/journal?link_existing=${trade.id}`)}
+        onLinkExisting={() => setShowNotePicker(true)}
         onRefresh={fetchLinkedNotes}
       />
 
@@ -515,6 +517,16 @@ export default function TradeDetailPage() {
             />
           </div>
         </div>
+      )}
+
+      {/* Note Link Picker */}
+      {showNotePicker && (
+        <NoteLinkPicker
+          tradeId={trade.id}
+          assetType="crypto"
+          onLinked={() => { setShowNotePicker(false); fetchLinkedNotes(); }}
+          onClose={() => setShowNotePicker(false)}
+        />
       )}
 
       {/* Delete Confirmation */}
