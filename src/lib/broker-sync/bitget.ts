@@ -286,10 +286,25 @@ export async function fetchBitgetOpenPositions(
       signal: AbortSignal.timeout(4000),
     });
 
-    if (!res.ok) return { openTrades: [], errors: [`HTTP ${res.status}`] };
+    if (!res.ok) {
+      // 404 is expected for some account types — silently return empty
+      if (res.status === 404) {
+        console.log(`[sync:positions] get-all-position returned 404 — endpoint not available`);
+        return { openTrades: [], errors: [] };
+      }
+      return { openTrades: [], errors: [`HTTP ${res.status}`] };
+    }
 
     const json = await res.json();
-    if (json.code !== "00000") return { openTrades: [], errors: [json.msg || json.code] };
+    if (json.code !== "00000") {
+      // "Request URL NOT FOUND" is also a 404-equivalent — not a real error
+      const msg = json.msg || json.code;
+      if (msg.toLowerCase().includes("not found")) {
+        console.log(`[sync:positions] get-all-position: ${msg}`);
+        return { openTrades: [], errors: [] };
+      }
+      return { openTrades: [], errors: [msg] };
+    }
 
     const list: BitgetOpenPosition[] = json.data ?? [];
     console.log(`[sync:positions] get-all-position: ${list.length} items. First:`, list[0] ? JSON.stringify(list[0]).slice(0, 300) : "none");

@@ -184,7 +184,7 @@ export async function POST(
       trades_skipped: result.skipped,
       trades_failed: result.failed,
       fetched: result.fetched,
-      api_errors: result.errors,
+      api_errors: result.errors.filter(e => !e.includes("404")),
       dry_run: dryRun,
       retryable: hasRetryableErrors,
       duration_ms: Date.now() - startTime,

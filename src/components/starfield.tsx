@@ -9,6 +9,8 @@ import { RealisticBlackHole } from "./realistic-black-hole";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { SatoshiBackground } from "./satoshi-background";
 import { SynthwaveBackground } from "./synthwave-background";
+// TODO: Create jungle-background component for Pangaea theme
+// import { JungleBackground } from "./jungle-background";
 
 /* ================================================================
    MATRIX — Dense binary rain covering the entire screen
@@ -1542,6 +1544,7 @@ export function Starfield() {
       triton: "linear-gradient(180deg, #020a18 0%, #001020 50%, #020a18 100%)",
       satoshi: "linear-gradient(180deg, #0a0806 0%, #0d0a05 50%, #0a0806 100%)",
       synthwave: "#0a0015",
+      pangaea: "linear-gradient(180deg, #0a1a0a 0%, #061006 50%, #0a1a0a 100%)",
     };
     return (
       <div
@@ -1664,6 +1667,15 @@ export function Starfield() {
       </div>
     );
   }
+
+  // Pangaea mode — lush jungle (TODO: create jungle-background component)
+  // if (theme === "pangaea") {
+  //   return (
+  //     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+  //       <JungleBackground />
+  //     </div>
+  //   );
+  // }
 
   // Light mode: animated candlesticks
   return (
