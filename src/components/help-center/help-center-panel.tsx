@@ -74,9 +74,10 @@ export function HelpCenterPanel() {
               // Enter: spring, Exit: tween (mirrors sidebar-drawer)
               { type: "spring", damping: 35, stiffness: 400 }
             }
-            className="fixed top-0 right-0 bottom-0 z-[60] flex flex-col glass border-l border-border/50 max-sm:!w-full"
+            className="fixed top-0 right-0 bottom-0 z-[60] flex flex-col border-l border-border/50 max-sm:!w-full"
             style={{
               width: panelWidth,
+              background: "var(--background)",
               boxShadow: "-8px 0 32px rgba(0,0,0,0.3)",
             }}
           >
