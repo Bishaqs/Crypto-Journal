@@ -1581,6 +1581,24 @@ export function Starfield() {
   if (theme === "nebula") {
     return (
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" style={{ background: "#080c14" }}>
+        <img
+          src="/themes/nebula-bg.webp"
+          alt=""
+          fetchPriority="high"
+          decoding="async"
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
+            zIndex: 0,
+            animation: 'nebula-image-breathe 18s ease-in-out infinite',
+            willChange: 'filter'
+          }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.55) 100%)'
+        }} />
         <RealisticBlackHole size="medium" opacity={0.4} />
         <div className="stars-small" />
         <div className="stars-medium" />

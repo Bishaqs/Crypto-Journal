@@ -1243,6 +1243,11 @@ body {
   50% { filter: brightness(1.04) saturate(1.06) hue-rotate(3deg); }
 }
 
+@keyframes nebula-image-breathe {
+  0%, 100% { filter: brightness(0.90) saturate(1.0); }
+  50% { filter: brightness(1.05) saturate(1.10); }
+}
+
 /* ===== LANDING PAGE — Gemini Redesign ===== */
 
 /* Scanline animation for Protocol grid */
