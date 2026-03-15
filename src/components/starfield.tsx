@@ -1372,8 +1372,23 @@ function OceanBackground() {
 
   return (
     <div ref={containerRef} className="absolute inset-0">
-      <div className="absolute inset-0" style={{
-        background: "linear-gradient(180deg, #051020 0%, #030a18 40%, #020817 100%)",
+      <img
+        src="/themes/triton-bg.webp"
+        alt=""
+        fetchPriority="high"
+        decoding="async"
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center',
+          zIndex: 0,
+          animation: 'triton-image-breathe 15s ease-in-out infinite',
+          willChange: 'filter'
+        }}
+      />
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 0,
+        background: 'radial-gradient(ellipse 65% 55% at 50% 35%, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.55) 100%)'
       }} />
 
       <div className="triton-caustics" />

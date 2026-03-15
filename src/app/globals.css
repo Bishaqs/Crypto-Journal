@@ -1238,6 +1238,11 @@ body {
   animation: caustic-shift 15s linear infinite;
 }
 
+@keyframes triton-image-breathe {
+  0%, 100% { filter: brightness(0.93) saturate(1.0) hue-rotate(0deg); }
+  50% { filter: brightness(1.04) saturate(1.06) hue-rotate(3deg); }
+}
+
 /* ===== LANDING PAGE — Gemini Redesign ===== */
 
 /* Scanline animation for Protocol grid */
