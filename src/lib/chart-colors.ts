@@ -51,6 +51,11 @@ const CHART_COLORS: Record<Theme, ChartColors> = {
     grid: "rgba(255, 45, 149, 0.08)", tick: "#b8a0d4",
     tooltipBg: "rgba(15, 5, 30, 0.9)", tooltipBorder: "1px solid rgba(255, 45, 149, 0.2)",
   },
+  pangaea: {
+    win: "#34d399", loss: "#ef4444", accent: "#10b981",
+    grid: "#1a2e1a", tick: "#7acc8a",
+    tooltipBg: "rgba(10, 20, 10, 0.9)", tooltipBorder: "1px solid rgba(16, 185, 129, 0.2)",
+  },
 };
 
 export function getChartColors(theme: Theme) {
