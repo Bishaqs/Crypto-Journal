@@ -324,6 +324,19 @@ async function syncBitget(
     console.log(`[sync:bitget] Fills fallback: ${fillResult.fetched} fills → ${fillResult.pairedTrades.length} paired + ${fillResult.unmatchedOpens.length} open (${fillResult.classificationStats.inMemoryMatched} matched by position tracking)`);
   }
 
+  // ── Diagnostic: log which path ran and sample data ──
+  console.log(`[sync:bitget] Path: ${usedPositionEndpoint ? "POSITION" : "FILLS"}, trades: ${allTrades.length}, sample:`,
+    JSON.stringify(allTrades.slice(0, 2).map(t => ({ sym: t.symbol, qty: t.quantity, pnl: t.pnl, entry: t.entry_price, exit: t.exit_price }))));
+
+  // ── Guardrail: ensure pnl is never null for closed trades ──
+  // Prevents calculateTradePnl() fallback from using potentially wrong fill quantities
+  for (const t of allTrades) {
+    if (t.exit_price !== null && t.pnl === null) {
+      const dir = t.position === "long" ? 1 : -1;
+      t.pnl = (t.exit_price - t.entry_price) * dir * t.quantity - t.fees;
+    }
+  }
+
   // ── Merge iceberg fills: combine trades with same symbol+position+minute ──
   // Fills of the same order have unique orderIds in one-way mode but share
   // the same symbol, direction, and approximate timestamp.
