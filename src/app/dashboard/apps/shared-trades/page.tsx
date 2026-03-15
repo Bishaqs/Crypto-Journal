@@ -241,6 +241,9 @@ export default function SharedTradesPage() {
         <p className="text-sm text-muted mt-0.5">
           Share your closed trades with a unique link
         </p>
+        <p className="text-[10px] text-muted/60 mt-1">
+          Shared for educational purposes only. Past performance is not indicative of future results. This is not an investment recommendation.
+        </p>
       </div>
 
       {loading ? (

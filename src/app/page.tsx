@@ -588,17 +588,32 @@ export default function LandingPage() {
           </div>
           <div>
             <h4 className="text-sm font-bold uppercase tracking-widest text-muted/40 mb-6">
-              Company
+              Legal
             </h4>
             <ul className="space-y-4 text-foreground/70">
               <li>
-                <span className="text-muted/40">About</span>
+                <Link
+                  href="/impressum"
+                  className="hover:text-accent transition-colors"
+                >
+                  Impressum
+                </Link>
               </li>
               <li>
-                <span className="text-muted/40">Feedback</span>
+                <Link
+                  href="/privacy"
+                  className="hover:text-accent transition-colors"
+                >
+                  Privacy Policy
+                </Link>
               </li>
               <li>
-                <span className="text-muted/40">Twitter/X</span>
+                <Link
+                  href="/terms"
+                  className="hover:text-accent transition-colors"
+                >
+                  Terms of Service
+                </Link>
               </li>
             </ul>
           </div>

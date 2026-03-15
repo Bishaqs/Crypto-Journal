@@ -144,8 +144,51 @@ export default function AIPage() {
   const [aiModel, setAiModel] = useState<string | undefined>();
   const [aiApiKey, setAiApiKey] = useState<string | undefined>();
   const [customInstructions, setCustomInstructions] = useState<string>("");
+  const [aiConsent, setAiConsent] = useState<boolean | null>(null);
+  const [consentLoading, setConsentLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  // Check AI consent status from database
+  useEffect(() => {
+    async function checkConsent() {
+      try {
+        const res = await fetch("/api/consent");
+        if (res.ok) {
+          const { consents } = await res.json();
+          const aiConsent = consents.find(
+            (c: { consent_type: string; granted: boolean }) =>
+              c.consent_type === "ai_data_processing"
+          );
+          setAiConsent(aiConsent?.granted ?? null);
+        }
+      } catch {
+        // If consent API fails, fall back to localStorage for backwards compat
+        const stored = localStorage.getItem("stargate-privacy-ai-consent");
+        if (stored === "true") setAiConsent(true);
+      } finally {
+        setConsentLoading(false);
+      }
+    }
+    checkConsent();
+  }, []);
+
+  async function grantAiConsent() {
+    setAiConsent(true);
+    try {
+      await fetch("/api/consent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consent_type: "ai_data_processing",
+          granted: true,
+        }),
+      });
+    } catch {
+      // Consent saved locally as fallback
+      localStorage.setItem("stargate-privacy-ai-consent", "true");
+    }
+  }
 
   // Load AI provider preference and custom instructions from localStorage
   useEffect(() => {
@@ -331,6 +374,45 @@ export default function AIPage() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-pulse text-accent">Loading...</div>
+      </div>
+    );
+  }
+
+  // AI consent gate — show consent dialog before first use (GDPR Art. 6(1)(a))
+  if (!consentLoading && aiConsent !== true) {
+    return (
+      <div className="max-w-xl mx-auto flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center px-6">
+        <Brain size={48} className="text-accent mb-6" />
+        <h2 className="text-xl font-bold text-foreground mb-3">AI Coach Data Processing Consent</h2>
+        <div className="text-sm text-muted leading-relaxed space-y-3 mb-8">
+          <p>
+            The AI Coach analyzes your trade data to provide personalized behavioral coaching.
+            To do this, your trade history, journal entries, and playbook rules are sent to
+            a third-party AI provider (Anthropic, OpenAI, or Google) for processing.
+          </p>
+          <p>
+            These providers <strong className="text-foreground">do not retain your data</strong> beyond
+            the individual request. No data is used to train their models.
+          </p>
+          <p className="text-[11px] text-muted/60">
+            Legal basis: GDPR Art. 6(1)(a) — explicit consent. You can withdraw consent
+            anytime in Settings &gt; Legal &amp; Privacy.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Link
+            href="/dashboard"
+            className="px-5 py-2.5 rounded-xl border border-border text-sm text-muted hover:text-foreground hover:border-accent/30 transition-all"
+          >
+            No thanks
+          </Link>
+          <button
+            onClick={grantAiConsent}
+            className="px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all"
+          >
+            I consent — Start AI Coach
+          </button>
+        </div>
       </div>
     );
   }
