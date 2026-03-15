@@ -245,6 +245,13 @@ export type PsychDevelopmentStage = {
   nextStageHint: string;
 };
 
+export type AnchoringPattern = {
+  symbol: string;
+  pattern: "round_number" | "previous_price";
+  anchorPrice: number;
+  tradeCount: number;
+};
+
 // Stats derived from trades — these are calculated, not stored
 export type DashboardStats = {
   totalTrades: number;
