@@ -87,7 +87,7 @@ function TradingViewAdvancedChart({ symbol, colorTheme }: { symbol: string; colo
     el.innerHTML = "";
     const widgetDiv = document.createElement("div");
     widgetDiv.className = "tradingview-widget-container__widget";
-    widgetDiv.style.height = "1800px";
+    widgetDiv.style.height = "800px";
     widgetDiv.style.width = "100%";
     el.appendChild(widgetDiv);
     const script = document.createElement("script");
@@ -95,7 +95,8 @@ function TradingViewAdvancedChart({ symbol, colorTheme }: { symbol: string; colo
     script.async = true;
     const tvSymbol = symbol.includes(":") ? symbol : symbol.endsWith("USDT") ? `BINANCE:${symbol}` : `NASDAQ:${symbol}`;
     script.textContent = JSON.stringify({
-      autosize: true,
+      width: "100%",
+      height: 800,
       symbol: tvSymbol,
       interval: "D",
       timezone: "Etc/UTC",
@@ -110,7 +111,7 @@ function TradingViewAdvancedChart({ symbol, colorTheme }: { symbol: string; colo
     return () => { el.innerHTML = ""; };
   }, [symbol, colorTheme]);
 
-  return <div ref={containerRef} className="tradingview-widget-container rounded-xl overflow-hidden" style={{ height: 1800 }} />;
+  return <div ref={containerRef} className="tradingview-widget-container rounded-xl overflow-hidden" style={{ height: 800 }} />;
 }
 
 // ---------------------------------------------------------------------------
