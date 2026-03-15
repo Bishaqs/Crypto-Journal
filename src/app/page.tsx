@@ -116,6 +116,20 @@ export default function LandingPage() {
       <section className="relative min-h-screen flex items-end pb-24 px-6 md:px-16 overflow-hidden">
         {/* Black hole — offset right */}
         <div className="absolute inset-0 overflow-hidden">
+          <img
+            src="/themes/nebula-bg.webp"
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: 'center',
+              zIndex: 0,
+              animation: 'nebula-image-breathe 18s ease-in-out infinite',
+              willChange: 'filter'
+            }}
+          />
           <div className="absolute inset-0 lg:left-[20%] opacity-60">
             <RealisticBlackHole
               size="large"
