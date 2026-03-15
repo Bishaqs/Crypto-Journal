@@ -406,7 +406,7 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
 
   // ─── Psychology Detection Results ───────────────────────────────────────────
   try {
-    const { detectSelfSabotage, detectWealthThermostat, detectRiskHomeostasis, detectEndowmentEffect } = require("@/lib/calculations");
+    const { detectSelfSabotage, detectWealthThermostat, detectRiskHomeostasis, detectEndowmentEffect, detectAnchoringPatterns } = require("@/lib/calculations");
     const typedTrades = closed as unknown as import("./types").Trade[];
 
     const thermostat = detectWealthThermostat(typedTrades);
@@ -429,6 +429,14 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
       summary += `\n## Disposition Effect\n`;
       for (const e of endowment.slice(0, 3)) {
         summary += `- ${e.symbol}: holds losers ${e.ratio.toFixed(1)}x longer than winners (win: ${e.avgHoldWin.toFixed(1)}h, loss: ${e.avgHoldLoss.toFixed(1)}h)\n`;
+      }
+    }
+
+    const anchoring = detectAnchoringPatterns(typedTrades);
+    if (anchoring.length > 0) {
+      summary += `\n## Anchoring Patterns\n`;
+      for (const a of anchoring.slice(0, 3)) {
+        summary += `- ${a.symbol}: ${a.tradeCount} entries cluster near ${a.pattern === "round_number" ? `round number $${a.anchorPrice}` : `previous price $${a.anchorPrice}`}\n`;
       }
     }
   } catch {

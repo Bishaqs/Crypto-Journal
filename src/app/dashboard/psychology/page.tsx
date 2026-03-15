@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Trade, PsychologyProfile, BehavioralLog, DailyCheckin, SelfSabotageSignal, WealthThermostat, RiskHomeostasis, EndowmentEffect, PsychDevelopmentStage } from "@/lib/types";
+import { Trade, PsychologyProfile, BehavioralLog, DailyCheckin, SelfSabotageSignal, WealthThermostat, RiskHomeostasis, EndowmentEffect, PsychDevelopmentStage, AnchoringPattern, ExpertSessionLog } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { usePsychologyTier } from "@/lib/psychology-tier-context";
@@ -22,6 +22,7 @@ import {
   detectRiskHomeostasis,
   detectEndowmentEffect,
   calculatePsychDevelopmentStage,
+  detectAnchoringPatterns,
 } from "@/lib/calculations";
 import {
   BarChart,
@@ -65,6 +66,7 @@ export default function PsychologyPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [behavioralLogs, setBehavioralLogs] = useState<BehavioralLog[]>([]);
   const [checkins, setCheckins] = useState<DailyCheckin[]>([]);
+  const [sessionLogs, setSessionLogs] = useState<ExpertSessionLog[]>([]);
 
   const fetchData = useCallback(async () => {
     const supabase = createClient();
@@ -100,6 +102,14 @@ export default function PsychologyPage() {
       .order("date", { ascending: false })
       .limit(30);
     if (cData) setCheckins(cData as DailyCheckin[]);
+
+    // Fetch expert session logs
+    const { data: sLogs } = await supabase
+      .from("expert_session_logs")
+      .select("*")
+      .order("session_date", { ascending: false })
+      .limit(50);
+    if (sLogs) setSessionLogs(sLogs as ExpertSessionLog[]);
   }, []);
 
   useEffect(() => {
@@ -137,6 +147,17 @@ export default function PsychologyPage() {
       .sort((a, b) => new Date(a.close_timestamp!).getTime() - new Date(b.close_timestamp!).getTime())
       .map((t) => { cum += t.pnl!; return { date: t.close_timestamp!.split("T")[0], pnl: cum }; });
   })();
+
+  const anchoringPatterns = detectAnchoringPatterns(closedTrades);
+
+  // Somatic area frequency from expert session logs
+  const somaticFrequency = sessionLogs.reduce<Record<string, number>>((acc, log) => {
+    for (const area of log.somatic_areas) {
+      if (area !== "none") acc[area] = (acc[area] || 0) + 1;
+    }
+    return acc;
+  }, {});
+  const maxSomaticCount = Math.max(1, ...Object.values(somaticFrequency));
 
   return (
     <div className="space-y-6 pb-20">
@@ -503,6 +524,79 @@ export default function PsychologyPage() {
                     )}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Somatic Heatmap */}
+          {Object.keys(somaticFrequency).length > 0 && (
+            <div className="glass rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+              <h3 className="text-xs font-semibold text-muted mb-3">Somatic Tension Map</h3>
+              <p className="text-[10px] text-muted mb-3">Body areas you report tension in most frequently across {sessionLogs.length} sessions:</p>
+              <div className="flex items-center justify-center">
+                <svg viewBox="0 0 100 200" className="w-28 h-auto">
+                  {/* Body outline */}
+                  <circle cx="50" cy="15" r="12" fill="none" stroke="currentColor" strokeWidth="1" className="text-border" />
+                  <line x1="50" y1="27" x2="50" y2="35" stroke="currentColor" strokeWidth="1" className="text-border" />
+                  <path d="M 30 35 L 70 35 L 65 110 L 35 110 Z" fill="none" stroke="currentColor" strokeWidth="1" className="text-border" />
+                  <path d="M 30 35 L 15 80 L 12 120" fill="none" stroke="currentColor" strokeWidth="1" className="text-border" />
+                  <path d="M 70 35 L 85 80 L 88 120" fill="none" stroke="currentColor" strokeWidth="1" className="text-border" />
+                  <path d="M 35 110 L 30 170 L 25 195" fill="none" stroke="currentColor" strokeWidth="1" className="text-border" />
+                  <path d="M 65 110 L 70 170 L 75 195" fill="none" stroke="currentColor" strokeWidth="1" className="text-border" />
+
+                  {/* Heat circles */}
+                  {[
+                    { area: "jaw", cx: 50, cy: 22 },
+                    { area: "shoulders", cx: 50, cy: 52 },
+                    { area: "chest", cx: 50, cy: 72 },
+                    { area: "stomach", cx: 50, cy: 95 },
+                    { area: "hands", cx: 50, cy: 130 },
+                  ].map(({ area, cx, cy }) => {
+                    const count = somaticFrequency[area] ?? 0;
+                    if (count === 0) return null;
+                    const intensity = count / maxSomaticCount;
+                    return (
+                      <circle
+                        key={area}
+                        cx={cx}
+                        cy={cy}
+                        r={6 + intensity * 8}
+                        fill={`rgba(239, 68, 68, ${0.2 + intensity * 0.4})`}
+                        stroke={`rgba(239, 68, 68, ${0.4 + intensity * 0.3})`}
+                        strokeWidth="1"
+                      />
+                    );
+                  })}
+                </svg>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3 justify-center">
+                {Object.entries(somaticFrequency).sort((a, b) => b[1] - a[1]).map(([area, count]) => (
+                  <span key={area} className="text-[10px] text-muted">
+                    {area}: <span className="text-loss font-bold">{count}x</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Anchoring Patterns */}
+          {anchoringPatterns.length > 0 && (
+            <div className="glass rounded-2xl border border-yellow-500/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+              <h3 className="text-xs font-semibold text-yellow-400 mb-2">Anchoring Patterns</h3>
+              <p className="text-[10px] text-muted mb-2">Entry prices clustering near specific levels — possible unconscious anchoring:</p>
+              <div className="space-y-1.5">
+                {anchoringPatterns.slice(0, 5).map((a, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <span className="text-foreground font-medium">{a.symbol}</span>
+                    <div className="text-[10px] text-muted">
+                      {a.tradeCount} entries near{" "}
+                      <span className="text-yellow-400 font-bold">
+                        ${a.anchorPrice.toLocaleString()}
+                      </span>{" "}
+                      ({a.pattern === "round_number" ? "round number" : "previous price"})
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

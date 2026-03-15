@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, ClipboardCheck } from "lucide-react";
+import { usePsychologyTier } from "@/lib/psychology-tier-context";
+import { DEFENSE_MECHANISMS } from "@/lib/validators";
 
 const YES_NO_QUESTIONS = [
   { key: "followed_entry_rules", label: "Did I follow my entry rules?" },
@@ -21,13 +23,25 @@ export function PostTradeReview({
   value: Record<string, string>;
   onChange: (review: Record<string, string>) => void;
 }) {
+  const { isExpert } = usePsychologyTier();
   const [expanded, setExpanded] = useState(false);
   const answeredCount = Object.values(value).filter((v) => v && v.length > 0).length;
-  const totalCount = YES_NO_QUESTIONS.length + TEXT_QUESTIONS.length;
+  const totalCount = YES_NO_QUESTIONS.length + TEXT_QUESTIONS.length + (isExpert ? 1 : 0);
 
   function update(key: string, val: string) {
     onChange({ ...value, [key]: val });
   }
+
+  function toggleDefenseMechanism(dmId: string) {
+    const current = value.defense_mechanisms ?? "";
+    const list = current ? current.split(",") : [];
+    const next = list.includes(dmId)
+      ? list.filter((d) => d !== dmId)
+      : [...list, dmId];
+    update("defense_mechanisms", next.join(","));
+  }
+
+  const selectedMechanisms = (value.defense_mechanisms ?? "").split(",").filter(Boolean);
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -94,6 +108,30 @@ export function PostTradeReview({
               />
             </div>
           ))}
+
+          {/* Expert: Defense Mechanisms */}
+          {isExpert && (
+            <div>
+              <label className="block text-xs text-muted mb-1.5">Defense mechanisms used?</label>
+              <div className="flex flex-wrap gap-1.5">
+                {DEFENSE_MECHANISMS.map((dm) => (
+                  <button
+                    key={dm.id}
+                    type="button"
+                    onClick={() => toggleDefenseMechanism(dm.id)}
+                    title={dm.example}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                      selectedMechanisms.includes(dm.id)
+                        ? "bg-amber-500/15 border-amber-500/40 text-amber-400"
+                        : "bg-background border-border text-muted hover:border-accent/20"
+                    }`}
+                  >
+                    {dm.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,13 +1,16 @@
 "use client";
 
-import { EmotionPicker, ConfidenceSlider, ProcessScoreInput, SetupTypePicker, EMOTION_CONFIG } from "@/components/psychology-inputs";
+import { EmotionPicker, EmotionQuadrantPicker, ConfidenceSlider, ProcessScoreInput, SetupTypePicker, FlowStateInput, EMOTION_CONFIG } from "@/components/psychology-inputs";
 import { RichTextArea } from "@/components/note-editor/rich-text-area";
+import { usePsychologyTier } from "@/lib/psychology-tier-context";
+import { EXPANDED_BIASES, EXPANDED_TRIGGERS, COGNITIVE_DISTORTIONS, DEFENSE_MECHANISMS } from "@/lib/validators";
+import type { FlowState, CognitiveDistortion } from "@/lib/types";
 
 type FieldDef =
   | { type: "textarea"; key: string; label: string; placeholder?: string }
   | { type: "text"; key: string; label: string; placeholder?: string; prefix?: string }
   | { type: "number"; key: string; label: string; placeholder?: string; prefix?: string }
-  | { type: "emotion"; key: string; label?: string }
+  | { type: "emotion"; key: string; label?: string; mode?: "multi"; showCustomInput?: boolean }
   | { type: "confidence"; key: string }
   | { type: "process-score"; key: string }
   | { type: "setup-type"; key: string }
@@ -41,13 +44,24 @@ const TEMPLATE_FIELDS: Record<string, FieldDef[]> = {
     { type: "textarea", key: "action_items", label: "Action items for next session", placeholder: "Specific, actionable steps..." },
   ],
   "morning-plan": [
-    { type: "emotion", key: "emotion", label: "How are you feeling this morning?" },
+    { type: "emotion", key: "emotion", label: "How are you feeling this morning?", mode: "multi" },
     { type: "confidence", key: "confidence" },
     { type: "textarea", key: "market_conditions", label: "Market conditions", placeholder: "Overall trend, key events, sentiment..." },
     { type: "textarea", key: "watchlist", label: "Watchlist", placeholder: "Tickers, setups, key levels..." },
     { type: "number", key: "max_trades", label: "Max trades today", placeholder: "e.g. 3" },
     { type: "number", key: "max_loss", label: "Max loss today", prefix: "$", placeholder: "e.g. 500" },
     { type: "textarea", key: "focus", label: "Focus for today", placeholder: "What's the one thing you'll focus on?" },
+  ],
+  "daily-review": [
+    { type: "emotion", key: "emotion", label: "How are you feeling after today's session?", mode: "multi", showCustomInput: true },
+    { type: "process-score", key: "process_score" },
+    { type: "text", key: "pnl", label: "Today's P&L", prefix: "$", placeholder: "e.g. +350 or -120" },
+    { type: "number", key: "total_trades", label: "Trades taken today", placeholder: "e.g. 4" },
+    { type: "textarea", key: "wins", label: "What went well", placeholder: "Winning trades, good decisions, rules you followed..." },
+    { type: "textarea", key: "losses", label: "What didn't go well", placeholder: "Losing trades, mistakes, rules you broke..." },
+    { type: "textarea", key: "emotional_triggers", label: "Emotional triggers", placeholder: "Moments where emotions influenced your decisions..." },
+    { type: "textarea", key: "lessons", label: "Key takeaways", placeholder: "What did you learn today?" },
+    { type: "textarea", key: "tomorrow_focus", label: "Focus for tomorrow", placeholder: "One thing to improve or focus on tomorrow..." },
   ],
   "weekly-recap": [
     { type: "text", key: "pnl", label: "This week's P&L", prefix: "$", placeholder: "e.g. +1,250 or -300" },
@@ -81,6 +95,7 @@ interface StructuredTemplateFormProps {
 
 export function StructuredTemplateForm({ templateId, data, onChange }: StructuredTemplateFormProps) {
   const fields = TEMPLATE_FIELDS[templateId];
+  const { tier, isAdvanced, isExpert } = usePsychologyTier();
   if (!fields) return null;
 
   function update(key: string, value: string | number | null) {
@@ -93,11 +108,47 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
     onChange({ ...data, [key]: JSON.stringify(updated) });
   }
 
+  function toggleMultiSelect(key: string, item: string) {
+    const raw = (data[key] as string) ?? "";
+    const list = raw ? raw.split(",").filter(Boolean) : [];
+    const next = list.includes(item) ? list.filter((i) => i !== item) : [...list, item];
+    update(key, next.join(","));
+  }
+
+  const selectedItems = (key: string) => ((data[key] as string) ?? "").split(",").filter(Boolean);
+
   return (
     <div className="space-y-4">
       {fields.map((field) => {
         switch (field.type) {
-          case "emotion":
+          case "emotion": {
+            if (field.mode === "multi") {
+              const raw = data[field.key] as string | null;
+              const emotions: string[] = !raw ? [] : raw.startsWith("[") ? JSON.parse(raw) : [raw];
+              return (
+                <EmotionPicker
+                  key={field.key}
+                  mode="multi"
+                  value={emotions}
+                  onChange={(v) => update(field.key, JSON.stringify(v))}
+                  label={field.label}
+                  showCustomInput={field.showCustomInput}
+                  customText={(data[field.key + "_custom"] as string) ?? ""}
+                  onCustomTextChange={(t) => update(field.key + "_custom", t || null)}
+                />
+              );
+            }
+            // Simple tier uses quadrant picker for single-select emotion
+            if (tier === "simple") {
+              return (
+                <EmotionQuadrantPicker
+                  key={field.key}
+                  value={(data[field.key] as string) ?? null}
+                  onChange={(v) => update(field.key, v)}
+                  label={field.label}
+                />
+              );
+            }
             return (
               <EmotionPicker
                 key={field.key}
@@ -106,6 +157,7 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
                 label={field.label}
               />
             );
+          }
           case "confidence":
             return (
               <ConfidenceSlider
@@ -222,6 +274,188 @@ export function StructuredTemplateForm({ templateId, data, onChange }: Structure
           }
         }
       })}
+
+      {/* ─── Tier-Specific Fields ─── */}
+
+      {/* Advanced: morning-plan gets sleep + cognitive load */}
+      {isAdvanced && templateId === "morning-plan" && (
+        <div className="border-t border-border/30 pt-4 space-y-3">
+          <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">Body Awareness</p>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Sleep quality last night</label>
+            <div className="flex gap-1.5">
+              {[{ v: 1, e: "😵", l: "Terrible" }, { v: 2, e: "😴", l: "Poor" }, { v: 3, e: "😐", l: "OK" }, { v: 4, e: "😊", l: "Good" }, { v: 5, e: "🌟", l: "Great" }].map(
+                (level) => (
+                  <button
+                    key={level.v}
+                    type="button"
+                    onClick={() => update("sleep_quality", data.sleep_quality === level.v ? null : level.v)}
+                    className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-lg text-[10px] font-medium border transition-all ${
+                      data.sleep_quality === level.v ? "bg-accent/15 border-accent/40 text-accent" : "bg-background border-border text-muted hover:border-accent/20"
+                    }`}
+                  >
+                    <span>{level.e}</span><span>{level.l}</span>
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Cognitive load</label>
+            <div className="flex gap-1.5">
+              {[{ v: 1, e: "🧘", l: "Clear" }, { v: 2, e: "💭", l: "Light" }, { v: 3, e: "🤔", l: "Moderate" }, { v: 4, e: "🧠", l: "Heavy" }, { v: 5, e: "🤯", l: "Overloaded" }].map(
+                (level) => (
+                  <button
+                    key={level.v}
+                    type="button"
+                    onClick={() => update("cognitive_load", data.cognitive_load === level.v ? null : level.v)}
+                    className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-lg text-[10px] font-medium border transition-all ${
+                      data.cognitive_load === level.v ? "bg-accent/15 border-accent/40 text-accent" : "bg-background border-border text-muted hover:border-accent/20"
+                    }`}
+                  >
+                    <span>{level.e}</span><span>{level.l}</span>
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced: daily-review gets biases + triggers */}
+      {isAdvanced && templateId === "daily-review" && (
+        <div className="border-t border-border/30 pt-4 space-y-3">
+          <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">Mind Analysis</p>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Biases that influenced me today</label>
+            <div className="flex flex-wrap gap-1.5">
+              {EXPANDED_BIASES.map((bias) => (
+                <button key={bias} type="button" onClick={() => toggleMultiSelect("biases_today", bias)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                    selectedItems("biases_today").includes(bias) ? "bg-loss/10 border-loss/30 text-loss" : "bg-background border-border text-muted hover:border-accent/20"
+                  }`}>{bias}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Triggers I experienced</label>
+            <div className="flex flex-wrap gap-1.5">
+              {EXPANDED_TRIGGERS.filter((t) => t !== "Other").map((trigger) => (
+                <button key={trigger} type="button" onClick={() => toggleMultiSelect("triggers_today", trigger)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                    selectedItems("triggers_today").includes(trigger) ? "bg-accent/15 border-accent/40 text-accent" : "bg-background border-border text-muted hover:border-accent/20"
+                  }`}>{trigger}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expert: daily-review gets distortions + dialogue + flow */}
+      {isExpert && templateId === "daily-review" && (
+        <div className="border-t border-accent/10 pt-4 space-y-3">
+          <p className="text-[10px] uppercase tracking-wider text-accent/50 font-semibold">Deep Psychology</p>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Cognitive distortions I noticed</label>
+            <div className="flex flex-wrap gap-1.5">
+              {COGNITIVE_DISTORTIONS.map((d) => (
+                <button key={d.id} type="button" title={d.example} onClick={() => toggleMultiSelect("distortions_today", d.id)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                    selectedItems("distortions_today").includes(d.id) ? "bg-purple-500/15 border-purple-500/40 text-purple-400" : "bg-background border-border text-muted hover:border-accent/20"
+                  }`}>{d.label}</button>
+              ))}
+            </div>
+          </div>
+          <FlowStateInput
+            value={(data.flow_state as FlowState) ?? null}
+            onChange={(v) => update("flow_state", v)}
+          />
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">What story was I telling myself today?</label>
+            <textarea
+              value={(data.internal_dialogue as string) ?? ""}
+              onChange={(e) => update("internal_dialogue", e.target.value)}
+              placeholder="The narrative running through my head during trading..."
+              rows={2}
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs text-foreground placeholder:text-muted/40 focus:outline-none focus:border-accent/50 transition-all resize-none"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Expert: trade-entry gets internal dialogue */}
+      {isExpert && templateId === "trade-entry" && (
+        <div className="border-t border-accent/10 pt-4 space-y-3">
+          <p className="text-[10px] uppercase tracking-wider text-accent/50 font-semibold">Deep Psychology</p>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">What story am I telling myself about this trade?</label>
+            <textarea
+              value={(data.internal_dialogue as string) ?? ""}
+              onChange={(e) => update("internal_dialogue", e.target.value)}
+              placeholder="e.g., 'This is the one that'll turn my week around'"
+              rows={2}
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs text-foreground placeholder:text-muted/40 focus:outline-none focus:border-accent/50 transition-all resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Where do I feel tension?</label>
+            <input
+              type="text"
+              value={(data.somatic_note as string) ?? ""}
+              onChange={(e) => update("somatic_note", e.target.value)}
+              placeholder="e.g., chest tight, jaw clenched, hands restless"
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs text-foreground placeholder:text-muted/40 focus:outline-none focus:border-accent/50 transition-all"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Expert: mistake gets distortion + defense mechanism */}
+      {isExpert && templateId === "mistake" && (
+        <div className="border-t border-accent/10 pt-4 space-y-3">
+          <p className="text-[10px] uppercase tracking-wider text-accent/50 font-semibold">Deep Psychology</p>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Which cognitive distortion was active?</label>
+            <div className="flex flex-wrap gap-1.5">
+              {COGNITIVE_DISTORTIONS.map((d) => (
+                <button key={d.id} type="button" title={d.example} onClick={() => toggleMultiSelect("mistake_distortions", d.id)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                    selectedItems("mistake_distortions").includes(d.id) ? "bg-purple-500/15 border-purple-500/40 text-purple-400" : "bg-background border-border text-muted hover:border-accent/20"
+                  }`}>{d.label}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Which defense mechanism did I use?</label>
+            <div className="flex flex-wrap gap-1.5">
+              {DEFENSE_MECHANISMS.map((dm) => (
+                <button key={dm.id} type="button" title={dm.example} onClick={() => toggleMultiSelect("mistake_defenses", dm.id)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                    selectedItems("mistake_defenses").includes(dm.id) ? "bg-amber-500/15 border-amber-500/40 text-amber-400" : "bg-background border-border text-muted hover:border-accent/20"
+                  }`}>{dm.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expert: trade-review gets distortions */}
+      {isExpert && templateId === "trade-review" && (
+        <div className="border-t border-accent/10 pt-4 space-y-3">
+          <p className="text-[10px] uppercase tracking-wider text-accent/50 font-semibold">Deep Psychology</p>
+          <div>
+            <label className="block text-[11px] text-muted mb-1.5 font-medium">Cognitive distortions active during this trade?</label>
+            <div className="flex flex-wrap gap-1.5">
+              {COGNITIVE_DISTORTIONS.map((d) => (
+                <button key={d.id} type="button" title={d.example} onClick={() => toggleMultiSelect("review_distortions", d.id)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                    selectedItems("review_distortions").includes(d.id) ? "bg-purple-500/15 border-purple-500/40 text-purple-400" : "bg-background border-border text-muted hover:border-accent/20"
+                  }`}>{d.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -271,8 +505,18 @@ export function serializeToHtml(templateId: string, data: Record<string, string 
     switch (field.type) {
       case "emotion": {
         label = field.label ?? "Emotion";
-        const emoji = EMOTION_CONFIG[value as string]?.emoji ?? "";
-        displayValue = `${emoji} ${value}`;
+        if (field.mode === "multi") {
+          const raw = value as string;
+          const emotions: string[] = raw.startsWith("[") ? JSON.parse(raw) : [raw];
+          if (emotions.length === 0) continue;
+          const labels = emotions.map((e) => `${EMOTION_CONFIG[e]?.emoji ?? ""} ${e}`);
+          displayValue = labels.join(", ");
+          const customText = data[field.key + "_custom"];
+          if (customText) displayValue += `<br/><em>${customText}</em>`;
+        } else {
+          const emoji = EMOTION_CONFIG[value as string]?.emoji ?? "";
+          displayValue = `${emoji} ${value}`;
+        }
         break;
       }
       case "confidence":

@@ -1,4 +1,4 @@
-import { Trade, Chain, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsight, WeeklyReport, DailyCheckin, BehavioralLog, SelfSabotageSignal, WealthThermostat, RiskHomeostasis, EndowmentEffect, PsychDevelopmentStage } from "./types";
+import { Trade, Chain, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsight, WeeklyReport, DailyCheckin, BehavioralLog, SelfSabotageSignal, WealthThermostat, RiskHomeostasis, EndowmentEffect, PsychDevelopmentStage, AnchoringPattern } from "./types";
 
 // Pure functions — given trades in, stats out. No side effects, easy to test.
 // This is where all the trading math lives.
@@ -1412,4 +1412,74 @@ export function calculatePsychDevelopmentStage(
     criteria: { met, unmet },
     nextStageHint: hints[stage - 1],
   };
+}
+
+/**
+ * Detect anchoring patterns: entry price clustering around round numbers
+ * or previous entry/exit prices for the same symbol.
+ */
+export function detectAnchoringPatterns(trades: Trade[]): AnchoringPattern[] {
+  const closed = trades.filter((t) => t.close_timestamp && t.entry_price > 0);
+  const bySymbol: Record<string, { entries: number[]; exits: number[] }> = {};
+
+  for (const t of closed) {
+    if (!bySymbol[t.symbol]) bySymbol[t.symbol] = { entries: [], exits: [] };
+    bySymbol[t.symbol].entries.push(t.entry_price);
+    if (t.exit_price) bySymbol[t.symbol].exits.push(t.exit_price);
+  }
+
+  const patterns: AnchoringPattern[] = [];
+
+  for (const [symbol, data] of Object.entries(bySymbol)) {
+    if (data.entries.length < 5) continue;
+
+    // Round number detection: find the most common round number anchor
+    const roundNumbers = [1, 5, 10, 25, 50, 100, 250, 500, 1000, 5000, 10000, 25000, 50000, 100000];
+    for (const round of roundNumbers) {
+      if (round > Math.max(...data.entries) * 0.5) continue; // Skip rounds larger than half the max price
+
+      const nearRound = data.entries.filter((p) => {
+        const nearest = Math.round(p / round) * round;
+        return Math.abs(p - nearest) / nearest < 0.01; // Within 1%
+      });
+
+      if (nearRound.length >= 3 && nearRound.length / data.entries.length > 0.4) {
+        const mostCommonRound = Math.round(data.entries.reduce((a, b) => a + b, 0) / data.entries.length / round) * round;
+        patterns.push({
+          symbol,
+          pattern: "round_number",
+          anchorPrice: mostCommonRound,
+          tradeCount: nearRound.length,
+        });
+        break; // One round-number pattern per symbol
+      }
+    }
+
+    // Previous price anchoring: entries clustering near prior exits
+    const allPrices = [...data.entries, ...data.exits];
+    let maxCluster = 0;
+    let clusterPrice = 0;
+
+    for (const price of allPrices) {
+      const nearby = data.entries.filter((e) => Math.abs(e - price) / price < 0.02); // Within 2%
+      if (nearby.length > maxCluster && nearby.length >= 3) {
+        maxCluster = nearby.length;
+        clusterPrice = price;
+      }
+    }
+
+    if (maxCluster >= 3 && maxCluster / data.entries.length > 0.3) {
+      // Don't double-count if already flagged as round number
+      if (!patterns.some((p) => p.symbol === symbol && p.pattern === "round_number")) {
+        patterns.push({
+          symbol,
+          pattern: "previous_price",
+          anchorPrice: Math.round(clusterPrice * 100) / 100,
+          tradeCount: maxCluster,
+        });
+      }
+    }
+  }
+
+  return patterns.sort((a, b) => b.tradeCount - a.tradeCount);
 }
