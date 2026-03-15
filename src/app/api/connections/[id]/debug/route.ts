@@ -104,6 +104,15 @@ export async function GET(
       opError = e instanceof Error ? e.message : "Failed";
     }
 
+    // Query stored trades for this connection
+    const { data: storedTrades } = await supabase
+      .from("trades")
+      .select("symbol, position, entry_price, exit_price, quantity, fees, pnl, broker_order_id, tags, open_timestamp, close_timestamp")
+      .eq("user_id", user.id)
+      .eq("broker_name", "Bitget")
+      .order("open_timestamp", { ascending: false })
+      .limit(20);
+
     return NextResponse.json({
       api_status: res.status,
       api_code: json.code,
@@ -144,6 +153,20 @@ export async function GET(
       open_positions: openPositions,
       open_positions_count: openPositions.length,
       open_positions_error: opError || undefined,
+      stored_trades: (storedTrades ?? []).map((t: Record<string, unknown>) => ({
+        symbol: t.symbol,
+        position: t.position,
+        qty: t.quantity,
+        entry: t.entry_price,
+        exit: t.exit_price,
+        pnl: t.pnl,
+        fees: t.fees,
+        broker_order_id: t.broker_order_id,
+        tags: t.tags,
+        open: t.open_timestamp,
+        close: t.close_timestamp,
+      })),
+      stored_trades_count: storedTrades?.length ?? 0,
       last_sync_at: conn.last_sync_at,
       last_error: conn.last_error,
       connection_status: conn.status,
