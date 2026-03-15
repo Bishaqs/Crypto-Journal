@@ -86,6 +86,167 @@ export const BEHAVIORAL_BIASES = [
   "Confirmation bias",
 ] as const;
 
+// ─── Psychology Tier Constants ───────────────────────────────────────────────
+
+// Emotion Quadrants (Russell's circumplex model adapted for trading)
+export const EMOTION_QUADRANTS = {
+  danger: {
+    label: "Danger Zone",
+    description: "High energy, negative — likely to cause impulsive trades",
+    color: "red",
+    emoji: "🔴",
+    emotions: ["FOMO", "Revenge", "Greedy", "Overconfident"] as const,
+  },
+  caution: {
+    label: "Caution Zone",
+    description: "Low energy, negative — may lead to hesitation or avoidance",
+    color: "yellow",
+    emoji: "🟡",
+    emotions: ["Anxious", "Fearful", "Frustrated", "Regretful", "Impatient"] as const,
+  },
+  edge: {
+    label: "Edge State",
+    description: "High energy, positive — your peak performance zone",
+    color: "green",
+    emoji: "🟢",
+    emotions: ["Confident", "Disciplined", "Excited", "Hopeful"] as const,
+  },
+  baseline: {
+    label: "Baseline",
+    description: "Low energy, neutral — fine for rule-based execution",
+    color: "blue",
+    emoji: "🔵",
+    emotions: ["Calm", "Bored", "Indifferent", "Confused"] as const,
+  },
+} as const;
+
+export type EmotionQuadrant = keyof typeof EMOTION_QUADRANTS;
+
+// Cognitive distortions (Beck's taxonomy adapted for trading)
+export const COGNITIVE_DISTORTIONS = [
+  { id: "all_or_nothing", label: "All-or-Nothing", example: "This trade will make or break my week" },
+  { id: "catastrophizing", label: "Catastrophizing", example: "If I lose here, I'll blow the account" },
+  { id: "fortune_telling", label: "Fortune Telling", example: "I just know this will reverse on me" },
+  { id: "mind_reading", label: "Mind Reading", example: "Market makers are targeting my stop" },
+  { id: "emotional_reasoning", label: "Emotional Reasoning", example: "I feel scared, so this must be a bad trade" },
+  { id: "should_statements", label: "Should Statements", example: "I should have entered earlier" },
+  { id: "labeling", label: "Labeling", example: "I'm a terrible trader" },
+  { id: "magnification", label: "Magnification", example: "This loss is devastating" },
+  { id: "minimization", label: "Minimization", example: "That win was just luck" },
+  { id: "personalization", label: "Personalization", example: "The market is against me specifically" },
+  { id: "overgeneralization", label: "Overgeneralization", example: "I always lose on Mondays" },
+  { id: "mental_filter", label: "Mental Filter", example: "Ignore 5 wins, focus on 1 loss" },
+] as const;
+
+// Defense mechanisms
+export const DEFENSE_MECHANISMS = [
+  { id: "rationalization", label: "Rationalization", example: "I didn't follow the plan but it worked out..." },
+  { id: "denial", label: "Denial", example: "That loss wasn't really my fault" },
+  { id: "projection", label: "Projection", example: "The market is irrational, not me" },
+  { id: "intellectualization", label: "Intellectualization", example: "I'll study more charts instead of fixing my process" },
+] as const;
+
+// Somatic body areas
+export const SOMATIC_AREAS = [
+  { id: "chest", label: "Chest", emoji: "💗" },
+  { id: "stomach", label: "Stomach", emoji: "🫄" },
+  { id: "jaw", label: "Jaw", emoji: "😬" },
+  { id: "shoulders", label: "Shoulders", emoji: "🤷" },
+  { id: "hands", label: "Hands", emoji: "🤲" },
+  { id: "none", label: "No tension", emoji: "✅" },
+] as const;
+
+// Flow states
+export const FLOW_STATES = [
+  { id: "forced", label: "Forced", emoji: "😣", description: "Everything feels like a struggle" },
+  { id: "effortful", label: "Effortful", emoji: "😤", description: "Requires constant focus" },
+  { id: "neutral", label: "Neutral", emoji: "😐", description: "Neither easy nor hard" },
+  { id: "smooth", label: "Smooth", emoji: "🎯", description: "Decisions come naturally" },
+  { id: "flow", label: "Flow", emoji: "🌊", description: "Effortless execution, fully absorbed" },
+] as const;
+
+// Expanded triggers (Advanced tier)
+export const EXPANDED_TRIGGERS = [
+  // Market triggers
+  "Loss streak",
+  "Big win",
+  "Missed entry",
+  "News event",
+  "Market volatility",
+  "Stopped out then reversed",
+  "Seeing others profit",
+  "Exited too early",
+  "Multiple timeframe conflict",
+  // Personal triggers
+  "Boredom",
+  "External stress",
+  "Sleep deprivation",
+  "Argument or conflict",
+  "Financial pressure",
+  "Screen fatigue",
+  "Comparing self to others",
+  // Behavioral triggers
+  "Broke a rule but got rewarded",
+  "Approaching P&L milestone",
+  "Approaching drawdown threshold",
+  "Other",
+] as const;
+
+// Expanded physical states (Advanced tier)
+export const EXPANDED_PHYSICAL_STATES = [
+  "Well-rested",
+  "Tired",
+  "Wired",
+  "Caffeinated",
+  "Exercised today",
+  "Hungry",
+  "Headache",
+  "Back pain",
+  "Eye strain",
+  "Restless",
+  "Relaxed",
+  "Dehydrated",
+  "Stomach discomfort",
+  "Normal",
+] as const;
+
+// Expanded biases (Advanced tier)
+export const EXPANDED_BIASES = [
+  "FOMO",
+  "Revenge trading",
+  "Overconfidence",
+  "Hesitation",
+  "Oversize",
+  "Confirmation bias",
+  "Recency bias",
+  "Anchoring",
+  "Sunk cost fallacy",
+  "Disposition effect",
+  "Endowment effect",
+  "Gambler's fallacy",
+  "Availability bias",
+  "Loss aversion",
+  "Status quo bias",
+  "Hindsight bias",
+] as const;
+
+// Risk personality archetypes
+export const RISK_PERSONALITIES = [
+  { id: "conservative_guardian", label: "Conservative Guardian", emoji: "🛡️", description: "Prioritizes capital preservation, methodical entry/exit" },
+  { id: "calculated_risk_taker", label: "Calculated Risk-Taker", emoji: "🧮", description: "Data-driven risk-reward decisions, balanced approach" },
+  { id: "aggressive_hunter", label: "Aggressive Hunter", emoji: "🎯", description: "High conviction sizing, comfortable with volatility" },
+  { id: "adaptive_chameleon", label: "Adaptive Chameleon", emoji: "🦎", description: "Adjusts strategy to market conditions, flexible" },
+] as const;
+
+// Self-concept identities
+export const SELF_CONCEPT_IDENTITIES = [
+  { id: "disciplined_executor", label: "Disciplined Executor", description: "I follow my rules above all else" },
+  { id: "pattern_hunter", label: "Pattern Hunter", description: "I see patterns others miss" },
+  { id: "contrarian", label: "Contrarian", description: "I profit when others panic" },
+  { id: "survivor", label: "Survivor", description: "I've been through drawdowns and come back stronger" },
+  { id: "student", label: "Student", description: "I'm always learning, always improving" },
+] as const;
+
 export const CHAIN_VALUES = [
   "ethereum", "solana", "base", "arbitrum", "bsc", "polygon", "avalanche",
 ] as const;
