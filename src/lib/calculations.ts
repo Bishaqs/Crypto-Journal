@@ -1,4 +1,4 @@
-import { Trade, Chain, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsight, WeeklyReport } from "./types";
+import { Trade, Chain, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsight, WeeklyReport, DailyCheckin, BehavioralLog, SelfSabotageSignal, WealthThermostat, RiskHomeostasis, EndowmentEffect, PsychDevelopmentStage } from "./types";
 
 // Pure functions — given trades in, stats out. No side effects, easy to test.
 // This is where all the trading math lives.
@@ -1057,4 +1057,359 @@ export function formatDurationMs(ms: number | null): string {
   if (hours > 0) return `${hours}H ${minutes}M ${seconds}S`;
   if (minutes > 0) return `${minutes}M ${seconds}S`;
   return `${seconds} Secs`;
+}
+
+// ─── Psychology Detection Algorithms ─────────────────────────────────────────
+
+/**
+ * Detect self-sabotage patterns:
+ * 1. Process breaks: 3+ high-process trades followed by sudden low-process trade
+ * 2. Profit giveback: profitable week followed by overtrading that gives back >50%
+ */
+export function detectSelfSabotage(trades: Trade[]): SelfSabotageSignal[] {
+  const closed = trades
+    .filter((t) => t.close_timestamp && t.pnl !== null && t.process_score !== null)
+    .sort((a, b) => new Date(a.close_timestamp!).getTime() - new Date(b.close_timestamp!).getTime());
+
+  if (closed.length < 5) return [];
+
+  const signals: SelfSabotageSignal[] = [];
+
+  // Pattern 1: Process breaks — high-process streak broken by low-process trade
+  const processBreaks: { date: string; pnl: number; processScore: number | null }[] = [];
+  let highStreak = 0;
+
+  for (const trade of closed) {
+    const ps = trade.process_score!;
+    if (ps >= 7) {
+      highStreak++;
+    } else if (ps <= 4 && highStreak >= 3) {
+      processBreaks.push({
+        date: trade.close_timestamp!.split("T")[0],
+        pnl: trade.pnl!,
+        processScore: ps,
+      });
+      highStreak = 0;
+    } else {
+      highStreak = 0;
+    }
+  }
+
+  if (processBreaks.length >= 2) {
+    signals.push({ type: "process_break", occurrences: processBreaks.length, examples: processBreaks.slice(0, 5) });
+  }
+
+  // Pattern 2: Profit giveback — profitable week followed by next-day overtrading
+  const weeklyPnl: Record<string, { pnl: number; trades: number }> = {};
+  for (const t of closed) {
+    const d = new Date(t.close_timestamp!);
+    const weekStart = new Date(d);
+    weekStart.setDate(d.getDate() - d.getDay() + 1); // Monday
+    const key = weekStart.toISOString().split("T")[0];
+    if (!weeklyPnl[key]) weeklyPnl[key] = { pnl: 0, trades: 0 };
+    weeklyPnl[key].pnl += t.pnl!;
+    weeklyPnl[key].trades++;
+  }
+
+  const dailyPnlMap: Record<string, { pnl: number; trades: number }> = {};
+  for (const t of closed) {
+    const day = t.close_timestamp!.split("T")[0];
+    if (!dailyPnlMap[day]) dailyPnlMap[day] = { pnl: 0, trades: 0 };
+    dailyPnlMap[day].pnl += t.pnl!;
+    dailyPnlMap[day].trades++;
+  }
+
+  const givebacks: { date: string; pnl: number; processScore: number | null }[] = [];
+  const weeks = Object.entries(weeklyPnl).sort((a, b) => a[0].localeCompare(b[0]));
+
+  for (let i = 0; i < weeks.length - 1; i++) {
+    const [, weekData] = weeks[i];
+    if (weekData.pnl <= 0) continue;
+
+    // Check the Monday after this profitable week
+    const nextWeekStart = weeks[i + 1][0];
+    const nextDay = dailyPnlMap[nextWeekStart];
+    if (nextDay && nextDay.pnl < 0 && Math.abs(nextDay.pnl) > weekData.pnl * 0.5 && nextDay.trades >= 3) {
+      givebacks.push({ date: nextWeekStart, pnl: nextDay.pnl, processScore: null });
+    }
+  }
+
+  if (givebacks.length >= 2) {
+    signals.push({ type: "profit_giveback", occurrences: givebacks.length, examples: givebacks.slice(0, 5) });
+  }
+
+  return signals;
+}
+
+/**
+ * Detect wealth thermostat: repeated equity peaks at the same level.
+ * If cumulative P&L hits a ceiling 3+ times and retraces each time, flag it.
+ */
+export function detectWealthThermostat(trades: Trade[]): WealthThermostat | null {
+  const closed = trades
+    .filter((t) => t.close_timestamp && t.pnl !== null)
+    .sort((a, b) => new Date(a.close_timestamp!).getTime() - new Date(b.close_timestamp!).getTime());
+
+  if (closed.length < 20) return null;
+
+  // Build cumulative P&L
+  let cumPnl = 0;
+  const curve: { date: string; pnl: number }[] = [];
+  for (const t of closed) {
+    cumPnl += t.pnl!;
+    curve.push({ date: t.close_timestamp!.split("T")[0], pnl: cumPnl });
+  }
+
+  // Find local peaks (higher than 3 trades before and after)
+  const peaks: { date: string; pnl: number }[] = [];
+  for (let i = 3; i < curve.length - 3; i++) {
+    const current = curve[i].pnl;
+    if (current <= 0) continue;
+    const before = Math.max(curve[i - 1].pnl, curve[i - 2].pnl, curve[i - 3].pnl);
+    const after = Math.max(curve[i + 1].pnl, curve[i + 2].pnl, curve[i + 3].pnl);
+    if (current > before && current > after) {
+      peaks.push(curve[i]);
+    }
+  }
+
+  if (peaks.length < 3) return null;
+
+  // Cluster peaks within 10% of each other
+  peaks.sort((a, b) => b.pnl - a.pnl);
+
+  for (let i = 0; i < peaks.length; i++) {
+    const ceiling = peaks[i].pnl;
+    const threshold = ceiling * 0.1;
+    const cluster = peaks.filter((p) => Math.abs(p.pnl - ceiling) <= threshold);
+
+    if (cluster.length >= 3) {
+      // Calculate average retrace after peaks
+      let totalRetrace = 0;
+      let retraceCount = 0;
+      for (const peak of cluster) {
+        const peakIdx = curve.findIndex((c) => c.date === peak.date && c.pnl === peak.pnl);
+        if (peakIdx >= 0 && peakIdx < curve.length - 5) {
+          const trough = Math.min(...curve.slice(peakIdx + 1, peakIdx + 10).map((c) => c.pnl));
+          totalRetrace += (peak.pnl - trough) / peak.pnl;
+          retraceCount++;
+        }
+      }
+
+      return {
+        ceilingLevel: Math.round(ceiling),
+        peakCount: cluster.length,
+        peaks: cluster.slice(0, 5),
+        avgRetracePercent: retraceCount > 0 ? Math.round((totalRetrace / retraceCount) * 100) : 0,
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Detect risk homeostasis: position sizing that changes based on recent outcomes.
+ * If trader sizes up after losses or sizes down after wins, flags the pattern.
+ */
+export function detectRiskHomeostasis(trades: Trade[]): RiskHomeostasis | null {
+  const closed = trades
+    .filter((t) => t.close_timestamp && t.pnl !== null && t.quantity > 0)
+    .sort((a, b) => new Date(a.close_timestamp!).getTime() - new Date(b.close_timestamp!).getTime());
+
+  if (closed.length < 10) return null;
+
+  const sizesAfterWin: number[] = [];
+  const sizesAfterLoss: number[] = [];
+
+  for (let i = 1; i < closed.length; i++) {
+    const prev = closed[i - 1];
+    const current = closed[i];
+    const size = current.quantity * current.entry_price;
+
+    if (prev.pnl! > 0) {
+      sizesAfterWin.push(size);
+    } else if (prev.pnl! < 0) {
+      sizesAfterLoss.push(size);
+    }
+  }
+
+  if (sizesAfterWin.length < 3 || sizesAfterLoss.length < 3) return null;
+
+  const avgAfterWin = sizesAfterWin.reduce((a, b) => a + b, 0) / sizesAfterWin.length;
+  const avgAfterLoss = sizesAfterLoss.reduce((a, b) => a + b, 0) / sizesAfterLoss.length;
+
+  if (avgAfterWin === 0) return null;
+
+  const changePercent = Math.round(((avgAfterLoss - avgAfterWin) / avgAfterWin) * 100);
+
+  if (Math.abs(changePercent) < 20) return null; // Not significant
+
+  return {
+    sizeAfterWin: Math.round(avgAfterWin),
+    sizeAfterLoss: Math.round(avgAfterLoss),
+    changePercent,
+    direction: changePercent > 0 ? "doubling_down" : "compensating",
+  };
+}
+
+/**
+ * Detect endowment/disposition effect: holding losers longer than winners per symbol.
+ * Requires 5+ closed trades per symbol to be statistically meaningful.
+ */
+export function detectEndowmentEffect(trades: Trade[]): EndowmentEffect[] {
+  const closed = trades.filter((t) => t.close_timestamp && t.pnl !== null);
+
+  const bySymbol: Record<string, { winHolds: number[]; lossHolds: number[] }> = {};
+
+  for (const t of closed) {
+    const holdMs = new Date(t.close_timestamp!).getTime() - new Date(t.open_timestamp).getTime();
+    const holdHours = holdMs / (1000 * 60 * 60);
+    if (holdHours <= 0) continue;
+
+    const sym = t.symbol;
+    if (!bySymbol[sym]) bySymbol[sym] = { winHolds: [], lossHolds: [] };
+
+    if (t.pnl! > 0) {
+      bySymbol[sym].winHolds.push(holdHours);
+    } else if (t.pnl! < 0) {
+      bySymbol[sym].lossHolds.push(holdHours);
+    }
+  }
+
+  const effects: EndowmentEffect[] = [];
+
+  for (const [symbol, data] of Object.entries(bySymbol)) {
+    if (data.winHolds.length < 3 || data.lossHolds.length < 3) continue;
+
+    const avgWin = data.winHolds.reduce((a, b) => a + b, 0) / data.winHolds.length;
+    const avgLoss = data.lossHolds.reduce((a, b) => a + b, 0) / data.lossHolds.length;
+
+    if (avgWin <= 0) continue;
+
+    const ratio = avgLoss / avgWin;
+    if (ratio > 1.5) {
+      effects.push({
+        symbol,
+        avgHoldWin: Math.round(avgWin * 10) / 10,
+        avgHoldLoss: Math.round(avgLoss * 10) / 10,
+        ratio: Math.round(ratio * 100) / 100,
+      });
+    }
+  }
+
+  return effects.sort((a, b) => b.ratio - a.ratio);
+}
+
+/**
+ * Calculate psychological development stage (Dreyfus model for trading):
+ * 1. Unconscious Incompetence — no tracking
+ * 2. Conscious Incompetence — tracks but negative patterns
+ * 3. Conscious Competence — improving process, identifying distortions
+ * 4. Unconscious Competence — consistently high process, mostly green
+ * 5. Mastery — self-coaching, minimal negative emotion-P&L correlation
+ */
+export function calculatePsychDevelopmentStage(
+  trades: Trade[],
+  checkins: DailyCheckin[],
+  logs: BehavioralLog[],
+): PsychDevelopmentStage {
+  const closed = trades.filter((t) => t.close_timestamp && t.pnl !== null);
+  const withEmotion = closed.filter((t) => t.emotion);
+  const withProcess = closed.filter((t) => t.process_score !== null);
+
+  const met: string[] = [];
+  const unmet: string[] = [];
+
+  // Stage 1 → 2: Has any tracking data?
+  const hasTracking = withEmotion.length > 5 || checkins.length > 3 || logs.length > 3;
+  if (hasTracking) met.push("Tracks emotions and/or daily check-ins");
+  else unmet.push("Start tracking emotions on trades or do daily check-ins");
+
+  // Stage 2 → 3: Process scores trending up?
+  let processImproving = false;
+  if (withProcess.length >= 10) {
+    const recent10 = withProcess.slice(-10);
+    const older10 = withProcess.slice(0, Math.min(10, withProcess.length));
+    const recentAvg = recent10.reduce((a, t) => a + t.process_score!, 0) / recent10.length;
+    const olderAvg = older10.reduce((a, t) => a + t.process_score!, 0) / older10.length;
+    processImproving = recentAvg > olderAvg + 0.5;
+  }
+  if (processImproving) met.push("Process scores are trending upward");
+  else unmet.push("Improve process score consistency over time");
+
+  // Stage 3 → 4: Consistently high process (avg 7+)?
+  let consistentHighProcess = false;
+  if (withProcess.length >= 20) {
+    const recent20 = withProcess.slice(-20);
+    const avg = recent20.reduce((a, t) => a + t.process_score!, 0) / recent20.length;
+    consistentHighProcess = avg >= 7;
+  }
+  if (consistentHighProcess) met.push("Consistent process scores of 7+ (last 20 trades)");
+  else unmet.push("Achieve average process score of 7+ over 20 trades");
+
+  // Stage 3 → 4: Traffic light mostly green?
+  let mostlyGreen = false;
+  if (checkins.length >= 10) {
+    const recent = checkins.slice(0, 10);
+    const greenCount = recent.filter((c) => c.traffic_light === "green").length;
+    mostlyGreen = greenCount >= 7;
+  }
+  if (mostlyGreen) met.push("70%+ green light days (last 10 check-ins)");
+  else unmet.push("Achieve 70%+ green light days in daily check-ins");
+
+  // Stage 4 → 5: Minimal negative emotion-P&L correlation?
+  let minimalNegativeCorrelation = false;
+  if (withEmotion.length >= 20) {
+    const negativeEmotions = ["FOMO", "Revenge", "Greedy", "Overconfident", "Frustrated", "Fearful", "Anxious"];
+    const negTrades = withEmotion.filter((t) => negativeEmotions.includes(t.emotion!));
+    const posTrades = withEmotion.filter((t) => !negativeEmotions.includes(t.emotion!));
+
+    if (negTrades.length > 0 && posTrades.length > 0) {
+      const negAvgPnl = negTrades.reduce((a, t) => a + (t.pnl ?? 0), 0) / negTrades.length;
+      const posAvgPnl = posTrades.reduce((a, t) => a + (t.pnl ?? 0), 0) / posTrades.length;
+      // If negative-emotion trades are within 20% of positive-emotion trades, correlation is minimal
+      if (posAvgPnl > 0 && negAvgPnl > posAvgPnl * -0.2) {
+        minimalNegativeCorrelation = true;
+      }
+    }
+  }
+  if (minimalNegativeCorrelation) met.push("Negative emotions no longer significantly impact P&L");
+  else unmet.push("Reduce the P&L gap between positive and negative emotion trades");
+
+  // Determine stage
+  let stage: number;
+  if (!hasTracking) {
+    stage = 1;
+  } else if (!processImproving) {
+    stage = 2;
+  } else if (!consistentHighProcess || !mostlyGreen) {
+    stage = 3;
+  } else if (!minimalNegativeCorrelation) {
+    stage = 4;
+  } else {
+    stage = 5;
+  }
+
+  const labels = [
+    "Unconscious Incompetence",
+    "Conscious Incompetence",
+    "Conscious Competence",
+    "Unconscious Competence",
+    "Mastery",
+  ];
+
+  const hints = [
+    "Start by tracking your emotions on every trade and doing daily check-ins.",
+    "You're aware of your patterns — now focus on improving your process score over time.",
+    "Your process is improving — aim for consistent 7+ scores and mostly green light days.",
+    "You're consistently disciplined — work on eliminating the last negative emotion impacts.",
+    "You've achieved mastery — maintain awareness and coach yourself through new challenges.",
+  ];
+
+  return {
+    stage,
+    label: labels[stage - 1],
+    criteria: { met, unmet },
+    nextStageHint: hints[stage - 1],
+  };
 }
