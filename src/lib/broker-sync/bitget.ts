@@ -253,7 +253,7 @@ export async function fetchBitgetPositions(
   return { closedTrades, openTrades: [], fetched, errors, latestCloseTime };
 }
 
-/** Raw response shape from GET /api/v2/mix/position/get-all-position */
+/** Raw response shape from GET /api/v2/mix/position/all-position */
 type BitgetOpenPosition = {
   positionId: string;
   symbol: string;
@@ -275,8 +275,8 @@ type BitgetOpenPosition = {
 export async function fetchBitgetOpenPositions(
   creds: BitgetCredentials,
 ): Promise<{ openTrades: MappedTrade[]; errors: string[] }> {
-  const path = "/api/v2/mix/position/get-all-position";
-  const query = "?productType=USDT-FUTURES";
+  const path = "/api/v2/mix/position/all-position";
+  const query = "?productType=USDT-FUTURES&marginCoin=USDT";
   const fullPath = path + query;
 
   try {
@@ -289,7 +289,7 @@ export async function fetchBitgetOpenPositions(
     if (!res.ok) {
       // 404 is expected for some account types — silently return empty
       if (res.status === 404) {
-        console.log(`[sync:positions] get-all-position returned 404 — endpoint not available`);
+        console.log(`[sync:positions] all-position returned 404 — endpoint not available`);
         return { openTrades: [], errors: [] };
       }
       return { openTrades: [], errors: [`HTTP ${res.status}`] };
@@ -300,14 +300,14 @@ export async function fetchBitgetOpenPositions(
       // "Request URL NOT FOUND" is also a 404-equivalent — not a real error
       const msg = json.msg || json.code;
       if (msg.toLowerCase().includes("not found")) {
-        console.log(`[sync:positions] get-all-position: ${msg}`);
+        console.log(`[sync:positions] all-position: ${msg}`);
         return { openTrades: [], errors: [] };
       }
       return { openTrades: [], errors: [msg] };
     }
 
     const list: BitgetOpenPosition[] = json.data ?? [];
-    console.log(`[sync:positions] get-all-position: ${list.length} items. First:`, list[0] ? JSON.stringify(list[0]).slice(0, 300) : "none");
+    console.log(`[sync:positions] all-position: ${list.length} items. First:`, list[0] ? JSON.stringify(list[0]).slice(0, 300) : "none");
     const openTrades: MappedTrade[] = [];
 
     for (const pos of list) {

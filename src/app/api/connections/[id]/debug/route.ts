@@ -86,8 +86,8 @@ export async function GET(
     }
 
     // Probe open positions endpoint
-    const opPath = "/api/v2/mix/position/get-all-position";
-    const opQuery = "?productType=USDT-FUTURES";
+    const opPath = "/api/v2/mix/position/all-position";
+    const opQuery = "?productType=USDT-FUTURES&marginCoin=USDT";
     const opFullPath = opPath + opQuery;
     const opHeaders = buildHeaders(creds, "GET", opFullPath);
     let openPositions: unknown[] = [];
