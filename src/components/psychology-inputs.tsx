@@ -4,6 +4,7 @@ import { useState } from "react";
 import { EMOTIONS, JOURNAL_EMOTIONS, SETUP_TYPES, EMOTION_QUADRANTS, FLOW_STATES } from "@/lib/validators";
 import type { EmotionQuadrant } from "@/lib/validators";
 import type { FlowState } from "@/lib/types";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 // Emotion icons mapped to each emotion for visual recognition
 export const EMOTION_CONFIG: Record<string, { emoji: string; color: string }> = {
@@ -80,8 +81,9 @@ export function EmotionPicker(props: EmotionPickerProps) {
 
   return (
     <div>
-      <label className="block text-xs text-muted mb-2">
+      <label className="block text-xs text-muted mb-2 flex items-center gap-1">
         {label}
+        <InfoTooltip text="Every emotion you log gets correlated with your P&L. Over time, you'll see exactly which feelings cost you money and which give you an edge." />
         {mode === "multi" && (
           <span className="text-muted/50 ml-1">(select all that apply)</span>
         )}
@@ -136,8 +138,9 @@ export function ConfidenceSlider({
 
   return (
     <div>
-      <label className="block text-xs text-muted mb-2">
+      <label className="block text-xs text-muted mb-2 flex items-center gap-1">
         Confidence <span className="text-foreground font-semibold">{displayValue}/10</span>
+        <InfoTooltip text="Confidence tracking reveals your calibration. Are you profitable when you feel confident? Or does overconfidence cost you?" />
       </label>
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted">Low</span>
@@ -175,7 +178,10 @@ export function SetupTypePicker({
 
   return (
     <div>
-      <label className="block text-xs text-muted mb-2">Setup Type</label>
+      <label className="block text-xs text-muted mb-2 flex items-center gap-1">
+        Setup Type
+        <InfoTooltip text="Categorizing setups lets your dashboard rank which patterns actually make you money vs which ones you just think work." />
+      </label>
       <div className="flex flex-wrap gap-2">
         {SETUP_TYPES.map((setup) => {
           const isSelected = setup === "Custom" ? isCustomPreset : value === setup;
@@ -263,9 +269,10 @@ export function ProcessScoreInput({
 }) {
   return (
     <div>
-      <label className="block text-xs text-muted mb-2">
+      <label className="block text-xs text-muted mb-2 flex items-center gap-1 flex-wrap">
         Process Score — How well did you follow your rules?{" "}
         <span className="text-foreground font-semibold">{value ?? "—"}/10</span>
+        <InfoTooltip text="Process > P&L. A high-process loss is a good trade (variance). A low-process win is dangerous (luck). This is the #1 metric for growth." />
       </label>
       <div className="flex gap-1">
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
@@ -348,7 +355,10 @@ export function EmotionQuadrantPicker({
 
   return (
     <div>
-      <label className="block text-xs text-muted mb-2">{label}</label>
+      <label className="block text-xs text-muted mb-2 flex items-center gap-1">
+        {label}
+        <InfoTooltip text="Pre-trade emotion is the strongest predictor of trade outcome after setup quality. Log it to build your personal emotion-P&L map." />
+      </label>
 
       {/* Quadrant grid */}
       <div className="grid grid-cols-2 gap-2">
@@ -434,8 +444,9 @@ export function FlowStateInput({
 }) {
   return (
     <div>
-      <label className="block text-xs text-muted mb-2">
+      <label className="block text-xs text-muted mb-2 flex items-center gap-1">
         Session Flow — How does trading feel right now?
+        <InfoTooltip text="Flow state = your best trading. By tracking when you hit flow, your AI identifies the conditions that produce your peak performance." />
       </label>
       <div className="flex gap-1">
         {FLOW_STATES.map((fs) => {

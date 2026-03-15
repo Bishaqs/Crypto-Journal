@@ -4,6 +4,7 @@ import { useState } from "react";
 import { COGNITIVE_DISTORTIONS } from "@/lib/validators";
 import type { CognitiveDistortion } from "@/lib/types";
 import { Info } from "lucide-react";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 export function CognitiveDistortionPicker({
   value,
@@ -24,8 +25,9 @@ export function CognitiveDistortionPicker({
 
   return (
     <div>
-      <label className="block text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-2">
+      <label className="block text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-2 flex items-center gap-1">
         Thinking Traps Active Right Now?
+        <InfoTooltip text="Cognitive distortions are systematic thinking errors identified by psychologists. Trading-specific distortions cause 60%+ of unforced trading losses. Naming them in real-time is the most effective defense." size={10} />
       </label>
       <p className="text-[10px] text-muted/50 mb-2">
         Tap to select any cognitive distortions you notice. Tap <Info size={10} className="inline" /> for examples.
