@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { X, Sun, Coffee, Zap } from "lucide-react";
 import { isTourComplete } from "@/lib/onboarding";
 import { usePsychologyTier } from "@/lib/psychology-tier-context";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 const MOOD_LEVELS = [
   { value: 1, emoji: "😞", label: "Awful" },
@@ -136,7 +137,7 @@ export function DailyCheckin() {
         <div className="p-5 space-y-5">
           {/* Mood */}
           <div>
-            <label className="block text-xs text-muted mb-2">How are you feeling?</label>
+            <label className="block text-xs text-muted mb-2 flex items-center gap-1">How are you feeling? <InfoTooltip text="Your AI coach tracks mood-to-P&L correlation. Traders who log mood daily discover which emotional states produce their best and worst results." /></label>
             <div className="flex gap-2">
               {MOOD_LEVELS.map((level) => (
                 <button
@@ -157,7 +158,7 @@ export function DailyCheckin() {
 
           {/* Energy */}
           <div>
-            <label className="block text-xs text-muted mb-2">Energy level?</label>
+            <label className="block text-xs text-muted mb-2 flex items-center gap-1">Energy level? <InfoTooltip text="Low energy correlates with poor risk management. Tracking this reveals your optimal trading hours and helps you avoid decision fatigue." /></label>
             <div className="flex gap-2">
               {ENERGY_LEVELS.map((level) => (
                 <button
@@ -178,7 +179,7 @@ export function DailyCheckin() {
 
           {/* Focus */}
           <div>
-            <label className="block text-xs text-muted mb-2">Today&apos;s focus:</label>
+            <label className="block text-xs text-muted mb-2 flex items-center gap-1">Today&apos;s focus: <InfoTooltip text="Setting one clear intention reduces overtrading. Traders who write a daily focus take fewer impulsive trades." /></label>
             <input
               value={focus}
               onChange={(e) => setFocus(e.target.value)}
@@ -190,7 +191,7 @@ export function DailyCheckin() {
           {/* Advanced: Sleep Quality */}
           {isAdvanced && (
             <div>
-              <label className="block text-xs text-muted mb-2">Sleep last night?</label>
+              <label className="block text-xs text-muted mb-2 flex items-center gap-1">Sleep last night? <InfoTooltip text="Sleep quality is the #1 predictor of next-day trading performance. Your AI coach will flag when poor sleep precedes your worst trades." /></label>
               <div className="flex gap-2">
                 {SLEEP_LEVELS.map((level) => (
                   <button
@@ -213,7 +214,7 @@ export function DailyCheckin() {
           {/* Advanced: Cognitive Load */}
           {isAdvanced && (
             <div>
-              <label className="block text-xs text-muted mb-2">Mental load right now?</label>
+              <label className="block text-xs text-muted mb-2 flex items-center gap-1">Mental load right now? <InfoTooltip text="High cognitive load degrades decision quality after ~35 decisions. Track this to know when to stop trading." /></label>
               <div className="flex gap-2">
                 {COGNITIVE_LOAD_LEVELS.map((level) => (
                   <button
@@ -235,7 +236,7 @@ export function DailyCheckin() {
 
           {/* Traffic Light */}
           <div>
-            <label className="block text-xs text-muted mb-2">Should you trade today?</label>
+            <label className="block text-xs text-muted mb-2 flex items-center gap-1">Should you trade today? <InfoTooltip text="Your traffic light history shows how often you trade on red/yellow days — and what it costs you. Most losses cluster on red days." /></label>
             <div className="space-y-2">
               {TRAFFIC_LIGHTS.map((light) => (
                 <button

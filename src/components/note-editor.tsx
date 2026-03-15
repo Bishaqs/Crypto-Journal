@@ -5,10 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import { JournalNote, Trade, AssetType } from "@/lib/types";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { uploadJournalImage } from "@/lib/image-upload";
+import { useTimezone } from "@/lib/timezone-context";
+import { toDateTimeLocal, fromDateTimeLocal } from "@/lib/date-utils";
 import { EditorToolbar } from "@/components/note-editor/editor-toolbar";
 import { TemplateSelector } from "@/components/note-editor/template-selector";
 import { TradeLinker } from "@/components/note-editor/trade-linker";
-import { getCustomTagPresets } from "@/lib/tag-manager";
+import { getCustomTagPresets, isUserTag } from "@/lib/tag-manager";
 import { isStructuredTemplate, StructuredTemplateForm, serializeToHtml, serializePsychToHtml } from "@/components/note-editor/structured-templates";
 import { EmotionPicker, ConfidenceSlider, ProcessScoreInput } from "@/components/psychology-inputs";
 import {
@@ -21,6 +23,7 @@ import {
   Brain,
   ChevronDown,
 } from "lucide-react";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 type Template = {
   id: string;
@@ -48,6 +51,12 @@ const TEMPLATES: Template[] = [
     label: "Morning Plan",
     icon: Calendar,
     content: `<h2>Market conditions</h2><p><br></p><h2>Watchlist</h2><ul><li><br></li></ul><h2>Session limits</h2><p>Max trades today: </p><p>Max loss today: $</p><h2>Focus for today</h2><p><br></p>`,
+  },
+  {
+    id: "daily-review",
+    label: "Daily Review",
+    icon: Brain,
+    content: `<h2>Today's P&L</h2><p><br></p><h2>What went well</h2><p><br></p><h2>What didn't go well</h2><p><br></p><h2>Emotional triggers</h2><p><br></p><h2>Key takeaways</h2><p><br></p><h2>Focus for tomorrow</h2><p><br></p>`,
   },
   {
     id: "weekly-recap",
@@ -83,6 +92,7 @@ interface NoteEditorProps {
 }
 
 export function NoteEditor({ editNote = null, initialTemplate = "free", assetType = "crypto", onClose, onSaved }: NoteEditorProps) {
+  const { timezone } = useTimezone();
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,8 +109,8 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
   );
   const [noteDate, setNoteDate] = useState<string>(
     editNote?.note_date
-      ? editNote.note_date.slice(0, 16)
-      : new Date().toISOString().slice(0, 16)
+      ? toDateTimeLocal(new Date(editNote.note_date), timezone)
+      : toDateTimeLocal(new Date(), timezone)
   );
   const [showPsychInsights, setShowPsychInsights] = useState(false);
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>(() => {
@@ -154,7 +164,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
       ]);
       if (tradesResult.data) setTrades(tradesResult.data as Trade[]);
       if (notesResult.data) {
-        const dbTags = Array.from(new Set((notesResult.data as { tags: string[] }[]).flatMap((n) => n.tags)));
+        const dbTags = Array.from(new Set((notesResult.data as { tags: string[] }[]).flatMap((n) => n.tags).filter(isUserTag)));
         setAllExistingTags(dbTags);
       }
     }
@@ -298,7 +308,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
         noteType = "trade";
       } else if (appliedTemplate === "trade-entry") {
         noteType = "trade";
-      } else if (appliedTemplate === "morning-plan") {
+      } else if (appliedTemplate === "morning-plan" || appliedTemplate === "daily-review") {
         noteType = "daily";
       }
 
@@ -309,7 +319,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
         trade_id: linkedTradeId,
         auto_link_on_import: autoLinkOnImport,
         note_type: noteType,
-        note_date: noteDate ? new Date(noteDate).toISOString() : new Date().toISOString(),
+        note_date: noteDate ? fromDateTimeLocal(noteDate, timezone) : new Date().toISOString(),
         structured_data: useStructured ? structuredData : psychData,
         template_id: useStructured ? appliedTemplate : null,
         asset_type: effectiveAssetType,
@@ -481,6 +491,13 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                   {uploading ? "Uploading image..." : "Paste images from clipboard or drag & drop screenshots"}
                 </p>
 
+                {/* Psychology prompt tip */}
+                {!showPsychInsights && (
+                  <p className="text-[10px] text-accent/40 italic">
+                    Tip: Adding your emotional state makes this note searchable by mood and gives your AI coach more context.
+                  </p>
+                )}
+
                 {/* Psychology insights toggle — below the text editor */}
                 <div className="border border-border/50 rounded-xl overflow-hidden">
                   <button
@@ -505,6 +522,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                   >
                     <Brain size={16} className={showPsychInsights ? "text-accent" : ""} />
                     <span>Add Psychological Insights</span>
+                    <InfoTooltip text="Logging your emotional state makes this note searchable by mood and feeds your AI coach. Notes with psychology data produce 3x more actionable coaching insights." size={12} />
                     <ChevronDown
                       size={14}
                       className={`ml-auto transition-transform duration-300 ${

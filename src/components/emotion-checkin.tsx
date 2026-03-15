@@ -17,6 +17,7 @@ import { EmotionPicker, EmotionQuadrantPicker, FlowStateInput, EMOTION_CONFIG } 
 import { PsychologyTierToggle } from "@/components/psychology-tier-toggle";
 import { usePsychologyTier } from "@/lib/psychology-tier-context";
 import { ChevronDown, ChevronUp, Zap, Coffee, Sun } from "lucide-react";
+import { InfoTooltip } from "@/components/info-tooltip";
 import type { FlowState, CognitiveDistortion, DefenseMechanism } from "@/lib/types";
 
 const INTENSITY_LABELS = [
@@ -333,7 +334,7 @@ export function EmotionCheckIn({
                 onClick={() => toggleSection("body")}
                 className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-semibold text-muted/80 uppercase tracking-wider hover:bg-accent/5 transition-colors"
               >
-                <span>🫀 Body ({sectionFilled("body")})</span>
+                <span className="flex items-center gap-1">🫀 Body ({sectionFilled("body")}) <InfoTooltip text="Physical state affects trading more than most admit. Tired or hungry traders make measurably worse decisions." size={10} /></span>
                 {openSections.body ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
               {openSections.body && (
@@ -415,7 +416,7 @@ export function EmotionCheckIn({
                 onClick={() => toggleSection("mind")}
                 className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-semibold text-muted/80 uppercase tracking-wider hover:bg-accent/5 transition-colors"
               >
-                <span>🧠 Mind ({sectionFilled("mind")})</span>
+                <span className="flex items-center gap-1">🧠 Mind ({sectionFilled("mind")}) <InfoTooltip text="Self-identifying biases in real-time is the first step to overcoming them. Your dashboard shows the dollar cost of each bias." size={10} /></span>
                 {openSections.mind ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
               {openSections.mind && (
@@ -476,7 +477,7 @@ export function EmotionCheckIn({
                 onClick={() => toggleSection("context")}
                 className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-semibold text-muted/80 uppercase tracking-wider hover:bg-accent/5 transition-colors"
               >
-                <span>🌍 Context ({sectionFilled("context")})</span>
+                <span className="flex items-center gap-1">🌍 Context ({sectionFilled("context")}) <InfoTooltip text="Knowing what triggers your emotions is half the battle. Your AI coach identifies which triggers precede your worst trading days." size={10} /></span>
                 {openSections.context ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
               {openSections.context && (
@@ -523,7 +524,7 @@ export function EmotionCheckIn({
                 onClick={() => toggleSection("expert")}
                 className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-semibold text-accent/80 uppercase tracking-wider hover:bg-accent/5 transition-colors"
               >
-                <span>🔬 Deep Psychology ({sectionFilled("expert")})</span>
+                <span className="flex items-center gap-1">🔬 Deep Psychology ({sectionFilled("expert")}) <InfoTooltip text="These fields feed the most advanced AI coaching. The more you log, the more personalized and accurate your insights become." size={10} /></span>
                 {openSections.expert ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
               {openSections.expert && (
