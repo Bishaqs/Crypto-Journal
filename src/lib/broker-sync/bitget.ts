@@ -208,38 +208,42 @@ export async function fetchBitgetPositions(
       fetched += list.length;
 
       for (const pos of list) {
-        const closePrice = parseFloat(pos.closeAvgPrice) || 0;
-        const closeTime = parseInt(pos.utime);
+        try {
+          const closePrice = parseFloat(pos.closeAvgPrice) || 0;
+          const closeTime = parseInt(pos.utime);
 
-        // Skip positions that haven't been closed (closeAvgPrice = 0 or missing)
-        if (closePrice <= 0) continue;
+          // Skip positions that haven't been closed (closeAvgPrice = 0 or missing)
+          if (closePrice <= 0) continue;
 
-        if (!isNaN(closeTime) && (latestCloseTime === null || closeTime > latestCloseTime)) {
-          latestCloseTime = closeTime;
+          if (!isNaN(closeTime) && (latestCloseTime === null || closeTime > latestCloseTime)) {
+            latestCloseTime = closeTime;
+          }
+
+          const holdSide = pos.holdSide?.toLowerCase() as "long" | "short";
+          // Use gross pnl (before fees) — matches Bitget's "Realized PNL" display.
+          // Fees are stored separately in the fees column.
+          const rawPnl = parseFloat(pos.pnl);
+          const tradePnl = !isNaN(rawPnl) ? rawPnl : null;
+
+          closedTrades.push({
+            symbol: pos.symbol,
+            position: holdSide === "short" ? "short" : "long",
+            entry_price: parseFloat(pos.openAvgPrice) || 0,
+            exit_price: closePrice,
+            quantity: parseFloat(pos.closeTotalPos) || parseFloat(pos.openTotalPos) || 0,
+            fees: Math.abs(parseFloat(pos.openFee) || 0) + Math.abs(parseFloat(pos.closeFee) || 0),
+            pnl: tradePnl,
+            open_timestamp: new Date(parseInt(pos.ctime)).toISOString(),
+            close_timestamp: new Date(closeTime).toISOString(),
+            broker_order_id: pos.positionId,
+            broker_name: "Bitget",
+            trade_source: "cex",
+            tags: ["bitget-api-sync", "from-position-history"],
+          });
+        } catch (err) {
+          errors.push(`Skipped position ${pos.symbol ?? "?"}: ${err instanceof Error ? err.message : "parse error"}`);
+          continue;
         }
-
-        const holdSide = pos.holdSide?.toLowerCase() as "long" | "short";
-        // Use netProfit (after fees+funding) for PnL. This value is already net,
-        // so fees stored separately are informational only — don't subtract again.
-        const rawNetProfit = parseFloat(pos.netProfit);
-        const rawPnl = parseFloat(pos.pnl);
-        const tradePnl = !isNaN(rawNetProfit) ? rawNetProfit : !isNaN(rawPnl) ? rawPnl : null;
-
-        closedTrades.push({
-          symbol: pos.symbol,
-          position: holdSide === "short" ? "short" : "long",
-          entry_price: parseFloat(pos.openAvgPrice) || 0,
-          exit_price: closePrice,
-          quantity: parseFloat(pos.closeTotalPos) || parseFloat(pos.openTotalPos) || 0,
-          fees: Math.abs(parseFloat(pos.openFee) || 0) + Math.abs(parseFloat(pos.closeFee) || 0),
-          pnl: tradePnl,
-          open_timestamp: new Date(parseInt(pos.ctime)).toISOString(),
-          close_timestamp: new Date(closeTime).toISOString(),
-          broker_order_id: pos.positionId,
-          broker_name: "Bitget",
-          trade_source: "cex",
-          tags: ["bitget-api-sync", "from-position-history"],
-        });
       }
 
       cursor = json.data?.endId ?? list[list.length - 1].positionId;
@@ -309,31 +313,37 @@ export async function fetchBitgetOpenPositions(
     const list: BitgetOpenPosition[] = json.data ?? [];
     console.log(`[sync:positions] all-position: ${list.length} items. First:`, list[0] ? JSON.stringify(list[0]).slice(0, 300) : "none");
     const openTrades: MappedTrade[] = [];
+    const errors: string[] = [];
 
     for (const pos of list) {
-      // Use 'available' (current open qty), NOT 'total' (which includes closed qty)
-      const qty = parseFloat(pos.available) || 0;
-      if (qty < 1e-10) continue; // Skip closed positions
+      try {
+        // Use 'available' (current open qty), NOT 'total' (which includes closed qty)
+        const qty = parseFloat(pos.available) || 0;
+        if (qty < 1e-10) continue; // Skip closed positions
 
-      const holdSide = pos.holdSide?.toLowerCase() as "long" | "short";
-      openTrades.push({
-        symbol: pos.symbol,
-        position: holdSide === "short" ? "short" : "long",
-        entry_price: parseFloat(pos.openPriceAvg) || 0,
-        exit_price: null,
-        quantity: qty,
-        fees: 0, // Open positions don't have total fees yet
-        pnl: null,
-        open_timestamp: new Date(parseInt(pos.ctime)).toISOString(),
-        close_timestamp: null,
-        broker_order_id: pos.positionId,
-        broker_name: "Bitget",
-        trade_source: "cex",
-        tags: ["bitget-api-sync", "from-open-position"],
-      });
+        const holdSide = pos.holdSide?.toLowerCase() as "long" | "short";
+        const ctime = parseInt(pos.ctime);
+        openTrades.push({
+          symbol: pos.symbol,
+          position: holdSide === "short" ? "short" : "long",
+          entry_price: parseFloat(pos.openPriceAvg) || 0,
+          exit_price: null,
+          quantity: qty,
+          fees: 0, // Open positions don't have total fees yet
+          pnl: null,
+          open_timestamp: !isNaN(ctime) ? new Date(ctime).toISOString() : new Date().toISOString(),
+          close_timestamp: null,
+          broker_order_id: pos.positionId,
+          broker_name: "Bitget",
+          trade_source: "cex",
+          tags: ["bitget-api-sync", "from-open-position"],
+        });
+      } catch (err) {
+        errors.push(`Skipped open position ${pos.symbol ?? "?"}: ${err instanceof Error ? err.message : "parse error"}`);
+      }
     }
 
-    return { openTrades, errors: [] };
+    return { openTrades, errors };
   } catch (err) {
     return { openTrades: [], errors: [err instanceof Error ? err.message : "Network error"] };
   }

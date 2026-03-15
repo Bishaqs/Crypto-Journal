@@ -94,7 +94,7 @@ export function ConnectionCard({
             {connection.last_sync_at && (
               <span className="flex items-center gap-1">
                 <Clock size={10} />
-                Last: {new Date(connection.last_sync_at).toLocaleDateString()}
+                Last: {(() => { const d = new Date(connection.last_sync_at); return isNaN(d.getTime()) ? "—" : d.toLocaleDateString(); })()}
               </span>
             )}
             {connection.api_key_last4 && (
