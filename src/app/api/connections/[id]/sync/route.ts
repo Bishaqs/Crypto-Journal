@@ -337,13 +337,15 @@ async function syncBitget(
     }
   }
 
-  // ── Merge iceberg fills: combine trades with same symbol+position+minute ──
-  // Fills of the same order have unique orderIds in one-way mode but share
-  // the same symbol, direction, and approximate timestamp.
-  const beforeMerge = allTrades.length;
-  allTrades = mergeIcebergTrades(allTrades);
-  if (allTrades.length < beforeMerge) {
-    console.log(`[sync:bitget] Merged ${beforeMerge} → ${allTrades.length} trades (${beforeMerge - allTrades.length} iceberg fills combined)`);
+  // ── Merge iceberg fills (FILLS PATH ONLY) ──
+  // Position-based trades are already complete — merging would sum duplicate
+  // quantities from broken pagination, causing 10x P&L errors.
+  if (!usedPositionEndpoint) {
+    const beforeMerge = allTrades.length;
+    allTrades = mergeIcebergTrades(allTrades);
+    if (allTrades.length < beforeMerge) {
+      console.log(`[sync:bitget] Merged ${beforeMerge} → ${allTrades.length} trades (${beforeMerge - allTrades.length} iceberg fills combined)`);
+    }
   }
 
   if (allTrades.length === 0) {
