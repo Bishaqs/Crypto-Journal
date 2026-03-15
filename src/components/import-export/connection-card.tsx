@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, RotateCcw, Trash2, Clock, AlertTriangle, CheckCircle2, Loader2, Wrench } from "lucide-react";
+import { RefreshCw, RotateCcw, Trash2, Clock, AlertTriangle, CheckCircle2, Loader2, Wrench, Bug } from "lucide-react";
 import type { BrokerConnection, ConnectionStatus, SyncResult } from "@/lib/import-export-types";
 
 const STATUS_CONFIG: Record<ConnectionStatus, { label: string; className: string }> = {
@@ -174,6 +174,15 @@ export function ConnectionCard({
             >
               {repairing ? <Loader2 size={14} className="animate-spin" /> : <Wrench size={14} />}
             </button>
+            <a
+              href={`/api/connections/${connection.id}/debug`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg border border-border text-muted hover:text-accent hover:border-accent/30 transition-all"
+              title="View raw API debug data"
+            >
+              <Bug size={14} />
+            </a>
             <button
               onClick={() => setConfirmDelete(true)}
               className="p-2 rounded-lg border border-border text-muted hover:text-loss hover:border-loss/30 transition-all"

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { decrypt } from "@/lib/broker-sync/crypto";
-import { fetchBitgetFills, type MappedTrade } from "@/lib/broker-sync/bitget";
+import { fetchBitgetPositions, fetchBitgetOpenPositions, fetchBitgetFills, type MappedTrade } from "@/lib/broker-sync/bitget";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
@@ -164,7 +164,7 @@ export async function POST(
           last_sync_at: syncCursor,
           status: "active",
           total_trades_synced: (conn.total_trades_synced ?? 0) + result.imported,
-          last_error: result.errors[0] ?? null,
+          last_error: result.errors.filter(e => !e.includes("404"))[0] ?? null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
@@ -190,11 +190,11 @@ export async function POST(
       duration_ms: Date.now() - startTime,
       diagnostics: result.diagnostics,
       message: dryRun
-        ? `Dry run: ${result.diagnostics.dedup_new_trades} trades would be imported (${result.fetched} fills fetched).`
+        ? `Dry run: ${result.diagnostics.dedup_new_trades} trades would be imported (${result.fetched} positions fetched).`
         : totalNew > 0
-          ? `Imported ${result.imported} trade${result.imported !== 1 ? "s" : ""}${result.merged > 0 ? `, merged ${result.merged} close fill${result.merged !== 1 ? "s" : ""}` : ""} from Bitget.`
+          ? `Imported ${result.imported} trade${result.imported !== 1 ? "s" : ""} (${result.diagnostics.phase_a_paired} closed, ${result.diagnostics.phase_a_unmatched_opens} open)${result.merged > 0 ? `, updated ${result.merged}` : ""}${result.skipped > 0 ? `, ${result.skipped} already synced` : ""}.`
           : result.fetched > 0
-            ? `No new trades — ${result.skipped} already imported. (${result.fetched} fills fetched)`
+            ? `No new trades — ${result.skipped} already imported. (${result.fetched} positions fetched: ${result.diagnostics.phase_a_paired} closed, ${result.diagnostics.phase_a_unmatched_opens} open)`
             : "No new trades found.",
     });
   } catch (err) {
@@ -227,346 +227,270 @@ export async function POST(
   }
 }
 
-// ── Bitget-specific sync ──────────────────────────────────────
+// ── Bitget position-based sync (primary) ─────────────────────
 
 async function syncBitget(
   creds: { apiKey: string; apiSecret: string; passphrase: string },
   userId: string,
   supabase: SupabaseClient,
-  lastSyncAt: string | null,
+  _lastSyncAt: string | null,
   opts: { dryRun?: boolean; daysBack?: number; deadline: number },
 ): Promise<SyncOutput> {
-  const { dryRun = false, daysBack, deadline } = opts;
+  const { dryRun = false, deadline } = opts;
+  const errors: string[] = [];
 
   const diag: SyncDiagnostics = {
-    phase_a_fetched: 0,
-    phase_a_paired: 0,
-    phase_a_unmatched_opens: 0,
-    phase_a_unmatched_closes: 0,
-    phase_a_all_fill_ids: 0,
-    phase_a_api_errors: [],
+    phase_a_fetched: 0, phase_a_paired: 0, phase_a_unmatched_opens: 0,
+    phase_a_unmatched_closes: 0, phase_a_all_fill_ids: 0, phase_a_api_errors: [],
     legacy_cleanup_skipped: true,
-    dedup_existing_ids: 0,
-    dedup_new_trades: 0,
-    dedup_skipped: 0,
-    cross_sync_merged: 0,
-    cross_sync_close_only: 0,
-    insert_attempted: 0,
-    insert_succeeded: 0,
-    insert_failed: 0,
-    insert_errors: [],
+    dedup_existing_ids: 0, dedup_new_trades: 0, dedup_skipped: 0,
+    cross_sync_merged: 0, cross_sync_close_only: 0,
+    insert_attempted: 0, insert_succeeded: 0, insert_failed: 0, insert_errors: [],
   };
-
-  let latestFillTime: number | null = null;
 
   const mkResult = (extra: Partial<SyncOutput> = {}): SyncOutput => ({
-    fetched: diag.phase_a_fetched,
-    imported: 0,
-    merged: 0,
-    skipped: 0,
-    failed: 0,
-    errors: [],
-    diagnostics: diag,
-    latestFillTime,
-    ...extra,
+    fetched: diag.phase_a_fetched, imported: 0, merged: 0, skipped: 0,
+    failed: 0, errors, diagnostics: diag, latestFillTime: null, ...extra,
   });
 
-  // Phase A: Fetch and pair fills (pass deadline so API calls stop in time)
-  // Full sync (lastSyncAt=null): process oldest→newest so incremental clicks make forward progress
-  const isFullSync = lastSyncAt === null;
-  const phaseAStart = Date.now();
-  console.log(`[sync:bitget] Phase A: Fetching fills. lastSync=${lastSyncAt ?? "null"}, daysBack=${daysBack ?? "default"}, oldestFirst=${isFullSync}`);
-  // Add 1ms to skip the last-synced fill — Bitget's startTime is inclusive,
-  // so using the exact latestFillTime re-fetches it every sync.
-  const fetchStart = lastSyncAt ? new Date(lastSyncAt).getTime() + 1 : undefined;
-  const result = await fetchBitgetFills(creds, { startTime: fetchStart, daysBack, deadlineMs: deadline, oldestFirst: isFullSync });
-  latestFillTime = result.latestFillTime;
-  console.log(`[sync:bitget] Phase A: ${result.fetched} fills in ${Date.now() - phaseAStart}ms (${result.pairedTrades.length} paired, ${result.unmatchedOpens.length} open, ${result.unmatchedCloses.length} close, latestFill=${latestFillTime ? new Date(latestFillTime).toISOString() : "none"})`);
+  // ── Step 1: Try history-position endpoint first (complete trades) ──
+  console.log(`[sync:bitget] Trying history-position endpoint...`);
+  const posResult = await fetchBitgetPositions(creds, { deadlineMs: deadline });
 
-  diag.phase_a_fetched = result.fetched;
-  diag.phase_a_paired = result.pairedTrades.length;
-  diag.phase_a_unmatched_opens = result.unmatchedOpens.length;
-  diag.phase_a_unmatched_closes = result.unmatchedCloses.length;
-  diag.phase_a_all_fill_ids = result.allFillIds.length;
-  diag.phase_a_api_errors = [...result.errors];
-  diag.classification = {
-    opens: result.classificationStats.opens,
-    closes: result.classificationStats.closes,
-    in_memory_matched: result.classificationStats.inMemoryMatched,
-  };
-  diag.sample_fills = result.sampleFills;
+  let allTrades: MappedTrade[];
+  let closedTradesForUpdate: MappedTrade[] = [];
+  let trackingLatestTime: number | null = null;
+  let usedPositionEndpoint = false;
 
-  const allTrades = [...result.pairedTrades, ...result.unmatchedOpens];
+  if (posResult.closedTrades.length > 0) {
+    usedPositionEndpoint = true;
+    // history-position worked — use it as primary source
+    console.log(`[sync:bitget] history-position returned ${posResult.closedTrades.length} closed trades`);
+    errors.push(...posResult.errors);
 
-  if (allTrades.length === 0 && result.unmatchedCloses.length === 0) {
-    return mkResult({ errors: result.errors });
+    // Also fetch open positions
+    let openTrades: MappedTrade[] = [];
+    if (Date.now() < deadline - 1500) {
+      const openResult = await fetchBitgetOpenPositions(creds);
+      openTrades = openResult.openTrades;
+      errors.push(...openResult.errors);
+    }
+
+    const closedIds = new Set(posResult.closedTrades.map((t) => t.broker_order_id));
+    const dedupedOpen = openTrades.filter((t) => !closedIds.has(t.broker_order_id));
+    allTrades = [...posResult.closedTrades, ...dedupedOpen];
+    closedTradesForUpdate = posResult.closedTrades;
+    trackingLatestTime = posResult.latestCloseTime;
+    diag.phase_a_fetched = posResult.fetched;
+    diag.phase_a_paired = posResult.closedTrades.length;
+    diag.phase_a_unmatched_opens = dedupedOpen.length;
+  } else {
+    // history-position returned nothing — fall back to fills + position tracking
+    console.log(`[sync:bitget] history-position empty. Falling back to fills + position tracking...`);
+    const isFullSync = _lastSyncAt === null;
+    const fetchStart = _lastSyncAt ? new Date(_lastSyncAt).getTime() + 1 : undefined;
+    const fillResult = await fetchBitgetFills(creds, {
+      startTime: fetchStart,
+      daysBack: isFullSync ? 90 : 14,
+      deadlineMs: deadline,
+      oldestFirst: isFullSync,
+    });
+    errors.push(...fillResult.errors);
+
+    // Position tracking pairs trades using side (buy/sell), not tradeSide classification
+    allTrades = [...fillResult.pairedTrades, ...fillResult.unmatchedOpens];
+    closedTradesForUpdate = fillResult.pairedTrades.filter((t) => t.exit_price !== null);
+    trackingLatestTime = fillResult.latestFillTime ?? fillResult.lastWindowEnd;
+    diag.phase_a_fetched = fillResult.fetched;
+    diag.phase_a_paired = fillResult.pairedTrades.length;
+    diag.phase_a_unmatched_opens = fillResult.unmatchedOpens.length;
+    diag.phase_a_unmatched_closes = fillResult.unmatchedCloses.length;
+    diag.phase_a_all_fill_ids = fillResult.allFillIds.length;
+    diag.classification = {
+      opens: fillResult.classificationStats.opens,
+      closes: fillResult.classificationStats.closes,
+      in_memory_matched: fillResult.classificationStats.inMemoryMatched,
+    };
+    diag.sample_fills = fillResult.sampleFills;
+    console.log(`[sync:bitget] Fills fallback: ${fillResult.fetched} fills → ${fillResult.pairedTrades.length} paired + ${fillResult.unmatchedOpens.length} open (${fillResult.classificationStats.inMemoryMatched} matched by position tracking)`);
   }
 
-  // Deadline check before Phase B
+  // ── Merge iceberg fills: combine trades with same symbol+position+minute ──
+  // Fills of the same order have unique orderIds in one-way mode but share
+  // the same symbol, direction, and approximate timestamp.
+  const beforeMerge = allTrades.length;
+  allTrades = mergeIcebergTrades(allTrades);
+  if (allTrades.length < beforeMerge) {
+    console.log(`[sync:bitget] Merged ${beforeMerge} → ${allTrades.length} trades (${beforeMerge - allTrades.length} iceberg fills combined)`);
+  }
+
+  if (allTrades.length === 0) {
+    return mkResult({ errors });
+  }
+
   if (Date.now() >= deadline) {
-    console.log(`[sync:bitget] Deadline reached after Phase A (${Date.now() - phaseAStart}ms). Returning partial results.`);
-    return mkResult({ errors: [...result.errors, `Timed out after fetching ${result.fetched} fills. Retry to continue.`] });
+    return mkResult({ errors: [...errors, "Timed out after fetching positions."] });
   }
 
-  // Phase B: Dedup — check fetched fills against existing DB rows
-  const phaseBStart = Date.now();
+  // ── Step 3: Dedup against existing DB trades by positionId ──
+  const candidateIds = [...new Set(allTrades.map((t) => t.broker_order_id))];
   const existingIds = new Set<string>();
-  const candidateOrderIds = [...new Set(allTrades.map((t) => t.broker_order_id))];
 
-  if (candidateOrderIds.length > 0 && candidateOrderIds.length <= 500) {
-    // Optimized path: targeted query for just the order IDs we fetched
-    // Only dedup against API-synced trades (not CSV imports) — CSV trades lack the bitget-api-sync tag
-    console.log(`[sync:bitget] Phase B: Targeted dedup for ${candidateOrderIds.length} order IDs`);
+  if (candidateIds.length > 0) {
     const { data } = await supabase
       .from("trades")
-      .select("broker_order_id, tags")
+      .select("broker_order_id")
       .eq("user_id", userId)
       .eq("broker_name", "Bitget")
       .contains("tags", ["bitget-api-sync"])
-      .in("broker_order_id", candidateOrderIds);
+      .in("broker_order_id", candidateIds.slice(0, 500));
 
     if (data) {
       for (const t of data) {
         if (t.broker_order_id) existingIds.add(t.broker_order_id);
-        for (const tag of (t.tags ?? []) as string[]) {
-          if (tag.startsWith("close-fill:")) existingIds.add(tag.slice(11));
-          else if (tag.startsWith("open-fill:")) existingIds.add(tag.slice(10));
-          else if (tag.startsWith("fid:")) existingIds.add(tag.slice(4));
-        }
       }
-    }
-
-    // For cross-sync skip check: verify each unmatched close's fill IDs against existing tags
-    // Only check if we have time
-    for (const closeOrder of result.unmatchedCloses) {
-      if (Date.now() >= deadline) break;
-      const tagToCheck = `close-fill:${closeOrder.fillIds[0]}`;
-      const { data: tagMatch } = await supabase
-        .from("trades")
-        .select("tags")
-        .eq("user_id", userId)
-        .eq("broker_name", "Bitget")
-        .contains("tags", [tagToCheck])
-        .limit(1);
-      if (tagMatch && tagMatch.length > 0) {
-        for (const fid of closeOrder.fillIds) existingIds.add(fid);
-      }
-    }
-  } else if (candidateOrderIds.length > 500) {
-    // Fallback: paginated scan for full re-sync with many orders
-    console.log(`[sync:bitget] Phase B: Paginated dedup for ${candidateOrderIds.length} order IDs`);
-    const PAGE_SIZE = 1000;
-    let page = 0;
-
-    while (true) {
-      if (Date.now() >= deadline) {
-        result.errors.push("Dedup scan incomplete (deadline). Some duplicates may slip through.");
-        break;
-      }
-      const { data } = await supabase
-        .from("trades")
-        .select("broker_order_id, tags")
-        .eq("user_id", userId)
-        .eq("broker_name", "Bitget")
-        .contains("tags", ["bitget-api-sync"])
-        .not("broker_order_id", "is", null)
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-      if (!data || data.length === 0) break;
-      for (const t of data) {
-        if (t.broker_order_id) existingIds.add(t.broker_order_id);
-        for (const tag of (t.tags ?? []) as string[]) {
-          if (tag.startsWith("close-fill:")) existingIds.add(tag.slice(11));
-          else if (tag.startsWith("open-fill:")) existingIds.add(tag.slice(10));
-          else if (tag.startsWith("fid:")) existingIds.add(tag.slice(4));
-        }
-      }
-      if (data.length < PAGE_SIZE) break;
-      page++;
     }
   }
 
   diag.dedup_existing_ids = existingIds.size;
-  console.log(`[sync:bitget] Phase B: Dedup complete in ${Date.now() - phaseBStart}ms. ${existingIds.size} existing IDs found.`);
-
   const newTrades = allTrades.filter((t) => !existingIds.has(t.broker_order_id));
+  const skipped = allTrades.length - newTrades.length;
   diag.dedup_new_trades = newTrades.length;
-  diag.dedup_skipped = allTrades.length - newTrades.length;
+  diag.dedup_skipped = skipped;
 
-  // Include sample trade keys for debugging column mismatches
-  if (newTrades.length > 0) {
-    diag.sample_trade_keys = Object.keys(newTrades[0]);
-  }
-
-  // Deadline check before Phase D1
-  if (Date.now() >= deadline) {
-    console.log(`[sync:bitget] Deadline reached after Phase B. ${newTrades.length} new trades identified but not inserted.`);
-    return mkResult({ errors: [...result.errors, `Timed out during dedup. ${newTrades.length} new trades found but not inserted. Retry to continue.`] });
-  }
-
-  // Split new trades: opens first (so Phase C cross-sync can find them in DB)
-  const newOpens = newTrades.filter((t) => t.exit_price === null);
-  const newPaired = newTrades.filter((t) => t.exit_price !== null);
-
-  // Phase D1: Insert unmatched opens first — Phase C needs them in DB
-  const phaseD1Start = Date.now();
-  let imported = 0;
-  let failed = 0;
-  const CHUNK_SIZE = 20;
-
-  if (!dryRun && newOpens.length > 0) {
-    console.log(`[sync:bitget] Phase D1: Inserting ${newOpens.length} open trades before cross-sync`);
-    for (let i = 0; i < newOpens.length; i += CHUNK_SIZE) {
-      if (Date.now() >= deadline) {
-        const remaining = newOpens.length - i;
-        result.errors.push(`D1 insert incomplete — ${remaining} opens remaining (deadline). Retry to finish.`);
-        break;
-      }
-
-      const chunk = newOpens.slice(i, i + CHUNK_SIZE);
-      const rows = chunk.map((trade: MappedTrade) => ({ user_id: userId, ...trade }));
-
-      const { error: insertError } = await supabase.from("trades").insert(rows);
-      if (insertError) {
-        console.error("[sync:bitget] D1 insert failed:", insertError.message, insertError.code);
-        diag.insert_errors.push(insertError.message);
-        result.errors.push(`D1 insert error: ${insertError.message}`);
-        for (const row of rows) {
-          const { error: singleErr } = await supabase.from("trades").insert(row);
-          if (singleErr) {
-            failed++;
-          } else {
-            imported++;
-          }
-        }
-      } else {
-        imported += chunk.length;
-      }
-    }
-    console.log(`[sync:bitget] Phase D1: ${imported} opens inserted in ${Date.now() - phaseD1Start}ms`);
-  }
-
-  // Phase C: Cross-sync matching — update existing open trades with close data
-  // Now includes opens just inserted in D1, so same-invocation matching works
-  const phaseCStart = Date.now();
+  // ── Step 4: Update existing open trades that are now closed ──
   let merged = 0;
-  let closeOnlyInserted = 0;
+  const closedWithExistingOpen = closedTradesForUpdate.filter(
+    (t) => existingIds.has(t.broker_order_id) && t.exit_price !== null,
+  );
 
-  if (!dryRun) {
-    for (const closeOrder of result.unmatchedCloses) {
+  if (!dryRun && closedWithExistingOpen.length > 0) {
+    console.log(`[sync:bitget] Updating ${closedWithExistingOpen.length} existing opens with exit data...`);
+    for (const trade of closedWithExistingOpen) {
       if (Date.now() >= deadline) {
-        result.errors.push("Cross-sync incomplete (deadline). Retry to merge remaining closes.");
+        errors.push("Update incomplete (deadline). Retry to finish.");
         break;
       }
-
-      const alreadyProcessed = closeOrder.fillIds.some((id) => existingIds.has(id));
-      if (alreadyProcessed) continue;
-
-      // Close: sell closes a long, buy closes a short
-      const polarity = closeOrder.side === "sell" ? "long" : "short";
-
-      const { data: openTrade } = await supabase
+      const { error } = await supabase
         .from("trades")
-        .select("id, fees, tags")
+        .update({
+          exit_price: trade.exit_price,
+          close_timestamp: trade.close_timestamp,
+          pnl: trade.pnl,
+          fees: trade.fees,
+          tags: trade.tags,
+        })
         .eq("user_id", userId)
         .eq("broker_name", "Bitget")
-        .eq("symbol", closeOrder.symbol)
-        .eq("position", polarity)
-        .is("exit_price", null)
-        .order("open_timestamp", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (openTrade) {
-        const closeTags = closeOrder.fillIds.map((id) => `close-fill:${id}`);
-        const updatedTags = [...((openTrade.tags ?? []) as string[]), ...closeTags];
-
-        const { error: updateError } = await supabase
-          .from("trades")
-          .update({
-            exit_price: closeOrder.vwap,
-            close_timestamp: new Date(closeOrder.earliestTime).toISOString(),
-            pnl: closeOrder.totalProfit || null,
-            fees: (openTrade.fees || 0) + closeOrder.totalFees,
-            tags: updatedTags,
-          })
-          .eq("id", openTrade.id);
-
-        if (!updateError) {
-          merged++;
-          for (const id of closeOrder.fillIds) existingIds.add(id);
-        } else {
-          console.error(`[sync:bitget] Phase C: Merge update failed for ${closeOrder.orderId}:`, updateError.message);
-          diag.insert_errors.push(`Merge: ${updateError.message}`);
-          result.errors.push(`Merge update failed: ${updateError.message}`);
-        }
-      } else {
-        console.log(`[sync:bitget] Phase C: No open trade found for close ${closeOrder.orderId} (${closeOrder.symbol}, ${polarity}). Skipping — open may be outside sync window.`);
-        for (const id of closeOrder.fillIds) existingIds.add(id);
-      }
+        .eq("broker_order_id", trade.broker_order_id)
+        .is("exit_price", null);
+      if (!error) merged++;
     }
   }
-  diag.cross_sync_merged = merged;
-  diag.cross_sync_close_only = closeOnlyInserted;
-  console.log(`[sync:bitget] Phase C: Cross-sync complete in ${Date.now() - phaseCStart}ms. Merged ${merged}, close-only ${closeOnlyInserted}.`);
 
-  // Phase D2: Insert paired trades (already have exit data)
-  if (!dryRun && newPaired.length > 0) {
-    const phaseD2Start = Date.now();
-    console.log(`[sync:bitget] Phase D2: Inserting ${newPaired.length} paired trades`);
-    diag.insert_attempted = newOpens.length + newPaired.length;
+  // ── Step 5: Insert new trades ──
+  let imported = 0;
+  let failed = 0;
+  const CHUNK = 20;
 
-    for (let i = 0; i < newPaired.length; i += CHUNK_SIZE) {
+  if (!dryRun && newTrades.length > 0) {
+    console.log(`[sync:bitget] Inserting ${newTrades.length} new trades...`);
+    diag.insert_attempted = newTrades.length;
+
+    for (let i = 0; i < newTrades.length; i += CHUNK) {
       if (Date.now() >= deadline) {
-        const remaining = newPaired.length - i;
-        result.errors.push(`D2 insert incomplete — ${remaining} paired trades remaining (deadline). Retry to finish.`);
+        errors.push(`Insert incomplete — ${newTrades.length - i} remaining (deadline). Retry.`);
         break;
       }
-
-      const chunk = newPaired.slice(i, i + CHUNK_SIZE);
-      const rows = chunk.map((trade: MappedTrade) => ({ user_id: userId, ...trade }));
+      const chunk = newTrades.slice(i, i + CHUNK);
+      const rows = chunk.map((t: MappedTrade) => ({ user_id: userId, ...t }));
 
       const { error: insertError } = await supabase.from("trades").insert(rows);
       if (insertError) {
-        console.error("[sync:bitget] D2 insert failed:", insertError.message, insertError.code);
+        console.error("[sync:bitget] Insert failed:", insertError.message);
         diag.insert_errors.push(insertError.message);
-        result.errors.push(`D2 insert error: ${insertError.message}`);
+        // Fallback: try one-by-one
         for (const row of rows) {
           const { error: singleErr } = await supabase.from("trades").insert(row);
-          if (singleErr) {
-            failed++;
-          } else {
-            imported++;
-          }
+          if (singleErr) failed++;
+          else imported++;
         }
       } else {
         imported += chunk.length;
       }
     }
-    console.log(`[sync:bitget] Phase D2: Paired insert complete in ${Date.now() - phaseD2Start}ms`);
-  } else if (!dryRun) {
-    diag.insert_attempted = newOpens.length;
   }
 
   diag.insert_succeeded = imported;
   diag.insert_failed = failed;
-  console.log(`[sync:bitget] Phases D1+D2: ${imported} total succeeded, ${failed} failed.`);
+  diag.cross_sync_merged = merged;
+  console.log(`[sync:bitget] Done: ${imported} imported, ${merged} updated, ${skipped} skipped, ${failed} failed.`);
 
-  // Legacy cleanup removed — was deleting valid trades by matching broker_order_id
-  // against fill tradeIds, which can collide and destroy just-inserted or existing trades.
-  diag.legacy_cleanup_skipped = true;
-
-  const skipped = allTrades.length - newTrades.length;
-  // Cursor advancement logic — three outcomes:
-  // 1. Fills processed (imported/merged/deduped) → advance to latest fill time
-  // 2. No fills fetched but windows scanned → advance past empty period (prevents cursor stalling)
-  // 3. Fills fetched but all failed → DON'T advance (retry same fills next time)
-  const anyProgress = (imported + closeOnlyInserted + merged + skipped) > 0;
-  const emptyWindowProgress = !anyProgress && result.fetched === 0 && result.lastWindowEnd !== null;
-  const cursorTime = anyProgress ? latestFillTime : emptyWindowProgress ? result.lastWindowEnd : null;
-  return { fetched: result.fetched, imported: imported + closeOnlyInserted, merged, skipped, failed, errors: result.errors, diagnostics: diag, latestFillTime: cursorTime };
+  const latestFillTime = (imported + merged + skipped) > 0 ? trackingLatestTime : null;
+  return { fetched: diag.phase_a_fetched, imported, merged, skipped, failed, errors, diagnostics: diag, latestFillTime };
 }
 
 // ── Helpers ───────────────────────────────────────────────────
+
+/** Merge iceberg fills: combine trades with same symbol + position + ~same minute.
+ *  In one-way mode, each fill gets a unique orderId even when they're part of
+ *  the same logical order. This merges them into one trade with VWAP entry/exit. */
+function mergeIcebergTrades(trades: MappedTrade[]): MappedTrade[] {
+  if (trades.length <= 1) return trades;
+
+  const groups = new Map<string, MappedTrade[]>();
+  for (const t of trades) {
+    // Round open timestamp to nearest minute for grouping
+    const openMs = new Date(t.open_timestamp).getTime();
+    const openMin = Math.floor(openMs / 60000);
+    // Round close timestamp too (or use empty for open trades)
+    const closeMin = t.close_timestamp
+      ? Math.floor(new Date(t.close_timestamp).getTime() / 60000)
+      : "";
+    const key = `${t.symbol}|${t.position}|${openMin}|${closeMin}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(t);
+  }
+
+  const merged: MappedTrade[] = [];
+  for (const [, group] of groups) {
+    if (group.length === 1) {
+      merged.push(group[0]);
+      continue;
+    }
+
+    let totalQty = 0;
+    let totalEntryNotional = 0;
+    let totalExitNotional = 0;
+    let totalFees = 0;
+    let totalPnl = 0;
+    let hasPnl = false;
+    const allTags = new Set<string>();
+
+    for (const t of group) {
+      totalQty += t.quantity;
+      totalEntryNotional += t.entry_price * t.quantity;
+      if (t.exit_price !== null) totalExitNotional += t.exit_price * t.quantity;
+      totalFees += t.fees;
+      if (t.pnl !== null) { totalPnl += t.pnl; hasPnl = true; }
+      for (const tag of t.tags) allTags.add(tag);
+    }
+
+    merged.push({
+      ...group[0],
+      entry_price: totalQty > 0 ? totalEntryNotional / totalQty : group[0].entry_price,
+      exit_price: group[0].exit_price !== null
+        ? (totalQty > 0 ? totalExitNotional / totalQty : group[0].exit_price)
+        : null,
+      quantity: totalQty,
+      fees: totalFees,
+      pnl: hasPnl ? totalPnl : null,
+      tags: [...allTags],
+    });
+  }
+
+  return merged;
+}
 
 async function updateSyncLog(
   supabase: SupabaseClient,
