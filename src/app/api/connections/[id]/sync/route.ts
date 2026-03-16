@@ -81,6 +81,17 @@ export async function POST(
     return NextResponse.json({ error: "Connection not found" }, { status: 404 });
   }
 
+  // Sync lock: prevent concurrent syncs for the same connection
+  if (conn.last_error === "Syncing..." && conn.updated_at) {
+    const lockAge = Date.now() - new Date(conn.updated_at).getTime();
+    if (lockAge < 15_000) {
+      return NextResponse.json(
+        { error: "Sync already in progress. Please wait.", trades_imported: 0 },
+        { status: 409 },
+      );
+    }
+  }
+
   // Parallel batch 2: set sync sentinel + insert sync log (skip for dry runs)
   let syncLogId: string | undefined;
   if (!dryRun) {
@@ -357,21 +368,32 @@ async function syncBitget(
   }
 
   // ── Step 3: Dedup against existing DB trades by positionId ──
+  // Returns both broker_order_id and exit_price so we know which are still open
   const candidateIds = [...new Set(allTrades.map((t) => t.broker_order_id))];
   const existingIds = new Set<string>();
+  const stillOpenIds = new Set<string>(); // DB rows with exit_price IS NULL
 
   if (candidateIds.length > 0) {
-    const { data } = await supabase
-      .from("trades")
-      .select("broker_order_id")
-      .eq("user_id", userId)
-      .eq("broker_name", "Bitget")
-      .contains("tags", ["bitget-api-sync"])
-      .in("broker_order_id", candidateIds.slice(0, 500));
+    // Paginate in chunks of 500 to handle large candidate sets
+    for (let i = 0; i < candidateIds.length; i += 500) {
+      const batch = candidateIds.slice(i, i + 500);
+      const { data } = await supabase
+        .from("trades")
+        .select("broker_order_id, exit_price")
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .contains("tags", ["bitget-api-sync"])
+        .in("broker_order_id", batch);
 
-    if (data) {
-      for (const t of data) {
-        if (t.broker_order_id) existingIds.add(t.broker_order_id);
+      if (data) {
+        for (const t of data) {
+          if (t.broker_order_id) {
+            existingIds.add(t.broker_order_id);
+            if (t.exit_price === null) {
+              stillOpenIds.add(t.broker_order_id);
+            }
+          }
+        }
       }
     }
   }
@@ -383,32 +405,40 @@ async function syncBitget(
   diag.dedup_skipped = skipped;
 
   // ── Step 4: Update existing open trades that are now closed ──
+  // Only update trades that are actually still open in DB (not already closed)
   let merged = 0;
   const closedWithExistingOpen = closedTradesForUpdate.filter(
-    (t) => existingIds.has(t.broker_order_id) && t.exit_price !== null,
+    (t) => stillOpenIds.has(t.broker_order_id) && t.exit_price !== null,
   );
 
   if (!dryRun && closedWithExistingOpen.length > 0) {
-    console.log(`[sync:bitget] Updating ${closedWithExistingOpen.length} existing opens with exit data...`);
-    for (const trade of closedWithExistingOpen) {
+    console.log(`[sync:bitget] Updating ${closedWithExistingOpen.length} still-open trades with exit data (${existingIds.size} total existing, ${stillOpenIds.size} still open)...`);
+    // Parallel batches of 5 for efficiency
+    const UPDATE_BATCH = 5;
+    for (let i = 0; i < closedWithExistingOpen.length; i += UPDATE_BATCH) {
       if (Date.now() >= deadline) {
         errors.push("Update incomplete (deadline). Retry to finish.");
         break;
       }
-      const { error } = await supabase
-        .from("trades")
-        .update({
-          exit_price: trade.exit_price,
-          close_timestamp: trade.close_timestamp,
-          pnl: trade.pnl,
-          fees: trade.fees,
-          tags: trade.tags,
-        })
-        .eq("user_id", userId)
-        .eq("broker_name", "Bitget")
-        .eq("broker_order_id", trade.broker_order_id)
-        .is("exit_price", null);
-      if (!error) merged++;
+      const batch = closedWithExistingOpen.slice(i, i + UPDATE_BATCH);
+      const results = await Promise.all(
+        batch.map((trade) =>
+          supabase
+            .from("trades")
+            .update({
+              exit_price: trade.exit_price,
+              close_timestamp: trade.close_timestamp,
+              pnl: trade.pnl,
+              fees: trade.fees,
+              tags: trade.tags,
+            })
+            .eq("user_id", userId)
+            .eq("broker_name", "Bitget")
+            .eq("broker_order_id", trade.broker_order_id)
+            .is("exit_price", null),
+        ),
+      );
+      merged += results.filter((r) => !r.error).length;
     }
   }
 
@@ -450,8 +480,40 @@ async function syncBitget(
   diag.cross_sync_merged = merged;
   console.log(`[sync:bitget] Done: ${imported} imported, ${merged} updated, ${skipped} skipped, ${failed} failed.`);
 
-  const latestFillTime = (imported + merged + skipped) > 0 ? trackingLatestTime : null;
-  return { fetched: diag.phase_a_fetched, imported, merged, skipped, failed, errors, diagnostics: diag, latestFillTime };
+  // Track cursor based on actual progress, not optimistic API-fetch max.
+  // This prevents the cursor from jumping past positions that weren't actually persisted.
+  let actualLatestTime: number | null = null;
+
+  // Include time from successfully updated trades (Step 4)
+  if (merged > 0) {
+    for (const t of closedWithExistingOpen) {
+      if (t.close_timestamp) {
+        const ms = new Date(t.close_timestamp).getTime();
+        if (!isNaN(ms) && (actualLatestTime === null || ms > actualLatestTime)) {
+          actualLatestTime = ms;
+        }
+      }
+    }
+  }
+
+  // Include time from successfully inserted trades (Step 5)
+  if (imported > 0) {
+    for (const t of newTrades) {
+      const ts = t.close_timestamp ?? t.open_timestamp;
+      const ms = new Date(ts).getTime();
+      if (!isNaN(ms) && (actualLatestTime === null || ms > actualLatestTime)) {
+        actualLatestTime = ms;
+      }
+    }
+  }
+
+  // If we only skipped (everything already existed), still advance to API-fetched time
+  // since all data is accounted for
+  if (imported === 0 && merged === 0 && skipped > 0) {
+    actualLatestTime = trackingLatestTime;
+  }
+
+  return { fetched: diag.phase_a_fetched, imported, merged, skipped, failed, errors, diagnostics: diag, latestFillTime: actualLatestTime };
 }
 
 // ── Helpers ───────────────────────────────────────────────────
