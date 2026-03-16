@@ -161,14 +161,24 @@ export function ViewConnectionsTab() {
   }
 
   async function handleRepair(id: string) {
-    setSyncResults((prev) => ({ ...prev, [id]: { status: "info", message: "Removing duplicates and closing stale trades..." } }));
+    setSyncResults((prev) => ({ ...prev, [id]: { status: "info", message: "Removing duplicates and cleaning up..." } }));
     try {
-      const res = await fetch(`/api/connections/${id}/repair?mode=dedup-fix`, { method: "POST" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setSyncResults((prev) => ({ ...prev, [id]: { status: "error", message: data.error || "Repair failed." } }));
+      // Phase 1: dedup-fix (remove duplicate broker_order_ids + close stale trades)
+      const res1 = await fetch(`/api/connections/${id}/repair?mode=dedup-fix`, { method: "POST" });
+      const data1 = await res1.json().catch(() => ({}));
+
+      // Phase 2: csv-overlap-cleanup (remove CSV trades that overlap with API sync period)
+      const res2 = await fetch(`/api/connections/${id}/repair?mode=csv-overlap-cleanup`, { method: "POST" });
+      const data2 = await res2.json().catch(() => ({}));
+
+      const messages: string[] = [];
+      if (data1.message) messages.push(data1.message);
+      if (data2.deleted > 0) messages.push(data2.message);
+
+      if (!res1.ok && !res2.ok) {
+        setSyncResults((prev) => ({ ...prev, [id]: { status: "error", message: data1.error || data2.error || "Repair failed." } }));
       } else {
-        setSyncResults((prev) => ({ ...prev, [id]: { status: "success", message: data.message || "Repair complete." } }));
+        setSyncResults((prev) => ({ ...prev, [id]: { status: "success", message: messages.join(" | ") || "Repair complete." } }));
         await fetchConnections();
       }
     } catch {
