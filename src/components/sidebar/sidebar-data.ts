@@ -156,7 +156,7 @@ const intelligenceItems: NavItem[] = [
   { href: "/dashboard/psychology", label: "Psychology", icon: Brain },
   { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles, tourId: "tour-ai" },
   { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
-  { href: "/dashboard/recaps", label: "Monthly Recaps", icon: CalendarCheck },
+  { href: "/dashboard/recaps", label: "Monthly Recap", icon: CalendarCheck },
 ];
 
 const marketToolsItemsFull: NavItem[] = [
@@ -319,7 +319,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Open Trades Summary": "sidebar.openTradesSummary",
   "Day Grouped": "sidebar.dayGrouped", "Calendar Grouped": "sidebar.calendarGrouped",
   Insights: "sidebar.insights", "AI Coach": "sidebar.aiCoach",
-  "Weekly Reports": "sidebar.weeklyReports", "Monthly Recaps": "sidebar.monthlyRecaps", "Market Overview": "sidebar.marketOverview",
+  "Weekly Reports": "sidebar.weeklyReports", "Monthly Recap": "sidebar.monthlyRecap", "Market Overview": "sidebar.marketOverview",
   "Market News": "sidebar.marketNews",
   "Token Screener": "sidebar.tokenScreener", "Heat Maps": "sidebar.heatMaps",
   Derivatives: "sidebar.derivatives", "DCA Calculator": "sidebar.dcaCalculator",

@@ -65,6 +65,12 @@ const TEMPLATES: Template[] = [
     content: `<h2>This week's P&L</h2><p><br></p><h2>Best trade</h2><p><br></p><h2>Worst trade</h2><p><br></p><h2>Emotional patterns</h2><p><br></p><h2>One thing to improve next week</h2><p><br></p>`,
   },
   {
+    id: "monthly-recap",
+    label: "Monthly Recap",
+    icon: Calendar,
+    content: `<h2>Month Grade (1-10)</h2><p><br></p><h2>Top 3 Wins</h2><p><br></p><h2>This Month's P&L</h2><p><br></p><h2>Best Trade</h2><p><br></p><h2>Worst Trade</h2><p><br></p><h2>Biggest Lesson</h2><p><br></p><h2>Gratitude</h2><p><br></p><h2>Goals for Next Month</h2><p><br></p>`,
+  },
+  {
     id: "mistake",
     label: "Mistake Analysis",
     icon: AlertTriangle,
@@ -310,6 +316,8 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
         noteType = "trade";
       } else if (appliedTemplate === "morning-plan" || appliedTemplate === "daily-review") {
         noteType = "daily";
+      } else if (appliedTemplate === "weekly-recap" || appliedTemplate === "monthly-recap") {
+        noteType = "other";
       }
 
       const payload: Record<string, unknown> = {
