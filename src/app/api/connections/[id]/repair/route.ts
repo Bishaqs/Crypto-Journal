@@ -292,8 +292,87 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
   let notesMoved = 0;
   let closeUpdated = 0;
 
-  // ── Phase 1: Find and remove duplicate broker_order_ids ──
+  // ── Phase 0: Clean up NULL broker_order_id duplicates (from-open-position) ──
+  // The all-position endpoint has no positionId field, so old syncs stored NULL.
+  // Group by symbol+position, keep newest, delete rest, assign composite ID.
   const PAGE = 1000;
+  let nullCleaned = 0;
+  {
+    type NullRow = { id: string; symbol: string; position: string; created_at: string };
+    const nullRows: NullRow[] = [];
+    let nPage = 0;
+    while (true) {
+      const { data } = await supabase
+        .from("trades")
+        .select("id, symbol, position, created_at")
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .is("broker_order_id", null)
+        .contains("tags", ["from-open-position"])
+        .order("created_at", { ascending: false })
+        .range(nPage * PAGE, (nPage + 1) * PAGE - 1);
+      if (!data || data.length === 0) break;
+      nullRows.push(...(data as NullRow[]));
+      if (data.length < PAGE) break;
+      nPage++;
+    }
+
+    // Group by symbol+position — keep the newest (index 0, ordered desc)
+    const nullGroups = new Map<string, NullRow[]>();
+    for (const r of nullRows) {
+      const key = `${r.symbol}|${r.position}`;
+      if (!nullGroups.has(key)) nullGroups.set(key, []);
+      nullGroups.get(key)!.push(r);
+    }
+
+    const nullDeleteIds: string[] = [];
+    for (const [key, rows] of nullGroups) {
+      const keeper = rows[0]; // newest
+      const toDelete = rows.slice(1);
+
+      // Transfer any journal notes to keeper
+      if (toDelete.length > 0) {
+        const dupIds = toDelete.map((d) => d.id);
+        const { data: notes } = await supabase
+          .from("journal_notes")
+          .select("id")
+          .in("trade_id", dupIds);
+        if (notes && notes.length > 0) {
+          await supabase
+            .from("journal_notes")
+            .update({ trade_id: keeper.id })
+            .in("trade_id", dupIds);
+          notesMoved += notes.length;
+        }
+        nullDeleteIds.push(...dupIds);
+      }
+
+      // Assign composite broker_order_id to the keeper
+      const [symbol, position] = key.split("|");
+      await supabase
+        .from("trades")
+        .update({ broker_order_id: `open:${symbol}:${position}` })
+        .eq("id", keeper.id);
+    }
+
+    // Batch delete NULL duplicates
+    if (nullDeleteIds.length > 0) {
+      const CHUNK = 200;
+      for (let i = 0; i < nullDeleteIds.length; i += CHUNK) {
+        if (Date.now() >= deadline) break;
+        const chunk = nullDeleteIds.slice(i, i + CHUNK);
+        const { error } = await supabase
+          .from("trades")
+          .delete()
+          .eq("user_id", userId)
+          .in("id", chunk);
+        if (!error) nullCleaned += chunk.length;
+      }
+    }
+  }
+  deduped += nullCleaned;
+
+  // ── Phase 1: Find and remove duplicate broker_order_ids ──
   const allTrades: TradeRow[] = [];
   let page = 0;
 
