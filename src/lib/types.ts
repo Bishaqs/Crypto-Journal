@@ -88,6 +88,8 @@ export type DailyCheckin = {
   energy: number | null;
   focus: string | null;
   traffic_light: "green" | "yellow" | "red";
+  gratitude: string | null;
+  intention: string | null;
   // Advanced tier fields
   sleep_quality: number | null; // 1-5
   cognitive_load: number | null; // 1-5
