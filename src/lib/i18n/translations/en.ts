@@ -210,9 +210,11 @@ const en = {
     insights: "Insights",
     aiCoach: "AI Coach",
     weeklyReports: "Weekly Reports",
+    monthlyRecap: "Monthly Recap",
 
     // Market & Tools items
     marketOverview: "Market Overview",
+    marketNews: "Market News",
     tokenScreener: "Token Screener",
     heatMaps: "Heat Maps",
     derivatives: "Derivatives",
@@ -231,6 +233,7 @@ const en = {
     // Reports items
     taxReports: "Tax Reports",
     simulations: "Simulations",
+    whatIf: "What If",
 
     // Mode toggle
     simple: "Simple",
@@ -324,6 +327,7 @@ const en = {
     exportCsv: "Export CSV",
     resync: "Resync",
     stockTrade: "Stock Trade",
+    whatIf: "What If",
   },
 
   emotion: {
