@@ -21,6 +21,22 @@ export const BROKER_INSTRUCTIONS: BrokerInstruction[] = [
       "Futures trades are separate — export from the Futures section",
       "US users: Use Binance.US, not Binance.com",
     ],
+    apiKeyGuide: {
+      steps: [
+        "Log into Binance → hover over your profile icon → 'API Management'",
+        "Click 'Create API' → select 'System Generated Keys'",
+        "Enter a label (e.g., 'Journal Sync') and complete 2FA verification",
+        "On the API restrictions page, check only 'Enable Reading'",
+        "Under 'Enable Futures', check the box (needed to read futures trade history)",
+        "Copy the API Key and Secret Key — the secret is only shown once",
+      ],
+      permissions: ["Enable Reading", "Enable Futures (read only)"],
+      notes: [
+        "Never enable 'Enable Trading' or 'Enable Withdrawals'",
+        "IP whitelist is recommended — add your IP for extra security",
+        "Binance does not require a passphrase",
+      ],
+    },
   },
   {
     brokerId: "bybit",
@@ -40,6 +56,22 @@ export const BROKER_INSTRUCTIONS: BrokerInstruction[] = [
       "Bybit separates Spot and Derivatives exports",
       "For derivatives, use the 'Closed PnL' section for completed trades",
     ],
+    apiKeyGuide: {
+      steps: [
+        "Log into Bybit → click your profile icon → 'API'",
+        "Click 'Create New Key' → select 'System-Generated API Keys'",
+        "Set a name (e.g., 'Journal Sync') and complete 2FA",
+        "Under 'API Key Permissions', select 'Read-Only'",
+        "Under 'Unified Trading permissions', enable 'Read' for Derivatives",
+        "Copy the API Key and Secret Key — the secret is shown only once",
+      ],
+      permissions: ["Read-Only", "Derivatives Read"],
+      notes: [
+        "Never enable 'Read-Write' or 'Contract Trade' permissions",
+        "Bybit does not require a passphrase",
+        "You can restrict to IP whitelist for extra security",
+      ],
+    },
   },
   {
     brokerId: "okx",
@@ -59,6 +91,22 @@ export const BROKER_INSTRUCTIONS: BrokerInstruction[] = [
       "OKX uses 'Inst ID' for trading pair (e.g., BTC-USDT)",
       "Export each trading type separately for best results",
     ],
+    apiKeyGuide: {
+      steps: [
+        "Log into OKX → hover over profile icon → 'API' under Security",
+        "Click 'Create API key' (V5 API)",
+        "Set a label and passphrase, complete 2FA",
+        "Under Permissions, select 'Read' only",
+        "Under 'Trade' section, enable 'Read' for the account types you trade (Futures, etc.)",
+        "Copy the API Key, Secret Key, and passphrase",
+      ],
+      permissions: ["Read", "Trade Read (Futures)"],
+      notes: [
+        "OKX requires a passphrase (similar to Bitget)",
+        "Never enable 'Trade' or 'Withdraw' write permissions",
+        "IP whitelist is optional but recommended",
+      ],
+    },
   },
   {
     brokerId: "coinbase",
@@ -98,6 +146,22 @@ export const BROKER_INSTRUCTIONS: BrokerInstruction[] = [
       "Kraken uses 'vol' for volume/quantity",
       "Pair names may use X/Z prefixes (e.g., XXBTZUSD for BTC/USD)",
     ],
+    apiKeyGuide: {
+      steps: [
+        "Log into Kraken → click your name (top right) → 'Security' → 'API'",
+        "Click 'Create API Key'",
+        "Set a description (e.g., 'Journal Sync')",
+        "Under Permissions, enable only 'Query Funds' and 'Query Open/Closed Orders and Trades'",
+        "Do NOT enable any 'Modify' or 'Create/Cancel' permissions",
+        "Click 'Generate Key' and copy both the API Key and Private Key",
+      ],
+      permissions: ["Query Funds", "Query Open/Closed Orders and Trades"],
+      notes: [
+        "Kraken uses granular permissions — only enable the 'Query' ones",
+        "Kraken does not require a passphrase",
+        "The Private Key is only shown once — save it securely",
+      ],
+    },
   },
   {
     brokerId: "kucoin",
@@ -154,6 +218,25 @@ export const BROKER_INSTRUCTIONS: BrokerInstruction[] = [
       "'Direction' values like 'Buy/Long' and 'Sell/Short' are auto-detected",
       "Alternative: Go to Order History and navigate to 'Future Trades', select 'Export'",
     ],
+    apiKeyGuide: {
+      steps: [
+        "Log into Bitget → click your profile icon (top right) → 'API Management'",
+        "Click 'Create API Key' → choose 'System-Generated'",
+        "Enter a label (e.g., 'Journal Sync')",
+        "Create a passphrase — you'll need this when connecting (Bitget won't show it again!)",
+        "Under Permissions, select 'Read-Only'",
+        "Under API permissions, enable only 'Futures' → check 'Read'",
+        "Do NOT enable 'Trade', 'Transfer', or 'Withdraw'",
+        "Click 'Next', complete 2FA, then copy your API Key and Secret Key",
+      ],
+      permissions: ["Read-Only", "Futures → Read"],
+      notes: [
+        "The passphrase is created by YOU — remember it! Bitget won't show it again after creation",
+        "Never enable 'Trade' or 'Withdraw' — the journal only reads your trade history",
+        "IP whitelist is optional but adds extra security",
+        "If you lose your passphrase, delete the API key and create a new one",
+      ],
+    },
   },
   {
     brokerId: "mexc",
