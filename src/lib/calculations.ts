@@ -1,4 +1,4 @@
-import { Trade, Chain, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsight, WeeklyReport, DailyCheckin, BehavioralLog, SelfSabotageSignal, WealthThermostat, RiskHomeostasis, EndowmentEffect, PsychDevelopmentStage, AnchoringPattern } from "./types";
+import { Trade, Chain, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsight, WeeklyReport, MonthlyRecap, DailyCheckin, BehavioralLog, SelfSabotageSignal, WealthThermostat, RiskHomeostasis, EndowmentEffect, PsychDevelopmentStage, AnchoringPattern } from "./types";
 
 // Pure functions — given trades in, stats out. No side effects, easy to test.
 // This is where all the trading math lives.
@@ -640,6 +640,164 @@ export function getAvailableWeeks(trades: Trade[]): string[] {
     mondaySet.add(monday.toISOString().split("T")[0]);
   }
   return Array.from(mondaySet).sort((a, b) => b.localeCompare(a));
+}
+
+/**
+ * Generate a monthly performance recap from trades and check-in data.
+ */
+export function generateMonthlyRecap(
+  trades: Trade[],
+  checkins: DailyCheckin[],
+  month: string, // "YYYY-MM"
+): MonthlyRecap {
+  const [year, mon] = month.split("-").map(Number);
+  const monthStart = `${month}-01`;
+  const nextMonth = mon === 12 ? `${year + 1}-01` : `${year}-${String(mon + 1).padStart(2, "0")}`;
+  const monthEnd = new Date(nextMonth + "-01T00:00:00");
+  monthEnd.setDate(monthEnd.getDate() - 1);
+  const monthEndStr = monthEnd.toISOString().split("T")[0];
+
+  const monthLabel = new Date(year, mon - 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  // Filter trades closed during this month
+  const monthTrades = trades.filter((t) => {
+    if (!t.close_timestamp) return false;
+    const closeDate = t.close_timestamp.split("T")[0];
+    return closeDate >= monthStart && closeDate <= monthEndStr;
+  });
+
+  const pnls = monthTrades.map((t) => t.pnl ?? calculateTradePnl(t) ?? 0);
+  const totalPnl = pnls.reduce((s, p) => s + p, 0);
+  const wins = pnls.filter((p) => p > 0).length;
+  const losses = pnls.filter((p) => p < 0).length;
+  const winRate = monthTrades.length > 0 ? (wins / monthTrades.length) * 100 : 0;
+
+  // Best/worst trades
+  const sortedByPnl = [...monthTrades].sort(
+    (a, b) => (b.pnl ?? calculateTradePnl(b) ?? 0) - (a.pnl ?? calculateTradePnl(a) ?? 0),
+  );
+  const best = sortedByPnl[0];
+  const worst = sortedByPnl[sortedByPnl.length - 1];
+
+  // Process score
+  const processScores = monthTrades.filter((t) => t.process_score !== null).map((t) => t.process_score!);
+  const avgProcessScore = processScores.length > 0 ? processScores.reduce((a, b) => a + b, 0) / processScores.length : null;
+
+  // Trading days
+  const tradingDaySet = new Set(monthTrades.map((t) => t.close_timestamp!.split("T")[0]));
+  const dailyPnl = calculateDailyPnl(monthTrades);
+  const greenDays = dailyPnl.filter((d) => d.pnl > 0).length;
+  const redDays = dailyPnl.filter((d) => d.pnl < 0).length;
+
+  // Emotion breakdown
+  const emotionMap = new Map<string, { count: number; pnl: number }>();
+  for (const t of monthTrades) {
+    const emotion = t.emotion ?? "Untagged";
+    const existing = emotionMap.get(emotion) ?? { count: 0, pnl: 0 };
+    emotionMap.set(emotion, {
+      count: existing.count + 1,
+      pnl: existing.pnl + (t.pnl ?? calculateTradePnl(t) ?? 0),
+    });
+  }
+
+  // Weekly P&L within this month
+  const weekMap = new Map<string, { pnl: number; trades: number }>();
+  for (const t of monthTrades) {
+    const d = new Date(t.close_timestamp!);
+    const day = d.getDay();
+    const monday = new Date(d);
+    monday.setDate(monday.getDate() - ((day + 6) % 7));
+    const weekKey = monday.toISOString().split("T")[0];
+    const existing = weekMap.get(weekKey) ?? { pnl: 0, trades: 0 };
+    weekMap.set(weekKey, {
+      pnl: existing.pnl + (t.pnl ?? calculateTradePnl(t) ?? 0),
+      trades: existing.trades + 1,
+    });
+  }
+
+  // Top symbols
+  const symbolMap = new Map<string, { pnl: number; count: number }>();
+  for (const t of monthTrades) {
+    const existing = symbolMap.get(t.symbol) ?? { pnl: 0, count: 0 };
+    symbolMap.set(t.symbol, {
+      pnl: existing.pnl + (t.pnl ?? calculateTradePnl(t) ?? 0),
+      count: existing.count + 1,
+    });
+  }
+
+  // Rule compliance
+  const withChecklist = monthTrades.filter((t) => t.checklist && Object.keys(t.checklist).length > 0);
+  const compliant = withChecklist.filter((t) => Object.values(t.checklist!).every((v) => v === true));
+  const ruleCompliance = withChecklist.length > 0 ? (compliant.length / withChecklist.length) * 100 : null;
+
+  // Check-in data for the month
+  const monthCheckins = checkins.filter((c) => c.date >= monthStart && c.date <= monthEndStr);
+  const moods = monthCheckins.filter((c) => c.mood != null).map((c) => c.mood);
+  const energies = monthCheckins.filter((c) => c.energy != null).map((c) => c.energy!);
+  const avgMood = moods.length > 0 ? moods.reduce((a, b) => a + b, 0) / moods.length : null;
+  const avgEnergy = energies.length > 0 ? energies.reduce((a, b) => a + b, 0) / energies.length : null;
+  const moodTrend = monthCheckins.filter((c) => c.mood != null).map((c) => ({ date: c.date, mood: c.mood }));
+
+  // Traffic light distribution
+  const greenLightDays = monthCheckins.filter((c) => c.traffic_light === "green").length;
+  const yellowLightDays = monthCheckins.filter((c) => c.traffic_light === "yellow").length;
+  const redLightDays = monthCheckins.filter((c) => c.traffic_light === "red").length;
+
+  function toTradeRef(t: Trade) {
+    return {
+      symbol: t.symbol,
+      pnl: t.pnl ?? calculateTradePnl(t) ?? 0,
+      date: (t.close_timestamp ?? t.open_timestamp).split("T")[0],
+    };
+  }
+
+  return {
+    month,
+    monthLabel,
+    totalPnl,
+    tradeCount: monthTrades.length,
+    winRate,
+    wins,
+    losses,
+    bestTrade: best ? toTradeRef(best) : null,
+    worstTrade: worst && worst !== best ? toTradeRef(worst) : null,
+    avgProcessScore,
+    tradingDays: tradingDaySet.size,
+    greenDays,
+    redDays,
+    avgMood,
+    avgEnergy,
+    moodTrend,
+    emotionBreakdown: Array.from(emotionMap.entries())
+      .map(([emotion, d]) => ({ emotion, ...d }))
+      .sort((a, b) => b.count - a.count),
+    weeklyPnl: Array.from(weekMap.entries())
+      .map(([week, d]) => ({ week, ...d }))
+      .sort((a, b) => a.week.localeCompare(b.week)),
+    topSymbols: Array.from(symbolMap.entries())
+      .map(([symbol, d]) => ({ symbol, ...d }))
+      .sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))
+      .slice(0, 10),
+    ruleCompliance,
+    checkinDays: monthCheckins.length,
+    greenLightDays,
+    yellowLightDays,
+    redLightDays,
+  };
+}
+
+/**
+ * Get available months from trade data.
+ * Returns array of "YYYY-MM" strings sorted newest first.
+ */
+export function getAvailableMonths(trades: Trade[]): string[] {
+  const monthSet = new Set<string>();
+  for (const t of trades) {
+    if (!t.close_timestamp) continue;
+    const date = t.close_timestamp.split("T")[0];
+    monthSet.add(date.substring(0, 7)); // "YYYY-MM"
+  }
+  return Array.from(monthSet).sort((a, b) => b.localeCompare(a));
 }
 
 /**

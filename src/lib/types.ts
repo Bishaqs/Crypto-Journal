@@ -333,6 +333,35 @@ export type WeeklyReport = {
   tradingDays: number;
 };
 
+// Monthly recap data (generated from trades + checkins, not stored)
+export type MonthlyRecap = {
+  month: string; // "YYYY-MM"
+  monthLabel: string; // "March 2026"
+  totalPnl: number;
+  tradeCount: number;
+  winRate: number;
+  wins: number;
+  losses: number;
+  bestTrade: { symbol: string; pnl: number; date: string } | null;
+  worstTrade: { symbol: string; pnl: number; date: string } | null;
+  avgProcessScore: number | null;
+  tradingDays: number;
+  greenDays: number;
+  redDays: number;
+  avgMood: number | null;
+  avgEnergy: number | null;
+  moodTrend: { date: string; mood: number }[];
+  emotionBreakdown: { emotion: string; count: number; pnl: number }[];
+  weeklyPnl: { week: string; pnl: number; trades: number }[];
+  topSymbols: { symbol: string; pnl: number; count: number }[];
+  ruleCompliance: number | null;
+  checkinDays: number;
+  // Psychological patterns
+  greenLightDays: number;
+  yellowLightDays: number;
+  redLightDays: number;
+};
+
 // Daily plan for pre-market + EOD review
 export type DailyPlan = {
   id: string;
