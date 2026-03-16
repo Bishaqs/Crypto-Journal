@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { validateImportData, ImportResult } from "@/lib/csv-import";
 import { parseFileToCSV, isAcceptedFileType } from "@/lib/file-parser";
-import { getDedupSelect, getExistingSig, getPayloadSig } from "@/lib/import-dedup";
+import { getDedupSelect, getExistingSig, getPayloadSig, getApiSyncCutoff, filterApiOverlap } from "@/lib/import-dedup";
 import { calculateStats, detectTiltSignals, type TiltSignal } from "@/lib/calculations";
 import type { Trade, DashboardStats } from "@/lib/types";
 import {
@@ -143,11 +143,19 @@ export function CSVImportModal({ onClose, onImported }: CSVImportModalProps) {
       ),
     );
 
-    const payloads = allPayloads.filter(
+    // Step 1: Signature-based dedup
+    const sigFiltered = allPayloads.filter(
       (p) => !existingSet.has(getPayloadSig(p as Record<string, unknown>)),
     );
+    const sigSkipped = allPayloads.length - sigFiltered.length;
 
-    const skipped = allPayloads.length - payloads.length;
+    // Step 2: API-overlap filter (skip CSV trades covered by API sync)
+    const apiCutoff = await getApiSyncCutoff(supabase, user.id);
+    const { filtered: payloads, apiSkipped } = filterApiOverlap(
+      sigFiltered as Record<string, unknown>[],
+      apiCutoff,
+    );
+    const skipped = sigSkipped + apiSkipped;
     setSkippedCount(skipped);
 
     // Attach batch ID to each payload

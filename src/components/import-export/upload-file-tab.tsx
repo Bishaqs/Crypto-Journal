@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { validateImportData, type ImportResult } from "@/lib/csv-import";
 import { parseFileToCSV, isAcceptedFileType } from "@/lib/file-parser";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
-import { getDedupSelect, getExistingSig, getPayloadSig } from "@/lib/import-dedup";
+import { getDedupSelect, getExistingSig, getPayloadSig, getApiSyncCutoff, filterApiOverlap } from "@/lib/import-dedup";
 import {
   Upload,
   FileText,
@@ -116,10 +116,19 @@ export function UploadFileTab() {
     );
 
     const allPayloads = result.validRows.map((r) => r.parsed!);
-    const payloads = allPayloads.filter(
+    // Step 3a: Signature-based dedup (exact match against existing trades)
+    const sigFiltered = allPayloads.filter(
       (p) => !existingSet.has(getPayloadSig(p as Record<string, unknown>)),
     );
-    const skipped = allPayloads.length - payloads.length;
+    const sigSkipped = allPayloads.length - sigFiltered.length;
+
+    // Step 3b: API-overlap filter (skip CSV trades covered by API sync)
+    const apiCutoff = await getApiSyncCutoff(supabase, user.id);
+    const { filtered: payloads, apiSkipped } = filterApiOverlap(
+      sigFiltered as Record<string, unknown>[],
+      apiCutoff,
+    );
+    const skipped = sigSkipped + apiSkipped;
     setSkippedCount(skipped);
 
     // 4. Attach batch ID
