@@ -85,6 +85,13 @@ export function ViewConnectionsTab() {
           lastDiag = ` [${d.phase_a_fetched}F → ${d.phase_a_paired + d.phase_a_unmatched_opens}T${unmatched}${mergeInfo} → ${d.dedup_existing_ids}E → ${d.dedup_new_trades}N → ${d.insert_succeeded + (d.cross_sync_close_only ?? 0)}I${lastDuration ? ` ${(lastDuration / 1000).toFixed(1)}s` : ""}]`;
         }
 
+        // Sync lock — another sync is in progress, don't retry
+        if (res.status === 409) {
+          setSyncResults((prev) => ({ ...prev, [id]: { status: "info", message: data.error || "Sync already in progress. Please wait." } }));
+          setTimeout(() => setSyncResults((prev) => { const next = { ...prev }; delete next[id]; return next; }), 6000);
+          return;
+        }
+
         // Auto-retry on retryable conditions
         const shouldRetry = attempt < MAX_RETRIES && (
           data.retryable === true || res.status === 504 || (!resText && !res.ok)
@@ -154,9 +161,9 @@ export function ViewConnectionsTab() {
   }
 
   async function handleRepair(id: string) {
-    setSyncResults((prev) => ({ ...prev, [id]: { status: "info", message: "Repairing: removing duplicates and resetting cursor..." } }));
+    setSyncResults((prev) => ({ ...prev, [id]: { status: "info", message: "Removing duplicates and closing stale trades..." } }));
     try {
-      const res = await fetch(`/api/connections/${id}/repair?mode=dedup-resync`, { method: "POST" });
+      const res = await fetch(`/api/connections/${id}/repair?mode=dedup-fix`, { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setSyncResults((prev) => ({ ...prev, [id]: { status: "error", message: data.error || "Repair failed." } }));
