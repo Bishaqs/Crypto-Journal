@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Trade, JournalNote } from "@/lib/types";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { createClient } from "@/lib/supabase/client";
+import { unlinkNoteFromTrade } from "@/lib/journal-links";
 import { Clock, Plus, Link2, X, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -199,6 +200,11 @@ export function TradeTimeline({ trade, notes, onCreateNote, onLinkExisting, onRe
   async function handleUnlink(noteId: string) {
     setUnlinking(noteId);
     try {
+      const supabase = createClient();
+      await unlinkNoteFromTrade(supabase, noteId, trade.id);
+      onRefresh();
+    } catch {
+      // Fallback to legacy if junction table doesn't exist
       const supabase = createClient();
       await supabase
         .from("journal_notes")

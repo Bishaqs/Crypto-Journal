@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { JournalNote, AssetType } from "@/lib/types";
+import { linkNoteToTrade, getNoteIdsLinkedToTrade } from "@/lib/journal-links";
 import { Search, X, Link2 } from "lucide-react";
 
 type NoteLinkPickerProps = {
@@ -26,20 +27,27 @@ export function NoteLinkPicker({ tradeId, assetType, onLinked, onClose }: NoteLi
   const [linking, setLinking] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchUnlinked() {
+    async function fetchLinkable() {
       const supabase = createClient();
-      const { data } = await supabase
-        .from("journal_notes")
-        .select("*")
-        .is("trade_id", null)
-        .eq("asset_type", assetType)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      setNotes((data as JournalNote[]) ?? []);
+
+      // Fetch all notes for this asset type + note IDs already linked to this trade
+      const [notesResult, linkedIds] = await Promise.all([
+        supabase
+          .from("journal_notes")
+          .select("*")
+          .eq("asset_type", assetType)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        getNoteIdsLinkedToTrade(supabase, tradeId),
+      ]);
+
+      // Exclude notes already linked to THIS trade
+      const allNotes = (notesResult.data as JournalNote[]) ?? [];
+      setNotes(allNotes.filter((n) => !linkedIds.has(n.id)));
       setLoading(false);
     }
-    fetchUnlinked();
-  }, [assetType]);
+    fetchLinkable();
+  }, [assetType, tradeId]);
 
   // Close on Escape
   useEffect(() => {
@@ -65,9 +73,11 @@ export function NoteLinkPicker({ tradeId, assetType, onLinked, onClose }: NoteLi
     setLinking(noteId);
     try {
       const supabase = createClient();
+      await linkNoteToTrade(supabase, noteId, tradeId, assetType);
+      // Also update note_type for filtering
       await supabase
         .from("journal_notes")
-        .update({ trade_id: tradeId, trade_asset_type: assetType, note_type: "trade" })
+        .update({ note_type: "trade" })
         .eq("id", noteId);
       onLinked();
     } finally {
@@ -114,7 +124,7 @@ export function NoteLinkPicker({ tradeId, assetType, onLinked, onClose }: NoteLi
               <div className="py-8 text-center text-muted text-sm">Loading notes...</div>
             ) : filtered.length === 0 ? (
               <div className="py-8 text-center text-muted text-sm">
-                {search ? "No notes match your search" : "No unlinked notes available"}
+                {search ? "No notes match your search" : "No linkable notes available"}
               </div>
             ) : (
               <div className="space-y-2">
@@ -142,6 +152,11 @@ export function NoteLinkPicker({ tradeId, assetType, onLinked, onClose }: NoteLi
                             {tag}
                           </span>
                         ))}
+                        {note.note_type === "trade" && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/10 text-muted font-medium">
+                            linked to other trade
+                          </span>
+                        )}
                       </div>
                     </button>
                   );
