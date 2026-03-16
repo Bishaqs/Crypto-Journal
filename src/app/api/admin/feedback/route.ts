@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const MarkReadSchema = z.object({
   id: z.string().uuid("Invalid feedback ID"),
 });

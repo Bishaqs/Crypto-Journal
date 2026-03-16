@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const CreateInviteSchema = z.object({
   tier: z.enum(["pro", "max"]).default("max"),
   description: z.string().max(200).optional(),

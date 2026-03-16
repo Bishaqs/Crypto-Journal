@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+
 const YAHOO_SPARK =
   "https://query1.finance.yahoo.com/v8/finance/spark?symbols=%5EGSPC,%5EIXIC,%5EDJI,%5EVIX,DX-Y.NYB&range=5d&interval=1d";
 const FRANKFURTER =

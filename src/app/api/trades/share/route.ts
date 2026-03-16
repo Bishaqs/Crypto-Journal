@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const supabase = await createClient();
   const {

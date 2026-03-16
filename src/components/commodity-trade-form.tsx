@@ -74,15 +74,20 @@ export function CommodityTradeForm({
   // Symbol suggestions for autocomplete
   const symbolKeys = useMemo(() => Object.keys(COMMODITY_SYMBOLS), []);
 
-  // Fetch tag suggestions
+  // Fetch tag suggestions (paginated to avoid 1000-row cap)
   useEffect(() => {
     async function fetchTags() {
-      const { data } = await supabase.from("commodity_trades").select("tags");
       const allTags = new Set<string>();
-      if (data) {
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data } = await supabase.from("commodity_trades").select("tags").range(from, from + pageSize - 1);
+        if (!data || data.length === 0) break;
         data.forEach((row: { tags: string[] | null }) => {
           row.tags?.forEach((t) => { if (isUserTag(t)) allTags.add(t); });
         });
+        if (data.length < pageSize) break;
+        from += pageSize;
       }
       const presets = getCustomTagPresets();
       presets.forEach((p) => allTags.add(p));

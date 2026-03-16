@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const DeleteUserSchema = z.object({
   userId: z.string().uuid("Invalid user ID format"),
 });

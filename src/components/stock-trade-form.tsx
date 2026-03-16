@@ -66,15 +66,20 @@ export function StockTradeForm({
   // Track if we have an exit price to show post-trade fields
   const [hasExit, setHasExit] = useState(!!editTrade?.exit_price);
 
-  // Fetch tag suggestions from existing stock trades + custom presets
+  // Fetch tag suggestions from existing stock trades + custom presets (paginated to avoid 1000-row cap)
   useEffect(() => {
     async function fetchTags() {
-      const { data } = await supabase.from("stock_trades").select("tags");
       const allTags = new Set<string>();
-      if (data) {
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data } = await supabase.from("stock_trades").select("tags").range(from, from + pageSize - 1);
+        if (!data || data.length === 0) break;
         data.forEach((row: { tags: string[] | null }) => {
           row.tags?.forEach((t) => { if (isUserTag(t)) allTags.add(t); });
         });
+        if (data.length < pageSize) break;
+        from += pageSize;
       }
       const presets = getCustomTagPresets();
       presets.forEach((p) => allTags.add(p));

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+
 const YAHOO_SCREENER_BASE =
   "https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved";
 
