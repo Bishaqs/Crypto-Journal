@@ -4,6 +4,7 @@ import { useState } from "react";
 import { JournalNote } from "@/lib/types";
 import { FileText, Plus, Link2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { unlinkNoteFromTrade } from "@/lib/journal-links";
 
 type LinkedNotesSectionProps = {
   tradeId: string;
@@ -26,6 +27,11 @@ export function LinkedNotesSection({ tradeId, notes, onCreateNote, onLinkExistin
   async function handleUnlink(noteId: string) {
     setUnlinking(noteId);
     try {
+      const supabase = createClient();
+      await unlinkNoteFromTrade(supabase, noteId, tradeId);
+      onRefresh();
+    } catch {
+      // Fallback to legacy if junction table doesn't exist
       const supabase = createClient();
       await supabase
         .from("journal_notes")

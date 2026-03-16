@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { JournalNote, Trade, AssetType } from "@/lib/types";
+import { getLinkedTradesForNote, setNoteTradeLinks } from "@/lib/journal-links";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { uploadJournalImage } from "@/lib/image-upload";
 import { useTimezone } from "@/lib/timezone-context";
@@ -103,7 +104,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [linkedTradeId, setLinkedTradeId] = useState<string | null>(editNote?.trade_id ?? null);
+  const [linkedTradeIds, setLinkedTradeIds] = useState<string[]>(editNote?.trade_id ? [editNote.trade_id] : []);
   const [autoLinkOnImport, setAutoLinkOnImport] = useState(editNote?.auto_link_on_import ?? false);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(editNote?.tags?.[0] ?? null);
@@ -156,6 +157,18 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
       }
     }
   }, []);
+
+  // Load existing trade links from junction table when editing
+  useEffect(() => {
+    if (!editNote) return;
+    getLinkedTradesForNote(supabase, editNote.id)
+      .then((links) => {
+        if (links.length > 0) {
+          setLinkedTradeIds(links.map((l) => l.trade_id));
+        }
+      })
+      .catch(() => { /* junction table may not exist yet */ });
+  }, [editNote?.id]);
 
   // Fetch trades for TradeLinker + existing tags for suggestions
   // Use the asset-specific trade table when editing an existing note, or the current assetType for new notes
@@ -258,10 +271,11 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
     }
   }
 
-  function handleTradeLink(tradeId: string | null) {
-    setLinkedTradeId(tradeId);
-    if (tradeId && !title.trim()) {
-      const trade = trades.find((t) => t.id === tradeId);
+  function handleTradeLinksChange(tradeIds: string[]) {
+    setLinkedTradeIds(tradeIds);
+    // Auto-title from the first linked trade if title is empty
+    if (tradeIds.length > 0 && !title.trim()) {
+      const trade = trades.find((t) => t.id === tradeIds[tradeIds.length - 1]);
       if (trade) {
         const date = new Date(trade.open_timestamp).toLocaleDateString("en-US", {
           month: "short",
@@ -310,7 +324,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
 
       // Determine note_type automatically
       let noteType = "other";
-      if (linkedTradeId) {
+      if (linkedTradeIds.length > 0) {
         noteType = "trade";
       } else if (appliedTemplate === "trade-entry") {
         noteType = "trade";
@@ -324,14 +338,14 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
         title: (formData.get("title") as string) || null,
         content: htmlContent,
         tags: selectedTag ? [selectedTag] : [],
-        trade_id: linkedTradeId,
+        trade_id: linkedTradeIds[0] ?? null, // keep for backward compat during transition
         auto_link_on_import: autoLinkOnImport,
         note_type: noteType,
         note_date: noteDate ? fromDateTimeLocal(noteDate, timezone) : new Date().toISOString(),
         structured_data: useStructured ? structuredData : psychData,
         template_id: useStructured ? appliedTemplate : null,
         asset_type: effectiveAssetType,
-        trade_asset_type: linkedTradeId ? effectiveAssetType : null,
+        trade_asset_type: linkedTradeIds.length > 0 ? effectiveAssetType : null,
       };
 
       if (!payload.content || payload.content === "<br>") {
@@ -339,6 +353,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
         return;
       }
 
+      let noteId = editNote?.id;
       let dbError;
       if (editNote) {
         ({ error: dbError } = await supabase
@@ -346,7 +361,13 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
           .update({ ...payload, updated_at: new Date().toISOString() })
           .eq("id", editNote.id));
       } else {
-        ({ error: dbError } = await supabase.from("journal_notes").insert(payload));
+        const { data: inserted, error: insertError } = await supabase
+          .from("journal_notes")
+          .insert(payload)
+          .select("id")
+          .single();
+        dbError = insertError;
+        if (inserted) noteId = inserted.id;
         if (!dbError) {
           try {
             const { awardXP } = await import("@/lib/xp/engine");
@@ -361,6 +382,17 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
       if (dbError) {
         setError(dbError.message);
         return;
+      }
+
+      // Save trade links to junction table
+      if (noteId) {
+        try {
+          await setNoteTradeLinks(
+            supabase,
+            noteId,
+            linkedTradeIds.map((id) => ({ tradeId: id, assetType: effectiveAssetType }))
+          );
+        } catch { /* junction table may not exist yet */ }
       }
 
       onClose();
@@ -427,8 +459,8 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
             <div className="px-5 pt-3 shrink-0">
               <TradeLinker
                 trades={trades}
-                selectedTradeId={linkedTradeId}
-                onSelect={handleTradeLink}
+                selectedTradeIds={linkedTradeIds}
+                onSelect={handleTradeLinksChange}
                 autoLinkOnImport={autoLinkOnImport}
                 onAutoLinkChange={setAutoLinkOnImport}
               />

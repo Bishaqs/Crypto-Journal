@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
+import { linkNoteToTrade } from "@/lib/journal-links";
 
 /**
  * After a CSV import, find journal notes flagged with auto_link_on_import
@@ -42,12 +43,23 @@ export async function autoLinkNotesAfterImport(
       }
     }
 
-    const { error } = await supabase
-      .from("journal_notes")
-      .update({ trade_id: closestId, auto_link_on_import: false })
-      .eq("id", note.id);
-
-    if (!error) linked++;
+    try {
+      // Link via junction table
+      await linkNoteToTrade(supabase, note.id, closestId, "crypto");
+      // Clear the auto-link flag and update note_type
+      await supabase
+        .from("journal_notes")
+        .update({ auto_link_on_import: false, note_type: "trade" })
+        .eq("id", note.id);
+      linked++;
+    } catch {
+      // Fallback to legacy column if junction table doesn't exist
+      const { error } = await supabase
+        .from("journal_notes")
+        .update({ trade_id: closestId, auto_link_on_import: false })
+        .eq("id", note.id);
+      if (!error) linked++;
+    }
   }
 
   return linked;

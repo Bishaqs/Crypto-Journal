@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
+import { getLinkedNoteIds, linkNoteToTrade } from "@/lib/journal-links";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { getTagColor } from "@/lib/tag-colors";
 import { ImageLightbox } from "@/components/image-lightbox";
@@ -163,6 +164,7 @@ export default function JournalPage() {
   });
   const [linkingNoteId, setLinkingNoteId] = useState<string | null>(null);
   const [linkSearch, setLinkSearch] = useState("");
+  const [linkedNoteIdSet, setLinkedNoteIdSet] = useState<Set<string>>(new Set());
   const supabase = createClient();
 
   const fetchNotes = useCallback(async () => {
@@ -217,10 +219,19 @@ export default function JournalPage() {
     setAllTrades(results.flat());
   }, [supabase, assetFilter]);
 
+  // Fetch which notes have trade links (for link icon display)
+  const fetchLinkedIds = useCallback(async () => {
+    try {
+      const ids = await getLinkedNoteIds(supabase);
+      setLinkedNoteIdSet(ids);
+    } catch { /* junction table may not exist yet */ }
+  }, [supabase]);
+
   useEffect(() => {
     fetchNotes();
     fetchTrades();
-  }, [fetchNotes, fetchTrades]);
+    fetchLinkedIds();
+  }, [fetchNotes, fetchTrades, fetchLinkedIds]);
 
   // Auto-open editor when navigated with ?new=true
   useEffect(() => {
@@ -246,13 +257,13 @@ export default function JournalPage() {
     let matchesType = true;
     switch (noteTypeFilter) {
       case "trade":
-        matchesType = n.trade_id !== null || n.note_type === "trade";
+        matchesType = n.note_type === "trade" || linkedNoteIdSet.has(n.id);
         break;
       case "daily":
         matchesType = n.note_type === "daily";
         break;
       case "other":
-        matchesType = n.note_type === "other" || (!n.note_type && n.trade_id === null);
+        matchesType = n.note_type === "other" || (!n.note_type && !linkedNoteIdSet.has(n.id));
         break;
       case "favorites":
         matchesType = n.is_favorite === true;
@@ -324,10 +335,19 @@ export default function JournalPage() {
     const tradeAssetType: AssetType = (trade as { _assetType?: AssetType })?._assetType ?? "crypto";
     const tradeTable = TRADE_TABLE_MAP[tradeAssetType];
 
-    // 1. Link journal entry to trade (include trade_asset_type for reverse lookup)
+    // 1. Link via junction table + update note_type
+    try {
+      await linkNoteToTrade(supabase, noteId, tradeId, tradeAssetType);
+    } catch {
+      // Fallback to legacy column if junction table doesn't exist
+      await supabase
+        .from("journal_notes")
+        .update({ trade_id: tradeId, trade_asset_type: tradeAssetType })
+        .eq("id", noteId);
+    }
     await supabase
       .from("journal_notes")
-      .update({ trade_id: tradeId, note_type: "trade", trade_asset_type: tradeAssetType })
+      .update({ note_type: "trade" })
       .eq("id", noteId);
 
     // 2. Non-destructive psychology merge: copy if trade fields are empty
@@ -348,6 +368,7 @@ export default function JournalPage() {
     setLinkSearch("");
     fetchNotes();
     fetchTrades();
+    fetchLinkedIds();
   }
 
   if (loading) {
@@ -582,7 +603,7 @@ export default function JournalPage() {
                         >
                           <Star size={14} fill={isFavorite ? "currentColor" : "none"} />
                         </button>
-                        {!note.trade_id ? (
+                        {!linkedNoteIdSet.has(note.id) ? (
                           <button
                             onClick={() => { setLinkingNoteId(note.id); setLinkSearch(""); }}
                             className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
@@ -692,7 +713,7 @@ export default function JournalPage() {
                       >
                         <Star size={13} fill={isFavorite ? "currentColor" : "none"} />
                       </button>
-                      {!note.trade_id ? (
+                      {!linkedNoteIdSet.has(note.id) ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); setLinkingNoteId(note.id); setLinkSearch(""); }}
                           className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
@@ -793,7 +814,7 @@ export default function JournalPage() {
                               {isFavorite && (
                                 <Star size={11} className="text-yellow-400" fill="currentColor" />
                               )}
-                              {note.trade_id ? (
+                              {linkedNoteIdSet.has(note.id) ? (
                                 <span className="text-accent px-0.5" title="Linked to trade">
                                   <Link2 size={10} />
                                 </span>

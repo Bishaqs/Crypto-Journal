@@ -6,8 +6,8 @@ import { Trade } from "@/lib/types";
 
 interface TradeLinkerProps {
   trades: Trade[];
-  selectedTradeId: string | null;
-  onSelect: (tradeId: string | null) => void;
+  selectedTradeIds: string[];
+  onSelect: (tradeIds: string[]) => void;
   autoLinkOnImport: boolean;
   onAutoLinkChange: (checked: boolean) => void;
   hasAutoLinkAccess?: boolean;
@@ -22,14 +22,16 @@ function formatDate(ts: string): string {
   return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function TradeLinker({ trades, selectedTradeId, onSelect, autoLinkOnImport, onAutoLinkChange, hasAutoLinkAccess = true }: TradeLinkerProps) {
+export function TradeLinker({ trades, selectedTradeIds, onSelect, autoLinkOnImport, onAutoLinkChange, hasAutoLinkAccess = true }: TradeLinkerProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedTrade = selectedTradeId ? trades.find((t) => t.id === selectedTradeId) : null;
+  const selectedSet = new Set(selectedTradeIds);
+  const selectedTrades = trades.filter((t) => selectedSet.has(t.id));
 
   const filtered = trades.filter((t) => {
+    if (selectedSet.has(t.id)) return false;
     if (!query) return true;
     const q = query.toLowerCase();
     return (
@@ -49,37 +51,51 @@ export function TradeLinker({ trades, selectedTradeId, onSelect, autoLinkOnImpor
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (selectedTrade) {
-    return (
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-muted">Linked Trade</label>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/10 border border-accent/20">
-          {selectedTrade.pnl !== null && selectedTrade.pnl >= 0 ? (
-            <TrendingUp size={14} className="text-win shrink-0" />
-          ) : (
-            <TrendingDown size={14} className="text-loss shrink-0" />
-          )}
-          <span className="text-sm text-foreground font-medium">{selectedTrade.symbol}</span>
-          <span className="text-xs text-muted capitalize">{selectedTrade.position}</span>
-          <span className="text-xs text-muted">{formatDate(selectedTrade.open_timestamp)}</span>
-          <span className={`text-xs font-medium ml-auto ${selectedTrade.pnl !== null && selectedTrade.pnl >= 0 ? "text-win" : "text-loss"}`}>
-            {formatPnl(selectedTrade.pnl)}
-          </span>
-          <button
-            type="button"
-            onClick={() => onSelect(null)}
-            className="p-0.5 rounded text-muted hover:text-foreground transition-colors"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      </div>
-    );
+  function removeTrade(tradeId: string) {
+    onSelect(selectedTradeIds.filter((id) => id !== tradeId));
+  }
+
+  function addTrade(tradeId: string) {
+    onSelect([...selectedTradeIds, tradeId]);
+    setQuery("");
   }
 
   return (
     <div className="space-y-2">
-      <label className="text-xs font-medium text-muted">Link to Trade</label>
+      <label className="text-xs font-medium text-muted">Link to Trades</label>
+
+      {/* Selected trade chips */}
+      {selectedTrades.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+          {selectedTrades.map((trade) => (
+            <span
+              key={trade.id}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/20 text-xs"
+            >
+              {trade.pnl !== null && trade.pnl >= 0 ? (
+                <TrendingUp size={11} className="text-win shrink-0" />
+              ) : (
+                <TrendingDown size={11} className="text-loss shrink-0" />
+              )}
+              <span className="text-foreground font-medium">{trade.symbol}</span>
+              <span className="text-muted capitalize">{trade.position}</span>
+              <span className="text-muted">{formatDate(trade.open_timestamp)}</span>
+              <span className={`font-medium ${trade.pnl !== null && trade.pnl >= 0 ? "text-win" : "text-loss"}`}>
+                {formatPnl(trade.pnl)}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeTrade(trade.id)}
+                className="p-0.5 rounded text-muted hover:text-foreground transition-colors"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Search input */}
       <div ref={containerRef} className="relative">
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
@@ -91,7 +107,7 @@ export function TradeLinker({ trades, selectedTradeId, onSelect, autoLinkOnImpor
               setOpen(true);
             }}
             onFocus={() => setOpen(true)}
-            placeholder="Search by symbol or date..."
+            placeholder={selectedTrades.length > 0 ? "Link another trade..." : "Search by symbol or date..."}
             className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
           />
         </div>
@@ -102,11 +118,7 @@ export function TradeLinker({ trades, selectedTradeId, onSelect, autoLinkOnImpor
               <button
                 key={trade.id}
                 type="button"
-                onClick={() => {
-                  onSelect(trade.id);
-                  setQuery("");
-                  setOpen(false);
-                }}
+                onClick={() => addTrade(trade.id)}
                 className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-accent/10 transition-colors"
               >
                 {trade.pnl !== null && trade.pnl >= 0 ? (

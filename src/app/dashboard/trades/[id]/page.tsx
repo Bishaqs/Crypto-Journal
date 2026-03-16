@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade, JournalNote, CHAINS } from "@/lib/types";
+import { getLinkedNotesForTrade } from "@/lib/journal-links";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { formatAndSanitizeMarkdown } from "@/lib/sanitize";
 import { useTheme } from "@/lib/theme-context";
@@ -171,12 +172,18 @@ export default function TradeDetailPage() {
   }, [supabase, tradeId]);
 
   const fetchLinkedNotes = useCallback(async () => {
-    const { data } = await supabase
-      .from("journal_notes")
-      .select("*")
-      .eq("trade_id", tradeId)
-      .order("created_at", { ascending: false });
-    setLinkedNotes((data as JournalNote[]) ?? []);
+    try {
+      const notes = await getLinkedNotesForTrade(supabase, tradeId);
+      setLinkedNotes(notes);
+    } catch {
+      // Fallback to legacy query if junction table doesn't exist yet
+      const { data } = await supabase
+        .from("journal_notes")
+        .select("*")
+        .eq("trade_id", tradeId)
+        .order("created_at", { ascending: false });
+      setLinkedNotes((data as JournalNote[]) ?? []);
+    }
   }, [supabase, tradeId]);
 
   useEffect(() => { fetchTrade(); fetchLinkedNotes(); }, [fetchTrade, fetchLinkedNotes]);

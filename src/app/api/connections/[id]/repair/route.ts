@@ -599,6 +599,8 @@ async function csvOverlapCleanup(supabase: SupabaseClient, userId: string) {
         .maybeSingle();
 
       if (apiTrade) {
+        // Move journal note links to the keeper trade (junction table + legacy column)
+        await supabase.from("journal_note_trades").update({ trade_id: apiTrade.id }).eq("trade_id", tradeId);
         await supabase.from("journal_notes").update({ trade_id: apiTrade.id }).eq("trade_id", tradeId);
         notesMoved++;
       }

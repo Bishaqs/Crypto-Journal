@@ -527,7 +527,7 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
       const asset = n.asset_type || "—";
       const tags = Array.isArray(n.tags) && n.tags.length > 0 ? ` | Tags: ${n.tags.join(", ")}` : "";
       const content = stripHtml(String(n.content || "")).slice(0, noteContentLimit);
-      const linkedTrade = n.trade_id ? " (linked to trade)" : "";
+      const linkedTrade = n.trade_id || n.note_type === "trade" ? " (linked to trade)" : "";
 
       summary += `- ${date} | ${title} [${type}, ${asset}]${linkedTrade}${tags} — ${content}${content.length >= noteContentLimit ? "..." : ""}\n`;
     }

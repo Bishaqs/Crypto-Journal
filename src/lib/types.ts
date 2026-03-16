@@ -51,13 +51,22 @@ export type Trade = {
 
 export type AssetType = "crypto" | "stocks" | "commodities" | "forex";
 
+export type JournalNoteTradeLink = {
+  id: string;
+  note_id: string;
+  trade_id: string;
+  trade_asset_type: AssetType;
+  user_id: string;
+  created_at: string;
+};
+
 export type JournalNote = {
   id: string;
   user_id: string;
   title: string | null;
   content: string;
   tags: string[];
-  trade_id: string | null;
+  trade_id: string | null; // deprecated — kept during transition to junction table
   auto_link_on_import?: boolean;
   note_type?: string;
   is_favorite?: boolean;
@@ -65,7 +74,8 @@ export type JournalNote = {
   structured_data?: Record<string, string | number | boolean | null> | null;
   template_id?: string | null;
   asset_type: AssetType;
-  trade_asset_type?: AssetType | null;
+  trade_asset_type?: AssetType | null; // deprecated — kept during transition
+  linked_trades?: JournalNoteTradeLink[];
   created_at: string;
   updated_at: string;
 };
