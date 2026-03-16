@@ -559,31 +559,60 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
 // Keeps API-synced trades as source of truth, keeps CSV trades from before API window.
 
 async function csvOverlapCleanup(supabase: SupabaseClient, userId: string) {
-  // Step 1: Find earliest API-synced trade date
-  const { data: earliest } = await supabase
-    .from("trades")
-    .select("open_timestamp")
-    .eq("user_id", userId)
-    .contains("tags", ["bitget-api-sync"])
-    .order("open_timestamp", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  // Use fixed 90-day cutoff (matches Bitget history-position API window).
+  // Previous approach used MIN(open_timestamp) from API trades, but open positions
+  // (FET Jan 2025, BTC Dec 2025) have old dates, causing over-deletion.
+  const cutoffDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
-  if (!earliest) {
-    return NextResponse.json({ message: "No API-synced trades found. Nothing to clean up.", deleted: 0 });
+  // Batch: transfer all journal notes from overlapping CSV trades to API trades
+  // (single query instead of per-trade loop)
+  const { data: csvWithNotes } = await supabase
+    .from("journal_notes")
+    .select("id, trade_id")
+    .not("trade_id", "is", null);
+
+  let notesMoved = 0;
+  if (csvWithNotes && csvWithNotes.length > 0) {
+    // Check which of these notes point to non-API trades in the overlap period
+    const noteTradeIds = [...new Set(csvWithNotes.map((n: { trade_id: string }) => n.trade_id))];
+    for (const tradeId of noteTradeIds.slice(0, 50)) {
+      const { data: trade } = await supabase
+        .from("trades")
+        .select("id, symbol, tags, open_timestamp")
+        .eq("id", tradeId)
+        .maybeSingle();
+
+      if (!trade) continue;
+      const tags = (trade.tags as string[]) ?? [];
+      if (tags.includes("bitget-api-sync")) continue;
+      if (trade.open_timestamp < cutoffDate) continue;
+
+      // Find matching API trade
+      const { data: apiTrade } = await supabase
+        .from("trades")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("symbol", trade.symbol)
+        .contains("tags", ["bitget-api-sync"])
+        .order("open_timestamp", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (apiTrade) {
+        await supabase.from("journal_notes").update({ trade_id: apiTrade.id }).eq("trade_id", tradeId);
+        notesMoved++;
+      }
+    }
   }
 
-  const cutoffDate = earliest.open_timestamp;
-
-  // Step 2: Find all non-API trades that overlap with the API sync period
+  // Delete all non-API trades from the last 90 days
   const PAGE = 200;
   let deleted = 0;
-  let notesMoved = 0;
 
   while (true) {
     const { data: overlapping } = await supabase
       .from("trades")
-      .select("id, symbol, position, open_timestamp")
+      .select("id")
       .eq("user_id", userId)
       .gte("open_timestamp", cutoffDate)
       .not("tags", "cs", '{"bitget-api-sync"}')
@@ -592,37 +621,6 @@ async function csvOverlapCleanup(supabase: SupabaseClient, userId: string) {
     if (!overlapping || overlapping.length === 0) break;
 
     const deleteIds = overlapping.map((t: { id: string }) => t.id);
-
-    // Transfer journal notes to matching API-synced trades before deleting
-    for (const trade of overlapping) {
-      const { data: notes } = await supabase
-        .from("journal_notes")
-        .select("id")
-        .eq("trade_id", trade.id);
-
-      if (notes && notes.length > 0) {
-        // Find closest API-synced trade by symbol
-        const { data: apiTrade } = await supabase
-          .from("trades")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("symbol", (trade as { symbol: string }).symbol)
-          .contains("tags", ["bitget-api-sync"])
-          .order("open_timestamp", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-
-        if (apiTrade) {
-          await supabase
-            .from("journal_notes")
-            .update({ trade_id: apiTrade.id })
-            .eq("trade_id", trade.id);
-          notesMoved += notes.length;
-        }
-      }
-    }
-
-    // Delete the overlapping CSV trades
     const { error } = await supabase
       .from("trades")
       .delete()
@@ -634,7 +632,7 @@ async function csvOverlapCleanup(supabase: SupabaseClient, userId: string) {
   }
 
   return NextResponse.json({
-    message: `Removed ${deleted} CSV-imported trades overlapping with API sync period (from ${new Date(cutoffDate).toLocaleDateString()}). ${notesMoved} journal note${notesMoved !== 1 ? "s" : ""} transferred.`,
+    message: `Removed ${deleted} CSV trades from last 90 days (API sync handles this period). ${notesMoved} note${notesMoved !== 1 ? "s" : ""} transferred.`,
     deleted,
     notes_moved: notesMoved,
     cutoff_date: cutoffDate,
