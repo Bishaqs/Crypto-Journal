@@ -275,7 +275,9 @@ export async function fetchBitgetPositions(
   return { closedTrades: uniqueTrades, openTrades: [], fetched, errors, latestCloseTime };
 }
 
-/** Raw response shape from GET /api/v2/mix/position/all-position */
+/** Raw response shape from GET /api/v2/mix/position/all-position.
+ *  Bitget API uses inconsistent casing — some accounts return `ctime`,
+ *  others return `cTime`. We accept both. */
 type BitgetOpenPosition = {
   positionId: string;
   symbol: string;
@@ -287,8 +289,10 @@ type BitgetOpenPosition = {
   posMode: string;
   unrealizedPL: string;
   achievedProfits: string;
-  ctime: string;
-  utime: string;
+  ctime?: string;
+  cTime?: string;
+  utime?: string;
+  uTime?: string;
 };
 
 /**
@@ -340,7 +344,9 @@ export async function fetchBitgetOpenPositions(
         if (qty < 1e-10) continue; // Skip closed positions
 
         const holdSide = pos.holdSide?.toLowerCase() as "long" | "short";
-        const ctime = parseInt(pos.ctime);
+        // Handle both ctime and cTime — Bitget API uses inconsistent casing
+        const rawCtime = pos.ctime ?? pos.cTime;
+        const ctime = parseInt(rawCtime as string);
         openTrades.push({
           symbol: pos.symbol,
           position: holdSide === "short" ? "short" : "long",
@@ -349,7 +355,7 @@ export async function fetchBitgetOpenPositions(
           quantity: qty,
           fees: 0, // Open positions don't have total fees yet
           pnl: null,
-          open_timestamp: !isNaN(ctime) ? new Date(ctime).toISOString() : new Date().toISOString(),
+          open_timestamp: !isNaN(ctime) && ctime > 0 ? new Date(ctime).toISOString() : new Date().toISOString(),
           close_timestamp: null,
           broker_order_id: pos.positionId,
           broker_name: "Bitget",

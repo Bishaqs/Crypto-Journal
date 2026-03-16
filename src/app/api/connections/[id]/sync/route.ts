@@ -442,6 +442,42 @@ async function syncBitget(
     }
   }
 
+  // ── Step 4b: Refresh metadata for existing open positions ──
+  // Corrects wrong timestamps (from ctime parsing bugs), stale entry prices
+  // (from averaging into positions), and quantity changes (from partial closes).
+  let refreshed = 0;
+  const openToRefresh = allTrades.filter(
+    (t) => stillOpenIds.has(t.broker_order_id) && t.exit_price === null,
+  );
+
+  if (!dryRun && openToRefresh.length > 0 && Date.now() < deadline) {
+    console.log(`[sync:bitget] Refreshing ${openToRefresh.length} existing open positions...`);
+    const REFRESH_BATCH = 5;
+    for (let i = 0; i < openToRefresh.length; i += REFRESH_BATCH) {
+      if (Date.now() >= deadline) break;
+      const batch = openToRefresh.slice(i, i + REFRESH_BATCH);
+      const results = await Promise.all(
+        batch.map((t) =>
+          supabase
+            .from("trades")
+            .update({
+              open_timestamp: t.open_timestamp,
+              entry_price: t.entry_price,
+              quantity: t.quantity,
+            })
+            .eq("user_id", userId)
+            .eq("broker_name", "Bitget")
+            .eq("broker_order_id", t.broker_order_id)
+            .is("exit_price", null),
+        ),
+      );
+      refreshed += results.filter((r) => !r.error).length;
+    }
+    if (refreshed > 0) {
+      console.log(`[sync:bitget] Refreshed ${refreshed} open positions.`);
+    }
+  }
+
   // ── Step 5: Insert new trades ──
   let imported = 0;
   let failed = 0;
