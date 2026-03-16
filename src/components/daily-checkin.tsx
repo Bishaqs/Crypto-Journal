@@ -54,6 +54,8 @@ export function DailyCheckin() {
   const [trafficLight, setTrafficLight] = useState<"green" | "yellow" | "red" | null>(null);
   const [sleepQuality, setSleepQuality] = useState<number | null>(null);
   const [cognitiveLoad, setCognitiveLoad] = useState<number | null>(null);
+  const [gratitude, setGratitude] = useState("");
+  const [intention, setIntention] = useState("");
   const [saving, setSaving] = useState(false);
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   const supabase = createClient();
@@ -90,6 +92,8 @@ export function DailyCheckin() {
       energy,
       focus: focus || null,
       traffic_light: trafficLight,
+      gratitude: gratitude || null,
+      intention: intention || null,
     };
     if (isAdvanced) {
       payload.sleep_quality = sleepQuality;
@@ -175,6 +179,28 @@ export function DailyCheckin() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Gratitude */}
+          <div>
+            <label className="block text-xs text-muted mb-2 flex items-center gap-1">One thing you&apos;re grateful for: <InfoTooltip text="Specific gratitude activates your brain's reward center. Traders who start with gratitude make fewer impulsive decisions." /></label>
+            <input
+              value={gratitude}
+              onChange={(e) => setGratitude(e.target.value)}
+              placeholder="e.g., Yesterday's discipline saved me from a bad trade"
+              className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
+            />
+          </div>
+
+          {/* Intention */}
+          <div>
+            <label className="block text-xs text-muted mb-2 flex items-center gap-1">What would make today great? <InfoTooltip text="Setting one clear intention reduces overtrading. Traders who write a daily intention take fewer impulsive trades." /></label>
+            <input
+              value={intention}
+              onChange={(e) => setIntention(e.target.value)}
+              placeholder="e.g., Only take A+ setups, respect my stops"
+              className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50"
+            />
           </div>
 
           {/* Focus */}

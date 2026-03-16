@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
-import { Trade } from "@/lib/types";
+import { Trade, DailyCheckin } from "@/lib/types";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import {
@@ -24,17 +24,22 @@ import {
   CheckCircle2,
   XCircle,
   Brain,
+  Heart,
+  Smile,
+  Battery,
+  Zap,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function ReportsPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [checkins, setCheckins] = useState<DailyCheckin[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
   const supabase = createClient();
 
-  const fetchTrades = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     const { data } = await fetchAllTrades(supabase);
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
@@ -43,12 +48,17 @@ export default function ReportsPage() {
     } else {
       setTrades(dbTrades);
     }
+    const { data: checkinData } = await supabase
+      .from("daily_checkins")
+      .select("*")
+      .order("date", { ascending: true });
+    setCheckins((checkinData as DailyCheckin[]) ?? []);
     setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
-    fetchTrades();
-  }, [fetchTrades]);
+    fetchData();
+  }, [fetchData]);
 
   const weeks = useMemo(() => getAvailableWeeks(trades), [trades]);
 
@@ -408,6 +418,91 @@ export default function ReportsPage() {
           })()}
         </div>
       </div>
+
+      {/* Psychology & Mindset Section */}
+      {(() => {
+        const weekCheckins = checkins.filter((c) => c.date >= report.weekStart && c.date <= report.weekEnd);
+        if (weekCheckins.length === 0) return null;
+
+        const moods = weekCheckins.filter((c) => c.mood != null).map((c) => c.mood);
+        const energies = weekCheckins.filter((c) => c.energy != null).map((c) => c.energy!);
+        const avgMood = moods.length > 0 ? moods.reduce((a, b) => a + b, 0) / moods.length : null;
+        const avgEnergy = energies.length > 0 ? energies.reduce((a, b) => a + b, 0) / energies.length : null;
+        const greenDays = weekCheckins.filter((c) => c.traffic_light === "green").length;
+        const yellowDays = weekCheckins.filter((c) => c.traffic_light === "yellow").length;
+        const redDays = weekCheckins.filter((c) => c.traffic_light === "red").length;
+
+        const moodEmoji = (n: number) => n >= 4.5 ? "🔥" : n >= 3.5 ? "🙂" : n >= 2.5 ? "😐" : n >= 1.5 ? "😔" : "😞";
+        const energyEmoji = (n: number) => n >= 4.5 ? "🚀" : n >= 3.5 ? "💪" : n >= 2.5 ? "⚡" : n >= 1.5 ? "😴" : "🪫";
+
+        return (
+          <div
+            className="glass rounded-2xl border border-border/50 p-6 space-y-4"
+            style={{ boxShadow: "var(--shadow-card)" }}
+          >
+            <div className="flex items-center gap-2">
+              <Heart size={16} className="text-pink-400" />
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
+                Mindset & Wellbeing
+              </h3>
+              <span className="text-[10px] text-muted">({weekCheckins.length} check-ins this week)</span>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Average Mood */}
+              <div className="rounded-xl border border-border p-3 text-center">
+                <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Avg Mood</p>
+                {avgMood !== null ? (
+                  <>
+                    <span className="text-xl">{moodEmoji(avgMood)}</span>
+                    <p className="text-sm font-bold text-foreground">{avgMood.toFixed(1)}/5</p>
+                  </>
+                ) : <p className="text-muted text-sm">—</p>}
+              </div>
+
+              {/* Average Energy */}
+              <div className="rounded-xl border border-border p-3 text-center">
+                <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Avg Energy</p>
+                {avgEnergy !== null ? (
+                  <>
+                    <span className="text-xl">{energyEmoji(avgEnergy)}</span>
+                    <p className="text-sm font-bold text-foreground">{avgEnergy.toFixed(1)}/5</p>
+                  </>
+                ) : <p className="text-muted text-sm">—</p>}
+              </div>
+
+              {/* Readiness Distribution */}
+              <div className="rounded-xl border border-border p-3 text-center col-span-2">
+                <p className="text-[10px] text-muted uppercase tracking-wider mb-2">Trading Readiness</p>
+                <div className="flex items-center justify-center gap-4 text-xs">
+                  <span><Zap size={10} className="inline text-win mr-0.5" />{greenDays} green</span>
+                  <span><Zap size={10} className="inline text-yellow-400 mr-0.5" />{yellowDays} yellow</span>
+                  <span><Zap size={10} className="inline text-loss mr-0.5" />{redDays} red</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mood bars */}
+            <div>
+              <p className="text-[10px] text-muted mb-2">Daily mood this week</p>
+              <div className="flex items-end gap-1 h-8">
+                {weekCheckins.map((c, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 rounded-sm"
+                    style={{
+                      height: `${(c.mood / 5) * 100}%`,
+                      backgroundColor: c.mood >= 4 ? "var(--win)" : c.mood >= 3 ? "var(--accent)" : c.mood >= 2 ? "#eab308" : "var(--loss)",
+                      opacity: 0.8,
+                    }}
+                    title={`${c.date}: mood ${c.mood}/5`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
