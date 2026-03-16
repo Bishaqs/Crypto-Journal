@@ -357,7 +357,9 @@ export async function fetchBitgetOpenPositions(
           pnl: null,
           open_timestamp: !isNaN(ctime) && ctime > 0 ? new Date(ctime).toISOString() : new Date().toISOString(),
           close_timestamp: null,
-          broker_order_id: pos.positionId,
+          // all-position has no positionId field — generate stable composite ID
+          // Unique per symbol+side (hedge mode allows one long + one short per symbol)
+          broker_order_id: `open:${pos.symbol}:${holdSide}`,
           broker_name: "Bitget",
           trade_source: "cex",
           tags: ["bitget-api-sync", "from-open-position"],
