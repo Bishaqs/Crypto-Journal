@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+
 // TODO: Replace this mock data generator with a real options flow data source
 // such as Unusual Whales (https://unusualwhales.com/api), CBOE DataShop,
 // or Tradier API when a subscription/API key is available.

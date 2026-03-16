@@ -68,12 +68,12 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     const resp = NextResponse.redirect(url);
-    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true });
+    if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" });
     return resp;
   }
 
   if (isOwner) {
-    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true });
+    supabaseResponse.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" });
   } else {
     supabaseResponse.cookies.delete("stargate-owner");
   }

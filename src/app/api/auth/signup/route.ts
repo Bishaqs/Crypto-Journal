@@ -4,6 +4,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const SignupSchema = z.object({
   userId: z.string().uuid("Invalid user ID format"),
 });

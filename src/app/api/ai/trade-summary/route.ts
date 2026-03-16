@@ -5,6 +5,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
 import { getProvider, resolveModel } from "@/lib/ai";
 
+export const dynamic = "force-dynamic";
+
 const SYSTEM_PROMPT = `You are Nova — a trading psychology coach analyzing a single trade.
 
 Provide a concise analysis covering:

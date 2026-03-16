@@ -59,7 +59,12 @@ export default function PlaybookPage() {
   }, []);
 
   const fetchTrades = useCallback(async () => {
-    const { data } = await fetchAllTrades(supabase);
+    const { data, error } = await fetchAllTrades(supabase);
+    if (error) {
+      console.error("Failed to fetch trades:", error.message);
+      setTrades(DEMO_TRADES);
+      return;
+    }
     const dbTrades = (data as Trade[]) ?? [];
     setTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
   }, [supabase]);

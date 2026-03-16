@@ -55,8 +55,12 @@ export async function POST(
   const url = new URL(_req.url);
   const fullSync = url.searchParams.get("fullSync") === "true";
   const dryRun = url.searchParams.get("dryRun") === "true";
+  const daysBackRaw = url.searchParams.get("daysBack");
+  if (daysBackRaw && !/^\d+$/.test(daysBackRaw)) {
+    return NextResponse.json({ error: "Invalid daysBack parameter" }, { status: 400 });
+  }
   const defaultDays = fullSync ? "90" : "14";
-  const daysBack = Math.min(Math.max(parseInt(url.searchParams.get("daysBack") || defaultDays) || 14, 1), 90);
+  const daysBack = Math.min(Math.max(parseInt(daysBackRaw || defaultDays) || 14, 1), 90);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {

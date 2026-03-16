@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+
 // Company profiles for 20 popular stocks
 const COMPANY_PROFILES: Record<string, {
   name: string; exchange: string; sector: string; industry: string;

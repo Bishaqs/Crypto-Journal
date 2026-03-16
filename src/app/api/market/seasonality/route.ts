@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { resolveCoinGeckoId } from "@/lib/coin-registry";
 
+export const dynamic = "force-dynamic";
+
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 const CRYPTOCOMPARE_BASE = "https://min-api.cryptocompare.com/data/v2";
 

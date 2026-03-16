@@ -80,10 +80,17 @@ export default function InsightsPage() {
   const supabase = createClient();
 
   const fetchTrades = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("trades")
       .select("*")
       .order("open_timestamp", { ascending: false });
+    if (error) {
+      console.error("Failed to fetch trades:", error.message);
+      setTrades(DEMO_TRADES);
+      setUsingDemo(true);
+      setLoading(false);
+      return;
+    }
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
       setTrades(DEMO_TRADES);

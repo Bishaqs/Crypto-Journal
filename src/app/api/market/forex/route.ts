@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+
 const FRANKFURTER_USD =
   "https://api.frankfurter.app/latest?base=USD&symbols=EUR,GBP,JPY,CHF,CAD,AUD,NZD,SEK,NOK,MXN,ZAR,SGD,HKD,TRY,PLN,CZK,HUF,DKK";
 

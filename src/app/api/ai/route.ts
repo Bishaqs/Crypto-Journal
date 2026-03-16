@@ -6,6 +6,8 @@ import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
 import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   // Auth check — only authenticated users can use AI Coach
   const supabase = await createClient();

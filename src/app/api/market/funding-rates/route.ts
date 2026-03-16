@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+
 const BINANCE_URLS = [
   "https://fapi.binance.com/fapi/v1/premiumIndex",
   "https://fapi1.binance.com/fapi/v1/premiumIndex",

@@ -38,7 +38,14 @@ export default function RunningPnlPage() {
   const colors = getChartColors(theme);
 
   const fetchTrades = useCallback(async () => {
-    const { data } = await fetchAllTrades(supabase);
+    const { data, error } = await fetchAllTrades(supabase);
+    if (error) {
+      console.error("Failed to fetch trades:", error.message);
+      setTrades(DEMO_TRADES);
+      setUsingDemo(true);
+      setLoading(false);
+      return;
+    }
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
       setTrades(DEMO_TRADES);
