@@ -57,7 +57,7 @@ export default function CommodityAnalyticsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Commodity Analytics
-          <InfoTooltip text="Visual analytics for commodity trading — category rotation, contract types, and exchange performance" />
+          <InfoTooltip text="Visual analytics for commodity trading — category rotation, contract types, and exchange performance" articleId="an-equity-curve" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Performance breakdown across categories, contract types, and exchanges

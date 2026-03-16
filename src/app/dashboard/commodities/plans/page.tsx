@@ -119,7 +119,7 @@ export default function CommodityWatchlistPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Eye size={24} className="text-accent" />
             Commodity Watchlist
-            <InfoTooltip text="Track commodity symbols with price targets and notes" />
+            <InfoTooltip text="Track commodity symbols with price targets and notes" articleId="tj-trade-plans" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Commodities you&apos;re watching — set targets and track opportunities

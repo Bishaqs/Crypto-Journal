@@ -150,7 +150,7 @@ export default function OptionsFlowPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Activity size={24} className="text-accent" />
             Options Flow
-            <InfoTooltip text="Track unusual options activity and large block trades in real-time. Spot institutional sentiment before the move." size={14} />
+            <InfoTooltip text="Track unusual options activity and large block trades in real-time. Spot institutional sentiment before the move." size={14} articleId="ap-options-flow" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Real-time unusual options activity and sentiment signals

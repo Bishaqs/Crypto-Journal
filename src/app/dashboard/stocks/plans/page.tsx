@@ -236,7 +236,7 @@ export default function StockWatchlistPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Eye size={24} className="text-accent" />
             Watchlist
-            <InfoTooltip text="Build and manage stock watchlists with price targets and notes" />
+            <InfoTooltip text="Build and manage stock watchlists with price targets and notes" articleId="tj-trade-plans" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Stocks you&apos;re watching — set targets and track opportunities

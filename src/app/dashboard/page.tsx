@@ -284,25 +284,25 @@ export default function DashboardPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Sharpe Ratio <InfoTooltip text="Risk-adjusted return metric. Measures excess return per unit of volatility. Above 1.0 = good, above 2.0 = excellent." size={11} /></p>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Sharpe Ratio <InfoTooltip text="Risk-adjusted return metric. Measures excess return per unit of volatility. Above 1.0 = good, above 2.0 = excellent." size={11} articleId="an2-sharpe-ratio" /></p>
                 <p className={`text-lg font-bold ${adv.sharpeRatio >= 1 ? "text-win" : adv.sharpeRatio >= 0 ? "text-foreground" : "text-loss"}`}>
                   {adv.sharpeRatio.toFixed(2)}
                 </p>
               </div>
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Expectancy <InfoTooltip text="Average profit per unit of risk. Positive = your system has an edge over time." size={11} /></p>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Expectancy <InfoTooltip text="Average profit per unit of risk. Positive = your system has an edge over time." size={11} articleId="an-expectancy" /></p>
                 <p className={`text-lg font-bold ${adv.expectancy >= 0 ? "text-win" : "text-loss"}`}>
                   {adv.expectancy >= 0 ? "+" : ""}${adv.expectancy.toFixed(2)}
                 </p>
               </div>
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Profit Factor <InfoTooltip text="Gross wins divided by gross losses. Above 1.0 = net positive edge." size={11} /></p>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Profit Factor <InfoTooltip text="Gross wins divided by gross losses. Above 1.0 = net positive edge." size={11} articleId="an-profit-factor" /></p>
                 <p className={`text-lg font-bold ${adv.profitFactor >= 1.5 ? "text-win" : adv.profitFactor >= 1 ? "text-foreground" : "text-loss"}`}>
                   {adv.profitFactor === Infinity ? "∞" : adv.profitFactor.toFixed(2)}
                 </p>
               </div>
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Max Drawdown <InfoTooltip text="Largest peak-to-trough decline in your equity curve. Lower is better." size={11} /></p>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Max Drawdown <InfoTooltip text="Largest peak-to-trough decline in your equity curve. Lower is better." size={11} articleId="rm-max-drawdown" /></p>
                 <p className="text-lg font-bold text-loss">{adv.maxDrawdownPct.toFixed(1)}%</p>
               </div>
             </div>

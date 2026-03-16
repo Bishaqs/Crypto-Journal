@@ -267,7 +267,7 @@ export default function ExecutionScoringPage() {
       <div id="tour-execution-header">
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Target size={24} className="text-accent" />
-          Execution Scoring <InfoTooltip text="Rate 5 dimensions per trade: entry timing, stop placement, position sizing, exit execution, plan adherence." />
+          Execution Scoring <InfoTooltip text="Rate 5 dimensions per trade: entry timing, stop placement, position sizing, exit execution, plan adherence." articleId="tj-process-score" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Separate strategy from execution — measure how well you follow your own rules

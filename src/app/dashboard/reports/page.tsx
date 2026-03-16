@@ -113,7 +113,7 @@ export default function ReportsPage() {
           <h1 id="tour-reports-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <FileBarChart size={24} className="text-accent" />
             Weekly Report
-            <InfoTooltip text="Auto-generated weekly performance summaries with key metrics and trade breakdowns" />
+            <InfoTooltip text="Auto-generated weekly performance summaries with key metrics and trade breakdowns" articleId="an-reports" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Auto-generated performance review

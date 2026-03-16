@@ -362,7 +362,7 @@ export default function JournalPage() {
     <div className="space-y-4 mx-auto max-w-[1600px]">
       <div id="journal-header" className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">Journal <InfoTooltip text="Write daily reflections, tag trades, and track your mental state over time" /></h2>
+          <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">Journal <InfoTooltip text="Write daily reflections, tag trades, and track your mental state over time" articleId="tj-journal" /></h2>
           <p className="text-sm text-muted mt-0.5">
             {`${notes.length} notes`}
           </p>

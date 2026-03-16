@@ -263,7 +263,7 @@ export default function RecapsPage() {
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2 mb-3">
               <Brain size={18} className="text-accent" />
               Psychological Review
-              <InfoTooltip text="Aggregated from your daily check-ins. Mood, energy, and readiness signals tracked across the month." />
+              <InfoTooltip text="Aggregated from your daily check-ins. Mood, energy, and readiness signals tracked across the month." articleId="tj-emotions" />
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Average Mood */}

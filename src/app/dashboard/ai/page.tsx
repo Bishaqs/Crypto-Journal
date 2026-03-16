@@ -425,7 +425,7 @@ export default function AIPage() {
           <h1 id="tour-ai-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Brain size={24} className="text-accent" />
             AI Trading Coach
-            <InfoTooltip text="AI-powered trade analysis and personalized coaching based on your performance data" />
+            <InfoTooltip text="AI-powered trade analysis and personalized coaching based on your performance data" articleId="an-insights" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Ask questions about your trading patterns, psychology, and performance

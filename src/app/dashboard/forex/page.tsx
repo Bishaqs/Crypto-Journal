@@ -289,7 +289,7 @@ export default function ForexDashboardPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <DollarSign size={24} className="text-accent" />
             Forex
-            <InfoTooltip text="Forex trading dashboard — major, minor, and exotic currency pairs" />
+            <InfoTooltip text="Forex trading dashboard — major, minor, and exotic currency pairs" articleId="an-forex-overview" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {closedTrades.length} closed &middot; {openPositions} open
@@ -324,7 +324,7 @@ export default function ForexDashboardPage() {
         </div>
         <div className="glass rounded-2xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
           <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
-            Avg Pips <InfoTooltip text="Average pip gain/loss per closed trade" size={11} />
+            Avg Pips <InfoTooltip text="Average pip gain/loss per closed trade" size={11} articleId="an-avg-pips" />
           </p>
           <p className={`text-xl font-bold tabular-nums ${avgPips >= 0 ? "text-win" : "text-loss"}`}>
             {avgPips >= 0 ? "+" : ""}{avgPips.toFixed(1)}
@@ -332,7 +332,7 @@ export default function ForexDashboardPage() {
         </div>
         <div className="glass rounded-2xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
           <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
-            Profit Factor <InfoTooltip text="Gross wins ÷ gross losses. Above 1.0 is profitable" size={11} />
+            Profit Factor <InfoTooltip text="Gross wins ÷ gross losses. Above 1.0 is profitable" size={11} articleId="an-profit-factor" />
           </p>
           <p className={`text-xl font-bold tabular-nums ${profitFactor >= 1 ? "text-win" : "text-loss"}`}>
             {profitFactor === Infinity ? "∞" : profitFactor.toFixed(2)}
@@ -347,7 +347,7 @@ export default function ForexDashboardPage() {
           <div className="flex items-center gap-2 mb-4">
             <Target size={16} className="text-accent" />
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              Pair Category <InfoTooltip text="P&L by pair category: major, minor, exotic" size={13} />
+              Pair Category <InfoTooltip text="P&L by pair category: major, minor, exotic" size={13} articleId="an-category-breakdown" />
             </h3>
           </div>
           <ResponsiveContainer width="100%" height={260}>
@@ -386,7 +386,7 @@ export default function ForexDashboardPage() {
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 size={16} className="text-accent" />
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              Session Performance <InfoTooltip text="P&L by trading session: London, New York, Tokyo, Sydney" size={13} />
+              Session Performance <InfoTooltip text="P&L by trading session: London, New York, Tokyo, Sydney" size={13} articleId="an-session-performance" />
             </h3>
           </div>
           <ResponsiveContainer width="100%" height={260}>
@@ -432,7 +432,7 @@ export default function ForexDashboardPage() {
           <div className="flex items-center gap-2">
             <DollarSign size={16} className="text-amber-400" />
             <span className="text-sm font-semibold text-foreground">Total Swap Costs</span>
-            <InfoTooltip text="Cumulative overnight swap/rollover fees across all trades" size={13} />
+            <InfoTooltip text="Cumulative overnight swap/rollover fees across all trades" size={13} articleId="an-swap-costs" />
           </div>
           <span className="text-sm font-bold text-loss tabular-nums">
             -${totalSwapCosts.toFixed(2)}

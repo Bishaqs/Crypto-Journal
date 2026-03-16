@@ -50,12 +50,14 @@ function StatBlock({
   icon: Icon,
   color = "text-foreground",
   tooltip,
+  articleId,
 }: {
   label: string;
   value: string;
   icon: React.ElementType;
   color?: string;
   tooltip?: string;
+  articleId?: string;
 }) {
   return (
     <div
@@ -67,7 +69,7 @@ function StatBlock({
         <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold">
           {label}
         </p>
-        {tooltip && <InfoTooltip text={tooltip} />}
+        {tooltip && <InfoTooltip text={tooltip} articleId={articleId} />}
       </div>
       <p className={`text-lg font-bold ${color}`}>{value}</p>
     </div>
@@ -198,7 +200,7 @@ export default function SimulationsPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Dices size={24} className="text-accent" />
             Monte Carlo Simulations
-            <InfoTooltip text="Project future equity using Monte Carlo simulations based on your real trading stats" />
+            <InfoTooltip text="Project future equity using Monte Carlo simulations based on your real trading stats" articleId="ap-simulator" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Bootstrap resampling of your trade history to project future equity curves
@@ -282,7 +284,7 @@ export default function SimulationsPage() {
             <div>
               <label className="text-xs text-muted/60 uppercase tracking-wider font-semibold mb-1.5 flex items-center">
                 Number of Simulations
-                <InfoTooltip text="More simulations = more accurate results. 500 is good for quick checks, 5,000+ for precision. Higher values take longer to compute." />
+                <InfoTooltip text="More simulations = more accurate results. 500 is good for quick checks, 5,000+ for precision. Higher values take longer to compute." articleId="ap-simulator" />
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -303,7 +305,7 @@ export default function SimulationsPage() {
             <div>
               <label className="text-xs text-muted/60 uppercase tracking-wider font-semibold mb-1.5 flex items-center">
                 Future Trades to Project
-                <InfoTooltip text="How many trades into the future to simulate. Match this to your typical monthly trading volume. E.g., if you make ~20 trades/month, set 60 for a 3-month projection." />
+                <InfoTooltip text="How many trades into the future to simulate. Match this to your typical monthly trading volume. E.g., if you make ~20 trades/month, set 60 for a 3-month projection." articleId="ap-simulator" />
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -324,7 +326,7 @@ export default function SimulationsPage() {
             <div>
               <label className="text-xs text-muted/60 uppercase tracking-wider font-semibold mb-1.5 flex items-center">
                 Starting Equity ($)
-                <InfoTooltip text="Your current account balance. The simulation projects forward from this amount. Use your actual trading account size for realistic results." />
+                <InfoTooltip text="Your current account balance. The simulation projects forward from this amount. Use your actual trading account size for realistic results." articleId="ap-simulator" />
               </label>
               <input
                 type="number"
@@ -362,7 +364,7 @@ export default function SimulationsPage() {
               <div>
                 <label className="text-xs text-muted/60 uppercase tracking-wider font-semibold mb-1.5 flex items-center">
                   Ruin Threshold
-                  <InfoTooltip text="Account loss level that counts as 'ruin'. At 50%, ruin means losing half your starting equity. Lower values are stricter." />
+                  <InfoTooltip text="Account loss level that counts as 'ruin'. At 50%, ruin means losing half your starting equity. Lower values are stricter." articleId="ap-simulator" />
                 </label>
                 <div className="flex items-center gap-3">
                   <input
@@ -388,7 +390,7 @@ export default function SimulationsPage() {
               <div>
                 <label className="text-xs text-muted/60 uppercase tracking-wider font-semibold mb-1.5 flex items-center">
                   Confidence Level
-                  <InfoTooltip text="Controls which percentile bands the worst/best case stats use. 95% means results cover 95% of simulated outcomes. Higher confidence = wider bands." />
+                  <InfoTooltip text="Controls which percentile bands the worst/best case stats use. 95% means results cover 95% of simulated outcomes. Higher confidence = wider bands." articleId="ap-simulator" />
                 </label>
                 <div className="flex gap-2">
                   {([90, 95, 99] as const).map((level) => (
@@ -418,7 +420,7 @@ export default function SimulationsPage() {
                   />
                   <span className="text-xs text-muted/60 uppercase tracking-wider font-semibold flex items-center">
                     Risk Per Trade (Compounding)
-                    <InfoTooltip text="Instead of flat dollar P&L, each trade risks this percentage of your current equity. This makes simulations compound — wins grow your position, losses shrink it. 2% is the standard recommendation." />
+                    <InfoTooltip text="Instead of flat dollar P&L, each trade risks this percentage of your current equity. This makes simulations compound — wins grow your position, losses shrink it. 2% is the standard recommendation." articleId="rm-position-sizing" />
                   </span>
                 </label>
                 <div
@@ -456,7 +458,7 @@ export default function SimulationsPage() {
                   />
                   <span className="text-xs text-muted/60 uppercase tracking-wider font-semibold flex items-center">
                     What-If Mode
-                    <InfoTooltip text="Override your actual trade stats with hypothetical values. Useful for answering 'What if my win rate improved to 60%?' without needing real data." />
+                    <InfoTooltip text="Override your actual trade stats with hypothetical values. Useful for answering 'What if my win rate improved to 60%?' without needing real data." articleId="ap-simulator" />
                   </span>
                 </label>
 
@@ -469,7 +471,7 @@ export default function SimulationsPage() {
                     <div>
                       <label className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center">
                         Win Rate
-                        <InfoTooltip text="Percentage of trades that are winners." />
+                        <InfoTooltip text="Percentage of trades that are winners." articleId="an-win-rate" />
                       </label>
                       <div className="flex items-center gap-3">
                         <input
@@ -497,7 +499,7 @@ export default function SimulationsPage() {
                       />
                       <span className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold flex items-center">
                         Use R:R Ratio
-                        <InfoTooltip text="Set reward:risk ratio instead of separate avg win/loss. E.g., 2:1 means avg win = 2x avg loss." />
+                        <InfoTooltip text="Set reward:risk ratio instead of separate avg win/loss. E.g., 2:1 means avg win = 2x avg loss." articleId="ap-simulator" />
                       </span>
                     </label>
 
@@ -627,7 +629,7 @@ export default function SimulationsPage() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-foreground flex items-center">
                     Equity Projection
-                    <InfoTooltip text="Each line represents a percentile of all simulations. The darker inner band is where most outcomes land. A wider fan means more uncertainty." />
+                    <InfoTooltip text="Each line represents a percentile of all simulations. The darker inner band is where most outcomes land. A wider fan means more uncertainty." articleId="ap-simulator" />
                   </h3>
                   <div className="flex items-center gap-3 text-[10px] text-muted">
                     <span className="flex items-center gap-1">
@@ -708,6 +710,7 @@ export default function SimulationsPage() {
                   icon={Target}
                   color={result.stats.medianFinalEquity > startingEquity ? "text-win" : "text-loss"}
                   tooltip="The middle result — 50% of simulations ended above this amount, 50% ended below."
+                  articleId="ap-simulator"
                 />
                 <StatBlock
                   label={`Worst (${result.stats.confidenceLevel}% CI)`}
@@ -715,6 +718,7 @@ export default function SimulationsPage() {
                   icon={TrendingDown}
                   color="text-loss"
                   tooltip={`Lower bound at ${result.stats.confidenceLevel}% confidence.`}
+                  articleId="ap-simulator"
                 />
                 <StatBlock
                   label={`Best (${result.stats.confidenceLevel}% CI)`}
@@ -722,6 +726,7 @@ export default function SimulationsPage() {
                   icon={TrendingUp}
                   color="text-win"
                   tooltip={`Upper bound at ${result.stats.confidenceLevel}% confidence.`}
+                  articleId="ap-simulator"
                 />
                 <StatBlock
                   label="Prob. of Profit"
@@ -729,6 +734,7 @@ export default function SimulationsPage() {
                   icon={Activity}
                   color={result.stats.probabilityOfProfit > 50 ? "text-win" : "text-loss"}
                   tooltip="Percentage of simulations that ended with more money than you started. Above 60% is good, above 75% is excellent."
+                  articleId="ap-simulator"
                 />
                 <StatBlock
                   label="Prob. of Ruin"
@@ -736,6 +742,7 @@ export default function SimulationsPage() {
                   icon={AlertTriangle}
                   color={result.stats.probabilityOfRuin > 10 ? "text-loss" : "text-win"}
                   tooltip={`Percentage of simulations where equity dropped to ${(result.stats.ruinThreshold * 100).toFixed(0)}% of starting. Below 5% is ideal.`}
+                  articleId="ap-simulator"
                 />
                 <StatBlock
                   label="Median Max DD"
@@ -743,6 +750,7 @@ export default function SimulationsPage() {
                   icon={BarChart3}
                   color="text-muted"
                   tooltip="Typical worst peak-to-trough decline. Prepare mentally for this drawdown — it will happen."
+                  articleId="ap-simulator"
                 />
                 <StatBlock
                   label="Kelly Criterion"
@@ -750,6 +758,7 @@ export default function SimulationsPage() {
                   icon={Percent}
                   color={result.stats.kellyPercent > 0 ? "text-accent" : "text-muted"}
                   tooltip="Mathematically optimal percentage of your bankroll to risk per trade. Based on your win rate and reward:risk ratio. Full Kelly is aggressive."
+                  articleId="rm-position-sizing"
                 />
                 <StatBlock
                   label="Half Kelly"
@@ -757,6 +766,7 @@ export default function SimulationsPage() {
                   icon={Percent}
                   color="text-accent"
                   tooltip="Half of Kelly — the conservative recommendation most pros use. Captures ~75% of optimal growth with much less variance."
+                  articleId="rm-position-sizing"
                 />
               </div>
 
@@ -769,7 +779,7 @@ export default function SimulationsPage() {
                   <div>
                     <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold flex items-center">
                       Expected Value Per Trade
-                      <InfoTooltip text="Average profit/loss per trade. Positive EV means your strategy has an edge over time." />
+                      <InfoTooltip text="Average profit/loss per trade. Positive EV means your strategy has an edge over time." articleId="ap-simulator" />
                     </p>
                     <p className={`text-xl font-bold ${result.stats.expectedValue >= 0 ? "text-win" : "text-loss"}`}>
                       {result.stats.expectedValue >= 0 ? "+" : ""}${result.stats.expectedValue.toFixed(2)}
@@ -778,7 +788,7 @@ export default function SimulationsPage() {
                   <div className="text-center">
                     <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold flex items-center">
                       Max Losing Streak
-                      <InfoTooltip text="Median maximum consecutive losses across all simulations. Prepare mentally for this many losses in a row." />
+                      <InfoTooltip text="Median maximum consecutive losses across all simulations. Prepare mentally for this many losses in a row." articleId="ap-simulator" />
                     </p>
                     <p className="text-xl font-bold text-loss">
                       {Math.round(result.stats.maxConsecutiveLosses)}

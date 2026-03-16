@@ -152,7 +152,7 @@ export default function CalendarPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 id="tour-calendar-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-            Calendar <InfoTooltip text="Green days = profit, red days = loss — spot patterns at a glance" />
+            Calendar <InfoTooltip text="Green days = profit, red days = loss — spot patterns at a glance" articleId="an-calendar" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Click a day to see trade details

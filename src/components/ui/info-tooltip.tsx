@@ -9,6 +9,25 @@ const TOOLTIP_W = 256; // w-64
 const PAD = 8;
 const GAP = 8;
 
+export function LabelWithInfo({
+  label,
+  info,
+  articleId,
+  className = "block text-xs text-muted mb-2",
+}: {
+  label: string;
+  info: string;
+  articleId?: string;
+  className?: string;
+}) {
+  return (
+    <label className={`${className} flex items-center gap-1`}>
+      {label}
+      <InfoTooltip text={info} articleId={articleId} />
+    </label>
+  );
+}
+
 export function InfoTooltip({
   text,
   size = 14,

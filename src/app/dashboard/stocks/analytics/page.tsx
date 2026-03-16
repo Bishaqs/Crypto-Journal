@@ -106,7 +106,7 @@ export default function StockAnalyticsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Stock Analytics
-          <InfoTooltip text="Visual analytics for your stock trading — win rates, P&L trends, and comparisons" />
+          <InfoTooltip text="Visual analytics for your stock trading — win rates, P&L trends, and comparisons" articleId="an-equity-curve" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Performance breakdown across sectors, sessions, and instruments

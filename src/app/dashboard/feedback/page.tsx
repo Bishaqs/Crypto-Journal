@@ -237,7 +237,7 @@ export default function FeedbackPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             Feedback
-            <InfoTooltip text="Share your thoughts, report bugs, or request features. See what others are saying too." />
+            <InfoTooltip text="Share your thoughts, report bugs, or request features. See what others are saying too." articleId="tj-journal" />
           </h1>
           <p className="text-sm text-muted">Community feedback board</p>
         </div>

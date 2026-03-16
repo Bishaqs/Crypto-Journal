@@ -210,7 +210,7 @@ export default function OptionsBacktestPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <History size={24} className="text-accent" />
           Options Backtester
-          <InfoTooltip text="Backtest options strategies using Black-Scholes synthetic pricing. Compare covered calls, spreads, straddles, and iron condors." size={14} />
+          <InfoTooltip text="Backtest options strategies using Black-Scholes synthetic pricing. Compare covered calls, spreads, straddles, and iron condors." size={14} articleId="ap-options-backtest" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Backtest options strategies using Black-Scholes synthetic pricing on historical data

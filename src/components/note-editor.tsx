@@ -23,7 +23,7 @@ import {
   Brain,
   ChevronDown,
 } from "lucide-react";
-import { InfoTooltip } from "@/components/info-tooltip";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 type Template = {
   id: string;
@@ -530,7 +530,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                   >
                     <Brain size={16} className={showPsychInsights ? "text-accent" : ""} />
                     <span>Add Psychological Insights</span>
-                    <InfoTooltip text="Logging your emotional state makes this note searchable by mood and feeds your AI coach. Notes with psychology data produce 3x more actionable coaching insights." size={12} />
+                    <InfoTooltip text="Logging your emotional state makes this note searchable by mood and feeds your AI coach. Notes with psychology data produce 3x more actionable coaching insights." size={12} articleId="tj-notes" />
                     <ChevronDown
                       size={14}
                       className={`ml-auto transition-transform duration-300 ${

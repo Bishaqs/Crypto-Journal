@@ -101,7 +101,7 @@ export default function TokenScreenerPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Search size={24} className="text-accent" />
             Token Screener
-            <InfoTooltip text="Browse top crypto gainers, losers, and volume leaders in real-time. Quickly search for any token by name or symbol." size={14} />
+            <InfoTooltip text="Browse top crypto gainers, losers, and volume leaders in real-time. Quickly search for any token by name or symbol." size={14} articleId="mt-screener" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Top movers, volume leaders, and market cap rankings</p>
         </div>

@@ -123,7 +123,7 @@ export default function ForexWatchlistPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Eye size={24} className="text-accent" />
             Forex Watchlist
-            <InfoTooltip text="Track currency pairs with price targets and notes" />
+            <InfoTooltip text="Track currency pairs with price targets and notes" articleId="tj-trade-plans" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Pairs you&apos;re watching — set targets and track opportunities

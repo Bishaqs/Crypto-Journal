@@ -8,9 +8,10 @@ type TagInputProps = {
   onChange: (tags: string[]) => void;
   suggestions?: string[];
   placeholder?: string;
+  onTagAdded?: (tag: string) => void;
 };
 
-export function TagInput({ value, onChange, suggestions = [], placeholder = "Type and press Enter..." }: TagInputProps) {
+export function TagInput({ value, onChange, suggestions = [], placeholder = "Type and press Enter...", onTagAdded }: TagInputProps) {
   const [input, setInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,6 +35,7 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Typ
     const trimmed = tag.trim().toLowerCase();
     if (trimmed && !value.includes(trimmed)) {
       onChange([...value, trimmed]);
+      onTagAdded?.(trimmed);
     }
     setInput("");
     setShowSuggestions(false);

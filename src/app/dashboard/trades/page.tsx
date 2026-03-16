@@ -413,7 +413,7 @@ export default function TradesPage() {
       <div id="trades-header">
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Table2 size={24} className="text-accent" />
-          Trade Log <InfoTooltip text="All your trades in one place — filter, sort, and review" />
+          Trade Log <InfoTooltip text="All your trades in one place — filter, sort, and review" articleId="tj-edit-trade" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           {usingDemo ? "Sample data" : `${totalItems} of ${trades.length} trades`}

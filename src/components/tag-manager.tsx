@@ -8,6 +8,7 @@ import {
   getCustomTagPresets,
   addCustomTagPreset,
   removeCustomTagPreset,
+  isSystemTag,
 } from "@/lib/tag-manager";
 import { getTagColor, setTagColor, TAG_PALETTE } from "@/lib/tag-colors";
 
@@ -43,7 +44,7 @@ export function TagManager({
     const counts = new Map<string, number>();
     for (const t of trades) {
       for (const tag of t.tags) {
-        if (tag.startsWith("narrative:")) continue;
+        if (tag.startsWith("narrative:") || isSystemTag(tag)) continue;
         counts.set(tag, (counts.get(tag) || 0) + 1);
       }
     }

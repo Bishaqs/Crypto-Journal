@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Globe, RefreshCw, BarChart3, TrendingUp } from "lucide-react";
 import { TradingViewMiniChart, TradingViewTechnicalAnalysis } from "@/components/tradingview-mini-chart";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { EconomicCalendar } from "@/components/dashboard/economic-calendar";
 
 interface ForexMarketData {
   rates: Record<string, number>;
@@ -112,7 +113,7 @@ export default function ForexMarketPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Globe size={24} className="text-accent" />
             Forex Market
-            <InfoTooltip text="Live forex rates — major, minor, and exotic currency pairs with charts" />
+            <InfoTooltip text="Live forex rates — major, minor, and exotic currency pairs with charts" articleId="mt-screener" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Currency pairs & exchange rates</p>
         </div>
@@ -251,6 +252,9 @@ export default function ForexMarketPage() {
           ))}
         </div>
       </div>
+
+      {/* Section 7: Economic Calendar */}
+      <EconomicCalendar currencies={["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD"]} />
 
       {!data && !loading && !error && (
         <div className="text-center py-16">

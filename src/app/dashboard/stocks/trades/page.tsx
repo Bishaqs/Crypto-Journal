@@ -470,7 +470,7 @@ export default function StockTradesPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Table2 size={24} className="text-accent" />
             Stock Trade Log
-            <InfoTooltip text="Complete log of your stock trades — filter, sort, and review" />
+            <InfoTooltip text="Complete log of your stock trades — filter, sort, and review" articleId="tj-edit-trade" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {totalItems} of {trades.length} trades

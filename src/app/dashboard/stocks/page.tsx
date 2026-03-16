@@ -319,7 +319,7 @@ export default function StocksDashboardPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Briefcase size={24} className="text-accent" />
             Stocks
-            <InfoTooltip text="Stock trading dashboard — portfolio overview, sector breakdown, and session analysis" />
+            <InfoTooltip text="Stock trading dashboard — portfolio overview, sector breakdown, and session analysis" articleId="an-stocks-overview" />
           </h2>
           <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
             <Clock size={12} />
@@ -442,7 +442,7 @@ export default function StocksDashboardPage() {
           <div className="flex items-center gap-2 mb-4">
             <Target size={16} className="text-accent" />
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              Sector Breakdown <InfoTooltip text="How your trades are distributed across market sectors" size={13} />
+              Sector Breakdown <InfoTooltip text="How your trades are distributed across market sectors" size={13} articleId="an-category-breakdown" />
             </h3>
           </div>
           <ResponsiveContainer width="100%" height={260}>
@@ -489,7 +489,7 @@ export default function StocksDashboardPage() {
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 size={16} className="text-accent" />
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              Market Session Performance <InfoTooltip text="Pre-market (4-9:30am), Regular (9:30am-4pm), After-hours (4-8pm ET)" size={13} />
+              Market Session Performance <InfoTooltip text="Pre-market (4-9:30am), Regular (9:30am-4pm), After-hours (4-8pm ET)" size={13} articleId="an-session-performance" />
             </h3>
           </div>
           <ResponsiveContainer width="100%" height={260}>

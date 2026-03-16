@@ -165,7 +165,7 @@ export default function GoalsPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Target size={24} className="text-accent" />
             Monthly Goals
-            <InfoTooltip text="Set monthly profit, trade count, and win rate targets — track progress visually" />
+            <InfoTooltip text="Set monthly profit, trade count, and win rate targets — track progress visually" articleId="tj-goals" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? "Sample data" : `${getMonthLabel()} — Day ${currentDay} of ${daysInMonth}`}

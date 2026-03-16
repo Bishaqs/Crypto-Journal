@@ -139,7 +139,7 @@ export default function PlansPage() {
         <div>
           <h1 id="tour-plans-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             Trade / Day Plans
-            <InfoTooltip text="Pre-market planning for individual trades and daily sessions" />
+            <InfoTooltip text="Pre-market planning for individual trades and daily sessions" articleId="tj-trade-plans" />
           </h1>
           <p className="text-sm text-muted mt-0.5">
             Plan before trading. Review after.

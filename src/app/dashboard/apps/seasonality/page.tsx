@@ -80,7 +80,7 @@ export default function SeasonalityPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <CalendarDays size={24} className="text-accent" />
           Seasonality Analysis
-          <InfoTooltip text="Explore historical return patterns by month, day of week, and year. Identify seasonal trends to inform your timing decisions." size={14} />
+          <InfoTooltip text="Explore historical return patterns by month, day of week, and year. Identify seasonal trends to inform your timing decisions." size={14} articleId="mt-seasonality" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Historical return patterns by month, weekday, and year

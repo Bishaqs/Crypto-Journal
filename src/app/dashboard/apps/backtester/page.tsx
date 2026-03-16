@@ -162,7 +162,7 @@ export default function BacktesterPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <FlaskConical size={24} className="text-accent" />
           Strategy Backtester
-          <InfoTooltip text="Test indicator-based entry/exit formulas against historical OHLC data. Evaluate win rate, drawdown, and equity curves before trading real money." size={14} />
+          <InfoTooltip text="Test indicator-based entry/exit formulas against historical OHLC data. Evaluate win rate, drawdown, and equity curves before trading real money." size={14} articleId="ap-backtester" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Test indicator-based strategies against historical data with formula conditions

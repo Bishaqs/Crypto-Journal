@@ -102,7 +102,7 @@ export default function TargetSimulatorPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Target size={24} className="text-accent" />
           Target Simulator
-          <InfoTooltip text="Project how many trades you need to reach your equity target based on your actual win rate, average win, and risk per trade." size={14} />
+          <InfoTooltip text="Project how many trades you need to reach your equity target based on your actual win rate, average win, and risk per trade." size={14} articleId="ap-simulator" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Project how many trades to reach your equity target based on your stats

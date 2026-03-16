@@ -120,7 +120,7 @@ export default function StockScreenerPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <BarChart3 size={24} className="text-accent" />
             Stock Screener
-            <InfoTooltip text="Discover the most active stocks, top gainers, and biggest losers across US markets." size={14} />
+            <InfoTooltip text="Discover the most active stocks, top gainers, and biggest losers across US markets." size={14} articleId="mt-stock-screener" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Most active stocks, top gainers, and biggest losers

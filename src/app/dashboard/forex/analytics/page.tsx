@@ -57,7 +57,7 @@ export default function ForexAnalyticsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Forex Analytics
-          <InfoTooltip text="Visual analytics for forex trading — sessions, pair categories, and pip analysis" />
+          <InfoTooltip text="Visual analytics for forex trading — sessions, pair categories, and pip analysis" articleId="an-equity-curve" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Performance breakdown across sessions, pair categories, and currency pairs

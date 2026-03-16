@@ -409,7 +409,7 @@ export default function ForexTradesPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Table2 size={24} className="text-accent" />
             Forex Trade Log
-            <InfoTooltip text="Complete log of your forex trades — filter, sort, and review" />
+            <InfoTooltip text="Complete log of your forex trades — filter, sort, and review" articleId="tj-edit-trade" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? "Sample data" : `${totalItems} of ${trades.length} trades`}

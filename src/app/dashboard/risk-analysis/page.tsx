@@ -229,10 +229,10 @@ export default function RiskAnalysisPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           Risk Analysis
-          <InfoTooltip text="Deep risk metrics — R-multiples, MAE/MFE, and drawdown analysis" />
+          <InfoTooltip text="Deep risk metrics — R-multiples, MAE/MFE, and drawdown analysis" articleId="an-risk-analysis" />
         </h1>
         <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
-          R-Multiples <InfoTooltip text="Normalizes every trade to units of risk (R). A 2R winner means you made 2x your initial risk. Helps compare trades of different sizes." size={12} /> &amp; MAE/MFE <InfoTooltip text="MAE = worst drawdown during a trade. MFE = best unrealized profit. Helps optimize stop-losses and take-profit levels." size={12} />
+          R-Multiples <InfoTooltip text="Normalizes every trade to units of risk (R). A 2R winner means you made 2x your initial risk. Helps compare trades of different sizes." size={12} articleId="an-risk-analysis" /> &amp; MAE/MFE <InfoTooltip text="MAE = worst drawdown during a trade. MFE = best unrealized profit. Helps optimize stop-losses and take-profit levels." size={12} articleId="an-risk-analysis" />
         </p>
       </div>
 

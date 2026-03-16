@@ -259,6 +259,41 @@ const MACRO_EVENTS: MacroEvent[] = [
   { date: "2026-10-29", name: "GDP Q3 2026 (Advance)", type: "GDP", impact: "medium", description: DESC.GDP },
 ];
 
+/** Maps common Fair Economy event titles to our EventType for educational content lookup */
+export const TITLE_TO_EVENT_TYPE: Record<string, EventType> = {
+  "Federal Funds Rate": "FOMC",
+  "FOMC Statement": "FOMC",
+  "FOMC Press Conference": "FOMC",
+  "FOMC Meeting Minutes": "FOMC",
+  "CPI m/m": "CPI",
+  "CPI y/y": "CPI",
+  "Core CPI m/m": "CPI",
+  "Core CPI y/y": "CPI",
+  "Non-Farm Employment Change": "NFP",
+  "Nonfarm Payrolls": "NFP",
+  "Non-Farm Payrolls": "NFP",
+  "PPI m/m": "PPI",
+  "PPI y/y": "PPI",
+  "Core PPI m/m": "PPI",
+  "Core PPI y/y": "PPI",
+  "Advance GDP q/q": "GDP",
+  "Final GDP q/q": "GDP",
+  "Prelim GDP q/q": "GDP",
+  "GDP q/q": "GDP",
+  "Core PCE Price Index m/m": "PCE",
+  "Core PCE Price Index y/y": "PCE",
+  "PCE Price Index m/m": "PCE",
+  "PCE Price Index y/y": "PCE",
+  "Unemployment Rate": "UNEMP",
+};
+
+export function getEventsAfterDate(afterDate: string, count: number = 10): MacroEvent[] {
+  return MACRO_EVENTS
+    .filter((e) => e.date > afterDate)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, count);
+}
+
 export function getUpcomingEvents(count: number = 10): MacroEvent[] {
   const today = new Date().toISOString().split("T")[0];
   return MACRO_EVENTS
