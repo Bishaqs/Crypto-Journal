@@ -54,6 +54,12 @@ export type BrokerInstruction = {
   expectedColumns: string[];
   notes: string[];
   exportUrl?: string;
+  /** Step-by-step guide for creating an API key with correct permissions */
+  apiKeyGuide?: {
+    steps: string[];
+    permissions: string[];
+    notes: string[];
+  };
 };
 
 export type SyncResult = {

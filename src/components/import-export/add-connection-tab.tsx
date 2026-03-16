@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link2, Eye, EyeOff, CheckCircle2, XCircle, Loader2, AlertTriangle } from "lucide-react";
+import { Link2, Eye, EyeOff, CheckCircle2, XCircle, Loader2, AlertTriangle, ChevronDown, ChevronUp, KeyRound, Shield } from "lucide-react";
 import { BROKER_INSTRUCTIONS } from "./broker-instructions-data";
 import { TargetTableSelector } from "./target-table-selector";
 import type { TargetTable, SyncFrequency } from "@/lib/import-export-types";
@@ -171,6 +171,21 @@ export function AddConnectionTab() {
             </select>
           </div>
 
+          {/* API Key Setup Guide */}
+          {broker && (() => {
+            const instruction = BROKER_INSTRUCTIONS.find((b) => b.brokerId === broker);
+            if (!instruction?.apiKeyGuide) return null;
+            const guide = instruction.apiKeyGuide;
+            return (
+              <ApiKeyGuide
+                brokerName={instruction.brokerName}
+                steps={guide.steps}
+                permissions={guide.permissions}
+                notes={guide.notes}
+              />
+            );
+          })()}
+
           {/* Account label */}
           <div>
             <p className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-2">Account Label (Optional)</p>
@@ -329,6 +344,67 @@ export function AddConnectionTab() {
       <div className="px-4 py-3 rounded-xl bg-surface border border-border text-xs text-muted">
         <strong className="text-foreground">Security:</strong> Your API credentials are encrypted server-side using AES-256-GCM before storage. We never store plaintext keys. Use read-only API keys when possible.
       </div>
+    </div>
+  );
+}
+
+function ApiKeyGuide({ brokerName, steps, permissions, notes }: {
+  brokerName: string;
+  steps: string[];
+  permissions: string[];
+  notes: string[];
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <div className="rounded-xl border border-accent/20 bg-accent/5 overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium text-accent">
+          <KeyRound size={14} />
+          How to create a {brokerName} API key
+        </span>
+        {expanded ? <ChevronUp size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 space-y-3">
+          {/* Steps */}
+          <ol className="space-y-1.5">
+            {steps.map((step, i) => (
+              <li key={i} className="flex gap-2 text-xs text-foreground/80">
+                <span className="text-accent font-bold shrink-0">{i + 1}.</span>
+                {step}
+              </li>
+            ))}
+          </ol>
+
+          {/* Required permissions */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Shield size={12} className="text-win shrink-0" />
+            <span className="text-[10px] text-muted uppercase font-semibold">Required:</span>
+            {permissions.map((p, i) => (
+              <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-win/10 text-win font-medium">
+                {p}
+              </span>
+            ))}
+          </div>
+
+          {/* Notes */}
+          {notes.length > 0 && (
+            <div className="space-y-1 pt-1 border-t border-border/30">
+              {notes.map((note, i) => (
+                <p key={i} className="text-[11px] text-muted flex gap-1.5">
+                  <AlertTriangle size={10} className="shrink-0 mt-0.5 text-yellow-400/70" />
+                  {note}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
