@@ -167,7 +167,7 @@ export default function PlaybookPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <BookMarked size={24} className="text-accent" />
             Playbook
-            <InfoTooltip text="Document proven setups with entry/exit criteria, then track real performance against them" />
+            <InfoTooltip text="Document proven setups with entry/exit criteria, then track real performance against them" articleId="tj-playbook" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             Document your setups, track their performance

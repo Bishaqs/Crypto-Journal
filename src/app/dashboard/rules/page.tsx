@@ -130,7 +130,7 @@ export default function RulesPage() {
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Shield size={22} className="text-accent" />
           Rule Tracker
-          <InfoTooltip text="Define your trading rules and track violations to build discipline" />
+          <InfoTooltip text="Define your trading rules and track violations to build discipline" articleId="tj-playbook" />
         </h1>
         <p className="text-sm text-muted mt-1">
           Define your rules. Track violations. See what breaking them costs you.

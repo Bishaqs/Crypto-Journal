@@ -559,7 +559,7 @@ export default function InsightsPage() {
           <h2 id="tour-insights-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Brain size={24} className="text-accent" />
             Behavioral Insights
-            <InfoTooltip text="AI-powered behavioral analysis of your trading patterns and emotional triggers" />
+            <InfoTooltip text="AI-powered behavioral analysis of your trading patterns and emotional triggers" articleId="an-insights" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? "Sample data" : "How your psychology impacts your trading performance"}

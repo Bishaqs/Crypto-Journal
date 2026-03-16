@@ -211,11 +211,11 @@ export default function HeatMapsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Heat Maps
-          <InfoTooltip text="Visual trading pattern heatmaps — performance by hour, day, and session" />
+          <InfoTooltip text="Visual trading pattern heatmaps — performance by hour, day, and session" articleId="mt-heatmaps" />
         </h2>
         <p className="text-sm text-muted mt-0.5 flex items-center gap-1.5">
           <Sparkles size={12} className="text-accent" />
-          Overtrading Detector <InfoTooltip text="Shows how your edge degrades with each additional trade per session. Most traders peak at 3-4 trades." size={12} /> &mdash; Sample data
+          Overtrading Detector <InfoTooltip text="Shows how your edge degrades with each additional trade per session. Most traders peak at 3-4 trades." size={12} articleId="mt-heatmaps" /> &mdash; Sample data
         </p>
       </div>
 

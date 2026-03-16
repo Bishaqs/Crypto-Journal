@@ -230,7 +230,7 @@ export default function OptionsSimulatorPage() {
             />
           </div>
 
-          <InfoTooltip text="Build and manage options positions using a simulated order book. Practice calls, puts, and spreads risk-free." size={14} />
+          <InfoTooltip text="Build and manage options positions using a simulated order book. Practice calls, puts, and spreads risk-free." size={14} articleId="ap-options-payoff" />
         </div>
 
         <FeatureInfoBox variant="simulator" {...FEATURE_INFO["options-simulator"]} />

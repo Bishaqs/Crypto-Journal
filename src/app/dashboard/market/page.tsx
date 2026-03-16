@@ -123,7 +123,7 @@ export default function MarketOverviewPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Globe size={24} className="text-accent" />
             Market Overview
-            <InfoTooltip text="Live crypto market overview — prices, volume, and 24h changes" />
+            <InfoTooltip text="Live crypto market overview — prices, volume, and 24h changes" articleId="mt-screener" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Live crypto market data</p>
         </div>

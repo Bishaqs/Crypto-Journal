@@ -248,7 +248,7 @@ export default function AnalyticsPage() {
         <h2 id="tour-analytics-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <BarChart3 size={24} className="text-accent" />
           Analytics
-          <InfoTooltip text="Visual breakdown of your trading performance — win rates, P&L distribution, and trends" />
+          <InfoTooltip text="Visual breakdown of your trading performance — win rates, P&L distribution, and trends" articleId="an-equity-curve" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           {usingDemo ? "Sample data" : `${filtered.length} trades in range`}

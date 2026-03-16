@@ -539,7 +539,7 @@ export default function PaperTradingPage() {
           <span>Back</span>
         </Link>
 
-        <h1 className="text-sm font-semibold text-white flex items-center gap-1.5">Paper Trading <InfoTooltip text="Practice trading with simulated money on real historical price data. Place market, limit, stop, and bracket orders to sharpen your execution." size={14} position="below" /></h1>
+        <h1 className="text-sm font-semibold text-white flex items-center gap-1.5">Paper Trading <InfoTooltip text="Practice trading with simulated money on real historical price data. Place market, limit, stop, and bracket orders to sharpen your execution." size={14} position="below" articleId="ap-simulator" /></h1>
 
         <div className="ml-4">
           <SymbolSelector

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SOMATIC_AREAS } from "@/lib/validators";
-import { InfoTooltip } from "@/components/info-tooltip";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import type { SomaticArea, SomaticIntensity } from "@/lib/types";
 
 const INTENSITY_OPTIONS: { id: SomaticIntensity; label: string; color: string }[] = [
@@ -54,7 +54,7 @@ export function SomaticBodyMap({
     <div>
       <label className="block text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-2 flex items-center gap-1">
         Where do you feel tension?
-        <InfoTooltip text="Your body knows before your mind does. Research shows physical tension predicts trading mistakes. Track where you feel it to build a somatic early-warning system." size={10} />
+        <InfoTooltip text="Your body knows before your mind does. Research shows physical tension predicts trading mistakes. Track where you feel it to build a somatic early-warning system." size={10} articleId="tj-somatic-body-map" />
       </label>
 
       <div className="flex gap-4">

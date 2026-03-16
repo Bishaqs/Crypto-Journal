@@ -71,7 +71,7 @@ export default function FundamentalsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <FileSearch size={24} className="text-accent" />
           Fundamentals
-          <InfoTooltip text="View company financials including income statements, balance sheets, cash flow, and institutional holdings." size={14} />
+          <InfoTooltip text="View company financials including income statements, balance sheets, cash flow, and institutional holdings." size={14} articleId="mt-stock-screener" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Company overview, valuation metrics, and financial statements

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Gem, RefreshCw, Flame, Wheat, BarChart3 } from "lucide-react";
 import { TradingViewMiniChart, TradingViewTechnicalAnalysis } from "@/components/tradingview-mini-chart";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { EconomicCalendar } from "@/components/dashboard/economic-calendar";
 
 interface CommodityData {
   price: number;
@@ -117,7 +118,7 @@ export default function CommoditiesMarketPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Gem size={24} className="text-accent" />
             Commodities Market
-            <InfoTooltip text="Live commodity futures — precious metals, energy, and agricultural prices" />
+            <InfoTooltip text="Live commodity futures — precious metals, energy, and agricultural prices" articleId="mt-screener" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Metals, energy & agriculture</p>
         </div>
@@ -225,6 +226,9 @@ export default function CommoditiesMarketPage() {
           ))}
         </div>
       </div>
+
+      {/* Section 6: Economic Calendar */}
+      <EconomicCalendar currencies={["USD"]} minImpact="high" />
 
       {!data && !loading && !error && (
         <div className="text-center py-16">

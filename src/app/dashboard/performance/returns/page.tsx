@@ -137,10 +137,10 @@ export default function ReturnsDistributionPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBlock label="Std Deviation" value={`$${distData.stdDev.toFixed(0)}`} icon={Activity} tooltip="How spread out your returns are" />
-        <StatBlock label="% Profitable" value={`${distData.pctProfitable.toFixed(1)}%`} icon={Target} color={distData.pctProfitable >= 50 ? "text-win" : "text-loss"} />
-        <StatBlock label="Largest Win" value={`+$${distData.largestWin.toFixed(0)}`} icon={TrendingUp} color="text-win" />
-        <StatBlock label="Largest Loss" value={`-$${Math.abs(distData.largestLoss).toFixed(0)}`} icon={TrendingDown} color="text-loss" />
+        <StatBlock label="Std Deviation" value={`$${distData.stdDev.toFixed(0)}`} icon={Activity} tooltip="How spread out your returns are" articleId="an-returns-distribution" />
+        <StatBlock label="% Profitable" value={`${distData.pctProfitable.toFixed(1)}%`} icon={Target} color={distData.pctProfitable >= 50 ? "text-win" : "text-loss"} tooltip="Percentage of trades that ended in profit." articleId="an-win-rate" />
+        <StatBlock label="Largest Win" value={`+$${distData.largestWin.toFixed(0)}`} icon={TrendingUp} color="text-win" tooltip="Your single most profitable trade." articleId="an-largest-win-loss" />
+        <StatBlock label="Largest Loss" value={`-$${Math.abs(distData.largestLoss).toFixed(0)}`} icon={TrendingDown} color="text-loss" tooltip="Your single largest losing trade." articleId="an-largest-win-loss" />
       </div>
     </div>
   );

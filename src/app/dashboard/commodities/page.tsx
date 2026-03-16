@@ -305,7 +305,7 @@ export default function CommoditiesDashboardPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Gem size={24} className="text-accent" />
             Commodities
-            <InfoTooltip text="Commodity trading dashboard — futures, metals, energy, grains, softs, and livestock" />
+            <InfoTooltip text="Commodity trading dashboard — futures, metals, energy, grains, softs, and livestock" articleId="an-commodity-overview" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {closedTrades.length} closed &middot; {openPositions} open
@@ -356,7 +356,7 @@ export default function CommoditiesDashboardPage() {
         </div>
         <div className="glass rounded-2xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
           <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
-            Margin in Use <InfoTooltip text="Total margin required across all open positions" size={11} />
+            Margin in Use <InfoTooltip text="Total margin required across all open positions" size={11} articleId="an-margin-usage" />
           </p>
           <p className="text-xl font-bold text-foreground tabular-nums">
             ${marginInUse.toLocaleString()}
@@ -364,7 +364,7 @@ export default function CommoditiesDashboardPage() {
         </div>
         <div className="glass rounded-2xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
           <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
-            Profit Factor <InfoTooltip text="Gross wins ÷ gross losses. Above 1.0 is profitable" size={11} />
+            Profit Factor <InfoTooltip text="Gross wins ÷ gross losses. Above 1.0 is profitable" size={11} articleId="an-profit-factor" />
           </p>
           <p className={`text-xl font-bold tabular-nums ${profitFactor >= 1 ? "text-win" : "text-loss"}`}>
             {profitFactor === Infinity ? "∞" : profitFactor.toFixed(2)}
@@ -379,7 +379,7 @@ export default function CommoditiesDashboardPage() {
           <div className="flex items-center gap-2 mb-4">
             <Target size={16} className="text-accent" />
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              Category Breakdown <InfoTooltip text="P&L by commodity category: metals, energy, grains, softs, livestock" size={13} />
+              Category Breakdown <InfoTooltip text="P&L by commodity category: metals, energy, grains, softs, livestock" size={13} articleId="an-category-breakdown" />
             </h3>
           </div>
           <ResponsiveContainer width="100%" height={260}>
@@ -418,7 +418,7 @@ export default function CommoditiesDashboardPage() {
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 size={16} className="text-accent" />
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              Exchange Performance <InfoTooltip text="P&L by exchange: COMEX, NYMEX, CBOT, ICE, CME" size={13} />
+              Exchange Performance <InfoTooltip text="P&L by exchange: COMEX, NYMEX, CBOT, ICE, CME" size={13} articleId="an-exchange-performance" />
             </h3>
           </div>
           <ResponsiveContainer width="100%" height={260}>

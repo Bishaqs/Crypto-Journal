@@ -127,10 +127,10 @@ export default function RValuePage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBlock label="Best R" value={`+${rData.best.toFixed(2)}R`} icon={TrendingUp} color="text-win" />
-        <StatBlock label="Worst R" value={`${rData.worst.toFixed(2)}R`} icon={TrendingDown} color="text-loss" />
-        <StatBlock label="Median R" value={`${rData.median.toFixed(2)}R`} icon={Activity} color={rData.median >= 0 ? "text-win" : "text-loss"} />
-        <StatBlock label="1R Value" value={`$${Math.abs(advanced.avgLoser).toFixed(0)}`} icon={Ruler} tooltip="Your average loss size, used as the baseline risk unit" />
+        <StatBlock label="Best R" value={`+${rData.best.toFixed(2)}R`} icon={TrendingUp} color="text-win" tooltip="Your highest R-multiple trade." articleId="an-risk-reward" />
+        <StatBlock label="Worst R" value={`${rData.worst.toFixed(2)}R`} icon={TrendingDown} color="text-loss" tooltip="Your lowest R-multiple trade." articleId="an-risk-reward" />
+        <StatBlock label="Median R" value={`${rData.median.toFixed(2)}R`} icon={Activity} color={rData.median >= 0 ? "text-win" : "text-loss"} tooltip="The middle R-multiple across all trades." articleId="an-risk-reward" />
+        <StatBlock label="1R Value" value={`$${Math.abs(advanced.avgLoser).toFixed(0)}`} icon={Ruler} tooltip="Your average loss size, used as the baseline risk unit" articleId="an-risk-reward" />
       </div>
     </div>
   );

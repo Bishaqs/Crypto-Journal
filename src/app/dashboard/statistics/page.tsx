@@ -40,6 +40,7 @@ function StatBlock({
   icon: Icon,
   color = "text-foreground",
   tooltip,
+  articleId,
 }: {
   label: string;
   value: string;
@@ -47,6 +48,7 @@ function StatBlock({
   icon: React.ElementType;
   color?: string;
   tooltip?: string;
+  articleId?: string;
 }) {
   return (
     <div
@@ -55,7 +57,7 @@ function StatBlock({
     >
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] text-muted font-semibold uppercase tracking-widest flex items-center gap-1">
-          {label}{tooltip && <InfoTooltip text={tooltip} size={12} />}
+          {label}{tooltip && <InfoTooltip text={tooltip} size={12} articleId={articleId} />}
         </span>
         <div className="p-1.5 rounded-lg bg-accent/8">
           <Icon size={14} className="text-accent" />
@@ -170,6 +172,7 @@ export default function StatisticsPage() {
           icon={TrendingUp}
           color={stats.profitFactor >= 1 ? "text-win" : "text-loss"}
           tooltip="Gross wins divided by gross losses. Above 1.0 = net positive edge."
+          articleId="an-profit-factor"
         />
         <StatBlock
           label="Sharpe Ratio"
@@ -178,6 +181,7 @@ export default function StatisticsPage() {
           icon={Activity}
           color={stats.sharpeRatio >= 1 ? "text-win" : stats.sharpeRatio >= 0 ? "text-foreground" : "text-loss"}
           tooltip="Risk-adjusted return metric. Measures excess return per unit of volatility. Above 1.0 = good, above 2.0 = excellent."
+          articleId="an-risk-analysis"
         />
         <StatBlock
           label="Expectancy"
@@ -186,6 +190,7 @@ export default function StatisticsPage() {
           icon={Zap}
           color={stats.expectancy >= 0 ? "text-win" : "text-loss"}
           tooltip="Average profit per unit of risk. Positive = your system has an edge over time."
+          articleId="an-equity-curve"
         />
       </div>
 

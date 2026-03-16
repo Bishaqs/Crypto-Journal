@@ -117,7 +117,7 @@ export default function OptionsPayoffPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <LineChartIcon size={24} className="text-accent" />
           Options Payoff Diagram
-          <InfoTooltip text="Visualize the profit/loss diagram for any multi-leg options strategy at expiration. Add calls and puts to see combined payoff." size={14} />
+          <InfoTooltip text="Visualize the profit/loss diagram for any multi-leg options strategy at expiration. Add calls and puts to see combined payoff." size={14} articleId="ap-options-payoff" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Visualize profit/loss at expiration for any options strategy

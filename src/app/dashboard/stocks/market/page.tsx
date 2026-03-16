@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Globe, RefreshCw, CalendarDays, DollarSign, BarChart3, ChevronDown } from "lucide-react";
+import { Globe, RefreshCw, DollarSign, BarChart3 } from "lucide-react";
 import { TradingViewMiniChart, TradingViewTechnicalAnalysis } from "@/components/tradingview-mini-chart";
-import { getRecentAndUpcoming, EVENT_META } from "@/lib/macro-calendar";
-import type { MacroEvent, EventType } from "@/lib/macro-calendar";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { EconomicCalendar } from "@/components/dashboard/economic-calendar";
 
 interface IndexData {
   price: number;
@@ -57,16 +56,6 @@ function IndexCard({ label, data, icon }: { label: string; data?: IndexData; ico
   );
 }
 
-const TYPE_COLORS: Record<EventType, string> = {
-  FOMC: "bg-accent/15 text-accent border-accent/30",
-  CPI: "bg-win/15 text-win border-win/30",
-  NFP: "bg-loss/15 text-loss border-loss/30",
-  PPI: "bg-foreground/10 text-foreground border-border",
-  GDP: "bg-accent/10 text-accent border-accent/20",
-  PCE: "bg-win/10 text-win border-win/20",
-  UNEMP: "bg-loss/10 text-loss border-loss/20",
-};
-
 const FOREX_PAIRS: { symbol: string; label: string; base: string; invert: boolean }[] = [
   { symbol: "FX:EURUSD", label: "EUR/USD", base: "EUR", invert: true },
   { symbol: "FX:GBPUSD", label: "GBP/USD", base: "GBP", invert: true },
@@ -80,9 +69,6 @@ export default function StockMarketOverviewPage() {
   const [data, setData] = useState<StockMarketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
-
-  const calendarEvents = getRecentAndUpcoming(12);
 
   const fetchData = useCallback(async () => {
     try {
@@ -125,7 +111,7 @@ export default function StockMarketOverviewPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Globe size={24} className="text-accent" />
             Stock Market Overview
-            <InfoTooltip text="Live stock market overview — major indices, sector performance, and market movers" />
+            <InfoTooltip text="Live stock market overview — major indices, sector performance, and market movers" articleId="mt-screener" />
           </h2>
           <p className="text-sm text-muted mt-0.5">Indices, macro data & forex</p>
         </div>
@@ -226,114 +212,8 @@ export default function StockMarketOverviewPage() {
       </div>
 
       {/* Section 4: Economic Calendar */}
-      <div id="tour-stock-market-calendar" className="bg-surface rounded-2xl border border-border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-        <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-          <CalendarDays size={16} className="text-accent" />
-          Economic Calendar
-        </h3>
-        <div className="space-y-1">
-          {calendarEvents.map((event, i) => {
-            const isNext = !event.isPast && (i === 0 || calendarEvents[i - 1]?.isPast);
-            const eventKey = `${event.date}-${event.type}-${i}`;
-            const isExpanded = expandedEvent === eventKey;
-            return (
-              <div key={eventKey}>
-                <button
-                  onClick={() => setExpandedEvent(isExpanded ? null : eventKey)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left ${
-                    event.isPast
-                      ? "opacity-40"
-                      : isNext
-                      ? "bg-accent/5 border border-accent/20"
-                      : "hover:bg-surface-hover"
-                  }`}
-                >
-                  <div className="w-20 shrink-0">
-                    <p className="text-xs font-semibold text-foreground tabular-nums">
-                      {new Date(event.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </p>
-                    <p className="text-[10px] text-muted">
-                      {new Date(event.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" })}
-                    </p>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${TYPE_COLORS[event.type]}`}>
-                    {event.type}
-                  </span>
-                  <p className="text-sm text-foreground flex-1">{event.name}</p>
-                  {isNext && (
-                    <span className="text-[10px] font-semibold text-accent px-2 py-0.5 rounded-full bg-accent/10 shrink-0">
-                      NEXT
-                    </span>
-                  )}
-                  <ChevronDown size={14} className={`text-muted shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                </button>
-                {isExpanded && (() => {
-                  const meta = EVENT_META[event.type];
-                  return (
-                    <div className="mx-3 mb-3 rounded-xl bg-background/60 border border-border/40 overflow-hidden">
-                      <div className="p-5 space-y-5">
-                        {/* Top: Data cards row */}
-                        <div className="flex items-stretch gap-3 flex-wrap">
-                          {event.previous && (
-                            <div className="glass rounded-xl border border-border/30 px-5 py-3 min-w-[120px]">
-                              <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">Previous</p>
-                              <p className="text-xl font-bold text-foreground tabular-nums">{event.previous}</p>
-                            </div>
-                          )}
-                          {event.forecast && (
-                            <div className="glass rounded-xl border border-accent/30 px-5 py-3 min-w-[120px]">
-                              <p className="text-[10px] text-accent/60 uppercase tracking-wider font-semibold mb-1">Forecast</p>
-                              <p className="text-xl font-bold text-accent tabular-nums">{event.forecast}</p>
-                            </div>
-                          )}
-                          <div className="flex items-center">
-                            <span className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border ${TYPE_COLORS[event.type]}`}>
-                              {event.impact === "high" ? "HIGH IMPACT" : "MEDIUM IMPACT"}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* What & Why */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">What it measures</p>
-                            <p className="text-sm text-foreground/80 leading-relaxed">{meta.whatItMeasures}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">Why it matters</p>
-                            <p className="text-sm text-foreground/80 leading-relaxed">{meta.whyItMatters}</p>
-                          </div>
-                        </div>
-
-                        {/* Key Levels */}
-                        <div className="space-y-2">
-                          <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">Key Levels to Watch</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
-                            {meta.keyLevels.map((level, idx) => (
-                              <p key={idx} className="text-xs text-muted leading-relaxed flex items-start gap-2">
-                                <span className="text-accent mt-0.5 shrink-0">&#8250;</span>
-                                {level}
-                              </p>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Related Chart */}
-                        <div className="space-y-2">
-                          <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold">Related Market</p>
-                          <p className="text-xs text-muted/80 leading-relaxed">{meta.chartExplanation}</p>
-                          <div className="rounded-xl overflow-hidden border border-border/20">
-                            <TradingViewMiniChart symbol={meta.relevantSymbol} height={160} dateRange="3M" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            );
-          })}
-        </div>
+      <div id="tour-stock-market-calendar">
+        <EconomicCalendar currencies={["USD"]} />
       </div>
 
       {!data && !loading && !error && (

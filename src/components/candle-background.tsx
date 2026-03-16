@@ -36,8 +36,8 @@ function generateCandles(sentiment: Sentiment, seed: number): Candle[] {
 
     const isGreen = seededRandom(i * 13.7 + seed * 2.3) < greenChance;
 
-    // Body size: random between 1.5-5% of viewport height
-    const bodySize = 1.5 + seededRandom(i * 3.7 + seed) * 3.5;
+    // Fix Bug 4: Increase minimum body size to 2.5% and range to 2.5% - 5.5%
+    const bodySize = 2.5 + seededRandom(i * 3.7 + seed) * 3;
 
     // Y-axis is inverted: price going UP = lower Y value
     let close = isGreen ? open - bodySize : open + bodySize;
@@ -49,15 +49,19 @@ function generateCandles(sentiment: Sentiment, seed: number): Candle[] {
     // Clamp close to keep within visible range
     close = Math.max(15, Math.min(85, close));
 
+    // Fix Bug 4: Make wick extensions proportional to body size
+    const topWickExt = 0.3 + seededRandom(i * 5.1 + seed) * bodySize * 0.4;
+    const bottomWickExt = 0.3 + seededRandom(i * 7.3 + seed) * bodySize * 0.4;
+
     // Wicks extend beyond body
-    const high = Math.min(open, close) - (0.5 + seededRandom(i * 5.1 + seed) * 2);
-    const low = Math.max(open, close) + (0.5 + seededRandom(i * 7.3 + seed) * 2);
+    const high = Math.min(open, close) - topWickExt;
+    const low = Math.max(open, close) + bottomWickExt;
 
     // Provide exact continuity to next candle
     price = close;
 
     candles.push({
-      x: i * gap + gap * 0.15,
+      x: i * gap, // Fix Bug 1: Position at i * gap with no offset
       open,
       close,
       high,
@@ -77,6 +81,7 @@ export function CandleBackground({
   const [sentiment, setSentiment] = useState<Sentiment>(sentimentProp ?? "consolidation");
   const [candles, setCandles] = useState<Candle[]>([]);
   const [visible, setVisible] = useState(false);
+  const [cycle, setCycle] = useState(0); // Fix Bug 3: Cycle state to track fresh mounts
   const seedRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -96,14 +101,15 @@ export function CandleBackground({
     function showNewChart() {
       seedRef.current += 1;
       setCandles(generateCandles(sentiment, seedRef.current));
+      setCycle(prev => prev + 1); // Fix Bug 3: Increment cycle to force unmount/remount
       setVisible(true);
 
-      // Total draw ~21.6s + Hold chart 10s = 31.6s visible time
+      // Fix Bug 2: 12s visible duration (~6s total draw + 6s hold = 12s)
       timerRef.current = setTimeout(() => {
         setVisible(false);
         // After fade-out (2s) + pause (1s) = 3s to next chart
         timerRef.current = setTimeout(showNewChart, 3000);
-      }, 31600);
+      }, 12000);
     }
 
     showNewChart();
@@ -125,27 +131,28 @@ export function CandleBackground({
           const topWickHeight = bodyTop - c.high;
           const bottomWickHeight = c.low - Math.max(c.open, c.close);
 
-          // Stagger delays per candle
-          const staggerDelay = i * 0.6;
-          const wickDelay = staggerDelay + 0.3;
+          // Fix Bug 2: Reduce stagger delay for faster drawing
+          const staggerDelay = i * 0.15;
+          const wickDelay = staggerDelay + 0.15; // Wicks subtly fire slightly after the body starts
 
           const colorVar = c.isGreen ? "var(--win)" : "var(--loss)";
           const glowVar = c.isGreen ? "var(--win-glow)" : "var(--loss-glow)";
+          const candleWidth = 100 / CANDLE_COUNT;
 
           return (
             <div
-              key={i}
+              key={`${cycle}-${i}`} // Fix Bug 3: Forces React to treat components as newly mounted on each cycle
               className="absolute"
               style={{
                 left: `${c.x}%`,
                 top: "0",
                 height: "100%",
-                width: "2%",
+                width: `${candleWidth}%`, // Fix Bug 1: Tight packed edge-to-edge
               }}
             >
               {/* Thin open line at exact `open` Y coordinate */}
               <div
-                className="absolute left-0 right-0"
+                className="absolute left-[15%] right-[15%]" // Fix Bug 1/5: Inner padding for small visual gap
                 style={{
                   top: `${c.open}%`,
                   height: "1px",
@@ -157,7 +164,7 @@ export function CandleBackground({
 
               {/* Body */}
               <div
-                className="absolute left-0 right-0 rounded-sm"
+                className="absolute left-[15%] right-[15%] rounded-sm" // Fix Bug 1/5: Inner padding for small visual gap
                 style={{
                   top: `${bodyTop}%`,
                   height: `${bodyHeight}%`,
@@ -165,7 +172,7 @@ export function CandleBackground({
                   boxShadow: `0 0 8px ${glowVar}`,
                   opacity: 0,
                   transformOrigin: c.isGreen ? "bottom" : "top",
-                  animation: `candle-body-grow 0.7s ease-out ${staggerDelay}s forwards`,
+                  animation: `candle-body-grow 0.5s ease-out ${staggerDelay}s forwards`, // Fix Bug 2: Quickened grow
                 }}
               />
 
@@ -179,7 +186,7 @@ export function CandleBackground({
                   background: colorVar,
                   opacity: 0,
                   transformOrigin: "bottom",
-                  animation: `candle-wick-grow 0.5s ease-out ${wickDelay}s forwards`,
+                  animation: `candle-wick-grow 0.35s ease-out ${wickDelay}s forwards`, // Fix Bug 2: Quickened wick grow
                 }}
               />
 
@@ -193,7 +200,7 @@ export function CandleBackground({
                   background: colorVar,
                   opacity: 0,
                   transformOrigin: "top",
-                  animation: `candle-wick-grow 0.5s ease-out ${wickDelay}s forwards`,
+                  animation: `candle-wick-grow 0.35s ease-out ${wickDelay}s forwards`, // Fix Bug 2: Quickened wick grow
                 }}
               />
             </div>

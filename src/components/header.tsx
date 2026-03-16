@@ -279,7 +279,7 @@ export function Header() {
                   const isLevelGated = levelReq !== null && level < levelReq && !isOwner;
                   const isLocked = isLevel500Theme(t.value) && !hasLevel500Access && !isOwner;
                   const isProLocked = isProTheme(t.value) && tier === "free" && !isOwner;
-                  const isAnyLocked = isLocked || isProLocked || isLevelGated;
+                  const isAnyLocked = false; // All themes unlocked — re-enable before launch
                   return (
                     <button
                       key={t.value}

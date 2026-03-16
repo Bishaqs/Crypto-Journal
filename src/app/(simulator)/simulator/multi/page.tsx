@@ -226,7 +226,7 @@ export default function MultiChartPage() {
 
         <h1 className="text-sm font-semibold text-white flex items-center gap-1.5">
           Multi-Chart Trading
-          <InfoTooltip text="Trade up to 4 crypto pairs simultaneously on synced historical charts. Press 1-4 to switch active panel, B/S for quick buy/sell." size={14} position="below" />
+          <InfoTooltip text="Trade up to 4 crypto pairs simultaneously on synced historical charts. Press 1-4 to switch active panel, B/S for quick buy/sell." size={14} position="below" articleId="ap-simulator" />
         </h1>
 
         {/* Date picker */}

@@ -253,7 +253,7 @@ export default function TradeFiltersPage() {
           <Filter size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">Trade Filters <InfoTooltip text="Apply advanced filters across all your closed trades — filter by date, P&L range, time of day, day of week, duration, and more." size={14} /></h1>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">Trade Filters <InfoTooltip text="Apply advanced filters across all your closed trades — filter by date, P&L range, time of day, day of week, duration, and more." size={14} articleId="tj-edit-trade" /></h1>
           <p className="text-sm text-muted">
             Advanced filtering across {trades.filter((t) => t.close_timestamp).length} closed trades
           </p>

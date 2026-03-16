@@ -235,7 +235,7 @@ export default function TaxesPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Receipt size={24} className="text-accent" />
           Tax Reports
-          <InfoTooltip text="Automated tax reports — realized gains, wash sales, and cost basis calculations" />
+          <InfoTooltip text="Automated tax reports — realized gains, wash sales, and cost basis calculations" articleId="an-reports" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Capital gains & losses from closed trades {jurisdiction === "us" ? "— Form 8949 / Schedule D format" : `— ${currentJurisdiction?.name ?? "International"} tax rules`}

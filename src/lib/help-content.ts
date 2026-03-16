@@ -5097,6 +5097,82 @@ export const FAQ_ENTRIES: FaqEntry[] = [
     relatedIds: ["sup-human-support"],
   },
 
+  // ═══════════════════════════════════════════
+  // INFO TOOLTIP HELP ARTICLES — NEW BATCH
+  // ═══════════════════════════════════════════
+  {
+    id: "an-sortino-ratio",
+    question: "What is the Sortino ratio?",
+    answer: "The Sortino ratio is like the Sharpe ratio, but it only penalizes <strong>downside</strong> volatility. While the Sharpe ratio treats all volatility equally (including upside swings), the Sortino ratio only cares about negative returns. This makes it a better measure for traders since big winning days shouldn't count against you.<br><br><strong>Interpretation:</strong><ul><li>Above <strong>1.0</strong> — solid risk-adjusted returns</li><li>Above <strong>2.0</strong> — excellent downside management</li><li>Below <strong>0</strong> — you're losing money on a risk-adjusted basis</li></ul>A high Sortino with a lower Sharpe means your returns are volatile but the volatility comes from winners, not losers — which is ideal.",
+    category: "analytics",
+    tags: ["sortino", "ratio", "downside", "risk", "volatility", "sharpe", "metric"],
+    relatedIds: ["an2-sharpe-ratio", "an-drawdown", "an-expectancy"],
+  },
+  {
+    id: "an-calmar-ratio",
+    question: "What is the Calmar ratio?",
+    answer: "The Calmar ratio divides your <strong>annualized return</strong> by your <strong>maximum drawdown</strong>. It tells you how much return you're generating for each unit of drawdown pain.<br><br><strong>Interpretation:</strong><ul><li>Above <strong>1.0</strong> — you recover your worst drawdown within a year</li><li>Above <strong>3.0</strong> — excellent drawdown recovery</li><li>Below <strong>1.0</strong> — your drawdowns take longer than a year to recover</li></ul>The Calmar ratio is especially useful for prop firm traders who have strict drawdown limits. If your Calmar is below 1.0, you're taking more risk than your returns justify.",
+    category: "analytics",
+    tags: ["calmar", "ratio", "drawdown", "annualized", "return", "recovery", "metric"],
+    relatedIds: ["an2-sharpe-ratio", "rm-max-drawdown", "an-sortino-ratio"],
+  },
+  {
+    id: "an-risk-reward",
+    question: "What is the risk/reward ratio?",
+    answer: "Risk/reward (R:R) is your <strong>average winner size divided by your average loser size</strong>. If your average winner is $300 and average loser is $100, your R:R is 1:3.<br><br><strong>Why it matters:</strong> R:R and win rate are inversely related. A scalper might have a 75% win rate with 1:0.5 R:R, while a swing trader might have a 35% win rate with 1:4 R:R — both can be profitable.<br><br><strong>Key insight:</strong> To break even, you need: <code>Win Rate × Avg Winner > (1 − Win Rate) × Avg Loser</code>. Your R:R tells you the minimum win rate you need to be profitable. Found on <strong>Performance → Metrics</strong>.",
+    category: "analytics",
+    tags: ["risk", "reward", "ratio", "R:R", "winner", "loser", "size", "breakeven"],
+    relatedIds: ["rm4-risk-reward-ratio", "an-expectancy", "an-win-rate"],
+  },
+  {
+    id: "an-avg-winner-loser",
+    question: "What do average winner and average loser mean?",
+    answer: "Average winner is the <strong>mean profit</strong> across all your winning trades. Average loser is the <strong>mean loss</strong> across all losing trades.<br><br><strong>Why track both:</strong><ul><li>If your avg winner is shrinking over time, you may be cutting winners too early</li><li>If your avg loser is growing, you may be holding losers too long (disposition effect)</li><li>The ratio between them (avg winner / avg loser) is your risk/reward ratio</li></ul>Compare these with your <strong>MFE/MAE</strong> data to see if you're leaving money on the table or if your stops are too wide.",
+    category: "analytics",
+    tags: ["average", "winner", "loser", "mean", "profit", "loss", "size", "trade"],
+    relatedIds: ["an-risk-reward", "an-mfe-mae", "an-expectancy"],
+  },
+  {
+    id: "an-largest-win-loss",
+    question: "Why should I track my largest win and loss?",
+    answer: "Your largest win and largest loss are <strong>outlier trades</strong> that disproportionately affect your equity curve.<br><br><strong>What they reveal:</strong><ul><li><strong>Largest win:</strong> Was it a skilled trade or a lucky one? If your largest win came from holding through extreme volatility, it may not be repeatable</li><li><strong>Largest loss:</strong> Did you follow your rules? Most largest losses come from removed stop-losses, averaging down, or revenge trading</li></ul><strong>Rule of thumb:</strong> If removing your single largest loss would significantly change your overall P&L, your risk management needs work. One trade should never make or break your account.",
+    category: "analytics",
+    tags: ["largest", "biggest", "win", "loss", "outlier", "extreme", "best", "worst"],
+    relatedIds: ["an3-best-worst-trades", "an-drawdown", "rm-position-sizing"],
+  },
+  {
+    id: "an-closed-pnl",
+    question: "What is closed P&L?",
+    answer: "Closed P&L is your <strong>total realized profit and loss</strong> from all completed trades. It only counts trades that have been fully exited — open positions are not included.<br><br><strong>Closed vs. open P&L:</strong><ul><li><strong>Closed P&L</strong> — locked in, real money gained or lost</li><li><strong>Open P&L</strong> — unrealized, changes with market price</li></ul>This is the bottom line of your trading performance. It accounts for fees and commissions if you've entered them. Found at the top of your dashboard and on <strong>Performance → Metrics</strong>.",
+    category: "analytics",
+    tags: ["closed", "pnl", "profit", "loss", "realized", "total", "net"],
+    relatedIds: ["an-gross-vs-net", "an-equity-curve", "an-profit-factor"],
+  },
+  {
+    id: "tj-cognitive-distortions",
+    question: "What are cognitive distortions in trading?",
+    answer: "Cognitive distortions are <strong>systematic thinking errors</strong> identified by psychologists that cause poor trading decisions. Research shows they account for 60%+ of unforced trading losses.<br><br><strong>Common trading distortions:</strong><ul><li><strong>Anchoring</strong> — fixating on your entry price instead of current market conditions</li><li><strong>Confirmation bias</strong> — only seeing evidence that supports your position</li><li><strong>Sunk cost fallacy</strong> — holding a loser because \"I've already lost so much\"</li><li><strong>Recency bias</strong> — overweighting your last few trades when making decisions</li><li><strong>Gambler's fallacy</strong> — \"I've had 5 losses, so a win is due\"</li></ul>By naming the distortion in real-time as you log a trade, you build awareness. Over time, your dashboard shows which distortions cost you the most money.",
+    category: "trading-journal",
+    tags: ["cognitive", "distortions", "bias", "thinking", "psychology", "errors", "mental"],
+    relatedIds: ["tj-emotions", "ai-emotions", "tj-process-score"],
+  },
+  {
+    id: "tj-somatic-body-map",
+    question: "What is the somatic body map?",
+    answer: "The somatic body map lets you <strong>track where you feel stress, tension, or excitement in your body</strong> before and during trades. Research in somatic psychology shows that physical sensations often precede conscious emotional awareness.<br><br><strong>How it helps:</strong><ul><li>Tight chest + clenched jaw before a trade? Your body is signaling anxiety — you may be oversized</li><li>Butterflies in your stomach? Could be excitement (FOMO) or legitimate anticipation</li><li>Tension in shoulders? Stress accumulation — might be time to step away</li></ul>Over time, Stargate correlates your body sensations with trade outcomes, revealing your personal <strong>somatic trading signals</strong>.",
+    category: "trading-journal",
+    tags: ["somatic", "body", "map", "physical", "tension", "stress", "awareness", "sensation"],
+    relatedIds: ["tj-emotions", "ap-daily-checkin", "tj-cognitive-distortions"],
+  },
+  {
+    id: "tj-post-trade-review",
+    question: "How does the post-trade review work?",
+    answer: "The post-trade review is a <strong>structured reflection process</strong> that runs after you close a trade. It asks targeted questions about your decision-making:<br><br><ul><li><strong>Did you follow your plan?</strong> — Measures process adherence</li><li><strong>What would you do differently?</strong> — Builds future awareness</li><li><strong>What was your emotional state?</strong> — Links psychology to outcomes</li><li><strong>Rate your execution (1-10)</strong> — Tracks improvement over time</li></ul>Consistent post-trade reviews are the single most effective practice for improving trading performance. The AI Coach uses your reviews to identify recurring patterns and provide personalized coaching.",
+    category: "trading-journal",
+    tags: ["post-trade", "review", "reflection", "debrief", "process", "improvement", "execution"],
+    relatedIds: ["ai3-post-session-review", "tj-process-score", "tj-write-journal"],
+  },
+
 ];
 
 export const FAQ_MAP: Record<string, FaqEntry> = Object.fromEntries(
@@ -5120,6 +5196,23 @@ export const METRIC_ARTICLE_MAP: Record<string, string> = {
   "process-score": "tj-process-score",
   "tags": "tj-tags",
   "playbook": "an-playbook",
+  "sharpe-ratio": "an2-sharpe-ratio",
+  "sortino-ratio": "an-sortino-ratio",
+  "calmar-ratio": "an-calmar-ratio",
+  "risk-reward": "an-risk-reward",
+  "max-drawdown": "rm-max-drawdown",
+  "avg-winner": "an-avg-winner-loser",
+  "avg-loser": "an-avg-winner-loser",
+  "largest-win": "an-largest-win-loss",
+  "largest-loss": "an-largest-win-loss",
+  "streak": "an2-streak-tracking",
+  "closed-pnl": "an-closed-pnl",
+  "cognitive-distortions": "tj-cognitive-distortions",
+  "somatic-body-map": "tj-somatic-body-map",
+  "post-trade-review": "tj-post-trade-review",
+  "daily-checkin": "ap-daily-checkin",
+  "emotions": "tj-emotions",
+  "notes": "tj-notes",
 };
 
 export function scoreFaq(entry: FaqEntry, query: string): number {

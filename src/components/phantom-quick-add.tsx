@@ -13,8 +13,8 @@ export function PhantomQuickAdd() {
     <>
       <button
         onClick={() => setShowForm(true)}
-        title="Log Phantom Trade"
-        className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-12 h-12 rounded-full bg-accent text-white shadow-lg hover:bg-accent/90 hover:scale-105 active:scale-95 transition-all"
+        title="Log What-If Setup"
+        className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-12 h-12 rounded-full bg-surface/80 backdrop-blur border border-border text-muted-foreground shadow-lg hover:text-foreground hover:border-accent/50 hover:scale-105 active:scale-95 transition-all"
       >
         <Ghost size={20} />
       </button>

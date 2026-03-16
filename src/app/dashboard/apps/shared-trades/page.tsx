@@ -236,7 +236,7 @@ export default function SharedTradesPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Share2 size={24} className="text-accent" />
           Shared Trades
-          <InfoTooltip text="Generate shareable links for your closed trades. Recipients can view your trade details without needing an account." size={14} />
+          <InfoTooltip text="Generate shareable links for your closed trades. Recipients can view your trade details without needing an account." size={14} articleId="tj-edit-trade" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Share your closed trades with a unique link

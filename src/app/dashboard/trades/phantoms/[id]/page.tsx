@@ -11,6 +11,7 @@ import {
   TrendingUp, TrendingDown, Clock, Edit3, CheckCircle2, XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { TradingViewMiniChart } from "@/components/tradingview-mini-chart";
 
 type OhlcBar = { date: string; open: number; high: number; low: number; close: number; timestamp: number };
 
@@ -131,13 +132,13 @@ export default function PhantomDetailPage() {
   }
 
   async function handleDelete() {
-    if (!phantom || !confirm("Delete this phantom trade?")) return;
+    if (!phantom || !confirm("Delete this setup?")) return;
     const { error } = await supabase.from("phantom_trades").delete().eq("id", phantom.id);
     if (!error) router.push("/dashboard/trades/phantoms");
   }
 
   if (loading) return <div className="py-12 text-center text-muted-foreground">Loading...</div>;
-  if (!phantom) return <div className="py-12 text-center text-muted-foreground">Phantom trade not found.</div>;
+  if (!phantom) return <div className="py-12 text-center text-muted-foreground">Setup not found.</div>;
 
   const analysis = ohlc.length > 0
     ? analyzePhantomTrade(ohlc, phantom.entry_price, phantom.position, phantom.stop_loss, phantom.profit_target, phantom.observed_at)
@@ -193,6 +194,16 @@ export default function PhantomDetailPage() {
         <StatCard label="Stop Loss" value={phantom.stop_loss ? `$${phantom.stop_loss.toLocaleString()}` : "—"} accent={phantom.stop_loss ? "red" : undefined} />
         <StatCard label="Profit Target" value={phantom.profit_target ? `$${phantom.profit_target.toLocaleString()}` : "—"} accent={phantom.profit_target ? "green" : undefined} />
         <StatCard label="Status" value={phantom.status === "active" ? "Active" : "Resolved"} />
+      </div>
+
+      {/* TradingView Live Chart */}
+      <div className="rounded-xl bg-surface border border-border p-4">
+        <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <TrendingUp size={16} /> Live Chart
+        </h2>
+        <div className="h-[300px]">
+          <TradingViewMiniChart symbol={phantom.symbol} height={300} />
+        </div>
       </div>
 
       {/* Price Analysis */}
@@ -293,13 +304,13 @@ export default function PhantomDetailPage() {
           {!resolving ? (
             <button
               onClick={() => setResolving(true)}
-              className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 transition-colors"
+              className="flex items-center gap-2 rounded-lg bg-accent/20 border border-accent/30 text-accent px-4 py-2 text-sm font-semibold hover:bg-accent/30 transition-colors"
             >
-              <CheckCircle2 size={16} /> Resolve This Phantom
+              <CheckCircle2 size={16} /> Resolve This Setup
             </button>
           ) : (
             <div className="space-y-4">
-              <h2 className="text-sm font-semibold">Resolve Phantom Trade</h2>
+              <h2 className="text-sm font-semibold">Resolve Setup</h2>
 
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-2">Outcome</label>
@@ -342,7 +353,7 @@ export default function PhantomDetailPage() {
                 <button
                   onClick={handleResolve}
                   disabled={savingResolution}
-                  className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-50 transition-colors"
+                  className="rounded-lg bg-accent/20 border border-accent/30 text-accent px-4 py-2 text-sm font-semibold hover:bg-accent/30 disabled:opacity-50 transition-colors"
                 >
                   {savingResolution ? "Saving..." : "Save Resolution"}
                 </button>

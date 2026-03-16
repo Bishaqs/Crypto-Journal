@@ -39,7 +39,7 @@ export default function RiskCalculatorPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Calculator size={24} className="text-accent" />
           Risk Calculator
-          <InfoTooltip text="Position size calculator — enter risk %, stop loss, and get exact position size" />
+          <InfoTooltip text="Position size calculator — enter risk %, stop loss, and get exact position size" articleId="rm-position-sizing" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Calculate position size, dollar risk, and R-multiple targets

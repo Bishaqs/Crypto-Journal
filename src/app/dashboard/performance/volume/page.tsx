@@ -143,10 +143,10 @@ export default function PositionSizingPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBlock label="Median Size" value={fmt(sizing.median)} icon={Layers} tooltip="Middle position size value" />
-        <StatBlock label="Largest" value={fmt(sizing.largest)} icon={TrendingUp} color="text-accent" />
-        <StatBlock label="Smallest" value={fmt(sizing.smallest)} icon={TrendingDown} color="text-muted" />
-        <StatBlock label="Best Quartile" value={sizing.bestQuartile.label} icon={DollarSign} color="text-win" tooltip={`${sizing.bestQuartile.label} generated $${sizing.bestQuartile.pnl.toFixed(0)} total P&L`} />
+        <StatBlock label="Median Size" value={fmt(sizing.median)} icon={Layers} tooltip="Middle position size value" articleId="an-position-sizing" />
+        <StatBlock label="Largest" value={fmt(sizing.largest)} icon={TrendingUp} color="text-accent" tooltip="Your largest position size by dollar value." articleId="an-position-sizing" />
+        <StatBlock label="Smallest" value={fmt(sizing.smallest)} icon={TrendingDown} color="text-muted" tooltip="Your smallest position size by dollar value." articleId="an-position-sizing" />
+        <StatBlock label="Best Quartile" value={sizing.bestQuartile.label} icon={DollarSign} color="text-win" tooltip={`${sizing.bestQuartile.label} generated $${sizing.bestQuartile.pnl.toFixed(0)} total P&L`} articleId="an-position-sizing" />
       </div>
     </div>
   );

@@ -469,7 +469,7 @@ export default function DerivativesPage() {
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <BarChart3 size={24} className="text-accent" />
             Derivatives
-            <InfoTooltip text="Real-time derivatives data — funding rates, open interest, and liquidations" />
+            <InfoTooltip text="Real-time derivatives data — funding rates, open interest, and liquidations" articleId="mt-funding-rates" />
           </h2>
           <p className="text-sm text-muted mt-0.5">{subtitles[tab]}</p>
         </div>

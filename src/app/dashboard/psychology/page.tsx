@@ -56,7 +56,7 @@ import {
   Activity,
   Eye,
 } from "lucide-react";
-import { InfoTooltip } from "@/components/info-tooltip";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function PsychologyPage() {
   const { tier, isAdvanced, isExpert, profile, profileLoading, refreshProfile } = usePsychologyTier();
@@ -194,7 +194,7 @@ export default function PsychologyPage() {
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Activity size={16} className="text-accent" />
-          Emotion Center <InfoTooltip text="This section correlates your emotions with actual trading outcomes. It reveals which feelings make you money and which cost you." />
+          Emotion Center <InfoTooltip text="This section correlates your emotions with actual trading outcomes. It reveals which feelings make you money and which cost you." articleId="tj-emotions" />
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -203,7 +203,7 @@ export default function PsychologyPage() {
 
           {/* P&L by Emotion */}
           <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-            <h3 className="text-xs font-semibold text-muted mb-3 flex items-center gap-1">P&L by Emotion <InfoTooltip text="Shows total profit/loss grouped by your pre-trade emotion. Most traders discover 1-2 emotions that account for all their losses." size={11} /></h3>
+            <h3 className="text-xs font-semibold text-muted mb-3 flex items-center gap-1">P&L by Emotion <InfoTooltip text="Shows total profit/loss grouped by your pre-trade emotion. Most traders discover 1-2 emotions that account for all their losses." size={11} articleId="tj-emotions" /></h3>
             {emotionPnlData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={emotionPnlData} layout="vertical">
@@ -228,7 +228,7 @@ export default function PsychologyPage() {
 
           {/* Confidence vs P&L */}
           <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-            <h3 className="text-xs font-semibold text-muted mb-3 flex items-center gap-1">Confidence vs P&L <InfoTooltip text="Reveals your calibration — are your high-confidence trades actually better? Many traders are overconfident on their worst trades." size={11} /></h3>
+            <h3 className="text-xs font-semibold text-muted mb-3 flex items-center gap-1">Confidence vs P&L <InfoTooltip text="Reveals your calibration — are your high-confidence trades actually better? Many traders are overconfident on their worst trades." size={11} articleId="tj-process-score" /></h3>
             {confidencePnlData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <ScatterChart>
@@ -248,7 +248,7 @@ export default function PsychologyPage() {
 
           {/* Process Score vs P&L */}
           <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-            <h3 className="text-xs font-semibold text-muted mb-3 flex items-center gap-1">Process Score vs Avg P&L <InfoTooltip text="The core metric: high-process trades make money over time, regardless of individual outcomes. This chart proves it with your data." size={11} /></h3>
+            <h3 className="text-xs font-semibold text-muted mb-3 flex items-center gap-1">Process Score vs Avg P&L <InfoTooltip text="The core metric: high-process trades make money over time, regardless of individual outcomes. This chart proves it with your data." size={11} articleId="tj-process-score" /></h3>
             {processScorePnlData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={processScorePnlData}>
@@ -301,7 +301,7 @@ export default function PsychologyPage() {
         <section className="space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Eye size={16} className="text-accent" />
-            Mind-Body Lab <InfoTooltip text="Advanced analytics showing how your physical and mental state affect trading. Sleep, biases, triggers — all quantified." />
+            Mind-Body Lab <InfoTooltip text="Advanced analytics showing how your physical and mental state affect trading. Sleep, biases, triggers — all quantified." articleId="tj-somatic-body-map" />
             <span className="text-[10px] text-accent/50 font-normal">Advanced</span>
           </h2>
 
@@ -391,7 +391,7 @@ export default function PsychologyPage() {
         <section className="space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Sparkles size={16} className="text-accent" />
-            Deep Psychology <InfoTooltip text="Your complete psychological profile with personality assessment, money scripts, and growth tracking." />
+            Deep Psychology <InfoTooltip text="Your complete psychological profile with personality assessment, money scripts, and growth tracking." articleId="tj-emotions" />
             <span className="text-[10px] text-accent/50 font-normal">Expert</span>
           </h2>
 
@@ -611,7 +611,7 @@ export default function PsychologyPage() {
         <section className="space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <TrendingUp size={16} className="text-accent" />
-            Pattern Detection <InfoTooltip text="Algorithmic detection of unconscious patterns: self-sabotage, P&L ceilings, position sizing biases, and disposition effects." />
+            Pattern Detection <InfoTooltip text="Algorithmic detection of unconscious patterns: self-sabotage, P&L ceilings, position sizing biases, and disposition effects." articleId="tj-cognitive-distortions" />
             <span className="text-[10px] text-accent/50 font-normal">Algorithmic</span>
           </h2>
 
@@ -715,7 +715,7 @@ export default function PsychologyPage() {
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <TrendingUp size={16} className="text-accent" />
-          Psychological Development <InfoTooltip text="Tracks your progression through 5 stages of trading psychology mastery. Each stage has specific criteria based on your actual data." />
+          Psychological Development <InfoTooltip text="Tracks your progression through 5 stages of trading psychology mastery. Each stage has specific criteria based on your actual data." articleId="tj-emotions" />
         </h2>
 
         <div className="glass rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>

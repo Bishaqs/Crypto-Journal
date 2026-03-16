@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, ClipboardCheck } from "lucide-react";
 import { usePsychologyTier } from "@/lib/psychology-tier-context";
 import { DEFENSE_MECHANISMS } from "@/lib/validators";
-import { InfoTooltip } from "@/components/info-tooltip";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const YES_NO_QUESTIONS = [
   { key: "followed_entry_rules", label: "Did I follow my entry rules?" },
@@ -55,7 +55,7 @@ export function PostTradeReview({
           <ClipboardCheck size={16} className={answeredCount > 0 ? "text-accent" : "text-muted"} />
           <span className="text-xs font-medium text-foreground flex items-center gap-1">
             Post-Trade Review
-            <InfoTooltip text="Reflecting on each trade builds self-awareness. Your AI coach uses these answers to detect patterns in rule-breaking and improvement areas." size={11} />
+            <InfoTooltip text="Reflecting on each trade builds self-awareness. Your AI coach uses these answers to detect patterns in rule-breaking and improvement areas." size={11} articleId="tj-post-trade-review" />
           </span>
           {answeredCount > 0 && (
             <span className="text-[10px] text-muted">

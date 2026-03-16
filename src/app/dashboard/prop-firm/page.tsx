@@ -339,7 +339,7 @@ export default function PropFirmPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Shield size={24} className="text-accent" />
           Prop Firm Tracker
-          <InfoTooltip text="Track prop firm challenge progress — daily loss limits, max drawdown, and profit targets" />
+          <InfoTooltip text="Track prop firm challenge progress — daily loss limits, max drawdown, and profit targets" articleId="rm-position-sizing" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Monitor your evaluation progress and stay within firm risk limits

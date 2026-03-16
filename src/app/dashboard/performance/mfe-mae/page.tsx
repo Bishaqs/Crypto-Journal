@@ -117,8 +117,8 @@ export default function MfeMaePage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4">
-        <StatBlock label="Avg Hold (Winners)" value={holdTimeData[0].formatted} icon={Clock} color="text-win" tooltip="How long you hold winning trades on average" />
-        <StatBlock label="Avg Hold (Losers)" value={holdTimeData[1].formatted} icon={Clock} color="text-loss" tooltip="How long you hold losing trades on average" />
+        <StatBlock label="Avg Hold (Winners)" value={holdTimeData[0].formatted} icon={Clock} color="text-win" tooltip="How long you hold winning trades on average" articleId="an-hold-time" />
+        <StatBlock label="Avg Hold (Losers)" value={holdTimeData[1].formatted} icon={Clock} color="text-loss" tooltip="How long you hold losing trades on average" articleId="an-hold-time" />
       </div>
     </div>
   );

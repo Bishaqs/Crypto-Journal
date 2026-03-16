@@ -147,7 +147,7 @@ export default function MultiSimulatorPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Layers size={24} className="text-accent" />
           Multi Simulator
-          <InfoTooltip text="Run multiple Monte Carlo simulations to compare different risk and position sizing scenarios side by side." size={14} />
+          <InfoTooltip text="Run multiple Monte Carlo simulations to compare different risk and position sizing scenarios side by side." size={14} articleId="ap-multi-simulator" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Compare multiple Monte Carlo scenarios side by side

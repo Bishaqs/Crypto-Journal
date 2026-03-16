@@ -9,6 +9,7 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import { useTrades } from "@/hooks/use-trades";
+import { isUserTag } from "@/lib/tag-manager";
 
 import {
   type FilterGroupConfig,
@@ -44,7 +45,7 @@ export default function FilterGroupsPage() {
   );
 
   const allTags = useMemo(
-    () => [...new Set(closedTrades.flatMap((t) => t.tags ?? []))].sort(),
+    () => [...new Set(closedTrades.flatMap((t) => t.tags ?? []).filter(isUserTag))].sort(),
     [closedTrades],
   );
 
@@ -87,7 +88,7 @@ export default function FilterGroupsPage() {
         <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Filter size={24} className="text-accent" />
           Filter Groups
-          <InfoTooltip text="Create custom filter groups to segment your trades by symbol, tags, date range, or direction. Compare performance of different strategies." size={14} />
+          <InfoTooltip text="Create custom filter groups to segment your trades by symbol, tags, date range, or direction. Compare performance of different strategies." size={14} articleId="an-tag-analytics" />
         </h2>
         <p className="text-sm text-muted mt-0.5">
           Create filter groups to compare subsets of your trades side by side

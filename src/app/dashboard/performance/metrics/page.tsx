@@ -96,42 +96,42 @@ export default function MetricsPage() {
 
       {/* Risk-adjusted metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBlock label="Sharpe Ratio" value={advanced.sharpeRatio.toFixed(2)} icon={Activity} color={advanced.sharpeRatio >= 1 ? "text-win" : advanced.sharpeRatio >= 0 ? "text-accent" : "text-loss"} tooltip="Risk-adjusted return (annualized). Above 1.0 is good, above 2.0 is excellent." />
-        <StatBlock label="Sortino Ratio" value={sortinoRatio.toFixed(2)} icon={TrendingUp} color={sortinoRatio >= 1 ? "text-win" : sortinoRatio >= 0 ? "text-accent" : "text-loss"} tooltip="Like Sharpe but only penalizes downside risk. Higher is better." />
-        <StatBlock label="Calmar Ratio" value={calmarRatio.toFixed(2)} icon={ArrowUpDown} color={calmarRatio >= 1 ? "text-win" : calmarRatio >= 0 ? "text-accent" : "text-loss"} tooltip="Annualized return divided by max drawdown. Above 1.0 means you recover drawdowns within a year." />
-        <StatBlock label="Profit Factor" value={advanced.profitFactor.toFixed(2)} icon={Scale} color={advanced.profitFactor >= 1.5 ? "text-win" : advanced.profitFactor >= 1 ? "text-accent" : "text-loss"} tooltip="Gross profits / gross losses. Above 1.5 is solid." />
+        <StatBlock label="Sharpe Ratio" value={advanced.sharpeRatio.toFixed(2)} icon={Activity} color={advanced.sharpeRatio >= 1 ? "text-win" : advanced.sharpeRatio >= 0 ? "text-accent" : "text-loss"} tooltip="Risk-adjusted return (annualized). Above 1.0 is good, above 2.0 is excellent." articleId="an2-sharpe-ratio" />
+        <StatBlock label="Sortino Ratio" value={sortinoRatio.toFixed(2)} icon={TrendingUp} color={sortinoRatio >= 1 ? "text-win" : sortinoRatio >= 0 ? "text-accent" : "text-loss"} tooltip="Like Sharpe but only penalizes downside risk. Higher is better." articleId="an-sortino-ratio" />
+        <StatBlock label="Calmar Ratio" value={calmarRatio.toFixed(2)} icon={ArrowUpDown} color={calmarRatio >= 1 ? "text-win" : calmarRatio >= 0 ? "text-accent" : "text-loss"} tooltip="Annualized return divided by max drawdown. Above 1.0 means you recover drawdowns within a year." articleId="an-calmar-ratio" />
+        <StatBlock label="Profit Factor" value={advanced.profitFactor.toFixed(2)} icon={Scale} color={advanced.profitFactor >= 1.5 ? "text-win" : advanced.profitFactor >= 1 ? "text-accent" : "text-loss"} tooltip="Gross profits / gross losses. Above 1.5 is solid." articleId="an-profit-factor" />
       </div>
 
       {/* Core metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBlock label="Win Rate" value={`${stats.winRate.toFixed(1)}%`} icon={Gauge} color={stats.winRate >= 50 ? "text-win" : "text-loss"} />
-        <StatBlock label="Expectancy" value={advanced.expectancy.toFixed(2)} sub="R-multiple" icon={TrendingUp} color={advanced.expectancy > 0 ? "text-win" : "text-loss"} tooltip="Average R-multiple per trade. Positive means your edge is working." />
-        <StatBlock label="Risk/Reward" value={`1:${riskReward.toFixed(2)}`} icon={Scale} color={riskReward >= 1.5 ? "text-win" : riskReward >= 1 ? "text-accent" : "text-loss"} tooltip="Avg winner size / avg loser size." />
+        <StatBlock label="Win Rate" value={`${stats.winRate.toFixed(1)}%`} icon={Gauge} color={stats.winRate >= 50 ? "text-win" : "text-loss"} tooltip="Percentage of trades that were profitable." articleId="an-win-rate" />
+        <StatBlock label="Expectancy" value={advanced.expectancy.toFixed(2)} sub="R-multiple" icon={TrendingUp} color={advanced.expectancy > 0 ? "text-win" : "text-loss"} tooltip="Average R-multiple per trade. Positive means your edge is working." articleId="an-expectancy" />
+        <StatBlock label="Risk/Reward" value={`1:${riskReward.toFixed(2)}`} icon={Scale} color={riskReward >= 1.5 ? "text-win" : riskReward >= 1 ? "text-accent" : "text-loss"} tooltip="Avg winner size / avg loser size." articleId="an-risk-reward" />
         <StatBlock label="Total Trades" value={String(stats.totalTrades)} icon={BarChart3} />
       </div>
 
       {/* Win/loss size metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBlock label="Avg Winner" value={`$${advanced.avgWinner.toFixed(2)}`} icon={TrendingUp} color="text-win" />
-        <StatBlock label="Avg Loser" value={`$${advanced.avgLoser.toFixed(2)}`} icon={TrendingDown} color="text-loss" />
-        <StatBlock label="Largest Win" value={`$${advanced.largestWin.toFixed(2)}`} icon={Flame} color="text-win" />
-        <StatBlock label="Largest Loss" value={`$${Math.abs(advanced.largestLoss).toFixed(2)}`} icon={TrendingDown} color="text-loss" />
+        <StatBlock label="Avg Winner" value={`$${advanced.avgWinner.toFixed(2)}`} icon={TrendingUp} color="text-win" tooltip="Mean profit across all winning trades." articleId="an-avg-winner-loser" />
+        <StatBlock label="Avg Loser" value={`$${advanced.avgLoser.toFixed(2)}`} icon={TrendingDown} color="text-loss" tooltip="Mean loss across all losing trades." articleId="an-avg-winner-loser" />
+        <StatBlock label="Largest Win" value={`$${advanced.largestWin.toFixed(2)}`} icon={Flame} color="text-win" tooltip="Your single most profitable trade." articleId="an-largest-win-loss" />
+        <StatBlock label="Largest Loss" value={`$${Math.abs(advanced.largestLoss).toFixed(2)}`} icon={TrendingDown} color="text-loss" tooltip="Your single largest losing trade." articleId="an-largest-win-loss" />
       </div>
 
       {/* Drawdown and timing */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBlock label="Max Drawdown" value={`$${advanced.maxDrawdown.toFixed(2)}`} sub={`${advanced.maxDrawdownPct.toFixed(1)}%`} icon={TrendingDown} color="text-loss" />
-        <StatBlock label="DD Duration" value={`${advanced.maxDrawdownDuration}d`} icon={Clock} color="text-muted" tooltip="Longest drawdown period in trading days." />
-        <StatBlock label="Best Win Streak" value={String(advanced.bestWinStreak)} icon={Flame} color="text-win" />
-        <StatBlock label="Worst Lose Streak" value={String(advanced.worstLoseStreak)} icon={Zap} color="text-loss" />
+        <StatBlock label="Max Drawdown" value={`$${advanced.maxDrawdown.toFixed(2)}`} sub={`${advanced.maxDrawdownPct.toFixed(1)}%`} icon={TrendingDown} color="text-loss" tooltip="Largest peak-to-trough decline in your equity." articleId="rm-max-drawdown" />
+        <StatBlock label="DD Duration" value={`${advanced.maxDrawdownDuration}d`} icon={Clock} color="text-muted" tooltip="Longest drawdown period in trading days." articleId="an-drawdown" />
+        <StatBlock label="Best Win Streak" value={String(advanced.bestWinStreak)} icon={Flame} color="text-win" tooltip="Longest consecutive series of winning trades." articleId="an2-streak-tracking" />
+        <StatBlock label="Worst Lose Streak" value={String(advanced.worstLoseStreak)} icon={Zap} color="text-loss" tooltip="Longest consecutive series of losing trades." articleId="an2-streak-tracking" />
       </div>
 
       {/* Hold time */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBlock label="Avg Hold (Winners)" value={`${advanced.avgHoldTimeWinners.toFixed(1)}h`} icon={Clock} color="text-win" />
-        <StatBlock label="Avg Hold (Losers)" value={`${advanced.avgHoldTimeLosers.toFixed(1)}h`} icon={Clock} color="text-loss" />
-        <StatBlock label="Current Streak" value={`${advanced.currentStreak.count} ${advanced.currentStreak.type === "win" ? "W" : advanced.currentStreak.type === "loss" ? "L" : "—"}`} icon={Zap} color={advanced.currentStreak.type === "win" ? "text-win" : "text-loss"} />
-        <StatBlock label="Closed PnL" value={`$${stats.closedPnl.toFixed(2)}`} icon={TrendingUp} color={stats.closedPnl >= 0 ? "text-win" : "text-loss"} />
+        <StatBlock label="Avg Hold (Winners)" value={`${advanced.avgHoldTimeWinners.toFixed(1)}h`} icon={Clock} color="text-win" tooltip="Average duration you hold winning trades." articleId="an-hold-time" />
+        <StatBlock label="Avg Hold (Losers)" value={`${advanced.avgHoldTimeLosers.toFixed(1)}h`} icon={Clock} color="text-loss" tooltip="Average duration you hold losing trades." articleId="an-hold-time" />
+        <StatBlock label="Current Streak" value={`${advanced.currentStreak.count} ${advanced.currentStreak.type === "win" ? "W" : advanced.currentStreak.type === "loss" ? "L" : "—"}`} icon={Zap} color={advanced.currentStreak.type === "win" ? "text-win" : "text-loss"} tooltip="Your current consecutive win or loss streak." articleId="an2-streak-tracking" />
+        <StatBlock label="Closed PnL" value={`$${stats.closedPnl.toFixed(2)}`} icon={TrendingUp} color={stats.closedPnl >= 0 ? "text-win" : "text-loss"} tooltip="Total realized profit and loss from all closed trades." articleId="an-closed-pnl" />
       </div>
 
       {/* Equity curve */}

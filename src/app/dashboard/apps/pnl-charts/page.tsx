@@ -157,7 +157,7 @@ export default function PnlChartsPage() {
           <BarChart3 size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">P&L Charts <InfoTooltip text="Comprehensive profit & loss analysis with equity curves, drawdowns, daily P&L, distribution histograms, and rolling averages." size={14} /></h1>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">P&L Charts <InfoTooltip text="Comprehensive profit & loss analysis with equity curves, drawdowns, daily P&L, distribution histograms, and rolling averages." size={14} articleId="an-equity-curve" /></h1>
           <p className="text-sm text-muted">
             {usingDemo
               ? "Sample data"
