@@ -156,6 +156,7 @@ const intelligenceItems: NavItem[] = [
   { href: "/dashboard/psychology", label: "Psychology", icon: Brain },
   { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles, tourId: "tour-ai" },
   { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
+  { href: "/dashboard/recaps", label: "Monthly Recaps", icon: CalendarCheck },
 ];
 
 const marketToolsItemsFull: NavItem[] = [
@@ -318,7 +319,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Open Trades Summary": "sidebar.openTradesSummary",
   "Day Grouped": "sidebar.dayGrouped", "Calendar Grouped": "sidebar.calendarGrouped",
   Insights: "sidebar.insights", "AI Coach": "sidebar.aiCoach",
-  "Weekly Reports": "sidebar.weeklyReports", "Market Overview": "sidebar.marketOverview",
+  "Weekly Reports": "sidebar.weeklyReports", "Monthly Recaps": "sidebar.monthlyRecaps", "Market Overview": "sidebar.marketOverview",
   "Market News": "sidebar.marketNews",
   "Token Screener": "sidebar.tokenScreener", "Heat Maps": "sidebar.heatMaps",
   Derivatives: "sidebar.derivatives", "DCA Calculator": "sidebar.dcaCalculator",
@@ -454,7 +455,7 @@ export function getCategoryForPath(pathname: string): string | null {
   const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard"];
   if (competePrefixes.some(p => pathname.startsWith(p))) return "compete";
 
-  const analyticsPrefixes = ["/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/commodities/analytics", "/dashboard/forex/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/insights", "/dashboard/psychology", "/dashboard/ai", "/dashboard/reports"];
+  const analyticsPrefixes = ["/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/commodities/analytics", "/dashboard/forex/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/insights", "/dashboard/psychology", "/dashboard/ai", "/dashboard/reports", "/dashboard/recaps"];
   if (analyticsPrefixes.some(p => pathname.startsWith(p))) return "analytics";
 
   const toolsPrefixes = ["/dashboard/market", "/dashboard/news", "/dashboard/stocks/news", "/dashboard/commodities/news", "/dashboard/forex/news", "/dashboard/economic-calendar", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/screener", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/dca", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
