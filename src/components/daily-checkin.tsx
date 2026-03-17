@@ -125,7 +125,7 @@ export function DailyCheckin() {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div
-        className="glass border border-border/50 rounded-2xl w-full max-w-md overflow-hidden"
+        className="glass border border-border/50 rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
         style={{ boxShadow: "var(--shadow-glow)" }}
       >
         <div className="flex items-center justify-between p-5 border-b border-border">
@@ -138,7 +138,7 @@ export function DailyCheckin() {
           </button>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-5 overflow-y-auto flex-1 min-h-0">
           {/* Mood */}
           <div>
             <label className="block text-xs text-muted mb-2 flex items-center gap-1">How are you feeling? <InfoTooltip text="Your AI coach tracks mood-to-P&L correlation. Traders who log mood daily discover which emotional states produce their best and worst results." articleId="ap-daily-checkin" /></label>
