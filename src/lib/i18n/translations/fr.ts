@@ -204,6 +204,7 @@ const fr = {
     simple: "Simple",
     full: "Avancé",
     psychology: "Psychologie",
+    overview: "Aperçu",
     cryptoLabel: "Crypto",
     stocksLabel: "Actions",
     commoditiesLabel: "Matières Premières",

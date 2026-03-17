@@ -204,6 +204,7 @@ const es = {
     simple: "Simple",
     full: "Avanzado",
     psychology: "Psicología",
+    overview: "Resumen",
     cryptoLabel: "Crypto",
     stocksLabel: "Acciones",
     commoditiesLabel: "Materias Primas",

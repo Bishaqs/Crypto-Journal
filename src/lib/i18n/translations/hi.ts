@@ -204,6 +204,7 @@ const hi = {
     simple: "सरल",
     full: "उन्नत",
     psychology: "मनोविज्ञान",
+    overview: "अवलोकन",
     cryptoLabel: "क्रिप्टो",
     stocksLabel: "स्टॉक्स",
     commoditiesLabel: "कमोडिटीज",

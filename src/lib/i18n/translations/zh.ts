@@ -204,6 +204,7 @@ const zh = {
     simple: "简洁",
     full: "高级",
     psychology: "心理学",
+    overview: "概览",
     cryptoLabel: "加密货币",
     stocksLabel: "股票",
     commoditiesLabel: "大宗商品",

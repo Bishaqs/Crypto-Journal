@@ -204,6 +204,7 @@ const ar = {
     simple: "بسيط",
     full: "متقدم",
     psychology: "علم النفس",
+    overview: "نظرة عامة",
     cryptoLabel: "عملات رقمية",
     stocksLabel: "أسهم",
     commoditiesLabel: "السلع",

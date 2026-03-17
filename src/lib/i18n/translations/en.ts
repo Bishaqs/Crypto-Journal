@@ -240,6 +240,7 @@ const en = {
     simple: "Simple",
     full: "Advanced",
     psychology: "Psychology",
+    overview: "Overview",
 
     // Asset context
     cryptoLabel: "Crypto",

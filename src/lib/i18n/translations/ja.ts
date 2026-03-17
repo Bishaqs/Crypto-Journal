@@ -204,6 +204,7 @@ const ja = {
     simple: "シンプル",
     full: "詳細",
     psychology: "心理学",
+    overview: "概要",
     cryptoLabel: "暗号資産",
     stocksLabel: "株式",
     commoditiesLabel: "コモディティ",

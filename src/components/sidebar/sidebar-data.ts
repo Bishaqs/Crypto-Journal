@@ -84,8 +84,10 @@ export interface RailCategory {
   icon: React.ComponentType<{ size?: number }>;
   directNav?: boolean;
   items: NavItem[];
+  beginnerItems?: NavItem[];
   sections?: NavSection[];
   showInBeginner?: boolean;
+  showAssetToggle?: boolean;
 }
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -270,46 +272,57 @@ export const NAV_SECTIONS: NavSection[] = [
 /*  Rail categories                                                   */
 /* ────────────────────────────────────────────────────────────────── */
 
-// Beginner mode: Journal drawer shows only Trade Log, Journal, Import/Export
-export const BEGINNER_JOURNAL_ITEMS: NavItem[] = [coreItems[1], coreItems[2], coreItems[6]];
+// Overview item (the old chart-heavy dashboard, now at /dashboard/overview)
+const overviewItem: NavItem = { href: "/dashboard/overview", label: "Overview", icon: LayoutDashboard, tourId: "tour-home" };
 
 export const RAIL_CATEGORIES: RailCategory[] = [
-  {
-    key: "home",
-    label: "Home",
-    icon: LayoutDashboard,
-    directNav: true,
-    items: [coreItems[0]],
-    showInBeginner: true,
-  },
   {
     key: "journal",
     label: "Journal",
     icon: BookOpen,
-    items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5], coreItems[10]],
+    directNav: true,
+    items: [{ href: "/dashboard", label: "Journal", icon: BookOpen }],
+    showInBeginner: true,
+  },
+  {
+    key: "trades",
+    label: "Trade Log",
+    icon: Table2,
+    directNav: true,
+    items: [coreItems[1]], // Trade Log
+    showInBeginner: true,
+  },
+  {
+    key: "intelligence",
+    label: "Intelligence",
+    icon: Brain,
+    items: intelligenceItems,
+    beginnerItems: intelligenceBeginnerItems,
     showInBeginner: true,
   },
   {
     key: "analytics",
     label: "Analytics",
     icon: BarChart3,
-    items: [coreItems[4]],
-    sections: [NAV_SECTIONS[0], NAV_SECTIONS[1]],
-    showInBeginner: true,
+    items: [overviewItem, coreItems[4]], // Overview + Analytics
+    sections: [NAV_SECTIONS[0]], // Performance & Analysis
+    showInBeginner: false,
+    showAssetToggle: true,
   },
   {
-    key: "tools",
-    label: "Tools",
+    key: "market",
+    label: "Market",
     icon: Globe,
     items: [],
-    sections: [NAV_SECTIONS[2], NAV_SECTIONS[3], NAV_SECTIONS[4]],
+    sections: [NAV_SECTIONS[2], NAV_SECTIONS[3], NAV_SECTIONS[4]], // Market, Discipline, Reports
     showInBeginner: false,
+    showAssetToggle: true,
   },
   {
     key: "compete",
     label: "Compete",
     icon: Trophy,
-    items: [coreItems[7], coreItems[8], coreItems[9]],
+    items: [coreItems[7], coreItems[8], coreItems[9]], // Quests, Achievements, Leaderboard
     showInBeginner: false,
   },
 ];
@@ -340,7 +353,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Tag Groups Statistics": "sidebar.tagGroupsStatistics",
   "Open Trades Summary": "sidebar.openTradesSummary",
   "Day Grouped": "sidebar.dayGrouped", "Calendar Grouped": "sidebar.calendarGrouped",
-  Insights: "sidebar.insights", Psychology: "sidebar.psychology", "AI Coach": "sidebar.aiCoach",
+  Overview: "sidebar.overview", Insights: "sidebar.insights", Psychology: "sidebar.psychology", "AI Coach": "sidebar.aiCoach",
   "Weekly Reports": "sidebar.weeklyReports", "Monthly Recap": "sidebar.monthlyRecap", "Market Overview": "sidebar.marketOverview",
   "Market News": "sidebar.marketNews",
   "Token Screener": "sidebar.tokenScreener", "Heat Maps": "sidebar.heatMaps",
@@ -469,19 +482,29 @@ export function isActivePath(pathname: string, href: string, search?: string): b
 }
 
 export function getCategoryForPath(pathname: string): string | null {
-  if (pathname === "/dashboard" || pathname === "/dashboard/stocks" || pathname === "/dashboard/commodities" || pathname === "/dashboard/forex") return "home";
+  // Journal is the home page
+  if (pathname === "/dashboard") return "journal";
+  if (pathname.startsWith("/dashboard/journal") || pathname.startsWith("/dashboard/calendar")) return "journal";
 
-  const journalPrefixes = ["/dashboard/trades", "/dashboard/journal", "/dashboard/calendar", "/dashboard/plans", "/dashboard/import-export", "/dashboard/stocks/trades", "/dashboard/stocks/plans", "/dashboard/commodities/trades", "/dashboard/commodities/plans", "/dashboard/forex/trades", "/dashboard/forex/plans"];
-  if (journalPrefixes.some(p => pathname.startsWith(p))) return "journal";
+  // Trades
+  const tradesPrefixes = ["/dashboard/trades", "/dashboard/import-export", "/dashboard/plans", "/dashboard/stocks/trades", "/dashboard/stocks/plans", "/dashboard/commodities/trades", "/dashboard/commodities/plans", "/dashboard/forex/trades", "/dashboard/forex/plans"];
+  if (tradesPrefixes.some(p => pathname.startsWith(p))) return "trades";
 
-  const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard"];
-  if (competePrefixes.some(p => pathname.startsWith(p))) return "compete";
+  // Intelligence
+  const intelligencePrefixes = ["/dashboard/psychology", "/dashboard/ai", "/dashboard/insights", "/dashboard/reports", "/dashboard/recaps"];
+  if (intelligencePrefixes.some(p => pathname.startsWith(p))) return "intelligence";
 
-  const analyticsPrefixes = ["/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/commodities/analytics", "/dashboard/forex/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/insights", "/dashboard/psychology", "/dashboard/ai", "/dashboard/reports", "/dashboard/recaps"];
+  // Analytics (includes Overview = old dashboards)
+  const analyticsPrefixes = ["/dashboard/overview", "/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/commodities/analytics", "/dashboard/forex/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/stocks", "/dashboard/commodities", "/dashboard/forex"];
   if (analyticsPrefixes.some(p => pathname.startsWith(p))) return "analytics";
 
-  const toolsPrefixes = ["/dashboard/market", "/dashboard/news", "/dashboard/stocks/news", "/dashboard/commodities/news", "/dashboard/forex/news", "/dashboard/economic-calendar", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/screener", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/dca", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
-  if (toolsPrefixes.some(p => pathname.startsWith(p))) return "tools";
+  // Market & Tools
+  const marketPrefixes = ["/dashboard/market", "/dashboard/news", "/dashboard/stocks/news", "/dashboard/commodities/news", "/dashboard/forex/news", "/dashboard/economic-calendar", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/screener", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/dca", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
+  if (marketPrefixes.some(p => pathname.startsWith(p))) return "market";
+
+  // Compete
+  const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard"];
+  if (competePrefixes.some(p => pathname.startsWith(p))) return "compete";
 
   return null;
 }

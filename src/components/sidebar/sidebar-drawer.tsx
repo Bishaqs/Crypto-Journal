@@ -10,7 +10,6 @@ import {
   type NavSection,
   type RailCategory,
   RAIL_CATEGORIES,
-  BEGINNER_JOURNAL_ITEMS,
   LABEL_KEY,
   SECTION_KEY,
   isActivePath,
@@ -67,21 +66,15 @@ export function SidebarDrawer({
   }
 
   function getResolvedCategoryItems(): NavItem[] {
-    const catItems = isBeginner && categoryKey === "journal" ? BEGINNER_JOURNAL_ITEMS : category.items;
+    // Intelligence: use beginnerItems when in beginner mode
+    if (categoryKey === "intelligence" && isBeginner && category.beginnerItems) {
+      return category.beginnerItems;
+    }
+
+    const catItems = category.items;
     const prefix = assetContext === "crypto" ? "" : `/dashboard/${assetContext}`;
 
-    if (categoryKey === "journal") {
-      if (assetContext !== "crypto") {
-        return catItems.map(item => {
-          if (item.href === "/dashboard/trades") return { ...item, href: `${prefix}/trades`, label: "Positions" };
-          if (item.href === "/dashboard/plans") return { ...item, href: `${prefix}/plans`, label: "Watchlist" };
-          return item;
-        });
-      }
-      return catItems;
-    }
     if (categoryKey === "analytics") {
-      if (isBeginner) return [];  // Beginner analytics: no core items, just intelligence section
       if (assetContext !== "crypto") {
         return catItems.map(item => {
           if (item.href === "/dashboard/analytics") return { ...item, href: `${prefix}/analytics` };
@@ -310,8 +303,8 @@ export function SidebarDrawer({
           </button>
         </div>
 
-        {/* Asset toggle — 2x2 grid */}
-        <div className="px-3 pt-3">
+        {/* Asset toggle — 2x2 grid (only for analytics/market categories) */}
+        {category.showAssetToggle && <div className="px-3 pt-3">
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-background border border-border/50 p-1 w-full">
             {([
               { ctx: "crypto" as const, label: t("sidebar.cryptoLabel"), icon: Bitcoin },
@@ -341,9 +334,9 @@ export function SidebarDrawer({
               </a>
             </div>
           )}
-        </div>
+        </div>}
 
-        {/* Mode toggle (for categories with sections) */}
+        {/* Mode toggle (for categories with sections or intelligence) */}
         {hasSections && (
           <div className="px-3 pt-2">
             <div id="tour-view-toggle" className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
