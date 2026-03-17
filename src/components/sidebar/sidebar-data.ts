@@ -272,16 +272,21 @@ export const NAV_SECTIONS: NavSection[] = [
 /*  Rail categories                                                   */
 /* ────────────────────────────────────────────────────────────────── */
 
-// Overview item (the old chart-heavy dashboard, now at /dashboard/overview)
-const overviewItem: NavItem = { href: "/dashboard/overview", label: "Overview", icon: LayoutDashboard, tourId: "tour-home" };
-
 export const RAIL_CATEGORIES: RailCategory[] = [
+  {
+    key: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    directNav: true,
+    items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tourId: "tour-home" }],
+    showInBeginner: true,
+  },
   {
     key: "journal",
     label: "Journal",
     icon: BookOpen,
     directNav: true,
-    items: [{ href: "/dashboard", label: "Journal", icon: BookOpen }],
+    items: [{ href: "/dashboard/journal", label: "Journal", icon: BookOpen }],
     showInBeginner: true,
   },
   {
@@ -304,7 +309,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     key: "analytics",
     label: "Analytics",
     icon: BarChart3,
-    items: [overviewItem, coreItems[4]], // Overview + Analytics
+    items: [coreItems[4]], // Analytics
     sections: [NAV_SECTIONS[0]], // Performance & Analysis
     showInBeginner: false,
     showAssetToggle: true,
@@ -482,8 +487,10 @@ export function isActivePath(pathname: string, href: string, search?: string): b
 }
 
 export function getCategoryForPath(pathname: string): string | null {
-  // Journal is the home page
-  if (pathname === "/dashboard") return "journal";
+  // Dashboard is the home page
+  if (pathname === "/dashboard") return "dashboard";
+
+  // Journal
   if (pathname.startsWith("/dashboard/journal") || pathname.startsWith("/dashboard/calendar")) return "journal";
 
   // Trades
@@ -495,7 +502,7 @@ export function getCategoryForPath(pathname: string): string | null {
   if (intelligencePrefixes.some(p => pathname.startsWith(p))) return "intelligence";
 
   // Analytics (includes Overview = old dashboards)
-  const analyticsPrefixes = ["/dashboard/overview", "/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/commodities/analytics", "/dashboard/forex/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/stocks", "/dashboard/commodities", "/dashboard/forex"];
+  const analyticsPrefixes = ["/dashboard/analytics", "/dashboard/stocks/analytics", "/dashboard/commodities/analytics", "/dashboard/forex/analytics", "/dashboard/analysis", "/dashboard/performance", "/dashboard/exit-analysis", "/dashboard/summaries", "/dashboard/stocks", "/dashboard/commodities", "/dashboard/forex"];
   if (analyticsPrefixes.some(p => pathname.startsWith(p))) return "analytics";
 
   // Market & Tools

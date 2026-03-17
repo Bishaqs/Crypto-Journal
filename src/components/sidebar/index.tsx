@@ -170,10 +170,7 @@ export function Sidebar() {
   }
 
   function handleDirectNav(href: string) {
-    if (href === "/dashboard") {
-      // Journal is always /dashboard regardless of asset context
-      router.push("/dashboard");
-    } else if (href === "/dashboard/trades") {
+    if (href === "/dashboard/trades") {
       // Resolve to asset-specific trades page
       const resolvedItems = getResolvedCoreItems(assetContext);
       const tradeItem = resolvedItems[1]; // Trade Log is index 1
