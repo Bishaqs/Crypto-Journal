@@ -28,6 +28,9 @@ import {
   Sparkles,
   Zap,
   MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  ScrollText,
 } from "lucide-react";
 import { useTheme, type ViewMode } from "@/lib/theme-context";
 import { useLevel } from "@/lib/xp";
@@ -156,6 +159,42 @@ function SectionCard({
       </div>
       {children}
     </div>
+  );
+}
+
+function SystemPromptViewer() {
+  const [expanded, setExpanded] = useState(false);
+  const [promptText, setPromptText] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (expanded && !promptText) {
+      import("@/lib/ai-context").then((mod) => {
+        setPromptText(mod.AI_CHAT_SYSTEM_PROMPT);
+      });
+    }
+  }, [expanded, promptText]);
+
+  return (
+    <SectionCard icon={ScrollText} title="Nova's System Prompt" description="The full instructions that define Nova's personality, coaching style, and psychology knowledge.">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-hover transition-all"
+      >
+        {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        {expanded ? "Hide prompt" : "View full system prompt"}
+      </button>
+      {expanded && (
+        <div className="mt-3 max-h-[500px] overflow-y-auto rounded-xl bg-background border border-border p-4">
+          {promptText ? (
+            <pre className="text-xs text-muted leading-relaxed whitespace-pre-wrap font-mono">
+              {promptText}
+            </pre>
+          ) : (
+            <p className="text-xs text-muted animate-pulse">Loading...</p>
+          )}
+        </div>
+      )}
+    </SectionCard>
   );
 }
 
@@ -708,6 +747,9 @@ function SettingsContent() {
               {aiCustomInstructions.length}/1000 characters — stored locally in your browser
             </p>
           </SectionCard>
+
+          {/* View System Prompt */}
+          <SystemPromptViewer />
 
           {/* AI-Enhanced Dashboard Insights */}
           <SectionCard icon={Sparkles} title="AI-Enhanced Dashboard Insights" description="Get richer, AI-generated insights on your dashboard.">
