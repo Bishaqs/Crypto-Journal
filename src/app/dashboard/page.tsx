@@ -169,7 +169,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {!usingDemo && <ProactiveInsightBar trades={filteredTrades} tiltSignals={tiltSignals} />}
+      {!usingDemo && viewMode !== "beginner" && <ProactiveInsightBar trades={filteredTrades} tiltSignals={tiltSignals} />}
 
       {/* Welcome greeting */}
       <div className="relative glass rounded-2xl border border-border/50 p-4 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -195,7 +195,7 @@ export default function DashboardPage() {
 
       <LowContrastWarning />
 
-      {!usingDemo && <WeeklySummaryCard trades={trades} />}
+      {!usingDemo && viewMode !== "beginner" && <WeeklySummaryCard trades={trades} />}
 
       {usingDemo && (
         <GettingStartedCard
@@ -255,7 +255,7 @@ export default function DashboardPage() {
       <div id="tour-stats">
         <StatsCards stats={stats} advancedStats={adv} viewMode={viewMode} />
       </div>
-      <TiltWarnings signals={tiltSignals} />
+      {viewMode !== "beginner" && <TiltWarnings signals={tiltSignals} />}
 
       {/* Advanced mode stats — appears right below basic stats with smooth animation */}
       <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
@@ -361,7 +361,7 @@ export default function DashboardPage() {
         </Link>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {viewMode !== "beginner" && <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ExpandableChart
           id="tour-equity"
           title="Equity Curve"
@@ -417,9 +417,9 @@ export default function DashboardPage() {
             />
           )}
         </ExpandableChart>
-      </div>
+      </div>}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {viewMode !== "beginner" && <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div id="tour-trades-table" className="lg:col-span-2 space-y-6">
           <TradesTable
             trades={filteredTrades}
@@ -435,23 +435,25 @@ export default function DashboardPage() {
         </div>
         <div className="space-y-6">
           <div id="tour-streak"><StreakWidget /></div>
-          <ExpandableChart
-            id="tour-heatmap-mini"
-            title="Calendar"
-            capabilities={{ zoom: false, chartSwitch: false, dataView: true, saveImage: true, defaultVariant: "bar" }}
-            data={dailyPnl}
-            columns={[
-              { key: "date", label: "Date" },
-              { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
-              { key: "tradeCount", label: "Trades" },
-            ]}
-          >
-            {({ isExpanded }) => (
-              <CalendarHeatmap dailyPnl={dailyPnl} showCard={!isExpanded} />
-            )}
-          </ExpandableChart>
         </div>
-      </div>
+      </div>}
+
+      {/* Calendar Heatmap — always visible */}
+      <ExpandableChart
+        id="tour-heatmap-mini"
+        title="Calendar"
+        capabilities={{ zoom: false, chartSwitch: false, dataView: true, saveImage: true, defaultVariant: "bar" }}
+        data={dailyPnl}
+        columns={[
+          { key: "date", label: "Date" },
+          { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
+          { key: "tradeCount", label: "Trades" },
+        ]}
+      >
+        {({ isExpanded }) => (
+          <CalendarHeatmap dailyPnl={dailyPnl} showCard={!isExpanded} />
+        )}
+      </ExpandableChart>
 
       {/* News Widget */}
       {viewMode !== "beginner" && <NewsWidget asset="crypto" />}
