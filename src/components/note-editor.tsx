@@ -14,6 +14,7 @@ import { TradeLinker } from "@/components/note-editor/trade-linker";
 import { getCustomTagPresets, isUserTag } from "@/lib/tag-manager";
 import { isStructuredTemplate, StructuredTemplateForm, serializeToHtml, serializePsychToHtml } from "@/components/note-editor/structured-templates";
 import { EmotionPicker, ConfidenceSlider, ProcessScoreInput } from "@/components/psychology-inputs";
+import { useTheme } from "@/lib/theme-context";
 import {
   X,
   FileText,
@@ -82,6 +83,8 @@ const TEMPLATES: Template[] = [
 export { TEMPLATES };
 
 const TEMPLATE_LIST = TEMPLATES.map(({ id, label, content }) => ({ id, label, content }));
+const BEGINNER_TEMPLATE_IDS = new Set(["free", "trade-review", "daily-review"]);
+const BEGINNER_TEMPLATE_LIST = TEMPLATE_LIST.filter(t => BEGINNER_TEMPLATE_IDS.has(t.id));
 
 const TRADE_TABLE_MAP: Record<AssetType, string> = {
   crypto: "trades",
@@ -100,6 +103,8 @@ interface NoteEditorProps {
 
 export function NoteEditor({ editNote = null, initialTemplate = "free", assetType = "crypto", onClose, onSaved }: NoteEditorProps) {
   const { timezone } = useTimezone();
+  const { viewMode } = useTheme();
+  const isBeginner = viewMode === "beginner";
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -455,7 +460,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
           </div>
 
           {/* Link Trade */}
-          {trades.length > 0 && (
+          {!isBeginner && trades.length > 0 && (
             <div className="px-5 pt-3 shrink-0">
               <TradeLinker
                 trades={trades}
@@ -472,7 +477,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
             <div className="px-5 pt-3 shrink-0">
               <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Template</label>
               <TemplateSelector
-                templates={TEMPLATE_LIST}
+                templates={isBeginner ? BEGINNER_TEMPLATE_LIST : TEMPLATE_LIST}
                 contentRef={contentRef}
                 onApply={handleTemplateApply}
                 hasContent={hasContent()}
