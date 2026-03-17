@@ -8,10 +8,11 @@ export const PROVIDER_CONFIGS: Record<ProviderId, ProviderConfig> = {
     id: "anthropic",
     name: "Claude (Anthropic)",
     models: [
+      { id: "claude-opus-4-20250514", label: "Claude Opus 4" },
       { id: "claude-sonnet-4-5-20250929", label: "Claude Sonnet 4.5" },
       { id: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5" },
     ],
-    defaultModel: "claude-sonnet-4-5-20250929",
+    defaultModel: "claude-opus-4-20250514",
   },
   openai: {
     id: "openai",
@@ -34,7 +35,7 @@ export const PROVIDER_CONFIGS: Record<ProviderId, ProviderConfig> = {
   },
 };
 
-export const DEFAULT_PROVIDER: ProviderId = "google";
+export const DEFAULT_PROVIDER: ProviderId = "anthropic";
 
 /** Returns an array of providers that have API keys configured */
 export function getAvailableProviders(): ProviderConfig[] {
