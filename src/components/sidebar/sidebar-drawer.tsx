@@ -336,26 +336,7 @@ export function SidebarDrawer({
           )}
         </div>}
 
-        {/* Mode toggle (for categories with sections or intelligence) */}
-        {hasSections && (
-          <div className="px-3 pt-2">
-            <div id="tour-view-toggle" className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
-              {(["beginner", "advanced", "expert"] as ViewMode[]).map(mode => (
-                <button
-                  key={mode}
-                  onClick={() => setViewModeTo(mode)}
-                  className={`flex-1 flex items-center justify-center px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                    viewMode === mode
-                      ? "bg-accent/15 text-accent border border-accent/30"
-                      : "text-muted hover:text-foreground border border-transparent"
-                  }`}
-                >
-                  {mode === "beginner" ? t("sidebar.beginner") : mode === "advanced" ? t("sidebar.advanced") : t("sidebar.expert")}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Mode toggle removed — accessible in Settings only */}
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto py-3 px-2">

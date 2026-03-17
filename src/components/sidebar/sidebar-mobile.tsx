@@ -343,22 +343,7 @@ export function SidebarMobile({
 
         {/* Bottom */}
         <div className="border-t border-border py-2 px-2">
-          {/* Mode pill */}
-          <div className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full mb-1">
-            {(["beginner", "advanced", "expert"] as ViewMode[]).map(mode => (
-              <button
-                key={mode}
-                onClick={() => setViewModeTo(mode)}
-                className={`flex-1 flex items-center justify-center px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                  viewMode === mode
-                    ? "bg-accent/15 text-accent border border-accent/30"
-                    : "text-muted hover:text-foreground border border-transparent"
-                }`}
-              >
-                {mode === "beginner" ? t("sidebar.beginner") : mode === "advanced" ? t("sidebar.advanced") : t("sidebar.expert")}
-              </button>
-            ))}
-          </div>
+          {/* Mode toggle removed — accessible in Settings only */}
 
           {isOwner && (
             <NavLink item={{ href: "/dashboard/admin", label: "Admin", icon: Shield }} />
