@@ -306,7 +306,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     icon: Brain,
     items: intelligenceItems,
     beginnerItems: intelligenceBeginnerItems,
-    showInBeginner: false,
+    showInBeginner: true,
     showInAdvanced: true,
   },
   {
@@ -324,8 +324,8 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     label: "Compete",
     icon: Trophy,
     items: [coreItems[7], coreItems[8], coreItems[9]],
-    showInBeginner: false,
-    showInAdvanced: false,
+    showInBeginner: true,
+    showInAdvanced: true,
   },
 ];
 
