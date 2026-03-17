@@ -204,6 +204,7 @@ export function Sidebar() {
         isOwner={isOwner}
         assetContext={assetContext}
         onAssetToggle={handleAssetToggle}
+        viewMode={viewMode}
       />
 
       {/* Desktop Drawer */}

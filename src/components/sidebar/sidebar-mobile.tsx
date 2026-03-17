@@ -63,9 +63,14 @@ export function SidebarMobile({
   const searchParams = useSearchParams();
   const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const { t } = useI18n();
+  const isBeginner = viewMode === "beginner";
   const isSimple = viewMode === "simple";
   const isSectionOpen = (key: string) => sectionState[key] ?? true;
-  const resolvedCoreItems = getResolvedCoreItems(assetContext);
+  const allCoreItems = getResolvedCoreItems(assetContext);
+  // Beginner: only Dashboard, Trade Log, Journal, Import/Export
+  const resolvedCoreItems = isBeginner
+    ? allCoreItems.filter((_, i) => i === 0 || i === 1 || i === 2 || i === 6)
+    : allCoreItems;
 
   function getResolvedItems(items: NavItem[]): NavItem[] {
     return resolveItems(items, assetContext);
@@ -138,9 +143,12 @@ export function SidebarMobile({
 
   /* ── Render section ──────────────────────────── */
   function renderSection(section: NavSection) {
+    if (isBeginner && !section.visibleInBeginner) return null;
     if (isSimple && !section.visibleInSimple) return null;
 
-    const items = isSimple && section.simpleItems
+    const items = isBeginner && section.beginnerItems
+      ? getResolvedItems(section.beginnerItems)
+      : isSimple && section.simpleItems
       ? getResolvedItems(section.simpleItems)
       : getResolvedItems(section.items);
 
@@ -183,6 +191,7 @@ export function SidebarMobile({
 
   /* ── "Other" section for simple mode ───────────── */
   function renderOtherSection() {
+    if (isBeginner) return null;
     if (!isSimple) return null;
 
     const otherItems: NavItem[] = [];
@@ -328,7 +337,7 @@ export function SidebarMobile({
         <div className="border-t border-border py-2 px-2">
           {/* Mode pill */}
           <div className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full mb-1">
-            {(["simple", "full"] as ViewMode[]).map(mode => (
+            {(["beginner", "simple", "full"] as ViewMode[]).map(mode => (
               <button
                 key={mode}
                 onClick={() => setViewModeTo(mode)}
@@ -338,7 +347,7 @@ export function SidebarMobile({
                     : "text-muted hover:text-foreground border border-transparent"
                 }`}
               >
-                {mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
+                {mode === "beginner" ? t("sidebar.focus") : mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
               </button>
             ))}
           </div>

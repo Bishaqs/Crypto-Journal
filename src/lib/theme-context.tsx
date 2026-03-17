@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "satoshi" | "synthwave" | "pangaea";
-export type ViewMode = "simple" | "full";
+export type ViewMode = "beginner" | "simple" | "full";
 
 export const THEMES: { value: Theme; label: string; dot: string; locked?: boolean }[] = [
   { value: "solara", label: "Solara", dot: "#faf8f5" },
@@ -39,7 +39,7 @@ export function getLevelRequirement(theme: Theme): number | null {
   return LEVEL_GATED_THEMES[theme] ?? null;
 }
 
-const VIEW_MODE_ORDER: ViewMode[] = ["simple", "full"];
+const VIEW_MODE_ORDER: ViewMode[] = ["beginner", "simple", "full"];
 
 type ThemeContextType = {
   theme: Theme;

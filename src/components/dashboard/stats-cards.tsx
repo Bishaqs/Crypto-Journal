@@ -1,11 +1,13 @@
 "use client";
 
-import { DashboardStats } from "@/lib/types";
+import { DashboardStats, AdvancedStats } from "@/lib/types";
+import type { ViewMode } from "@/lib/theme-context";
 import {
   TrendingUp,
   DollarSign,
   Activity,
   TrendingDown,
+  Crosshair,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
@@ -107,9 +109,15 @@ function WinRateCard({ stats }: { stats: DashboardStats }) {
   );
 }
 
-export function StatsCards({ stats }: { stats: DashboardStats }) {
+export function StatsCards({ stats, advancedStats, viewMode = "simple" }: {
+  stats: DashboardStats;
+  advancedStats?: AdvancedStats | null;
+  viewMode?: ViewMode;
+}) {
+  const showExtra = viewMode !== "beginner" && advancedStats;
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className={`grid grid-cols-2 md:grid-cols-3 ${showExtra ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-6"} gap-4`}>
       <WinRateCard stats={stats} />
       <StatCard
         label="Avg Return"
@@ -141,6 +149,28 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
         icon={TrendingDown}
         valueColor={stats.unrealizedPnl >= 0 ? "text-win" : "text-loss"}
       />
+      {showExtra && (
+        <>
+          <StatCard
+            label="Expectancy"
+            value={`${advancedStats.expectancy >= 0 ? "+" : ""}${advancedStats.expectancy.toFixed(2)}R`}
+            subLabel="avg edge per trade"
+            icon={Crosshair}
+            valueColor={advancedStats.expectancy >= 0 ? "text-win" : "text-loss"}
+            tooltip="Average return per trade in R-multiples. Positive = your system has an edge."
+            articleId="an-expectancy"
+          />
+          <StatCard
+            label="Max Drawdown"
+            value={`${advancedStats.maxDrawdownPct.toFixed(1)}%`}
+            subLabel={`$${advancedStats.maxDrawdown.toFixed(0)} peak decline`}
+            icon={TrendingDown}
+            valueColor="text-loss"
+            tooltip="Largest peak-to-trough decline in equity. Lower is better."
+            articleId="rm-max-drawdown"
+          />
+        </>
+      )}
     </div>
   );
 }

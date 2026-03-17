@@ -108,7 +108,7 @@ export default function DashboardPage() {
   const dailyPnl = useMemo(() => calculateDailyPnl(filteredTrades), [filteredTrades]);
   const equityData = useMemo(() => buildEquityCurve(dailyPnl), [dailyPnl]);
   const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades, { excludeImported: true }), [filteredTrades]);
-  const adv = useMemo(() => viewMode === "full" ? calculateAdvancedStats(filteredTrades) : null, [viewMode, filteredTrades]);
+  const adv = useMemo(() => filteredTrades.length >= 2 ? calculateAdvancedStats(filteredTrades) : null, [filteredTrades]);
 
 
   // Save sentiment for light theme candle background
@@ -224,7 +224,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2">
           {/* View mode toggle */}
           <div className="inline-flex items-center rounded-xl bg-surface border border-border/50 p-0.5">
-            {(["simple", "full"] as ViewMode[]).map(mode => (
+            {(["beginner", "simple", "full"] as ViewMode[]).map(mode => (
               <button
                 key={mode}
                 onClick={() => setViewModeTo(mode)}
@@ -234,7 +234,7 @@ export default function DashboardPage() {
                     : "text-muted hover:text-foreground border border-transparent"
                 }`}
               >
-                {mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
+                {mode === "beginner" ? t("sidebar.focus") : mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
               </button>
             ))}
           </div>
@@ -268,7 +268,7 @@ export default function DashboardPage() {
       </div>
 
       <div id="tour-stats">
-        <StatsCards stats={stats} />
+        <StatsCards stats={stats} advancedStats={adv} viewMode={viewMode} />
       </div>
       <TiltWarnings signals={tiltSignals} />
 
@@ -366,13 +366,15 @@ export default function DashboardPage() {
       <div id="tour-ai-summary">
         <AISummaryWidget trades={filteredTrades} />
       </div>
-      <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-        <div className="flex items-center gap-2 mb-1">
-          <Dices size={14} className="text-accent" />
-          <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
-        </div>
-        <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
-      </Link>
+      {viewMode !== "beginner" && (
+        <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="flex items-center gap-2 mb-1">
+            <Dices size={14} className="text-accent" />
+            <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
+          </div>
+          <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
+        </Link>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ExpandableChart
@@ -467,7 +469,7 @@ export default function DashboardPage() {
       </div>
 
       {/* News Widget */}
-      <NewsWidget asset="crypto" />
+      {viewMode !== "beginner" && <NewsWidget asset="crypto" />}
 
       {showForm && (
         <TradeForm

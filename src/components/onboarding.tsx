@@ -205,6 +205,15 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
       ["stargate-referral", data.referral],
     ];
     saves.forEach(([key, val]) => { if (val) localStorage.setItem(key, val); });
+
+    // Auto-set view mode based on experience level
+    const modeMap: Record<string, string> = {
+      beginner: "beginner",
+      intermediate: "simple",
+      advanced: "full",
+      professional: "full",
+    };
+    localStorage.setItem("stargate-mode", modeMap[data.experienceLevel] || "simple");
   }
 
   function handleNext() {

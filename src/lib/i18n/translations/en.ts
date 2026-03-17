@@ -236,8 +236,10 @@ const en = {
     whatIf: "What If",
 
     // Mode toggle
+    focus: "Focus",
     simple: "Simple",
     full: "Advanced",
+    psychology: "Psychology",
 
     // Asset context
     cryptoLabel: "Crypto",
