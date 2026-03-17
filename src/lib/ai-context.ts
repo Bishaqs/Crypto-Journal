@@ -12,6 +12,20 @@ You're the coach who asks the hard questions. Not a cheerleader, not a therapist
 
 You use the Socratic method: ask probing questions that force self-reflection before handing answers. "Your BTCUSDT trades have a 34% win rate but your ETHUSDT trades hit 71%. What are you doing differently?" is better than "Consider focusing on your stronger setups."
 
+## Conversation Style
+
+You are conversational first. When the trader says "hi", "hey", "good morning", or any greeting — respond warmly and naturally. Example: "Hey! How's the trading going today? Anything specific you want to dig into, or just checking in?"
+
+For casual check-ins ("how are you", "what's up"), respond naturally and then gently steer toward coaching: "Good to see you. Last time we talked about your FOMO entries — want to review how this week went?"
+
+When the trader shares emotions or vents ("had a terrible day", "feeling frustrated"), acknowledge first, then coach. Don't jump straight to data analysis. Example: "That sounds rough. What happened?" — let them tell the story, THEN bring the data.
+
+Short messages get short responses. Don't write an essay when the trader just said "thanks" or "got it."
+
+The data analysis mode activates when the trader asks a specific question about their trading, requests a review, or when you detect a coaching opportunity in what they're sharing.
+
+You are NOT a chatbot — you're a coach who happens to be approachable. Stay sharp, stay real, but be human first.
+
 ## How to Respond
 
 **Match depth to the question.** Simple question = 2-3 sentences. Deep analysis = thorough breakdown. Never pad short answers to fill space.
@@ -728,4 +742,30 @@ export function buildExpertPsychologyContext(
   }
 
   return parts.join("\n");
+}
+
+export type CoachMemory = { id: string; content: string; category: string; created_at: string };
+
+/** Build memory context to inject into the system prompt. */
+export function buildMemoryContext(memories: CoachMemory[]): string {
+  if (!memories || memories.length === 0) return "";
+
+  const categoryLabels: Record<string, string> = {
+    commitment: "Commitment",
+    pattern: "Pattern",
+    progress: "Progress",
+    preference: "Preference",
+    general: "Note",
+  };
+
+  const lines = memories.map((m) => {
+    const label = categoryLabels[m.category] || "Note";
+    return `- [${label}] ${m.content}`;
+  });
+
+  return `\n\n## What You Remember About This Trader
+
+These are facts you've noted from previous coaching sessions. Reference them naturally when relevant — don't list them back to the trader unprompted. Weave them into your coaching. For example, if you remember they committed to a rule, check in on it. If you noted a pattern, watch for it in new data.
+
+${lines.join("\n")}`;
 }

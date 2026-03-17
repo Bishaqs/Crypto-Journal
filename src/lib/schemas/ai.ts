@@ -70,11 +70,44 @@ export const AiChatSchema = z.object({
   provider: z.string().optional(),
   model: z.string().optional(),
   apiKey: z.string().max(256).optional(),
+  conversationId: z.string().uuid().optional(),
 });
 
 // Trade summary request body (used by /api/ai/trade-summary)
 export const TradeSummarySchema = z.object({
   trade: TradeSchema.refine((t) => t.symbol, { message: "Trade must have a symbol" }),
+  provider: z.string().optional(),
+  model: z.string().optional(),
+  apiKey: z.string().max(256).optional(),
+});
+
+// Conversation management schemas
+export const ConversationCreateSchema = z.object({
+  title: z.string().max(100).optional(),
+});
+
+export const ConversationUpdateSchema = z.object({
+  title: z.string().min(1).max(100),
+});
+
+export const MessageSaveSchema = z.object({
+  userMessage: z.string().min(1).max(10000),
+  assistantMessage: z.string().min(1).max(50000),
+});
+
+export const MemoryCreateSchema = z.object({
+  content: z.string().min(1).max(500),
+  category: z.enum(["general", "pattern", "commitment", "progress", "preference"]),
+  sourceConversationId: z.string().uuid().optional(),
+  sourceMessageIndex: z.number().int().optional(),
+});
+
+export const MemoryExtractSchema = z.object({
+  conversationId: z.string().uuid(),
+  messages: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+  })).min(4).max(50),
   provider: z.string().optional(),
   model: z.string().optional(),
   apiKey: z.string().max(256).optional(),
