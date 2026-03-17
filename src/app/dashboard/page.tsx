@@ -347,116 +347,187 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Quick Insight + Simulations — always visible */}
-      <div id="tour-ai-summary">
-        <AISummaryWidget trades={filteredTrades} />
-      </div>
-      {viewMode !== "beginner" && (
-        <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-          <div className="flex items-center gap-2 mb-1">
-            <Dices size={14} className="text-accent" />
-            <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
+      {/* ── Beginner layout ────────────────────────── */}
+      {viewMode === "beginner" && (
+        <>
+          {/* Equity Curve + Daily P&L */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ExpandableChart
+              id="tour-equity"
+              title="Equity Curve"
+              titleExtra={
+                equityData.length > 0 ? (
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${equityData[equityData.length - 1].equity >= 0 ? "bg-win/10 text-win" : "bg-loss/10 text-loss"}`}>
+                    {equityData[equityData.length - 1].equity >= 0 ? "+" : ""}${equityData[equityData.length - 1].equity.toFixed(2)}
+                  </span>
+                ) : undefined
+              }
+              capabilities={{ zoom: true, chartSwitch: true, dataView: true, saveImage: true, defaultVariant: "area" }}
+              data={equityData}
+              columns={[
+                { key: "date", label: "Date" },
+                { key: "equity", label: "Equity", format: (v) => `$${Number(v).toFixed(2)}` },
+              ]}
+            >
+              {({ height, variant, zoomedData, isExpanded, zoomHandlers }) => (
+                <EquityCurve
+                  data={(zoomedData as { date: string; equity: number }[]) ?? equityData}
+                  height={height}
+                  variant={variant}
+                  showCard={!isExpanded}
+                  zoomHandlers={zoomHandlers}
+                />
+              )}
+            </ExpandableChart>
+            <ExpandableChart
+              id="tour-pnl-chart"
+              title="Daily P&L"
+              capabilities={{ zoom: true, chartSwitch: true, dataView: true, saveImage: true, defaultVariant: "bar" }}
+              data={dailyPnl}
+              columns={[
+                { key: "date", label: "Date" },
+                { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
+                { key: "tradeCount", label: "Trades" },
+              ]}
+            >
+              {({ height, variant, zoomedData, isExpanded, zoomHandlers }) => (
+                <PnlChart
+                  data={(zoomedData as typeof dailyPnl) ?? dailyPnl}
+                  height={height}
+                  variant={variant}
+                  showCard={!isExpanded}
+                  zoomHandlers={zoomHandlers}
+                />
+              )}
+            </ExpandableChart>
           </div>
-          <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
-        </Link>
+
+          {/* Recent Trades (3 max) + Streak */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <TradesTable
+                trades={filteredTrades.slice(0, 3)}
+                onEdit={
+                  usingDemo
+                    ? undefined
+                    : (trade) => {
+                        setEditTrade(trade);
+                        setShowForm(true);
+                      }
+                }
+              />
+            </div>
+            <div>
+              <div id="tour-streak"><StreakWidget /></div>
+            </div>
+          </div>
+        </>
       )}
 
-      {viewMode !== "beginner" && <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ExpandableChart
-          id="tour-equity"
-          title="Equity Curve"
-          titleExtra={
-            equityData.length > 0 ? (
-              <span
-                className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
-                  equityData[equityData.length - 1].equity >= 0
-                    ? "bg-win/10 text-win"
-                    : "bg-loss/10 text-loss"
-                }`}
+      {/* ── Advanced/Expert layout ──────────────────── */}
+      {viewMode !== "beginner" && (
+        <>
+          <div id="tour-ai-summary">
+            <AISummaryWidget trades={filteredTrades} />
+          </div>
+          {viewMode === "expert" && (
+            <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
+              <div className="flex items-center gap-2 mb-1">
+                <Dices size={14} className="text-accent" />
+                <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
+              </div>
+              <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
+            </Link>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ExpandableChart
+              id="tour-equity"
+              title="Equity Curve"
+              titleExtra={
+                equityData.length > 0 ? (
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${equityData[equityData.length - 1].equity >= 0 ? "bg-win/10 text-win" : "bg-loss/10 text-loss"}`}>
+                    {equityData[equityData.length - 1].equity >= 0 ? "+" : ""}${equityData[equityData.length - 1].equity.toFixed(2)}
+                  </span>
+                ) : undefined
+              }
+              capabilities={{ zoom: true, chartSwitch: true, dataView: true, saveImage: true, defaultVariant: "area" }}
+              data={equityData}
+              columns={[
+                { key: "date", label: "Date" },
+                { key: "equity", label: "Equity", format: (v) => `$${Number(v).toFixed(2)}` },
+              ]}
+            >
+              {({ height, variant, zoomedData, isExpanded, zoomHandlers }) => (
+                <EquityCurve
+                  data={(zoomedData as { date: string; equity: number }[]) ?? equityData}
+                  height={height}
+                  variant={variant}
+                  showCard={!isExpanded}
+                  zoomHandlers={zoomHandlers}
+                />
+              )}
+            </ExpandableChart>
+            <ExpandableChart
+              id="tour-pnl-chart"
+              title="Daily P&L"
+              capabilities={{ zoom: true, chartSwitch: true, dataView: true, saveImage: true, defaultVariant: "bar" }}
+              data={dailyPnl}
+              columns={[
+                { key: "date", label: "Date" },
+                { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
+                { key: "tradeCount", label: "Trades" },
+              ]}
+            >
+              {({ height, variant, zoomedData, isExpanded, zoomHandlers }) => (
+                <PnlChart
+                  data={(zoomedData as typeof dailyPnl) ?? dailyPnl}
+                  height={height}
+                  variant={variant}
+                  showCard={!isExpanded}
+                  zoomHandlers={zoomHandlers}
+                />
+              )}
+            </ExpandableChart>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div id="tour-trades-table" className="lg:col-span-2 space-y-6">
+              <TradesTable
+                trades={filteredTrades}
+                onEdit={
+                  usingDemo
+                    ? undefined
+                    : (trade) => {
+                        setEditTrade(trade);
+                        setShowForm(true);
+                      }
+                }
+              />
+            </div>
+            <div className="space-y-6">
+              <div id="tour-streak"><StreakWidget /></div>
+              <ExpandableChart
+                id="tour-heatmap-mini"
+                title="Calendar"
+                capabilities={{ zoom: false, chartSwitch: false, dataView: true, saveImage: true, defaultVariant: "bar" }}
+                data={dailyPnl}
+                columns={[
+                  { key: "date", label: "Date" },
+                  { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
+                  { key: "tradeCount", label: "Trades" },
+                ]}
               >
-                {equityData[equityData.length - 1].equity >= 0 ? "+" : ""}$
-                {equityData[equityData.length - 1].equity.toFixed(2)}
-              </span>
-            ) : undefined
-          }
-          capabilities={{ zoom: true, chartSwitch: true, dataView: true, saveImage: true, defaultVariant: "area" }}
-          data={equityData}
-          columns={[
-            { key: "date", label: "Date" },
-            { key: "equity", label: "Equity", format: (v) => `$${Number(v).toFixed(2)}` },
-          ]}
-        >
-          {({ height, variant, zoomedData, isExpanded, zoomHandlers }) => (
-            <EquityCurve
-              data={(zoomedData as { date: string; equity: number }[]) ?? equityData}
-              height={height}
-              variant={variant}
-              showCard={!isExpanded}
-              zoomHandlers={zoomHandlers}
-            />
-          )}
-        </ExpandableChart>
-        <ExpandableChart
-          id="tour-pnl-chart"
-          title="Daily P&L"
-          capabilities={{ zoom: true, chartSwitch: true, dataView: true, saveImage: true, defaultVariant: "bar" }}
-          data={dailyPnl}
-          columns={[
-            { key: "date", label: "Date" },
-            { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
-            { key: "tradeCount", label: "Trades" },
-          ]}
-        >
-          {({ height, variant, zoomedData, isExpanded, zoomHandlers }) => (
-            <PnlChart
-              data={(zoomedData as typeof dailyPnl) ?? dailyPnl}
-              height={height}
-              variant={variant}
-              showCard={!isExpanded}
-              zoomHandlers={zoomHandlers}
-            />
-          )}
-        </ExpandableChart>
-      </div>}
+                {({ isExpanded }) => (
+                  <CalendarHeatmap dailyPnl={dailyPnl} showCard={!isExpanded} />
+                )}
+              </ExpandableChart>
+            </div>
+          </div>
 
-      {viewMode !== "beginner" && <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div id="tour-trades-table" className="lg:col-span-2 space-y-6">
-          <TradesTable
-            trades={filteredTrades}
-            onEdit={
-              usingDemo
-                ? undefined
-                : (trade) => {
-                    setEditTrade(trade);
-                    setShowForm(true);
-                  }
-            }
-          />
-        </div>
-        <div className="space-y-6">
-          <div id="tour-streak"><StreakWidget /></div>
-        </div>
-      </div>}
-
-      {/* Calendar Heatmap — always visible */}
-      <ExpandableChart
-        id="tour-heatmap-mini"
-        title="Calendar"
-        capabilities={{ zoom: false, chartSwitch: false, dataView: true, saveImage: true, defaultVariant: "bar" }}
-        data={dailyPnl}
-        columns={[
-          { key: "date", label: "Date" },
-          { key: "pnl", label: "P&L", format: (v) => `$${Number(v).toFixed(2)}` },
-          { key: "tradeCount", label: "Trades" },
-        ]}
-      >
-        {({ isExpanded }) => (
-          <CalendarHeatmap dailyPnl={dailyPnl} showCard={!isExpanded} />
-        )}
-      </ExpandableChart>
-
-      {/* News Widget */}
-      {viewMode !== "beginner" && <NewsWidget asset="crypto" />}
+          <NewsWidget asset="crypto" />
+        </>
+      )}
 
       {showForm && (
         <TradeForm
