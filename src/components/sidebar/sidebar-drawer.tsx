@@ -55,7 +55,7 @@ export function SidebarDrawer({
   const category: RailCategory = foundCategory;
 
   const isBeginner = viewMode === "beginner";
-  const isSimple = viewMode === "simple";
+  const isAdvanced = viewMode === "advanced";
   const isSectionOpen = (key: string) => sectionState[key] ?? true;
 
   const hasSections = category.sections && category.sections.length > 0;
@@ -155,11 +155,11 @@ export function SidebarDrawer({
   /* ── Render a section ────────────────────────── */
   function renderSection(section: NavSection) {
     if (isBeginner && !section.visibleInBeginner) return null;
-    if (isSimple && !section.visibleInSimple) return null;
+    if (isAdvanced && !section.visibleInSimple) return null;
 
     const items = isBeginner && section.beginnerItems
       ? getResolvedItems(section.beginnerItems)
-      : isSimple && section.simpleItems
+      : isAdvanced && section.simpleItems
       ? getResolvedItems(section.simpleItems)
       : getResolvedItems(section.items);
 
@@ -188,7 +188,7 @@ export function SidebarDrawer({
             {items.map(item => (
               <NavLink key={item.href} item={item} />
             ))}
-            {!isSimple && section.subSections?.map(sub => {
+            {!isAdvanced && section.subSections?.map(sub => {
               const subItems = getResolvedItems(sub.items);
               if (subItems.length === 0) return null;
               const subOpen = isSectionOpen(sub.key);
@@ -214,7 +214,7 @@ export function SidebarDrawer({
   /* ── "Other" section for simple mode ───────────── */
   function renderOtherSection() {
     if (isBeginner) return null;
-    if (!isSimple || !category.sections) return null;
+    if (!isAdvanced || !category.sections) return null;
 
     const otherItems: NavItem[] = [];
     for (const section of category.sections) {
@@ -340,7 +340,7 @@ export function SidebarDrawer({
         {hasSections && (
           <div className="px-3 pt-2">
             <div id="tour-view-toggle" className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
-              {(["beginner", "simple", "full"] as ViewMode[]).map(mode => (
+              {(["beginner", "advanced", "expert"] as ViewMode[]).map(mode => (
                 <button
                   key={mode}
                   onClick={() => setViewModeTo(mode)}
@@ -350,7 +350,7 @@ export function SidebarDrawer({
                       : "text-muted hover:text-foreground border border-transparent"
                   }`}
                 >
-                  {mode === "beginner" ? t("sidebar.focus") : mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
+                  {mode === "beginner" ? t("sidebar.beginner") : mode === "advanced" ? t("sidebar.advanced") : t("sidebar.expert")}
                 </button>
               ))}
             </div>

@@ -16,10 +16,10 @@ interface SidebarRailProps {
   onCloseDrawer: () => void;
   onLogout: () => void;
   isOwner: boolean;
-  viewMode?: "beginner" | "simple" | "full";
+  viewMode?: "beginner" | "advanced" | "expert";
 }
 
-export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCloseDrawer, onLogout, isOwner, viewMode = "simple" }: SidebarRailProps) {
+export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCloseDrawer, onLogout, isOwner, viewMode = "advanced" }: SidebarRailProps) {
   const pathname = usePathname();
   const currentCategory = getCategoryForPath(pathname);
   const { t } = useI18n();
@@ -44,7 +44,11 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
 
       {/* Category icons */}
       <div className="flex-1 flex flex-col items-center gap-1 py-3">
-        {RAIL_CATEGORIES.filter(cat => viewMode !== "beginner" || cat.showInBeginner !== false).map(cat => {
+        {RAIL_CATEGORIES.filter(cat => {
+          if (viewMode === "beginner") return cat.showInBeginner !== false;
+          if (viewMode === "advanced") return cat.showInAdvanced !== false;
+          return true; // expert sees everything
+        }).map(cat => {
           const isHighlighted = activeCategory === cat.key || (!activeCategory && currentCategory === cat.key);
 
           return (

@@ -109,7 +109,7 @@ function WinRateCard({ stats }: { stats: DashboardStats }) {
   );
 }
 
-export function StatsCards({ stats, advancedStats, viewMode = "simple" }: {
+export function StatsCards({ stats, advancedStats, viewMode = "advanced" }: {
   stats: DashboardStats;
   advancedStats?: AdvancedStats | null;
   viewMode?: ViewMode;

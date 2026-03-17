@@ -236,9 +236,9 @@ const en = {
     whatIf: "What If",
 
     // Mode toggle
-    focus: "Focus",
-    simple: "Simple",
-    full: "Advanced",
+    beginner: "Beginner",
+    advanced: "Advanced",
+    expert: "Expert",
     psychology: "Psychology",
     overview: "Overview",
 
