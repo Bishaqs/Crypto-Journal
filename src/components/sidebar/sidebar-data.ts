@@ -159,14 +159,13 @@ const dateViewItems: NavItem[] = [
 
 const intelligenceItems: NavItem[] = [
   { href: "/dashboard/insights", label: "Insights", icon: Brain, tourId: "tour-insights" },
-  { href: "/dashboard/psychology", label: "Psychology", icon: Brain },
   { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles, tourId: "tour-ai" },
   { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
   { href: "/dashboard/recaps", label: "Monthly Recap", icon: CalendarCheck },
 ];
 
 const intelligenceBeginnerItems: NavItem[] = [
-  { href: "/dashboard/psychology", label: "Psychology", icon: Brain },
+  { href: "/dashboard/insights", label: "Insights", icon: Brain, tourId: "tour-insights" },
   { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles, tourId: "tour-ai" },
 ];
 
