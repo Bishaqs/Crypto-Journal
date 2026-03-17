@@ -13,16 +13,15 @@ import {
   AlertCircle,
   Loader2,
   MessageSquare,
-  Trash2,
   Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-
-type Message = {
-  role: "user" | "assistant" | "error";
-  content: string;
-};
+import { ChatBubble, type Message } from "@/components/ai/chat-bubble";
+import { ConversationList, type Conversation } from "@/components/ai/conversation-list";
+import { MemoryPanel, type CoachMemory } from "@/components/ai/memory-panel";
 
 const SUGGESTED_QUESTIONS = [
   "What patterns do you see in my losing trades?",
@@ -146,10 +145,21 @@ export default function AIPage() {
   const [customInstructions, setCustomInstructions] = useState<string>("");
   const [aiConsent, setAiConsent] = useState<boolean | null>(null);
   const [consentLoading, setConsentLoading] = useState(true);
+
+  // Conversation state
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Memory state
+  const [memories, setMemories] = useState<CoachMemory[]>([]);
+  const [showMemoryPanel, setShowMemoryPanel] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevConversationIdRef = useRef<string | null>(null);
   const supabase = createClient();
 
-  // Check AI consent status from database
+  // ─── Consent ──────────────────────────────────────────────────────────────
   useEffect(() => {
     async function checkConsent() {
       try {
@@ -163,7 +173,6 @@ export default function AIPage() {
           setAiConsent(aiConsent?.granted ?? null);
         }
       } catch {
-        // If consent API fails, fall back to localStorage for backwards compat
         const stored = localStorage.getItem("stargate-privacy-ai-consent");
         if (stored === "true") setAiConsent(true);
       } finally {
@@ -179,18 +188,14 @@ export default function AIPage() {
       await fetch("/api/consent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          consent_type: "ai_data_processing",
-          granted: true,
-        }),
+        body: JSON.stringify({ consent_type: "ai_data_processing", granted: true }),
       });
     } catch {
-      // Consent saved locally as fallback
       localStorage.setItem("stargate-privacy-ai-consent", "true");
     }
   }
 
-  // Load AI provider preference and custom instructions from localStorage
+  // ─── Load AI settings from localStorage ───────────────────────────────────
   useEffect(() => {
     const savedProvider = localStorage.getItem("stargate-ai-provider");
     const savedModel = localStorage.getItem("stargate-ai-model");
@@ -200,8 +205,13 @@ export default function AIPage() {
     if (savedModel) setAiModel(savedModel);
     if (savedApiKey) setAiApiKey(savedApiKey);
     if (savedInstructions) setCustomInstructions(savedInstructions);
+
+    // Restore sidebar preference
+    const sidebarPref = localStorage.getItem("stargate-ai-sidebar");
+    if (sidebarPref === "closed") setSidebarOpen(false);
   }, []);
 
+  // ─── Load trade data ──────────────────────────────────────────────────────
   const TRADE_TABLE_MAP: Record<string, string> = {
     crypto: "trades",
     stocks: "stock_trades",
@@ -232,10 +242,7 @@ export default function AIPage() {
       .select("*")
       .order("note_date", { ascending: false })
       .order("created_at", { ascending: false });
-    if (error) {
-      console.error("[AI] fetchNotes error:", error.message);
-      return;
-    }
+    if (error) return;
     setNotes((data as JournalNote[]) ?? []);
   }, [supabase]);
 
@@ -247,18 +254,227 @@ export default function AIPage() {
         setPlaybooks(data.playbooks ?? []);
       }
     } catch {
-      // Playbooks table may not exist yet — silently continue
+      // Playbooks table may not exist yet
     }
   }, []);
 
-  useEffect(() => {
-    Promise.all([fetchTrades(), fetchNotes(), fetchPlaybooks()]).then(() => setLoading(false));
-  }, [fetchTrades, fetchNotes, fetchPlaybooks]);
+  // ─── Load conversations ───────────────────────────────────────────────────
+  const fetchConversations = useCallback(async () => {
+    try {
+      const res = await fetch("/api/ai/conversations?limit=30");
+      if (res.ok) {
+        const { conversations: convs } = await res.json();
+        setConversations(convs ?? []);
+      }
+    } catch {
+      // Table may not exist yet — silently continue
+    }
+  }, []);
 
+  // ─── Load memories ────────────────────────────────────────────────────────
+  const fetchMemories = useCallback(async () => {
+    try {
+      const res = await fetch("/api/ai/memories");
+      if (res.ok) {
+        const { memories: mems } = await res.json();
+        setMemories(mems ?? []);
+      }
+    } catch {
+      // Table may not exist yet
+    }
+  }, []);
+
+  // ─── Initial data load ────────────────────────────────────────────────────
+  useEffect(() => {
+    Promise.all([
+      fetchTrades(),
+      fetchNotes(),
+      fetchPlaybooks(),
+      fetchConversations(),
+      fetchMemories(),
+    ]).then(() => setLoading(false));
+  }, [fetchTrades, fetchNotes, fetchPlaybooks, fetchConversations, fetchMemories]);
+
+  // ─── Auto-scroll ──────────────────────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // ─── Load conversation messages when active conversation changes ──────────
+  useEffect(() => {
+    if (!activeConversationId) return;
+
+    async function loadMessages() {
+      try {
+        const res = await fetch(`/api/ai/conversations/${activeConversationId}`);
+        if (res.ok) {
+          const { messages: msgs } = await res.json();
+          if (msgs && msgs.length > 0) {
+            setMessages(
+              msgs.map((m: { role: string; content: string }) => ({
+                role: m.role as Message["role"],
+                content: m.content,
+              }))
+            );
+          } else {
+            setMessages([]);
+          }
+        }
+      } catch {
+        // If it fails, start with empty messages
+        setMessages([]);
+      }
+    }
+
+    loadMessages();
+  }, [activeConversationId]);
+
+  // ─── Conversation management ──────────────────────────────────────────────
+  async function createNewConversation(): Promise<string | null> {
+    try {
+      const res = await fetch("/api/ai/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        const { conversation } = await res.json();
+        setConversations((prev) => [conversation, ...prev]);
+        return conversation.id;
+      }
+    } catch {
+      // Fall through
+    }
+    return null;
+  }
+
+  async function handleNewChat() {
+    // Trigger memory extraction for the previous conversation if it had enough messages
+    if (activeConversationId && messages.length >= 6) {
+      extractMemories(activeConversationId, messages);
+    }
+
+    const newId = await createNewConversation();
+    if (newId) {
+      setActiveConversationId(newId);
+      setMessages([]);
+      setDemoMode(false);
+    } else {
+      // Fallback: just clear local state
+      setActiveConversationId(null);
+      setMessages([]);
+      setDemoMode(false);
+    }
+  }
+
+  async function handleSelectConversation(id: string) {
+    // Trigger memory extraction for the previous conversation if it had enough messages
+    if (activeConversationId && activeConversationId !== id && messages.length >= 6) {
+      extractMemories(activeConversationId, messages);
+    }
+    setActiveConversationId(id);
+    setDemoMode(false);
+  }
+
+  async function handleDeleteConversation(id: string) {
+    try {
+      await fetch(`/api/ai/conversations/${id}`, { method: "DELETE" });
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeConversationId === id) {
+        setActiveConversationId(null);
+        setMessages([]);
+      }
+    } catch {
+      // Silently fail
+    }
+  }
+
+  async function handleRenameConversation(id: string, title: string) {
+    try {
+      await fetch(`/api/ai/conversations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      setConversations((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, title } : c))
+      );
+    } catch {
+      // Silently fail
+    }
+  }
+
+  // ─── Memory management ────────────────────────────────────────────────────
+  async function handleDeleteMemory(id: string) {
+    try {
+      await fetch(`/api/ai/memories/${id}`, { method: "DELETE" });
+      setMemories((prev) => prev.filter((m) => m.id !== id));
+    } catch {
+      // Silently fail
+    }
+  }
+
+  function extractMemories(conversationId: string, msgs: Message[]) {
+    const chatMsgs = msgs
+      .filter((m) => m.role !== "error")
+      .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+    if (chatMsgs.length < 4) return;
+
+    // Fire and forget
+    fetch("/api/ai/extract-memories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversationId,
+        messages: chatMsgs.slice(-30),
+        provider: aiProvider,
+        model: aiModel,
+        ...(aiApiKey ? { apiKey: aiApiKey } : {}),
+      }),
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          const { memories: newMems } = await res.json();
+          if (newMems && newMems.length > 0) {
+            setMemories((prev) => [...newMems, ...prev]);
+          }
+        }
+      })
+      .catch(() => { /* fire and forget */ });
+  }
+
+  // ─── Save messages after streaming ────────────────────────────────────────
+  async function saveMessages(conversationId: string, userMsg: string, assistantMsg: string) {
+    try {
+      await fetch(`/api/ai/conversations/${conversationId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userMessage: userMsg,
+          assistantMessage: assistantMsg,
+        }),
+      });
+      // Update conversation in the list (move to top, update count)
+      setConversations((prev) => {
+        const updated = prev.map((c) =>
+          c.id === conversationId
+            ? { ...c, message_count: c.message_count + 2, updated_at: new Date().toISOString() }
+            : c
+        );
+        // If this was the first message, update the title
+        const conv = updated.find((c) => c.id === conversationId);
+        if (conv && conv.message_count === 2 && conv.title === "New Chat") {
+          conv.title = userMsg.slice(0, 60);
+        }
+        return updated.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+      });
+    } catch {
+      // Non-critical — messages are already displayed
+    }
+  }
+
+  // ─── Send message ─────────────────────────────────────────────────────────
   async function sendMessage(text?: string) {
     const msg = text ?? input.trim();
     if (!msg || sending) return;
@@ -267,7 +483,16 @@ export default function AIPage() {
     setMessages((prev) => [...prev, { role: "user", content: msg }]);
     setSending(true);
 
-    // Build conversation history from existing messages (excluding the message we just added)
+    // Ensure we have a conversation
+    let convId = activeConversationId;
+    if (!convId) {
+      convId = await createNewConversation();
+      if (convId) {
+        setActiveConversationId(convId);
+      }
+    }
+
+    // Build conversation history (excluding the message we just added)
     const history = messages
       .filter((m) => m.role !== "error")
       .slice(-24)
@@ -287,6 +512,7 @@ export default function AIPage() {
           provider: aiProvider,
           model: aiModel,
           ...(aiApiKey ? { apiKey: aiApiKey } : {}),
+          ...(convId ? { conversationId: convId } : {}),
         }),
       });
 
@@ -296,20 +522,14 @@ export default function AIPage() {
           setDemoMode(true);
           const demoReply = DEMO_RESPONSES[msg] ?? DEMO_FALLBACK;
           await new Promise((r) => setTimeout(r, 800));
-          setMessages((prev) => [
-            ...prev,
-            { role: "assistant", content: demoReply },
-          ]);
+          setMessages((prev) => [...prev, { role: "assistant", content: demoReply }]);
         } else {
-          setMessages((prev) => [
-            ...prev,
-            { role: "error", content: data.error || "Something went wrong." },
-          ]);
+          setMessages((prev) => [...prev, { role: "error", content: data.error || "Something went wrong." }]);
         }
         return;
       }
 
-      // Stream response — append an empty assistant message, then fill it token by token
+      // Stream response
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
       const reader = res.body?.getReader();
@@ -352,24 +572,31 @@ export default function AIPage() {
           }
         }
       }
+
+      // Save messages to database after streaming completes
+      if (convId && accumulated) {
+        saveMessages(convId, msg, accumulated);
+      }
     } catch {
       const demoReply = DEMO_RESPONSES[msg] ?? DEMO_FALLBACK;
       setDemoMode(true);
       await new Promise((r) => setTimeout(r, 800));
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: demoReply },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: demoReply }]);
     } finally {
       setSending(false);
     }
   }
 
-  function clearChat() {
-    setMessages([]);
-    setDemoMode(false);
+  // ─── Toggle sidebar ───────────────────────────────────────────────────────
+  function toggleSidebar() {
+    setSidebarOpen((prev) => {
+      const next = !prev;
+      localStorage.setItem("stargate-ai-sidebar", next ? "open" : "closed");
+      return next;
+    });
   }
 
+  // ─── Loading state ────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -378,7 +605,7 @@ export default function AIPage() {
     );
   }
 
-  // AI consent gate — show consent dialog before first use (GDPR Art. 6(1)(a))
+  // ─── Consent gate (GDPR Art. 6(1)(a)) ────────────────────────────────────
   if (!consentLoading && aiConsent !== true) {
     return (
       <div className="max-w-xl mx-auto flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center px-6">
@@ -417,178 +644,184 @@ export default function AIPage() {
     );
   }
 
+  // ─── Main UI ──────────────────────────────────────────────────────────────
   return (
     <div className="max-w-[1600px] mx-auto flex flex-col h-[calc(100vh-48px)]">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
-        <div>
-          <h1 id="tour-ai-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-            <Brain size={24} className="text-accent" />
-            AI Trading Coach
-            <InfoTooltip text="AI-powered trade analysis and personalized coaching based on your performance data" articleId="an-insights" />
-          </h1>
-          <p className="text-sm text-muted mt-0.5">
-            Ask questions about your trading patterns, psychology, and performance
-          </p>
-          {demoMode && (
-            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500">
-              <Sparkles size={10} />
-              Demo Mode — sample responses
-            </span>
-          )}
+      <div className="flex items-center justify-between mb-3 shrink-0">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+            title={sidebarOpen ? "Hide conversations" : "Show conversations"}
+          >
+            {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+          </button>
+          <div>
+            <h1 id="tour-ai-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+              <Brain size={24} className="text-accent" />
+              AI Trading Coach
+              <InfoTooltip text="AI-powered trade analysis and personalized coaching based on your performance data" articleId="an-insights" />
+            </h1>
+            <p className="text-sm text-muted mt-0.5">
+              Ask about your patterns, psychology, and performance
+            </p>
+            {demoMode && (
+              <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500">
+                <Sparkles size={10} />
+                Demo Mode — sample responses
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowMemoryPanel(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+            title="Nova's memories"
+          >
+            <Brain size={14} />
+            Memories
+            {memories.length > 0 && (
+              <span className="text-[9px] bg-accent/10 text-accent px-1.5 py-0.5 rounded-full">{memories.length}</span>
+            )}
+          </button>
           <Link
             href="/dashboard/settings?tab=ai"
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
-            title="AI Coach settings — change provider or add your own API key"
+            title="AI Coach settings"
           >
             <Settings size={14} />
             Settings
           </Link>
           {messages.length > 0 && (
             <button
-              onClick={clearChat}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+              onClick={handleNewChat}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-accent hover:bg-accent/10 transition-all"
             >
-              <Trash2 size={14} />
-              Clear
+              <MessageSquare size={14} />
+              New Chat
             </button>
           )}
         </div>
       </div>
 
-      {/* Chat area */}
-      <div
-        className="flex-1 overflow-y-auto rounded-2xl border border-border bg-surface p-4 space-y-4 mb-4"
-        style={{ boxShadow: "var(--shadow-card)" }}
-      >
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
-              <Sparkles size={28} className="text-accent" />
-            </div>
-            <h2 className="text-lg font-bold text-foreground mb-2">
-              Your AI Trading Coach
-            </h2>
-            <p className="text-sm text-muted max-w-md mb-8">
-              Ask about your patterns, psychology, risk management,
-              or anything about your trading data. The AI has access to your full trade history
-              across all asset classes, journal notes, emotions, process scores, and more.
-            </p>
-
-            {/* Suggested questions */}
-            <div id="tour-ai-suggestions" className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
-              {SUGGESTED_QUESTIONS.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => sendMessage(q)}
-                  disabled={sending}
-                  className="text-left text-sm px-4 py-3 rounded-xl border border-border hover:border-accent/30 hover:bg-accent/5 text-muted hover:text-foreground transition-all"
-                >
-                  <MessageSquare
-                    size={12}
-                    className="inline mr-2 text-accent/60"
-                  />
-                  {q}
-                </button>
-              ))}
-            </div>
+      {/* Main content: sidebar + chat */}
+      <div className="flex flex-1 gap-3 min-h-0">
+        {/* Conversation sidebar */}
+        {sidebarOpen && (
+          <div className="w-[260px] shrink-0 rounded-2xl border border-border bg-surface p-3 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+            <ConversationList
+              conversations={conversations}
+              activeId={activeConversationId}
+              onSelect={handleSelectConversation}
+              onNewChat={handleNewChat}
+              onDelete={handleDeleteConversation}
+              onRename={handleRenameConversation}
+            />
           </div>
-        ) : (
-          <>
-            {messages.map((msg, i) => (
-              <ChatBubble key={i} message={msg} />
-            ))}
-            {sending && (
-              <div className="flex items-center gap-2 text-sm text-muted px-4 py-3">
-                <Loader2 size={14} className="animate-spin text-accent" />
-                Analyzing your trading data...
-              </div>
-            )}
-            {demoMode && !sending && messages.length > 0 && (
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-                <p className="text-xs text-amber-500 font-medium flex items-center gap-1.5">
-                  <Sparkles size={12} />
-                  Demo mode — these are sample responses to preview the feature.
-                  Contact the administrator to enable live AI analysis.
-                </p>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </>
         )}
-      </div>
 
-      {/* Input bar */}
-      <div className="shrink-0 pb-2">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            placeholder="Ask about your trading patterns, psychology, or performance..."
-            disabled={sending}
-            className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all disabled:opacity-50"
-          />
-          <button
-            onClick={() => sendMessage()}
-            disabled={sending || !input.trim()}
-            className="px-4 py-3 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(0,180,216,0.3)] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+        {/* Chat area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <div
+            className="flex-1 overflow-y-auto rounded-2xl border border-border bg-surface p-4 space-y-4 mb-3"
+            style={{ boxShadow: "var(--shadow-card)" }}
           >
-            <Send size={18} />
-          </button>
-        </div>
-        <p className="text-[10px] text-muted/40 mt-1.5 text-center">
-          AI analyzes your full trade history and journal notes across all asset classes. Responses are not financial advice.
-        </p>
-      </div>
-    </div>
-  );
-}
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+                  <Sparkles size={28} className="text-accent" />
+                </div>
+                <h2 className="text-lg font-bold text-foreground mb-2">
+                  Your AI Trading Coach
+                </h2>
+                <p className="text-sm text-muted max-w-md mb-8">
+                  Ask about your patterns, psychology, risk management,
+                  or anything about your trading data. The AI has access to your full trade history
+                  across all asset classes, journal notes, emotions, process scores, and more.
+                </p>
 
-function ChatBubble({ message }: { message: Message }) {
-  if (message.role === "user") {
-    return (
-      <div className="flex justify-end">
-        <div className="bg-accent/10 border border-accent/20 text-foreground rounded-2xl rounded-tr-md px-4 py-3 max-w-[75%] text-sm">
-          {message.content}
+                {/* Suggested questions */}
+                <div id="tour-ai-suggestions" className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
+                  {SUGGESTED_QUESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => sendMessage(q)}
+                      disabled={sending}
+                      className="text-left text-sm px-4 py-3 rounded-xl border border-border hover:border-accent/30 hover:bg-accent/5 text-muted hover:text-foreground transition-all"
+                    >
+                      <MessageSquare size={12} className="inline mr-2 text-accent/60" />
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                {messages.map((msg, i) => (
+                  <ChatBubble key={i} message={msg} />
+                ))}
+                {sending && (
+                  <div className="flex items-center gap-2 text-sm text-muted px-4 py-3">
+                    <Loader2 size={14} className="animate-spin text-accent" />
+                    Analyzing your trading data...
+                  </div>
+                )}
+                {demoMode && !sending && messages.length > 0 && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+                    <p className="text-xs text-amber-500 font-medium flex items-center gap-1.5">
+                      <Sparkles size={12} />
+                      Demo mode — these are sample responses to preview the feature.
+                      Contact the administrator to enable live AI analysis.
+                    </p>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </>
+            )}
+          </div>
+
+          {/* Input bar */}
+          <div className="shrink-0 pb-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder="Ask about your trading patterns, psychology, or performance..."
+                disabled={sending}
+                className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all disabled:opacity-50"
+              />
+              <button
+                onClick={() => sendMessage()}
+                disabled={sending || !input.trim()}
+                className="px-4 py-3 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(0,180,216,0.3)] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Send size={18} />
+              </button>
+            </div>
+            <p className="text-[10px] text-muted/40 mt-1.5 text-center">
+              AI analyzes your full trade history and journal notes across all asset classes. Responses are not financial advice.
+            </p>
+          </div>
         </div>
       </div>
-    );
-  }
 
-  if (message.role === "error") {
-    return (
-      <div className="flex justify-start">
-        <div className="bg-loss/10 border border-loss/20 text-loss rounded-2xl rounded-tl-md px-4 py-3 max-w-[75%] text-sm flex items-start gap-2">
-          <AlertCircle size={16} className="shrink-0 mt-0.5" />
-          <span>{message.content}</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex justify-start">
-      <div className="bg-background border border-border rounded-2xl rounded-tl-md px-4 py-3 max-w-[80%] text-sm text-foreground leading-relaxed">
-        <div className="flex items-center gap-2 mb-2">
-          <Brain size={14} className="text-accent" />
-          <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
-            Nova
-          </span>
-        </div>
-        <div
-          className="prose prose-sm prose-invert max-w-none [&_strong]:text-accent [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-2 [&_ul]:space-y-1 [&_li]:text-muted"
-          dangerouslySetInnerHTML={{ __html: formatAndSanitizeMarkdown(message.content) }}
+      {/* Memory panel modal */}
+      {showMemoryPanel && (
+        <MemoryPanel
+          memories={memories}
+          onDelete={handleDeleteMemory}
+          onClose={() => setShowMemoryPanel(false)}
         />
-      </div>
+      )}
     </div>
   );
 }

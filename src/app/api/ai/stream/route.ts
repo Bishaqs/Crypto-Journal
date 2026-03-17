@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { message, trades, notes, playbooks, context, history, customInstructions, provider: providerId, model: modelId, apiKey } = parsed.data;
+  const { message, trades, notes, playbooks, context, history, customInstructions, provider: providerId, model: modelId, apiKey, conversationId } = parsed.data;
 
   const provider = getProvider(providerId, apiKey);
   if (!provider.isConfigured(apiKey)) {
@@ -50,32 +50,97 @@ export async function POST(req: NextRequest) {
     ? `\n\n## Attached Images (${imageData.length})\n${imageData.map((img, i) => `- Image ${i + 1}: from journal entry "${img.noteTitle}" (${img.noteDate})`).join("\n")}\n`
     : "";
 
-  // Build system prompt with optional custom instructions
-  const systemPrompt = customInstructions
-    ? `${AI_CHAT_SYSTEM_PROMPT}\n\n## Trader's Personal Coaching Preferences\nThe trader has provided these instructions for how you should coach them. Follow them:\n${customInstructions}`
-    : AI_CHAT_SYSTEM_PROMPT;
+  // Load coach memories for this user
+  let memoryContext = "";
+  try {
+    const { data: memories } = await supabase
+      .from("ai_memories")
+      .select("id, content, category, created_at")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    if (memories && memories.length > 0) {
+      memoryContext = buildMemoryContext(memories);
+    }
+  } catch {
+    // Non-critical — proceed without memories
+  }
+
+  // Load server-side conversation history when conversationId is provided
+  let serverHistory: { role: "user" | "assistant"; content: string }[] = [];
+  let conversationSummary = "";
+  if (conversationId) {
+    try {
+      // Load conversation metadata for summary
+      const { data: conv } = await supabase
+        .from("ai_conversations")
+        .select("summary, summary_through_index")
+        .eq("id", conversationId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (conv?.summary) {
+        conversationSummary = `\n\n## Conversation Summary (earlier messages)\n${conv.summary}`;
+      }
+
+      // Load recent messages — last 24 messages (or messages after summary point)
+      const startIndex = conv?.summary_through_index != null
+        ? Math.max(0, conv.summary_through_index - 2)
+        : 0;
+
+      const { data: msgs } = await supabase
+        .from("ai_messages")
+        .select("role, content, message_index")
+        .eq("conversation_id", conversationId)
+        .eq("user_id", user.id)
+        .gte("message_index", startIndex)
+        .order("message_index", { ascending: true })
+        .limit(24);
+
+      if (msgs && msgs.length > 0) {
+        serverHistory = msgs.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        }));
+      }
+    } catch {
+      // Non-critical — fall back to client-sent history
+    }
+  }
+
+  // Use server history if available, otherwise fall back to client-sent history
+  const effectiveHistory = serverHistory.length > 0 ? serverHistory : (history || []);
+
+  // Build system prompt with optional custom instructions and memories
+  let systemPrompt = AI_CHAT_SYSTEM_PROMPT;
+  if (memoryContext) {
+    systemPrompt += memoryContext;
+  }
+  if (conversationSummary) {
+    systemPrompt += conversationSummary;
+  }
+  if (customInstructions) {
+    systemPrompt += `\n\n## Trader's Personal Coaching Preferences\nThe trader has provided these instructions for how you should coach them. Follow them:\n${customInstructions}`;
+  }
 
   // Build conversation messages array for multi-turn context
   const contextPrefix = `Here is my trading data:\n\n${tradeContext}${imageContext}\n\nMy question: `;
 
   let chatMessages: { role: "user" | "assistant"; content: string }[] | undefined;
-  if (history && history.length > 0) {
+  if (effectiveHistory.length > 0) {
     // Multi-turn: inject trade context into the first user message, pass rest as-is
     chatMessages = [];
-    // First message in history is the first user question — prepend trade context
-    const firstHistoryMsg = history[0];
+    const firstHistoryMsg = effectiveHistory[0];
     if (firstHistoryMsg.role === "user") {
       chatMessages.push({ role: "user", content: `${contextPrefix}${firstHistoryMsg.content}` });
     } else {
-      // Edge case: first message isn't user (shouldn't happen, but be safe)
       chatMessages.push({ role: "user", content: `${contextPrefix}(context loaded)` });
       chatMessages.push(firstHistoryMsg);
     }
-    // Remaining history messages
-    for (let i = 1; i < history.length; i++) {
-      chatMessages.push(history[i]);
+    for (let i = 1; i < effectiveHistory.length; i++) {
+      chatMessages.push(effectiveHistory[i]);
     }
-    // Current message as the final user message
     chatMessages.push({ role: "user", content: message });
   }
 
