@@ -58,5 +58,13 @@ export async function POST(
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ saved: true, messageIndex: baseIndex });
+  // Return updated conversation metadata (trigger updates message_count/title/updated_at)
+  const { data: updated } = await supabase
+    .from("ai_conversations")
+    .select("message_count, title, updated_at")
+    .eq("id", conversationId)
+    .eq("user_id", user.id)
+    .single();
+
+  return NextResponse.json({ saved: true, messageIndex: baseIndex, conversation: updated });
 }

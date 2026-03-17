@@ -633,7 +633,7 @@ ${overtradingDays.length > 0 ? `\n## Overtrading Alerts\n${overtradingDays.lengt
     const sortedNotes = [...notes].sort((a, b) => {
       const dateA = String(a.note_date || a.created_at || "");
       const dateB = String(b.note_date || b.created_at || "");
-      return dateB.localeCompare(dateA);
+      return new Date(dateB || 0).getTime() - new Date(dateA || 0).getTime();
     });
 
     const displayNotes = sortedNotes.slice(0, recentNoteLimit);

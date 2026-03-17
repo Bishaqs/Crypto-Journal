@@ -447,7 +447,7 @@ export default function AIPage() {
   // ─── Save messages after streaming ────────────────────────────────────────
   async function saveMessages(conversationId: string, userMsg: string, assistantMsg: string) {
     try {
-      await fetch(`/api/ai/conversations/${conversationId}/messages`, {
+      const res = await fetch(`/api/ai/conversations/${conversationId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -455,20 +455,17 @@ export default function AIPage() {
           assistantMessage: assistantMsg,
         }),
       });
-      // Update conversation in the list (move to top, update count)
-      setConversations((prev) => {
-        const updated = prev.map((c) =>
-          c.id === conversationId
-            ? { ...c, message_count: c.message_count + 2, updated_at: new Date().toISOString() }
-            : c
+      // Update conversation in the list using server-returned metadata
+      if (res.ok) {
+        const { conversation: serverConv } = await res.json();
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === conversationId
+              ? { ...c, ...(serverConv || {}), message_count: serverConv?.message_count ?? c.message_count + 2 }
+              : c
+          ).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
         );
-        // If this was the first message, update the title
-        const conv = updated.find((c) => c.id === conversationId);
-        if (conv && conv.message_count === 2 && conv.title === "New Chat") {
-          conv.title = userMsg.slice(0, 60);
-        }
-        return updated.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-      });
+      }
     } catch {
       // Non-critical — messages are already displayed
     }
