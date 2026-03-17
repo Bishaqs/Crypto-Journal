@@ -208,7 +208,7 @@ const en = {
 
     // Intelligence items
     insights: "Insights",
-    aiCoach: "AI Coach",
+    aiCoach: "Nova",
     weeklyReports: "Weekly Reports",
     monthlyRecap: "Monthly Recap",
 
@@ -366,7 +366,7 @@ const en = {
       step8Content: "50+ metrics. P&L by hour, by setup, by pair. Stop guessing and start knowing where your edge is.",
       step9Title: "Insights",
       step9Content: "How do your emotions affect your P&L? Which moods lead to your best trades? This page has the answers.",
-      step10Title: "AI Coach",
+      step10Title: "Nova",
       step10Content: "Ask it anything about your trading. For a personal AI coach, connect your own API key in Settings — your data stays secure and private.",
       step11Title: "Simple & Advanced Mode",
       step11Content: "You're in Simple mode with 6 core tools. Switch to Advanced for prop firm tracking, Monte Carlo sims, heat maps, and more.",

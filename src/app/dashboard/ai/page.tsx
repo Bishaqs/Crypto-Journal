@@ -114,7 +114,7 @@ Based on your trading data, here are some observations:
 - Set a daily max loss and respect it
 - Journal your emotional state honestly — the patterns will keep improving
 
-*AI Coach is currently in demo mode. Contact your administrator to enable live analysis.*`;
+*Nova is currently in demo mode. Contact your administrator to enable live analysis.*`;
 
 type PlaybookEntry = {
   id: string;
@@ -611,10 +611,10 @@ export default function AIPage() {
     return (
       <div className="max-w-xl mx-auto flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center px-6">
         <Brain size={48} className="text-accent mb-6" />
-        <h2 className="text-xl font-bold text-foreground mb-3">AI Coach Data Processing Consent</h2>
+        <h2 className="text-xl font-bold text-foreground mb-3">Nova Data Processing Consent</h2>
         <div className="text-sm text-muted leading-relaxed space-y-3 mb-8">
           <p>
-            The AI Coach analyzes your trade data to provide personalized behavioral coaching.
+            Nova analyzes your trade data to provide personalized behavioral coaching.
             To do this, your trade history, journal entries, and playbook rules are sent to
             a third-party AI provider (Anthropic, OpenAI, or Google) for processing.
           </p>
@@ -638,7 +638,7 @@ export default function AIPage() {
             onClick={grantAiConsent}
             className="px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all"
           >
-            I consent — Start AI Coach
+            I consent — Start Nova
           </button>
         </div>
       </div>
@@ -661,8 +661,8 @@ export default function AIPage() {
           <div>
             <h1 id="tour-ai-header" className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
               <Brain size={24} className="text-accent" />
-              AI Trading Coach
-              <InfoTooltip text="AI-powered trade analysis and personalized coaching based on your performance data" articleId="an-insights" />
+              Nova
+              <InfoTooltip text="Your personal trading coach — powered by deep psychology and your actual performance data" articleId="an-insights" />
             </h1>
             <p className="text-sm text-muted mt-0.5">
               Ask about your patterns, psychology, and performance
@@ -690,7 +690,7 @@ export default function AIPage() {
           <Link
             href="/dashboard/settings?tab=ai"
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
-            title="AI Coach settings"
+            title="Nova settings"
           >
             <Settings size={14} />
             Settings
@@ -735,7 +735,7 @@ export default function AIPage() {
                   <Sparkles size={28} className="text-accent" />
                 </div>
                 <h2 className="text-lg font-bold text-foreground mb-2">
-                  Your AI Trading Coach
+                  Nova — Your Trading Coach
                 </h2>
                 <p className="text-sm text-muted max-w-md mb-8">
                   Ask about your patterns, psychology, risk management,

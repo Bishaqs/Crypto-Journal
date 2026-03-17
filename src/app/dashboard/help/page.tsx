@@ -22,7 +22,7 @@ type HelpMessage = {
 const SUGGESTED_QUESTIONS = [
   "How do I log my first trade?",
   "What is the process score?",
-  "How does the AI Trading Coach work?",
+  "How does Nova work?",
   "What is expectancy and why does it matter?",
   "How do I import trades from my exchange?",
   "Can I use Stargate on my phone?",

@@ -159,14 +159,14 @@ const dateViewItems: NavItem[] = [
 
 const intelligenceItems: NavItem[] = [
   { href: "/dashboard/insights", label: "Insights", icon: Brain, tourId: "tour-insights" },
-  { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles, tourId: "tour-ai" },
+  { href: "/dashboard/ai", label: "Nova", icon: Sparkles, tourId: "tour-ai" },
   { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
   { href: "/dashboard/recaps", label: "Monthly Recap", icon: CalendarCheck },
 ];
 
 const intelligenceBeginnerItems: NavItem[] = [
   { href: "/dashboard/insights", label: "Insights", icon: Brain, tourId: "tour-insights" },
-  { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles, tourId: "tour-ai" },
+  { href: "/dashboard/ai", label: "Nova", icon: Sparkles, tourId: "tour-ai" },
 ];
 
 const marketToolsItemsFull: NavItem[] = [
@@ -354,7 +354,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Tag Groups Statistics": "sidebar.tagGroupsStatistics",
   "Open Trades Summary": "sidebar.openTradesSummary",
   "Day Grouped": "sidebar.dayGrouped", "Calendar Grouped": "sidebar.calendarGrouped",
-  Overview: "sidebar.overview", Insights: "sidebar.insights", Psychology: "sidebar.psychology", "AI Coach": "sidebar.aiCoach",
+  Overview: "sidebar.overview", Insights: "sidebar.insights", Psychology: "sidebar.psychology", Nova: "sidebar.aiCoach",
   "Weekly Reports": "sidebar.weeklyReports", "Monthly Recap": "sidebar.monthlyRecap", "Market Overview": "sidebar.marketOverview",
   "Market News": "sidebar.marketNews",
   "Token Screener": "sidebar.tokenScreener", "Heat Maps": "sidebar.heatMaps",

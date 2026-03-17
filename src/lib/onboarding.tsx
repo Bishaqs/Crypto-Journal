@@ -81,7 +81,7 @@ export const welcomeTour: Tour = {
       id: "analytics-category",
       icon: "📈",
       title: "Analytics Hub",
-      content: "50+ metrics, emotional insights, and your AI coach. Spot your edge and stop guessing.",
+      content: "50+ metrics, emotional insights, and Nova. Spot your edge and stop guessing.",
       selector: "#tour-drawer-panel",
       layout: "spotlight",
       sidebarCategory: "analytics",
@@ -214,7 +214,7 @@ export const tradesPageTour: Tour = {
       icon: "📝",
       title: "Trade Details",
       content:
-        "Click any trade row to expand it. You'll see your notes, tags, and can edit any field. Tag emotions honestly — this data powers your Insights and AI Coach.",
+        "Click any trade row to expand it. You'll see your notes, tags, and can edit any field. Tag emotions honestly — this data powers your Insights and Nova.",
       selector: "#trades-table",
       side: "top",
       viewportID: "dashboard-viewport",
