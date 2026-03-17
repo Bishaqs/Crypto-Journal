@@ -43,8 +43,13 @@ export async function POST(req: NextRequest) {
   }
 
   const model = resolveModel(provider.id, modelId);
-  const tradeContext = buildTradeContext(trades, context, notes) + buildPlaybookContext(playbooks);
-  const imageData = notes.length > 0 ? extractImagesFromNotes(notes) : [];
+
+  // Skip expensive context building for follow-up messages (no trades sent)
+  const hasTradeData = trades.length > 0;
+  const tradeContext = hasTradeData
+    ? buildTradeContext(trades, context, notes) + buildPlaybookContext(playbooks)
+    : "";
+  const imageData = hasTradeData && notes.length > 0 ? extractImagesFromNotes(notes) : [];
   const images = imageData.map((i) => i.url);
   const imageContext = imageData.length > 0
     ? `\n\n## Attached Images (${imageData.length})\n${imageData.map((img, i) => `- Image ${i + 1}: from journal entry "${img.noteTitle}" (${img.noteDate})`).join("\n")}\n`
@@ -125,7 +130,9 @@ export async function POST(req: NextRequest) {
   }
 
   // Build conversation messages array for multi-turn context
-  const contextPrefix = `Here is my trading data:\n\n${tradeContext}${imageContext}\n\nMy question: `;
+  const contextPrefix = hasTradeData
+    ? `Here is my trading data:\n\n${tradeContext}${imageContext}\n\nMy question: `
+    : "";
 
   let chatMessages: { role: "user" | "assistant"; content: string }[] | undefined;
   if (effectiveHistory.length > 0) {
