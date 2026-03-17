@@ -204,6 +204,7 @@ const ko = {
     simple: "심플",
     full: "고급",
     psychology: "심리학",
+    overview: "개요",
     cryptoLabel: "암호화폐",
     stocksLabel: "주식",
     commoditiesLabel: "원자재",

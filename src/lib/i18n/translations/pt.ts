@@ -204,6 +204,7 @@ const pt = {
     simple: "Simples",
     full: "Avançado",
     psychology: "Psicologia",
+    overview: "Visão geral",
     cryptoLabel: "Crypto",
     stocksLabel: "Ações",
     commoditiesLabel: "Commodities",

@@ -170,10 +170,17 @@ export function Sidebar() {
   }
 
   function handleDirectNav(href: string) {
-    // For Home: resolve based on asset context
-    const resolvedItems = getResolvedCoreItems(assetContext);
-    const homeItem = resolvedItems[0];
-    router.push(homeItem?.href ?? href);
+    if (href === "/dashboard") {
+      // Journal is always /dashboard regardless of asset context
+      router.push("/dashboard");
+    } else if (href === "/dashboard/trades") {
+      // Resolve to asset-specific trades page
+      const resolvedItems = getResolvedCoreItems(assetContext);
+      const tradeItem = resolvedItems[1]; // Trade Log is index 1
+      router.push(tradeItem?.href ?? href);
+    } else {
+      router.push(href);
+    }
     setActiveCategory(null);
   }
 
@@ -202,8 +209,6 @@ export function Sidebar() {
         onCloseDrawer={() => setActiveCategory(null)}
         onLogout={() => setShowLogoutConfirm(true)}
         isOwner={isOwner}
-        assetContext={assetContext}
-        onAssetToggle={handleAssetToggle}
         viewMode={viewMode}
       />
 

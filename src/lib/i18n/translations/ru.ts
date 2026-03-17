@@ -204,6 +204,7 @@ const ru = {
     simple: "Простой",
     full: "Расширенный",
     psychology: "Психология",
+    overview: "Обзор",
     cryptoLabel: "Крипто",
     stocksLabel: "Акции",
     commoditiesLabel: "Сырьё",

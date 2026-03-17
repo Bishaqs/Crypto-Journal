@@ -67,10 +67,18 @@ export function SidebarMobile({
   const isSimple = viewMode === "simple";
   const isSectionOpen = (key: string) => sectionState[key] ?? true;
   const allCoreItems = getResolvedCoreItems(assetContext);
-  // Beginner: only Dashboard, Trade Log, Journal, Import/Export
+  // Mobile core items: Journal (home), Trade Log + key items based on mode
   const resolvedCoreItems = isBeginner
-    ? allCoreItems.filter((_, i) => i === 0 || i === 1 || i === 2 || i === 6)
-    : allCoreItems;
+    ? [
+        { href: "/dashboard", label: "Journal", icon: allCoreItems[2]?.icon ?? allCoreItems[0]?.icon },
+        allCoreItems[1], // Trade Log
+      ].filter(Boolean) as NavItem[]
+    : [
+        { href: "/dashboard", label: "Journal", icon: allCoreItems[2]?.icon ?? allCoreItems[0]?.icon },
+        allCoreItems[1], // Trade Log
+        allCoreItems[3], // Calendar
+        allCoreItems[6], // Import/Export
+      ].filter(Boolean) as NavItem[];
 
   function getResolvedItems(items: NavItem[]): NavItem[] {
     return resolveItems(items, assetContext);

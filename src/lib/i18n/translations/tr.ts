@@ -204,6 +204,7 @@ const tr = {
     simple: "Basit",
     full: "Gelişmiş",
     psychology: "Psikoloji",
+    overview: "Genel Bakış",
     cryptoLabel: "Kripto",
     stocksLabel: "Hisse Senetleri",
     commoditiesLabel: "Emtialar",

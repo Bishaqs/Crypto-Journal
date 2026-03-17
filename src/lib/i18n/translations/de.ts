@@ -204,6 +204,7 @@ const de = {
     simple: "Einfach",
     full: "Erweitert",
     psychology: "Psychologie",
+    overview: "Übersicht",
     cryptoLabel: "Crypto",
     stocksLabel: "Aktien",
     commoditiesLabel: "Rohstoffe",

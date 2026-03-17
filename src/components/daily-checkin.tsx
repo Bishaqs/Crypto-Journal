@@ -45,7 +45,7 @@ const COGNITIVE_LOAD_LEVELS = [
   { value: 5, emoji: "🤯", label: "Overloaded" },
 ];
 
-export function DailyCheckin() {
+export function DailyCheckin({ embedded = false }: { embedded?: boolean } = {}) {
   const { isAdvanced } = usePsychologyTier();
   const [show, setShow] = useState(false);
   const [mood, setMood] = useState<number | null>(null);
@@ -120,7 +120,70 @@ export function DailyCheckin() {
     setShow(false);
   }
 
-  if (!show || alreadyCheckedIn || !isTourComplete("welcome")) return null;
+  if (alreadyCheckedIn && embedded) {
+    return (
+      <div className="glass rounded-2xl border border-win/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">✅</span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Checked in for today</p>
+            <p className="text-xs text-muted">You&apos;re all set. Good trading!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!embedded && (!show || alreadyCheckedIn || !isTourComplete("welcome"))) return null;
+  if (embedded && alreadyCheckedIn) return null;
+
+  if (embedded) {
+    return (
+      <div className="glass rounded-2xl border border-border/50 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Daily Check-In</h2>
+            <p className="text-xs text-muted mt-0.5">30 seconds — set your mindset</p>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-5">
+          {/* Mood */}
+          <div>
+            <label className="block text-xs text-muted mb-2 flex items-center gap-1">How are you feeling?</label>
+            <div className="flex gap-2">
+              {MOOD_LEVELS.map((level) => (
+                <button key={level.value} onClick={() => setMood(level.value)} className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border transition-all ${mood === level.value ? "bg-accent/10 border-accent/30 shadow-sm" : "bg-background border-border hover:border-accent/20"}`}>
+                  <span className="text-xl">{level.emoji}</span>
+                  <span className="text-[10px] text-muted">{level.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Traffic Light */}
+          <div>
+            <label className="block text-xs text-muted mb-2">Should you trade today?</label>
+            <div className="grid grid-cols-3 gap-2">
+              {TRAFFIC_LIGHTS.map((light) => (
+                <button key={light.value} onClick={() => setTrafficLight(light.value)} className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl border transition-all ${trafficLight === light.value ? light.color : "bg-background border-border text-muted hover:border-accent/20"}`}>
+                  <light.icon size={14} />
+                  <span className="text-[11px] font-medium">{light.value === "green" ? "Go" : light.value === "yellow" ? "Caution" : "Sit out"}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Intention (compact) */}
+          <input value={intention} onChange={(e) => setIntention(e.target.value)} placeholder="What would make today great?" className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50" />
+
+          <button onClick={handleSubmit} disabled={!mood || !trafficLight || saving} className="w-full py-3 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+            {saving ? "Saving..." : "Start Trading Day"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
