@@ -10,6 +10,7 @@ import {
   type NavSection,
   type RailCategory,
   RAIL_CATEGORIES,
+  BEGINNER_JOURNAL_ITEMS,
   LABEL_KEY,
   SECTION_KEY,
   isActivePath,
@@ -54,6 +55,7 @@ export function SidebarDrawer({
   // Non-nullable reference for use in nested functions
   const category: RailCategory = foundCategory;
 
+  const isBeginner = viewMode === "beginner";
   const isSimple = viewMode === "simple";
   const isSectionOpen = (key: string) => sectionState[key] ?? true;
 
@@ -65,7 +67,7 @@ export function SidebarDrawer({
   }
 
   function getResolvedCategoryItems(): NavItem[] {
-    const catItems = category.items;
+    const catItems = isBeginner && categoryKey === "journal" ? BEGINNER_JOURNAL_ITEMS : category.items;
     const prefix = assetContext === "crypto" ? "" : `/dashboard/${assetContext}`;
 
     if (categoryKey === "journal") {
@@ -79,6 +81,7 @@ export function SidebarDrawer({
       return catItems;
     }
     if (categoryKey === "analytics") {
+      if (isBeginner) return [];  // Beginner analytics: no core items, just intelligence section
       if (assetContext !== "crypto") {
         return catItems.map(item => {
           if (item.href === "/dashboard/analytics") return { ...item, href: `${prefix}/analytics` };
@@ -158,13 +161,27 @@ export function SidebarDrawer({
 
   /* ── Render a section ────────────────────────── */
   function renderSection(section: NavSection) {
+    if (isBeginner && !section.visibleInBeginner) return null;
     if (isSimple && !section.visibleInSimple) return null;
 
-    const items = isSimple && section.simpleItems
+    const items = isBeginner && section.beginnerItems
+      ? getResolvedItems(section.beginnerItems)
+      : isSimple && section.simpleItems
       ? getResolvedItems(section.simpleItems)
       : getResolvedItems(section.items);
 
     if (items.length === 0 && !section.subSections?.length) return null;
+
+    // Beginner mode: show items directly without section header for cleaner look
+    if (isBeginner) {
+      return (
+        <div key={section.key} className="space-y-0.5">
+          {items.map(item => (
+            <NavLink key={item.href} item={item} />
+          ))}
+        </div>
+      );
+    }
 
     const totalCount = items.length + (section.subSections?.reduce((s, sub) => s + getResolvedItems(sub.items).length, 0) ?? 0);
     const open = isSectionOpen(section.key);
@@ -203,6 +220,7 @@ export function SidebarDrawer({
 
   /* ── "Other" section for simple mode ───────────── */
   function renderOtherSection() {
+    if (isBeginner) return null;
     if (!isSimple || !category.sections) return null;
 
     const otherItems: NavItem[] = [];
@@ -329,7 +347,7 @@ export function SidebarDrawer({
         {hasSections && (
           <div className="px-3 pt-2">
             <div id="tour-view-toggle" className="inline-flex items-center rounded-xl bg-background border border-border/50 p-0.5 w-full">
-              {(["simple", "full"] as ViewMode[]).map(mode => (
+              {(["beginner", "simple", "full"] as ViewMode[]).map(mode => (
                 <button
                   key={mode}
                   onClick={() => setViewModeTo(mode)}
@@ -339,7 +357,7 @@ export function SidebarDrawer({
                       : "text-muted hover:text-foreground border border-transparent"
                   }`}
                 >
-                  {mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
+                  {mode === "beginner" ? t("sidebar.focus") : mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
                 </button>
               ))}
             </div>

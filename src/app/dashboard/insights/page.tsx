@@ -114,7 +114,7 @@ export default function InsightsPage() {
 
   // Emotion-P&L correlation table (advanced mode)
   const emotionCorrelation = useMemo(() => {
-    if (viewMode === "simple") return [];
+    if (viewMode !== "full") return [];
     const closed = filtered.filter((t) => t.close_timestamp && t.emotion);
     const map = new Map<string, { count: number; wins: number; pnl: number; holdTimeSum: number }>();
     for (const t of closed) {

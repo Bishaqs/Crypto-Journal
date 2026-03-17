@@ -28,9 +28,10 @@ interface SidebarRailProps {
   isOwner: boolean;
   assetContext: AssetContext;
   onAssetToggle: (ctx: AssetContext) => void;
+  viewMode?: "beginner" | "simple" | "full";
 }
 
-export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCloseDrawer, onLogout, isOwner, assetContext, onAssetToggle }: SidebarRailProps) {
+export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCloseDrawer, onLogout, isOwner, assetContext, onAssetToggle, viewMode = "simple" }: SidebarRailProps) {
   const pathname = usePathname();
   const currentCategory = getCategoryForPath(pathname);
   const { t } = useI18n();
@@ -68,7 +69,7 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
 
       {/* Category icons */}
       <div className="flex-1 flex flex-col items-center gap-1 py-3">
-        {RAIL_CATEGORIES.map(cat => {
+        {RAIL_CATEGORIES.filter(cat => viewMode !== "beginner" || cat.showInBeginner !== false).map(cat => {
           const isHighlighted = activeCategory === cat.key || (!activeCategory && currentCategory === cat.key);
 
           if (cat.key === "home") {
@@ -154,28 +155,32 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
             <Shield size={20} />
           </Link>
         )}
-        <Link
-          href="/dashboard/import-export"
-          title={t("sidebar.importExport") || "Import / Export"}
-          className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
-            pathname.startsWith("/dashboard/import-export")
-              ? "text-accent bg-accent/10"
-              : "text-muted hover:text-foreground hover:bg-surface-hover"
-          }`}
-        >
-          <ArrowUpDown size={20} />
-        </Link>
-        <Link
-          href="/dashboard/feedback"
-          title={t("sidebar.feedback") || "Feedback"}
-          className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
-            pathname.startsWith("/dashboard/feedback")
-              ? "text-accent bg-accent/10"
-              : "text-muted hover:text-foreground hover:bg-surface-hover"
-          }`}
-        >
-          <MessageSquareText size={20} />
-        </Link>
+        {viewMode !== "beginner" && (
+          <Link
+            href="/dashboard/import-export"
+            title={t("sidebar.importExport") || "Import / Export"}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+              pathname.startsWith("/dashboard/import-export")
+                ? "text-accent bg-accent/10"
+                : "text-muted hover:text-foreground hover:bg-surface-hover"
+            }`}
+          >
+            <ArrowUpDown size={20} />
+          </Link>
+        )}
+        {viewMode !== "beginner" && (
+          <Link
+            href="/dashboard/feedback"
+            title={t("sidebar.feedback") || "Feedback"}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+              pathname.startsWith("/dashboard/feedback")
+                ? "text-accent bg-accent/10"
+                : "text-muted hover:text-foreground hover:bg-surface-hover"
+            }`}
+          >
+            <MessageSquareText size={20} />
+          </Link>
+        )}
         <button
           onClick={openHelpCenter}
           title={t("sidebar.helpCenter") || "Help Center"}

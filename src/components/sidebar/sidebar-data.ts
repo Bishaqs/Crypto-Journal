@@ -74,6 +74,8 @@ export interface NavSection {
   subSections?: SubSection[];
   visibleInSimple: boolean;
   simpleItems?: NavItem[];
+  visibleInBeginner?: boolean;
+  beginnerItems?: NavItem[];
 }
 
 export interface RailCategory {
@@ -83,6 +85,7 @@ export interface RailCategory {
   directNav?: boolean;
   items: NavItem[];
   sections?: NavSection[];
+  showInBeginner?: boolean;
 }
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -159,6 +162,11 @@ const intelligenceItems: NavItem[] = [
   { href: "/dashboard/recaps", label: "Monthly Recap", icon: CalendarCheck },
 ];
 
+const intelligenceBeginnerItems: NavItem[] = [
+  { href: "/dashboard/psychology", label: "Psychology", icon: Brain },
+  { href: "/dashboard/ai", label: "AI Coach", icon: Sparkles, tourId: "tour-ai" },
+];
+
 const marketToolsItemsFull: NavItem[] = [
   { href: "/dashboard/market", label: "Market Overview", icon: Globe },
   { href: "/dashboard/news", label: "Market News", icon: Newspaper },
@@ -220,6 +228,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { key: "dateViews", label: "Date Views", items: dateViewItems },
     ],
     visibleInSimple: false,
+    visibleInBeginner: false,
   },
   {
     key: "intelligence",
@@ -227,6 +236,8 @@ export const NAV_SECTIONS: NavSection[] = [
     icon: Brain,
     items: intelligenceItems,
     visibleInSimple: true,
+    visibleInBeginner: true,
+    beginnerItems: intelligenceBeginnerItems,
   },
   {
     key: "market",
@@ -235,6 +246,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: marketToolsItemsFull,
     visibleInSimple: true,
     simpleItems: marketToolsItemsSimple,
+    visibleInBeginner: false,
   },
   {
     key: "discipline",
@@ -242,6 +254,7 @@ export const NAV_SECTIONS: NavSection[] = [
     icon: ShieldAlert,
     items: disciplineItems,
     visibleInSimple: false,
+    visibleInBeginner: false,
   },
   {
     key: "reports",
@@ -249,12 +262,16 @@ export const NAV_SECTIONS: NavSection[] = [
     icon: FileBarChart,
     items: reportItems,
     visibleInSimple: false,
+    visibleInBeginner: false,
   },
 ];
 
 /* ────────────────────────────────────────────────────────────────── */
 /*  Rail categories                                                   */
 /* ────────────────────────────────────────────────────────────────── */
+
+// Beginner mode: Journal drawer shows only Trade Log, Journal, Import/Export
+export const BEGINNER_JOURNAL_ITEMS: NavItem[] = [coreItems[1], coreItems[2], coreItems[6]];
 
 export const RAIL_CATEGORIES: RailCategory[] = [
   {
@@ -263,12 +280,14 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     icon: LayoutDashboard,
     directNav: true,
     items: [coreItems[0]],
+    showInBeginner: true,
   },
   {
     key: "journal",
     label: "Journal",
     icon: BookOpen,
     items: [coreItems[1], coreItems[2], coreItems[3], coreItems[5], coreItems[10]],
+    showInBeginner: true,
   },
   {
     key: "analytics",
@@ -276,6 +295,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     icon: BarChart3,
     items: [coreItems[4]],
     sections: [NAV_SECTIONS[0], NAV_SECTIONS[1]],
+    showInBeginner: true,
   },
   {
     key: "tools",
@@ -283,12 +303,14 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     icon: Globe,
     items: [],
     sections: [NAV_SECTIONS[2], NAV_SECTIONS[3], NAV_SECTIONS[4]],
+    showInBeginner: false,
   },
   {
     key: "compete",
     label: "Compete",
     icon: Trophy,
     items: [coreItems[7], coreItems[8], coreItems[9]],
+    showInBeginner: false,
   },
 ];
 
@@ -318,7 +340,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Tag Groups Statistics": "sidebar.tagGroupsStatistics",
   "Open Trades Summary": "sidebar.openTradesSummary",
   "Day Grouped": "sidebar.dayGrouped", "Calendar Grouped": "sidebar.calendarGrouped",
-  Insights: "sidebar.insights", "AI Coach": "sidebar.aiCoach",
+  Insights: "sidebar.insights", Psychology: "sidebar.psychology", "AI Coach": "sidebar.aiCoach",
   "Weekly Reports": "sidebar.weeklyReports", "Monthly Recap": "sidebar.monthlyRecap", "Market Overview": "sidebar.marketOverview",
   "Market News": "sidebar.marketNews",
   "Token Screener": "sidebar.tokenScreener", "Heat Maps": "sidebar.heatMaps",
