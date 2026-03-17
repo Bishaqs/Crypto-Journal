@@ -37,6 +37,7 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { getTagColor } from "@/lib/tag-colors";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { useTheme } from "@/lib/theme-context";
 
 type AssetFilter = AssetType | "all";
 type NoteTypeFilter = "all" | "trade" | "daily" | "other" | "favorites";
@@ -165,6 +166,8 @@ export default function JournalPage() {
   const [linkingNoteId, setLinkingNoteId] = useState<string | null>(null);
   const [linkSearch, setLinkSearch] = useState("");
   const [linkedNoteIdSet, setLinkedNoteIdSet] = useState<Set<string>>(new Set());
+  const { viewMode } = useTheme();
+  const isBeginner = viewMode === "beginner";
   const supabase = createClient();
 
   const fetchNotes = useCallback(async () => {
@@ -398,8 +401,8 @@ export default function JournalPage() {
         </button>
       </div>
 
-      {/* Asset type switcher */}
-      <div className="flex rounded-xl border border-border/50 p-0.5 bg-surface w-fit">
+      {/* Asset type switcher — hidden for beginners */}
+      {!isBeginner && <div className="flex rounded-xl border border-border/50 p-0.5 bg-surface w-fit">
         {ASSET_FILTER_OPTIONS.map(({ value, label, icon: Icon }) => (
           <button
             key={value}
@@ -425,7 +428,7 @@ export default function JournalPage() {
             {label}
           </button>
         ))}
-      </div>
+      </div>}
 
       {/* Filters: Search + Date Range + Tag + Manage tags */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -445,67 +448,71 @@ export default function JournalPage() {
           icon={<Calendar size={14} />}
           minWidth="150px"
         />
-        <CustomSelect
-          value={activeTag ?? ""}
-          onChange={(v) => setActiveTag(v || null)}
-          options={[
-            { value: "", label: "All Tags" },
-            { value: "__untagged__", label: "No Tag" },
-            ...allTags.map((tag) => ({ value: tag, label: tag })),
-          ]}
-          icon={<Filter size={14} />}
-          minWidth="160px"
-        />
-        <CustomSelect
-          value={sortBy}
-          onChange={(v) => setSortBy(v as SortOption)}
-          options={SORT_OPTIONS}
-          icon={<ArrowUpDown size={14} />}
-          minWidth="170px"
-        />
-        {activeTag && (
-          <button
-            onClick={() => setActiveTag(null)}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-accent/10 text-accent text-xs font-medium border border-accent/20 hover:bg-accent/20 transition-all"
-          >
-            <X size={12} />
-            {activeTag === "__untagged__" ? "No Tag" : activeTag}
-          </button>
-        )}
-        <button
-          onClick={() => setShowTagManager(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border bg-surface text-sm text-muted hover:text-foreground hover:border-accent/30 transition-all whitespace-nowrap"
-        >
-          <Settings size={14} />
-          Manage Tags
-        </button>
-        <div className="flex rounded-xl border border-border/50 p-0.5 bg-surface">
-          {([
-            { mode: "grid" as LayoutMode, icon: LayoutGrid, title: "Grid" },
-            { mode: "list" as LayoutMode, icon: List, title: "List" },
-            { mode: "compact" as LayoutMode, icon: AlignJustify, title: "Timeline" },
-          ]).map(({ mode, icon: Icon, title }) => (
+        {!isBeginner && (
+          <>
+            <CustomSelect
+              value={activeTag ?? ""}
+              onChange={(v) => setActiveTag(v || null)}
+              options={[
+                { value: "", label: "All Tags" },
+                { value: "__untagged__", label: "No Tag" },
+                ...allTags.map((tag) => ({ value: tag, label: tag })),
+              ]}
+              icon={<Filter size={14} />}
+              minWidth="160px"
+            />
+            <CustomSelect
+              value={sortBy}
+              onChange={(v) => setSortBy(v as SortOption)}
+              options={SORT_OPTIONS}
+              icon={<ArrowUpDown size={14} />}
+              minWidth="170px"
+            />
+            {activeTag && (
+              <button
+                onClick={() => setActiveTag(null)}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl bg-accent/10 text-accent text-xs font-medium border border-accent/20 hover:bg-accent/20 transition-all"
+              >
+                <X size={12} />
+                {activeTag === "__untagged__" ? "No Tag" : activeTag}
+              </button>
+            )}
             <button
-              key={mode}
-              onClick={() => {
-                setLayoutMode(mode);
-                localStorage.setItem("stargate-journal-layout", mode);
-              }}
-              className={`p-2 rounded-lg transition-all ${
-                layoutMode === mode
-                  ? "bg-accent/10 text-accent"
-                  : "text-muted hover:text-foreground"
-              }`}
-              title={title}
+              onClick={() => setShowTagManager(true)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border bg-surface text-sm text-muted hover:text-foreground hover:border-accent/30 transition-all whitespace-nowrap"
             >
-              <Icon size={14} />
+              <Settings size={14} />
+              Manage Tags
             </button>
-          ))}
-        </div>
+            <div className="flex rounded-xl border border-border/50 p-0.5 bg-surface">
+              {([
+                { mode: "grid" as LayoutMode, icon: LayoutGrid, title: "Grid" },
+                { mode: "list" as LayoutMode, icon: List, title: "List" },
+                { mode: "compact" as LayoutMode, icon: AlignJustify, title: "Timeline" },
+              ]).map(({ mode, icon: Icon, title }) => (
+                <button
+                  key={mode}
+                  onClick={() => {
+                    setLayoutMode(mode);
+                    localStorage.setItem("stargate-journal-layout", mode);
+                  }}
+                  className={`p-2 rounded-lg transition-all ${
+                    layoutMode === mode
+                      ? "bg-accent/10 text-accent"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                  title={title}
+                >
+                  <Icon size={14} />
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Note type filter */}
-      <div className="flex items-center gap-3 flex-wrap">
+      {/* Note type filter — hidden for beginners */}
+      {!isBeginner && <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs text-muted font-medium">Filter Note Type:</span>
         {NOTE_TYPE_OPTIONS.map((opt) => (
           <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer">
@@ -523,7 +530,7 @@ export default function JournalPage() {
             </span>
           </label>
         ))}
-      </div>
+      </div>}
 
       {sorted.length === 0 ? (
         <div className="text-center py-16">
