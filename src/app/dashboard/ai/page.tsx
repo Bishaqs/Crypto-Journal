@@ -302,7 +302,7 @@ export default function AIPage() {
 
   // ─── Load conversation messages when active conversation changes ──────────
   useEffect(() => {
-    if (!activeConversationId) return;
+    if (!activeConversationId || sending) return;
 
     async function loadMessages() {
       try {
