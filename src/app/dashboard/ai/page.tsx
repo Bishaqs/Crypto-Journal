@@ -498,15 +498,19 @@ export default function AIPage() {
       .slice(-24)
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
 
+    // Skip sending heavy trade/note/playbook data for follow-up messages —
+    // the AI already has context from the first message in this conversation.
+    const isFollowUp = history.length > 0;
+
     try {
       const res = await fetch("/api/ai/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: msg,
-          trades,
-          notes,
-          playbooks,
+          trades: isFollowUp ? [] : trades,
+          notes: isFollowUp ? [] : notes,
+          playbooks: isFollowUp ? [] : playbooks,
           history,
           customInstructions: customInstructions || undefined,
           provider: aiProvider,
