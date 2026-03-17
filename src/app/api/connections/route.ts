@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
       passphrase_iv: encryptedPassphrase?.iv ?? null,
       target_table: parsed.target_table,
       sync_frequency: parsed.sync_frequency,
+      auto_sync_enabled: parsed.sync_frequency !== "manual",
       timezone: parsed.timezone,
       currency: parsed.currency,
       status: initialStatus,

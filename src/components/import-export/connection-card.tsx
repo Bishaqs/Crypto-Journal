@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RefreshCw, RotateCcw, Trash2, Clock, AlertTriangle, CheckCircle2, Loader2, Wrench, Bug } from "lucide-react";
-import type { BrokerConnection, ConnectionStatus, SyncResult } from "@/lib/import-export-types";
+import type { BrokerConnection, ConnectionStatus, SyncFrequency, SyncResult } from "@/lib/import-export-types";
 
 const STATUS_CONFIG: Record<ConnectionStatus, { label: string; className: string }> = {
   pending: { label: "Pending", className: "bg-yellow-500/10 text-yellow-400" },
@@ -32,6 +32,8 @@ export function ConnectionCard({
   const [repairing, setRepairing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [autoSync, setAutoSync] = useState(connection.auto_sync_enabled);
+  const [syncFreq, setSyncFreq] = useState<SyncFrequency>(connection.sync_frequency);
 
   const status = STATUS_CONFIG[connection.status] ?? STATUS_CONFIG.pending;
 
@@ -72,6 +74,43 @@ export function ConnectionCard({
     }
   }
 
+  async function handleAutoSyncToggle(enabled: boolean) {
+    setAutoSync(enabled);
+    const newFreq = enabled && syncFreq === "manual" ? "daily" : syncFreq;
+    if (enabled && syncFreq === "manual") setSyncFreq("daily");
+    try {
+      await fetch(`/api/connections/${connection.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          auto_sync_enabled: enabled,
+          sync_frequency: enabled ? newFreq : "manual",
+        }),
+      });
+    } catch {
+      setAutoSync(!enabled); // revert on failure
+    }
+  }
+
+  async function handleFreqChange(freq: SyncFrequency) {
+    setSyncFreq(freq);
+    const enabled = freq !== "manual";
+    setAutoSync(enabled);
+    try {
+      await fetch(`/api/connections/${connection.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sync_frequency: freq,
+          auto_sync_enabled: enabled,
+        }),
+      });
+    } catch {
+      setSyncFreq(connection.sync_frequency); // revert on failure
+      setAutoSync(connection.auto_sync_enabled);
+    }
+  }
+
   return (
     <div className="glass border border-border/50 rounded-xl p-4">
       <div className="flex items-start justify-between gap-3">
@@ -108,6 +147,31 @@ export function ConnectionCard({
               {connection.last_error}
             </p>
           )}
+
+          {/* Auto-sync settings */}
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              onClick={() => handleAutoSyncToggle(!autoSync)}
+              className={`relative w-8 h-4.5 rounded-full transition-colors ${autoSync ? "bg-accent" : "bg-border"}`}
+              style={{ minWidth: 32, height: 18 }}
+              title={autoSync ? "Auto-sync enabled" : "Auto-sync disabled"}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform ${autoSync ? "translate-x-3.5" : ""}`}
+                style={{ width: 14, height: 14 }}
+              />
+            </button>
+            <span className="text-[10px] text-muted">Auto-sync</span>
+            <select
+              value={syncFreq}
+              onChange={(e) => handleFreqChange(e.target.value as SyncFrequency)}
+              className="text-[10px] px-1.5 py-0.5 rounded-md bg-background border border-border text-foreground focus:outline-none focus:border-accent/50"
+            >
+              <option value="manual">Manual</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
 
           {syncResult && (
             <div className={`flex items-center gap-1.5 text-xs mt-2 px-2.5 py-1.5 rounded-lg ${
