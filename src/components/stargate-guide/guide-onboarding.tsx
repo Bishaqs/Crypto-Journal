@@ -382,11 +382,11 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
     // Auto-set view mode based on experience level
     const modeMap: Record<string, string> = {
       beginner: "beginner",
-      intermediate: "simple",
-      advanced: "full",
-      professional: "full",
+      intermediate: "advanced",
+      advanced: "expert",
+      professional: "expert",
     };
-    localStorage.setItem("stargate-mode", modeMap[data.experienceLevel] || "simple");
+    localStorage.setItem("stargate-mode", modeMap[data.experienceLevel] || "advanced");
   }
 
   function handleNext() {
@@ -394,7 +394,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
       saveData();
       localStorage.setItem("stargate-onboarded", "true");
       localStorage.setItem("stargate-onboarding-version", "3");
-      localStorage.setItem("stargate-sidebar-mode", "simple");
+      localStorage.setItem("stargate-sidebar-mode", "advanced");
       window.dispatchEvent(new CustomEvent("stargate-onboarding-complete"));
       onComplete();
     } else {

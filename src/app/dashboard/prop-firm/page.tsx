@@ -778,7 +778,7 @@ export default function PropFirmPage() {
       </div>
 
       {/* ─── Trade Log Preview ────────────────────────────────────────────── */}
-      {viewMode !== "simple" && (
+      {viewMode !== "advanced" && (
         <div
           className="glass rounded-2xl border border-border/50 p-6 space-y-4"
           style={{ boxShadow: "var(--shadow-card)" }}

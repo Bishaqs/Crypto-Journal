@@ -224,7 +224,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2">
           {/* View mode toggle */}
           <div className="inline-flex items-center rounded-xl bg-surface border border-border/50 p-0.5">
-            {(["beginner", "simple", "full"] as ViewMode[]).map(mode => (
+            {(["beginner", "advanced", "expert"] as ViewMode[]).map(mode => (
               <button
                 key={mode}
                 onClick={() => setViewModeTo(mode)}
@@ -234,7 +234,7 @@ export default function DashboardPage() {
                     : "text-muted hover:text-foreground border border-transparent"
                 }`}
               >
-                {mode === "beginner" ? t("sidebar.focus") : mode === "simple" ? t("sidebar.simple") : t("sidebar.full")}
+                {mode === "beginner" ? t("sidebar.beginner") : mode === "advanced" ? t("sidebar.advanced") : t("sidebar.expert")}
               </button>
             ))}
           </div>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
 
       {/* Advanced mode stats — appears right below basic stats with smooth animation */}
       <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-        viewMode === "full" && adv ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
+        viewMode === "expert" && adv ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
       }`}>
         {adv && (
           <div className="space-y-4 pt-2">

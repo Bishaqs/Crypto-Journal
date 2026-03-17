@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 export type Theme = "solara" | "obsidian" | "nebula" | "cipher" | "vulcan" | "triton" | "satoshi" | "synthwave" | "pangaea";
-export type ViewMode = "beginner" | "simple" | "full";
+export type ViewMode = "beginner" | "advanced" | "expert";
 
 export const THEMES: { value: Theme; label: string; dot: string; locked?: boolean }[] = [
   { value: "solara", label: "Solara", dot: "#faf8f5" },
@@ -39,7 +39,7 @@ export function getLevelRequirement(theme: Theme): number | null {
   return LEVEL_GATED_THEMES[theme] ?? null;
 }
 
-const VIEW_MODE_ORDER: ViewMode[] = ["beginner", "simple", "full"];
+const VIEW_MODE_ORDER: ViewMode[] = ["beginner", "advanced", "expert"];
 
 type ThemeContextType = {
   theme: Theme;
@@ -56,7 +56,7 @@ const ThemeContext = createContext<ThemeContextType>({
   theme: "obsidian",
   setTheme: () => { },
   toggleTheme: () => { },
-  viewMode: "simple",
+  viewMode: "beginner",
   setViewModeTo: () => { },
   toggleViewMode: () => { },
   reducedMotion: false,
@@ -79,7 +79,7 @@ const THEME_MIGRATION: Record<string, Theme> = {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("obsidian");
-  const [viewMode, setViewModeState] = useState<ViewMode>("simple");
+  const [viewMode, setViewModeState] = useState<ViewMode>("beginner");
   const [reducedMotion, setReducedMotionState] = useState(false);
 
   useEffect(() => {
@@ -92,11 +92,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
     }
     const savedMode = localStorage.getItem("stargate-mode") as string | null;
-    if (savedMode === "advanced" || savedMode === "expert") {
-      setViewModeState("full");
-      localStorage.setItem("stargate-mode", "full");
-    } else if (savedMode && VIEW_MODE_ORDER.includes(savedMode as ViewMode)) {
-      setViewModeState(savedMode as ViewMode);
+    // Migrate old mode values
+    const MODE_MIGRATION: Record<string, ViewMode> = { "simple": "advanced", "full": "expert", "focus": "beginner" };
+    const migratedMode = savedMode ? (MODE_MIGRATION[savedMode] ?? savedMode) : null;
+    if (migratedMode && VIEW_MODE_ORDER.includes(migratedMode as ViewMode)) {
+      setViewModeState(migratedMode as ViewMode);
+      if (migratedMode !== savedMode) localStorage.setItem("stargate-mode", migratedMode);
     }
     const savedMotion = localStorage.getItem("stargate-reduced-motion");
     if (savedMotion === "true") {

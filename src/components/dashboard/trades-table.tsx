@@ -260,7 +260,7 @@ export function TradesTable({
 
   // Derive columns directly from viewMode — no localStorage race condition
   const displayColumns = useMemo(() =>
-    viewMode === "full" ? POSITIONS_COLUMNS : POSITIONS_COLUMNS.filter(c => c.defaultVisible),
+    viewMode === "expert" ? POSITIONS_COLUMNS : POSITIONS_COLUMNS.filter(c => c.defaultVisible),
     [viewMode]
   );
 

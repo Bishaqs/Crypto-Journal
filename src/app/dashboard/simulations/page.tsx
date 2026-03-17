@@ -111,7 +111,7 @@ export default function SimulationsPage() {
 
   // Auto-expand advanced settings when global viewMode is advanced
   useEffect(() => {
-    if (viewMode !== "simple") setShowAdvanced(true);
+    if (viewMode !== "advanced") setShowAdvanced(true);
   }, [viewMode]);
 
   const fetchTrades = useCallback(async () => {

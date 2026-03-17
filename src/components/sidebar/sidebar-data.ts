@@ -87,6 +87,7 @@ export interface RailCategory {
   beginnerItems?: NavItem[];
   sections?: NavSection[];
   showInBeginner?: boolean;
+  showInAdvanced?: boolean;
   showAssetToggle?: boolean;
 }
 
@@ -273,6 +274,7 @@ export const NAV_SECTIONS: NavSection[] = [
 /* ────────────────────────────────────────────────────────────────── */
 
 export const RAIL_CATEGORIES: RailCategory[] = [
+  // === 3 core directNav tabs (visible to ALL modes) ===
   {
     key: "dashboard",
     label: "Dashboard",
@@ -290,45 +292,40 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     showInBeginner: true,
   },
   {
-    key: "trades",
-    label: "Trade Log",
-    icon: Table2,
+    key: "analytics",
+    label: "Analytics",
+    icon: BarChart3,
     directNav: true,
-    items: [coreItems[1]], // Trade Log
+    items: [coreItems[4]], // Analytics
     showInBeginner: true,
   },
+  // === Drawer tabs (Advanced/Expert only) ===
   {
     key: "intelligence",
     label: "Intelligence",
     icon: Brain,
     items: intelligenceItems,
     beginnerItems: intelligenceBeginnerItems,
-    showInBeginner: true,
-  },
-  {
-    key: "analytics",
-    label: "Analytics",
-    icon: BarChart3,
-    items: [coreItems[4]], // Analytics
-    sections: [NAV_SECTIONS[0]], // Performance & Analysis
     showInBeginner: false,
-    showAssetToggle: true,
+    showInAdvanced: true,
   },
   {
     key: "market",
     label: "Market",
     icon: Globe,
     items: [],
-    sections: [NAV_SECTIONS[2], NAV_SECTIONS[3], NAV_SECTIONS[4]], // Market, Discipline, Reports
+    sections: [NAV_SECTIONS[2], NAV_SECTIONS[3], NAV_SECTIONS[4]],
     showInBeginner: false,
+    showInAdvanced: false,
     showAssetToggle: true,
   },
   {
     key: "compete",
     label: "Compete",
     icon: Trophy,
-    items: [coreItems[7], coreItems[8], coreItems[9]], // Quests, Achievements, Leaderboard
+    items: [coreItems[7], coreItems[8], coreItems[9]],
     showInBeginner: false,
+    showInAdvanced: false,
   },
 ];
 
@@ -487,11 +484,14 @@ export function isActivePath(pathname: string, href: string, search?: string): b
 }
 
 export function getCategoryForPath(pathname: string): string | null {
-  // Dashboard is the home page
+  // Dashboard
   if (pathname === "/dashboard") return "dashboard";
 
   // Journal
   if (pathname.startsWith("/dashboard/journal") || pathname.startsWith("/dashboard/calendar")) return "journal";
+
+  // Analytics (direct nav page + sub-pages)
+  if (pathname.startsWith("/dashboard/analytics")) return "analytics";
 
   // Trades
   const tradesPrefixes = ["/dashboard/trades", "/dashboard/import-export", "/dashboard/plans", "/dashboard/stocks/trades", "/dashboard/stocks/plans", "/dashboard/commodities/trades", "/dashboard/commodities/plans", "/dashboard/forex/trades", "/dashboard/forex/plans"];

@@ -350,7 +350,7 @@ export default function TradesPage() {
 
   // Show all columns when in advanced/full mode
   useEffect(() => {
-    if (viewMode === "full") {
+    if (viewMode === "expert") {
       actions.showAllColumns();
     }
   }, [viewMode]);
