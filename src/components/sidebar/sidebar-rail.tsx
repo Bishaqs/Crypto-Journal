@@ -103,19 +103,17 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
             <ArrowUpDown size={20} />
           </Link>
         )}
-        {viewMode !== "beginner" && (
-          <Link
-            href="/dashboard/feedback"
-            title={t("sidebar.feedback") || "Feedback"}
-            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
-              pathname.startsWith("/dashboard/feedback")
-                ? "text-accent bg-accent/10"
-                : "text-muted hover:text-foreground hover:bg-surface-hover"
-            }`}
-          >
-            <MessageSquareText size={20} />
-          </Link>
-        )}
+        <Link
+          href="/dashboard/feedback"
+          title={t("sidebar.feedback") || "Feedback"}
+          className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+            pathname.startsWith("/dashboard/feedback")
+              ? "text-accent bg-accent/10"
+              : "text-muted hover:text-foreground hover:bg-surface-hover"
+          }`}
+        >
+          <MessageSquareText size={20} />
+        </Link>
         <button
           onClick={openHelpCenter}
           title={t("sidebar.helpCenter") || "Help Center"}

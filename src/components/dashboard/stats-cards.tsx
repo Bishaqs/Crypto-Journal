@@ -114,7 +114,26 @@ export function StatsCards({ stats, advancedStats, viewMode = "advanced" }: {
   advancedStats?: AdvancedStats | null;
   viewMode?: ViewMode;
 }) {
-  const showExtra = viewMode !== "beginner" && advancedStats;
+  const isBeginner = viewMode === "beginner";
+  const showExtra = !isBeginner && advancedStats;
+
+  // Beginner: 3 cards only (Win Rate, Avg Return, Profit Factor)
+  if (isBeginner) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <WinRateCard stats={stats} />
+        <StatCard
+          label="Profit Factor"
+          value={stats.profitFactor.toFixed(2)}
+          subLabel={stats.profitFactor >= 1 ? "edge positive" : "negative edge"}
+          icon={TrendingUp}
+          valueColor={stats.profitFactor >= 1 ? "text-win" : "text-loss"}
+          tooltip="Gross wins divided by gross losses — above 1.0 means net positive"
+          articleId="an-profit-factor"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`grid grid-cols-2 md:grid-cols-3 ${showExtra ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-6"} gap-4`}>
