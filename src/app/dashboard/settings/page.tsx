@@ -77,7 +77,7 @@ type SettingsTab =
 const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerOnly?: boolean }[] = [
   { value: "account", label: "Account", icon: User },
   { value: "global", label: "Global Settings", icon: Globe },
-  { value: "ai", label: "AI Coach", icon: Brain },
+  { value: "ai", label: "Nova", icon: Brain },
   { value: "subscription", label: "Subscription", icon: CreditCard },
   { value: "referrals", label: "Referrals", icon: Gift },
   { value: "export", label: "Export Data", icon: Download },
@@ -640,7 +640,7 @@ function SettingsContent() {
               </button>
             </div>
           )}
-          <SectionCard icon={Brain} title="AI Coach" description="Choose your AI provider and model for the trading coach.">
+          <SectionCard icon={Brain} title="Nova" description="Choose your AI provider and model for Nova.">
             <SelectField
               label="AI Provider"
               value={aiProvider}
@@ -922,7 +922,7 @@ function SettingsContent() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                {["Unlimited trades", "AI Trading Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support", "All themes"].map((f) => (
+                {["Unlimited trades", "Nova AI Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support", "All themes"].map((f) => (
                   <span key={f} className="text-[11px] font-medium bg-accent/10 text-accent px-2.5 py-1 rounded-full">
                     {f}
                   </span>
@@ -997,7 +997,7 @@ function SettingsContent() {
                     period: billing === "monthly" ? "/month" : "/year",
                     badge: "Power User",
                     highlight: false,
-                    features: ["Everything in Pro", "AI Trading Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support"],
+                    features: ["Everything in Pro", "Nova AI Coach", "Monte Carlo sims", "Crypto tax reports", "Stock trading included", "Custom dashboards", "Priority support"],
                     current: false,
                   },
                 ].map((plan) => (

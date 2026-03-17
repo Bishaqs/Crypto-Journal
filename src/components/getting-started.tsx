@@ -33,7 +33,7 @@ const STEPS: Step[] = [
   },
   {
     id: "try-ai",
-    title: "Talk to your AI Coach",
+    title: "Talk to Nova",
     description: "Ask the AI about your patterns. Works with demo data too.",
     icon: Brain,
     href: "/dashboard/ai",

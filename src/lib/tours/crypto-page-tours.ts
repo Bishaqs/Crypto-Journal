@@ -117,8 +117,8 @@ export const aiCoachPageTour: Tour = {
   steps: [
     {
       icon: "🤖",
-      title: "AI Trading Coach",
-      content: "Chat with an AI that has read all your trading data. Ask about patterns, weaknesses, or get specific advice. It knows your win rate, emotions, and habits.",
+      title: "Nova",
+      content: "Chat with Nova — she's read all your trading data. Ask about patterns, weaknesses, or get specific advice. She knows your win rate, emotions, and habits.",
       selector: "#tour-ai-header",
       side: "bottom",
       ...STEP_DEFAULTS,
@@ -126,7 +126,7 @@ export const aiCoachPageTour: Tour = {
     {
       icon: "💡",
       title: "Start a Conversation",
-      content: "Start with a suggested question or type your own. For a personal AI coach, connect your own API key in Settings → AI Provider. Your data stays private and secure.",
+      content: "Start with a suggested question or type your own. For a personal experience, connect your own API key in Settings → AI Provider. Your data stays private and secure.",
       selector: "#tour-ai-suggestions",
       side: "top",
       ...STEP_DEFAULTS,

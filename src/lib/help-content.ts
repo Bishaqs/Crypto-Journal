@@ -30,7 +30,7 @@ export const FAQ_CATEGORIES: CategoryMeta[] = [
   { key: "getting-started", label: "Getting Started" },
   { key: "trading-journal", label: "Trading & Journal" },
   { key: "analytics", label: "Analytics" },
-  { key: "ai-coach", label: "AI Coach" },
+  { key: "ai-coach", label: "Nova" },
   { key: "market-tools", label: "Market Tools" },
   { key: "apps", label: "Apps" },
   { key: "billing", label: "Billing & Plans" },
@@ -64,7 +64,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs-onboarding",
     question: "What happens during onboarding?",
-    answer: "The onboarding wizard runs automatically on your first login and takes about 60 seconds. It walks you through 5 steps: <strong>1)</strong> <strong>Language</strong> — choose your display language. <strong>2)</strong> <strong>Display Name</strong> — set the name shown on your dashboard. <strong>3)</strong> <strong>Experience Level</strong> — beginner, intermediate, or advanced (this tailors AI Coach suggestions). <strong>4)</strong> <strong>Trade Type</strong> — crypto, stocks, or both (this configures which market tools and screeners appear). <strong>5)</strong> <strong>Input Method</strong> — choose whether you prefer manual trade entry or CSV import. After completing the wizard, a Getting Started checklist appears on your dashboard with 4 actions to help you get the most out of Stargate right away.",
+    answer: "The onboarding wizard runs automatically on your first login and takes about 60 seconds. It walks you through 5 steps: <strong>1)</strong> <strong>Language</strong> — choose your display language. <strong>2)</strong> <strong>Display Name</strong> — set the name shown on your dashboard. <strong>3)</strong> <strong>Experience Level</strong> — beginner, intermediate, or advanced (this tailors Nova suggestions). <strong>4)</strong> <strong>Trade Type</strong> — crypto, stocks, or both (this configures which market tools and screeners appear). <strong>5)</strong> <strong>Input Method</strong> — choose whether you prefer manual trade entry or CSV import. After completing the wizard, a Getting Started checklist appears on your dashboard with 4 actions to help you get the most out of Stargate right away.",
     category: "getting-started",
     tags: ["setup", "wizard", "first time", "welcome"],
     relatedIds: ["gs-first-trade", "gs-getting-started-checklist", "as-change-language"],
@@ -72,7 +72,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs-getting-started-checklist",
     question: "What is the Getting Started checklist?",
-    answer: "The Getting Started card on your dashboard guides you through 4 key actions: <strong>1)</strong> Log your first trade, <strong>2)</strong> Write a journal entry, <strong>3)</strong> Talk to your AI Coach, and <strong>4)</strong> Import from your exchange. Each step links to the relevant page. Once you complete all 4, you can dismiss the card. You can also dismiss it early if you prefer.",
+    answer: "The Getting Started card on your dashboard guides you through 4 key actions: <strong>1)</strong> Log your first trade, <strong>2)</strong> Write a journal entry, <strong>3)</strong> Talk to Nova, and <strong>4)</strong> Import from your exchange. Each step links to the relevant page. Once you complete all 4, you can dismiss the card. You can also dismiss it early if you prefer.",
     category: "getting-started",
     tags: ["checklist", "onboarding", "progress", "first steps"],
     relatedIds: ["gs-first-trade", "tj-write-journal", "ai-how-it-works", "gs-import-trades"],
@@ -132,7 +132,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj-write-journal",
     question: "What is the journal and how do I use it?",
-    answer: "The <strong>Journal</strong> page is a daily diary for your trading thoughts. Unlike trade-level notes, journal entries capture your overall market outlook, emotional state, and lessons for the day. Write entries before, during, and after your trading session. The AI Coach can read your journal entries to give you personalized feedback.",
+    answer: "The <strong>Journal</strong> page is a daily diary for your trading thoughts. Unlike trade-level notes, journal entries capture your overall market outlook, emotional state, and lessons for the day. Write entries before, during, and after your trading session. Nova can read your journal entries to give you personalized feedback.",
     category: "trading-journal",
     tags: ["journal", "diary", "daily", "write", "entry", "thoughts"],
     relatedIds: ["tj-notes", "tj-emotions", "ai-how-it-works", "an-calendar"],
@@ -251,15 +251,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // ═══════════════════════════════════════════
   {
     id: "ai-how-it-works",
-    question: "How does the AI Trading Coach work?",
-    answer: "The AI Coach analyzes your trades <strong>in real-time as you log them</strong>, building a complete picture of your trading behavior. It has full context of your recent performance including win rate, P&L, emotions, tags, journal entries, and process scores. It can spot patterns you might miss, like \"you tend to lose money on Friday afternoon trades\" or \"your FOMO entries have a 25% lower win rate.\" Open it from <code>AI Coach</code> in the sidebar, type any question about your trading, and it responds with data-backed insights drawn from your actual history. The more trades and journal entries you log, the more precise the coaching becomes.",
+    question: "How does Nova work?",
+    answer: "Nova analyzes your trades <strong>in real-time as you log them</strong>, building a complete picture of your trading behavior. It has full context of your recent performance including win rate, P&L, emotions, tags, journal entries, and process scores. It can spot patterns you might miss, like \"you tend to lose money on Friday afternoon trades\" or \"your FOMO entries have a 25% lower win rate.\" Open it from <code>Nova</code> in the sidebar, type any question about your trading, and it responds with data-backed insights drawn from your actual history. The more trades and journal entries you log, the more precise the coaching becomes.",
     category: "ai-coach",
     tags: ["ai", "coach", "assistant", "advice", "analysis", "personalized"],
     relatedIds: ["ai-what-to-ask", "ai-privacy", "ai-emotions", "ai-limitations"],
   },
   {
     id: "ai-what-to-ask",
-    question: "What should I ask the AI Coach?",
+    question: "What should I ask Nova?",
     answer: "Great questions to start with: <ul><li>\"What patterns do you see in my losing trades?\"</li><li>\"When am I most profitable and why?\"</li><li>\"What's my biggest behavioral weakness?\"</li><li>\"Which setup types work best for me?\"</li><li>\"Am I following my own rules consistently?\"</li><li>\"What would you prioritize improving this week?\"</li></ul> The more trades and journal entries you have, the better the AI's advice becomes.",
     category: "ai-coach",
     tags: ["questions", "ask", "suggestions", "prompts", "what"],
@@ -268,7 +268,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai-emotions",
     question: "Can the AI help with trading psychology?",
-    answer: "Yes — the AI Coach is particularly good at spotting emotional patterns. It can identify if you overtrade after losses (revenge trading), take oversized positions when confident (overconfidence bias), or avoid trades after a losing streak (gun-shy behavior). It combines your emotion ratings, process scores, and journal entries to give psychology-specific advice.",
+    answer: "Yes — Nova is particularly good at spotting emotional patterns. It can identify if you overtrade after losses (revenge trading), take oversized positions when confident (overconfidence bias), or avoid trades after a losing streak (gun-shy behavior). It combines your emotion ratings, process scores, and journal entries to give psychology-specific advice.",
     category: "ai-coach",
     tags: ["psychology", "emotions", "mental", "mindset", "tilt", "revenge", "bias"],
     relatedIds: ["tj-emotions", "ai-how-it-works", "tj-process-score"],
@@ -276,15 +276,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai-privacy",
     question: "Is my trading data safe with the AI?",
-    answer: "The AI Coach can see your <strong>trade log entries</strong> (symbols, prices, P&L, dates, tags), <strong>emotion ratings</strong>, <strong>process scores</strong>, and <strong>journal entries</strong> — only the data you've logged in Stargate. It does <strong>not</strong> have access to your email, password, payment information, or any data outside of Stargate. Your trading data is processed in real-time to generate insights but is never stored in AI conversation logs, shared with third parties, or used to train AI models. All data stays within Stargate's infrastructure and is encrypted in transit and at rest.",
+    answer: "Nova can see your <strong>trade log entries</strong> (symbols, prices, P&L, dates, tags), <strong>emotion ratings</strong>, <strong>process scores</strong>, and <strong>journal entries</strong> — only the data you've logged in Stargate. It does <strong>not</strong> have access to your email, password, payment information, or any data outside of Stargate. Your trading data is processed in real-time to generate insights but is never stored in AI conversation logs, shared with third parties, or used to train AI models. All data stays within Stargate's infrastructure and is encrypted in transit and at rest.",
     category: "ai-coach",
     tags: ["privacy", "security", "data", "safe", "confidential"],
     relatedIds: ["ai-how-it-works", "as-export-data", "bi-data-ownership"],
   },
   {
     id: "ai-limitations",
-    question: "What are the AI Coach's limitations?",
-    answer: "The AI Coach is a performance analysis tool, <strong>not a financial advisor</strong>. It does not provide financial advice, cannot predict future market prices, and should not replace your own research and analysis. It <strong>cannot</strong>: tell you what to buy or sell, guarantee any strategy will be profitable, or account for news events and macro conditions. It <strong>can</strong>: analyze your past trades, identify behavioral patterns, flag emotional biases, and suggest improvements based on your data. The quality of insights improves significantly with more data — aim for at least 20-30 closed trades before expecting meaningful pattern detection.",
+    question: "What are Nova's limitations?",
+    answer: "Nova is a performance analysis tool, <strong>not a financial advisor</strong>. It does not provide financial advice, cannot predict future market prices, and should not replace your own research and analysis. It <strong>cannot</strong>: tell you what to buy or sell, guarantee any strategy will be profitable, or account for news events and macro conditions. It <strong>can</strong>: analyze your past trades, identify behavioral patterns, flag emotional biases, and suggest improvements based on your data. The quality of insights improves significantly with more data — aim for at least 20-30 closed trades before expecting meaningful pattern detection.",
     category: "ai-coach",
     tags: ["limitations", "disclaimer", "cannot", "accuracy", "financial advice"],
     relatedIds: ["ai-how-it-works", "ai-what-to-ask"],
