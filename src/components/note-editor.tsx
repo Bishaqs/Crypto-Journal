@@ -11,6 +11,7 @@ import { toDateTimeLocal, fromDateTimeLocal } from "@/lib/date-utils";
 import { EditorToolbar } from "@/components/note-editor/editor-toolbar";
 import { TemplateSelector } from "@/components/note-editor/template-selector";
 import { TradeLinker } from "@/components/note-editor/trade-linker";
+import { VoiceInput, type VoiceResult } from "@/components/note-editor/voice-input";
 import { getCustomTagPresets, isUserTag } from "@/lib/tag-manager";
 import { isStructuredTemplate, StructuredTemplateForm, serializeToHtml, serializePsychToHtml } from "@/components/note-editor/structured-templates";
 import { EmotionPicker, ConfidenceSlider, ProcessScoreInput } from "@/components/psychology-inputs";
@@ -293,6 +294,27 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
     }
   }
 
+  const handleVoiceResult = useCallback((data: VoiceResult) => {
+    if (data.title) setTitle(data.title);
+    if (data.template && TEMPLATES.some((t) => t.id === data.template)) {
+      setAppliedTemplate(data.template);
+    }
+    if (data.content && contentRef.current) {
+      contentRef.current.innerHTML = sanitizeHtml(data.content);
+    }
+    if (data.emotion) {
+      setSelectedEmotions([data.emotion]);
+      setShowPsychInsights(true);
+    }
+    if (data.confidence != null) {
+      setStructuredData((prev) => ({ ...prev, confidence: data.confidence! }));
+      setShowPsychInsights(true);
+    }
+    if (data.tags?.length) {
+      setSelectedTag(data.tags[0]);
+    }
+  }, []);
+
   async function saveNote(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -469,6 +491,13 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                 autoLinkOnImport={autoLinkOnImport}
                 onAutoLinkChange={setAutoLinkOnImport}
               />
+            </div>
+          )}
+
+          {/* Voice input — new notes only */}
+          {!editNote && (
+            <div className="px-5 pt-3 shrink-0">
+              <VoiceInput onResult={handleVoiceResult} />
             </div>
           )}
 
