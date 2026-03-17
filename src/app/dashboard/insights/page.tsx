@@ -613,11 +613,11 @@ export default function InsightsPage() {
             <InfoTooltip text="AI-powered behavioral analysis of your trading patterns, emotional triggers, and psychology" articleId="an-insights" />
           </h2>
           <p className="text-sm text-muted mt-0.5">
-            {usingDemo ? "Sample data" : "How your psychology impacts your trading performance"}
+            {usingDemo ? "Sample data" : viewMode === "beginner" ? "See how your emotions affect your trading" : "How your psychology impacts your trading performance"}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <PsychologyTierToggle onExpertFirstTime={() => setShowWizard(true)} />
+          {viewMode !== "beginner" && <PsychologyTierToggle onExpertFirstTime={() => setShowWizard(true)} />}
           {usingDemo && <DemoBanner feature="insights" />}
           <button
             onClick={() => setShowNoteEditor(true)}
@@ -652,6 +652,133 @@ export default function InsightsPage() {
           onCancel={() => setShowWizard(false)}
         />
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* BEGINNER LAYOUT — simplified to 4 sections */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {viewMode === "beginner" && (
+        <>
+          {/* 1. Dollar Cost of Emotions */}
+          {!emotionDollarCost && closedWithEmotionCount < 3 && (
+            <InsightUnlockCard
+              title="Dollar Cost of Emotions"
+              description="Discover which emotions are costing you real money — and which ones are making you money."
+              current={closedWithEmotionCount}
+              required={3}
+              unit="trades with emotions"
+            />
+          )}
+          {emotionDollarCost && (
+            <div id="tour-insights-emotion" className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {emotionDollarCost.worstEmotion && emotionDollarCost.worstEmotion[1] < 0 && (
+                <div className="rounded-2xl border border-loss/20 bg-loss/5 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign size={16} className="text-loss" />
+                    <span className="text-[10px] text-loss uppercase tracking-wider font-bold">Costing You Money</span>
+                  </div>
+                  <p className="text-2xl font-bold text-loss mb-1">
+                    {EMOTION_CONFIG[emotionDollarCost.worstEmotion[0]]?.emoji}{" "}
+                    {emotionDollarCost.worstEmotion[0]} cost you ${Math.abs(emotionDollarCost.worstEmotion[1]).toFixed(0)}
+                  </p>
+                  <p className="text-xs text-muted">Total P&L from trades tagged with this emotion.</p>
+                </div>
+              )}
+              {emotionDollarCost.bestEmotion && emotionDollarCost.bestEmotion[1] > 0 && (
+                <div className="rounded-2xl border border-win/20 bg-win/5 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign size={16} className="text-win" />
+                    <span className="text-[10px] text-win uppercase tracking-wider font-bold">Making You Money</span>
+                  </div>
+                  <p className="text-2xl font-bold text-win mb-1">
+                    {EMOTION_CONFIG[emotionDollarCost.bestEmotion[0]]?.emoji}{" "}
+                    {emotionDollarCost.bestEmotion[0]} earned you ${emotionDollarCost.bestEmotion[1].toFixed(0)}
+                  </p>
+                  <p className="text-xs text-muted">Total P&L from trades tagged with this emotion.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 2. Emotion Check-In */}
+          <EmotionCheckIn mode="auto" context="standalone" embedded={false} />
+
+          {/* 3. Trading DNA */}
+          {!tradingDna && closedCount < 5 && (
+            <InsightUnlockCard
+              title="Your Trading DNA"
+              description="Your personal trading fingerprint — best emotion, best time of day, best setup, biggest leak, and discipline score."
+              current={closedCount}
+              required={5}
+            />
+          )}
+          {tradingDna && (
+            <div id="tour-insights-discipline" className="bg-surface rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-glow)" }}>
+              <div className="flex items-center gap-2 mb-4">
+                <Dna size={16} className="text-accent" />
+                <h3 className="text-sm font-semibold text-foreground">Your Trading DNA</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {[
+                  { label: "Best Emotion", value: tradingDna.bestEmotion, icon: Heart, color: "text-win" },
+                  { label: "Best Time", value: tradingDna.bestTime, icon: Clock, color: "text-accent" },
+                  { label: "Best Setup", value: tradingDna.bestSetup, icon: TrendingUp, color: "text-accent" },
+                  { label: "Biggest Leak", value: tradingDna.biggestLeak, icon: AlertTriangle, color: "text-loss" },
+                  { label: "Discipline", value: `${tradingDna.discipline}/10`, icon: Shield, color: "text-amber-400" },
+                ].map((item) => (
+                  <div key={item.label} className="text-center">
+                    <item.icon size={16} className={`${item.color} mx-auto mb-1.5`} />
+                    <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-0.5">{item.label}</p>
+                    <p className={`text-sm font-bold ${item.color} truncate`}>{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 4. Psychological Development */}
+          <section className="space-y-4">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <TrendingUp size={16} className="text-accent" />
+              Your Growth
+            </h2>
+            <div className="glass rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+              <div className="flex items-center gap-1 mb-4">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <div key={s} className="flex-1 flex flex-col items-center gap-1">
+                    <div className={`w-full h-2 rounded-full transition-all ${
+                      s <= devStage.stage ? "bg-accent" : "bg-border/30"
+                    }`} />
+                    <span className={`text-[8px] ${s === devStage.stage ? "text-accent font-bold" : "text-muted/50"}`}>
+                      {s}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="text-sm font-bold text-foreground">
+                Stage {devStage.stage}: {devStage.label}
+              </div>
+              <p className="text-[10px] text-muted mt-1">{devStage.nextStageHint}</p>
+              <div className="mt-3 space-y-1">
+                {devStage.criteria.met.map((c, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[10px] text-win">
+                    <span>&#10003;</span> {c}
+                  </div>
+                ))}
+                {devStage.criteria.unmet.map((c, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[10px] text-muted/50">
+                    <span>&#9675;</span> {c}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* ADVANCED / EXPERT LAYOUT — full content */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {viewMode !== "beginner" && (<>
 
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       {/* SECTION 1: PREDICTIVE TILT WARNINGS */}
@@ -1702,6 +1829,8 @@ export default function InsightsPage() {
           </p>
         </div>
       )}
+
+      </>)}
     </div>
   );
 }
