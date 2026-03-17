@@ -41,15 +41,25 @@ import {
 import { Header } from "@/components/header";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
-const TABS = [
-  { id: "overview", label: "Overview", icon: TrendingUp },
-  { id: "pnl", label: "P&L", icon: BarChart3 },
-  { id: "winrate", label: "Win Rate", icon: PieChart },
-  { id: "symbols", label: "Symbols", icon: Coins },
-  { id: "tags", label: "Tags", icon: Tags },
+import type { ViewMode } from "@/lib/theme-context";
+
+const ALL_TABS = [
+  { id: "overview", label: "Overview", icon: TrendingUp, minMode: "beginner" as ViewMode },
+  { id: "pnl", label: "P&L", icon: BarChart3, minMode: "advanced" as ViewMode },
+  { id: "winrate", label: "Win Rate", icon: PieChart, minMode: "advanced" as ViewMode },
+  { id: "symbols", label: "Symbols", icon: Coins, minMode: "advanced" as ViewMode },
+  { id: "tags", label: "Tags", icon: Tags, minMode: "advanced" as ViewMode },
+  { id: "performance", label: "Performance", icon: Sparkles, minMode: "expert" as ViewMode },
 ] as const;
 
-type TabId = (typeof TABS)[number]["id"];
+type TabId = (typeof ALL_TABS)[number]["id"];
+
+const MODE_RANK: Record<ViewMode, number> = { beginner: 0, advanced: 1, expert: 2 };
+
+function getVisibleTabs(viewMode: ViewMode) {
+  const rank = MODE_RANK[viewMode];
+  return ALL_TABS.filter(t => MODE_RANK[t.minMode] <= rank);
+}
 
 
 export default function AnalyticsPage() {
@@ -59,7 +69,8 @@ export default function AnalyticsPage() {
   const [usingDemo, setUsingDemo] = useState(false);
   const { filterTrades } = useDateRange();
   const { filterByAccount } = useAccount();
-  const { theme } = useTheme();
+  const { theme, viewMode } = useTheme();
+  const visibleTabs = useMemo(() => getVisibleTabs(viewMode), [viewMode]);
   const colors = getChartColors(theme);
   const chartTooltipStyle = {
     background: colors.tooltipBg, backdropFilter: "blur(16px)",
@@ -258,7 +269,7 @@ export default function AnalyticsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 glass rounded-xl border border-border/50 p-1" style={{ boxShadow: "var(--shadow-card)" }}>
-        {TABS.map((t) => (
+        {visibleTabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -640,6 +651,81 @@ export default function AnalyticsPage() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+      {/* Performance tab — Expert only */}
+      {tab === "performance" && (
+        <div className="space-y-6">
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Expectancy", value: `${advanced.expectancy >= 0 ? "+" : ""}${advanced.expectancy.toFixed(2)}R`, color: advanced.expectancy >= 0 ? "text-win" : "text-loss", tooltip: "Average return per trade in R-multiples" },
+              { label: "Profit Factor", value: advanced.profitFactor === Infinity ? "∞" : advanced.profitFactor.toFixed(2), color: advanced.profitFactor >= 1.5 ? "text-win" : advanced.profitFactor >= 1 ? "text-foreground" : "text-loss", tooltip: "Gross wins / gross losses" },
+              { label: "Sharpe Ratio", value: advanced.sharpeRatio.toFixed(2), color: advanced.sharpeRatio >= 1 ? "text-win" : advanced.sharpeRatio >= 0 ? "text-foreground" : "text-loss", tooltip: "Risk-adjusted return (annualized)" },
+              { label: "Max Drawdown", value: `${advanced.maxDrawdownPct.toFixed(1)}%`, color: "text-loss", tooltip: "Largest peak-to-trough decline" },
+              { label: "Win Rate", value: `${stats.winRate.toFixed(1)}%`, color: stats.winRate >= 50 ? "text-win" : "text-loss", tooltip: "Percentage of winning trades" },
+              { label: "Avg Winner", value: `+$${advanced.avgWinner.toFixed(0)}`, color: "text-win", tooltip: "Average profit on winning trades" },
+              { label: "Avg Loser", value: `-$${advanced.avgLoser.toFixed(0)}`, color: "text-loss", tooltip: "Average loss on losing trades" },
+              { label: "Risk/Reward", value: advanced.avgLoser > 0 ? (advanced.avgWinner / advanced.avgLoser).toFixed(2) : "N/A", color: "text-foreground", tooltip: "Avg winner / avg loser" },
+              { label: "Best Streak", value: `${advanced.bestWinStreak}W`, color: "text-win", tooltip: "Longest consecutive win streak" },
+              { label: "Worst Streak", value: `${advanced.worstLoseStreak}L`, color: "text-loss", tooltip: "Longest consecutive loss streak" },
+              { label: "Largest Win", value: `+$${advanced.largestWin.toFixed(0)}`, color: "text-win", tooltip: "Single biggest winning trade" },
+              { label: "Largest Loss", value: `$${advanced.largestLoss.toFixed(0)}`, color: "text-loss", tooltip: "Single biggest losing trade" },
+            ].map((m) => (
+              <div key={m.label} className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
+                  {m.label}
+                  <InfoTooltip text={m.tooltip} size={11} />
+                </p>
+                <p className={`text-lg font-bold ${m.color}`}>{m.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Equity + Drawdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+              <h3 className="text-sm font-semibold text-foreground mb-4">Equity Curve</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={equityData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: colors.tick }} tickFormatter={(v) => new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" })} />
+                  <YAxis tick={{ fontSize: 10, fill: colors.tick }} tickFormatter={(v) => `$${v}`} />
+                  <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => [`$${Number(v).toFixed(2)}`, "Equity"]} />
+                  <Area type="monotone" dataKey="equity" stroke={colors.accent} fill={colors.accent} fillOpacity={0.1} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+              <h3 className="text-sm font-semibold text-foreground mb-4">Hold Time Analysis</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-4 rounded-xl bg-win/5 border border-win/20">
+                  <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Avg Hold (Winners)</p>
+                  <p className="text-xl font-bold text-win">{advanced.avgHoldTimeWinners.toFixed(1)}h</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-loss/5 border border-loss/20">
+                  <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Avg Hold (Losers)</p>
+                  <p className="text-xl font-bold text-loss">{advanced.avgHoldTimeLosers.toFixed(1)}h</p>
+                </div>
+              </div>
+              {advanced.pnlByDayOfWeek.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs text-muted mb-2">P&L by Day of Week</p>
+                  <div className="flex gap-1">
+                    {advanced.pnlByDayOfWeek.map((d) => (
+                      <div key={d.day} className="flex-1 text-center">
+                        <div className={`h-8 rounded flex items-end justify-center ${d.pnl >= 0 ? "bg-win/20" : "bg-loss/20"}`}>
+                          <span className="text-[9px] font-semibold">{d.day.slice(0, 2)}</span>
+                        </div>
+                        <span className={`text-[9px] ${d.pnl >= 0 ? "text-win" : "text-loss"}`}>{d.winRate.toFixed(0)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -222,22 +222,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* View mode toggle */}
-          <div className="inline-flex items-center rounded-xl bg-surface border border-border/50 p-0.5">
-            {(["beginner", "advanced", "expert"] as ViewMode[]).map(mode => (
-              <button
-                key={mode}
-                onClick={() => setViewModeTo(mode)}
-                className={`flex items-center justify-center px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                  viewMode === mode
-                    ? "bg-accent/15 text-accent border border-accent/30"
-                    : "text-muted hover:text-foreground border border-transparent"
-                }`}
-              >
-                {mode === "beginner" ? t("sidebar.beginner") : mode === "advanced" ? t("sidebar.advanced") : t("sidebar.expert")}
-              </button>
-            ))}
-          </div>
+          {/* Mode toggle removed — accessible in Settings only */}
           <button
             onClick={() => setShowImport(true)}
             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"

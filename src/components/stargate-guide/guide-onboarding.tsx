@@ -387,6 +387,10 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
       professional: "expert",
     };
     localStorage.setItem("stargate-mode", modeMap[data.experienceLevel] || "advanced");
+    // Override level-gating for experienced users
+    if (["intermediate", "advanced", "professional"].includes(data.experienceLevel)) {
+      localStorage.setItem("stargate-mode-override", "true");
+    }
   }
 
   function handleNext() {
