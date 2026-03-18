@@ -91,11 +91,12 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
   const [showAllPrompts, setShowAllPrompts] = useState(false);
 
   // Sync selected template when parent template changes (Path B: template picked before voice)
+  // Don't override if user already picked a template in the review state (Path A)
   useEffect(() => {
-    if (currentTemplate && currentTemplate !== "free") {
+    if (currentTemplate && currentTemplate !== "free" && state !== "review") {
       setSelectedTemplate(currentTemplate);
     }
-  }, [currentTemplate]);
+  }, [currentTemplate, state]);
 
   // Check microphone permission on mount
   useEffect(() => {
@@ -279,14 +280,16 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
     setTranscript("");
     setError(null);
     setShowAllPrompts(false);
-  }, []);
+    // Reset template to parent's current template (or null if free-form)
+    setSelectedTemplate(currentTemplate && currentTemplate !== "free" ? currentTemplate : null);
+  }, [currentTemplate]);
 
   // Guided prompts for the currently selected template
   const voicePrompts = selectedTemplate && selectedTemplate !== "free" ? getVoicePrompts(selectedTemplate) : [];
   const customTemplateName = selectedTemplate && !TEMPLATE_FIELDS[selectedTemplate]
     ? customTemplates?.find((t) => t.id === selectedTemplate)?.name
     : null;
-  const MAX_VISIBLE_PROMPTS = 5;
+  const MAX_VISIBLE_PROMPTS = 3;
   const hasMorePrompts = voicePrompts.length > MAX_VISIBLE_PROMPTS;
   const visiblePrompts = showAllPrompts ? voicePrompts : voicePrompts.slice(0, MAX_VISIBLE_PROMPTS);
 
@@ -416,7 +419,9 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
                     className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-accent text-background text-sm font-medium hover:bg-accent-hover transition-all"
                   >
                     <Sparkles size={14} />
-                    Structure with AI
+                    {selectedTemplate && selectedTemplate !== "free"
+                      ? `Structure as ${TEMPLATE_CARD_INFO[selectedTemplate]?.label ?? "Template"}`
+                      : "Structure with AI"}
                   </button>
                   <button
                     type="button"
@@ -460,7 +465,7 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
           {voicePrompts.length > 0 && (
             <div className="border-t border-border/20 pt-2">
               <p className="text-[10px] uppercase tracking-wider text-muted/50 font-semibold mb-1.5">Talk about...</p>
-              <div className="max-h-[120px] overflow-y-auto space-y-1">
+              <div className="max-h-[80px] overflow-y-auto space-y-0.5">
                 {visiblePrompts.map((prompt, i) => (
                   <p key={i} className="text-xs text-muted/60 flex items-start gap-1.5">
                     <span className="text-accent/40 shrink-0 mt-0.5">&bull;</span>
@@ -570,7 +575,9 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-accent text-background text-sm font-medium hover:bg-accent-hover transition-all"
               >
                 <Sparkles size={14} />
-                Structure with AI
+                {selectedTemplate && selectedTemplate !== "free"
+                  ? `Structure as ${TEMPLATE_CARD_INFO[selectedTemplate]?.label ?? "Template"}`
+                  : "Structure with AI"}
               </button>
               <button
                 type="button"

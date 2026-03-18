@@ -25,6 +25,7 @@ import {
   Crosshair,
   Brain,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
@@ -136,6 +137,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
     ((editNote?.structured_data as Record<string, unknown>)?.custom_emotion as string) ?? ""
   );
   const [voiceCustomTemplates, setVoiceCustomTemplates] = useState<{ id: string; name: string }[]>([]);
+  const [voicePopulatedCount, setVoicePopulatedCount] = useState<{ filled: number; total: number } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const supabase = createClient();
@@ -308,28 +310,45 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
 
   const handleVoiceResult = useCallback((data: VoiceResult) => {
     if (data.title) setTitle(data.title);
+
+    // Set template FIRST so the form renders the right fields for the structured data
     if (data.template && TEMPLATES.some((t) => t.id === data.template)) {
       setAppliedTemplate(data.template);
     }
-    // If AI returned structured_data for a structured template, populate form fields
+
+    // Merge structured data only if it matches a structured template
     if (data.structuredData && data.template && isStructuredTemplate(data.template)) {
       setStructuredData((prev) => ({ ...prev, ...data.structuredData }));
+      // Show feedback: "AI filled N of M fields"
+      const filled = Object.values(data.structuredData).filter((v) => v !== null && v !== "").length;
+      const total = Object.keys(data.structuredData).length;
+      if (total > 0) {
+        setVoicePopulatedCount({ filled, total });
+        setTimeout(() => setVoicePopulatedCount(null), 6000);
+      }
     }
+
+    // Content for free-form fallback
     if (data.content && contentRef.current) {
       contentRef.current.innerHTML = sanitizeHtml(data.content);
     }
-    if (data.emotion) {
+
+    // Emotions: only set if user hasn't already selected any (avoid overwriting manual picks)
+    if (data.emotion && selectedEmotions.length === 0) {
       setSelectedEmotions([data.emotion]);
       setShowPsychInsights(true);
     }
-    if (data.confidence != null) {
+
+    // Confidence: only set if not already in structuredData (avoid overwriting manual input)
+    if (data.confidence != null && structuredData.confidence == null) {
       setStructuredData((prev) => ({ ...prev, confidence: data.confidence! }));
       setShowPsychInsights(true);
     }
+
     if (data.tags?.length) {
       setSelectedTag(data.tags[0]);
     }
-  }, []);
+  }, [selectedEmotions.length, structuredData.confidence]);
 
   async function saveNote(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -552,6 +571,12 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                 <label className="block text-[11px] uppercase tracking-wider text-muted font-semibold">
                   {TEMPLATES.find((t) => t.id === appliedTemplate)?.label ?? "Template"}
                 </label>
+                {voicePopulatedCount && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 border border-accent/20 text-xs text-accent animate-in fade-in duration-300">
+                    <Sparkles size={12} className="shrink-0" />
+                    AI filled {voicePopulatedCount.filled} of {voicePopulatedCount.total} fields — review and complete the rest
+                  </div>
+                )}
                 <StructuredTemplateForm
                   templateId={appliedTemplate}
                   data={structuredData}
