@@ -671,7 +671,7 @@ export default function InsightsPage() {
           {emotionDollarCost && (
             <div id="tour-insights-emotion" className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {emotionDollarCost.worstEmotion && emotionDollarCost.worstEmotion[1] < 0 && (
-                <div className="rounded-2xl border border-loss/20 bg-loss/5 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+                <div className="glass rounded-2xl border border-loss/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign size={16} className="text-loss" />
                     <span className="text-[10px] text-loss uppercase tracking-wider font-bold">Costing You Money</span>
@@ -684,7 +684,7 @@ export default function InsightsPage() {
                 </div>
               )}
               {emotionDollarCost.bestEmotion && emotionDollarCost.bestEmotion[1] > 0 && (
-                <div className="rounded-2xl border border-win/20 bg-win/5 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+                <div className="glass rounded-2xl border border-win/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign size={16} className="text-win" />
                     <span className="text-[10px] text-win uppercase tracking-wider font-bold">Making You Money</span>
@@ -815,7 +815,7 @@ export default function InsightsPage() {
       {emotionDollarCost && (
         <div id="tour-insights-emotion" className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {emotionDollarCost.worstEmotion && emotionDollarCost.worstEmotion[1] < 0 && (
-            <div className="rounded-2xl border border-loss/20 bg-loss/5 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="glass rounded-2xl border border-loss/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign size={16} className="text-loss" />
                 <span className="text-[10px] text-loss uppercase tracking-wider font-bold">Costing You Money</span>
@@ -828,7 +828,7 @@ export default function InsightsPage() {
             </div>
           )}
           {emotionDollarCost.bestEmotion && emotionDollarCost.bestEmotion[1] > 0 && (
-            <div className="rounded-2xl border border-win/20 bg-win/5 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="glass rounded-2xl border border-win/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign size={16} className="text-win" />
                 <span className="text-[10px] text-win uppercase tracking-wider font-bold">Making You Money</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { forexTradeSchema, type ForexTradeFormData } from "@/lib/validators";
 import { ForexTrade, FOREX_PAIRS, FOREX_SESSIONS, LOT_SIZES } from "@/lib/types";
@@ -49,6 +49,7 @@ export function ForexTradeForm({
   variant?: "modal" | "inline";
 }) {
   const supabase = createClient();
+  const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -80,6 +81,32 @@ export function ForexTradeForm({
 
   // Custom tag presets
   const customPresets = useMemo(() => getCustomTagPresets(), []);
+
+  // P&L state: auto-calculated or manual override
+  const [manualPnl, setManualPnl] = useState<string>(editTrade?.pnl != null ? editTrade.pnl.toString() : "");
+  const [pnlIsManual, setPnlIsManual] = useState(false);
+  const [autoPnl, setAutoPnl] = useState<number | null>(null);
+
+  function recalculatePnl() {
+    if (!formRef.current) return;
+    const fd = new FormData(formRef.current);
+    const entry = parseFloat(fd.get("entry_price") as string);
+    const exit = parseFloat(fd.get("exit_price") as string);
+    const lots = parseFloat(fd.get("lot_size") as string);
+    const fees = parseFloat(fd.get("fees") as string) || 0;
+    const swap = parseFloat(fd.get("swap_fee") as string) || 0;
+    const pos = fd.get("position") as string;
+    const lotMultiplier = LOT_SIZES[lotType];
+    if (!isNaN(entry) && !isNaN(exit) && !isNaN(lots) && entry > 0 && exit > 0 && lots > 0) {
+      const direction = pos === "long" ? 1 : -1;
+      const calculated = (exit - entry) * direction * lots * lotMultiplier - fees - swap;
+      setAutoPnl(calculated);
+      if (!pnlIsManual) setManualPnl(calculated.toFixed(2));
+    } else {
+      setAutoPnl(null);
+      if (!pnlIsManual) setManualPnl("");
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -144,7 +171,10 @@ export function ForexTradeForm({
 
       // Calculate P&L
       let pnl: number | null = null;
-      if (data.exit_price) {
+      if (manualPnl.trim() !== "") {
+        const parsed = parseFloat(manualPnl);
+        if (!isNaN(parsed)) pnl = parsed;
+      } else if (data.exit_price) {
         const lotMultiplier = LOT_SIZES[data.lot_type];
         if (data.position === "long") {
           pnl = (data.exit_price - data.entry_price) * data.lot_size * lotMultiplier - data.fees - data.swap_fee;
@@ -198,7 +228,7 @@ export function ForexTradeForm({
       )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 max-h-[calc(100vh-12rem)] overflow-y-auto">
+        <form ref={formRef} onSubmit={handleSubmit} className="px-6 py-5 space-y-5 max-h-[calc(100vh-12rem)] overflow-y-auto">
           {errors.form && (
             <div className="p-3 rounded-xl bg-loss/10 border border-loss/30 text-sm text-loss">{errors.form}</div>
           )}
@@ -237,7 +267,7 @@ export function ForexTradeForm({
             <div className="flex gap-2">
               {(["long", "short"] as const).map((pos) => (
                 <label key={pos} className="flex-1">
-                  <input type="radio" name="position" value={pos} defaultChecked={pos === (editTrade?.position ?? "long")} className="sr-only peer" />
+                  <input type="radio" name="position" value={pos} defaultChecked={pos === (editTrade?.position ?? "long")} onChange={() => recalculatePnl()} className="sr-only peer" />
                   <div className={`text-center py-2.5 rounded-xl text-sm font-semibold cursor-pointer border transition-all peer-checked:border-accent/50 peer-checked:bg-accent/10 peer-checked:text-accent border-border text-muted hover:text-foreground`}>
                     {pos.toUpperCase()}
                   </div>
@@ -273,6 +303,7 @@ export function ForexTradeForm({
               <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Entry Price *</label>
               <input name="entry_price" type="number" step="any" defaultValue={editTrade?.entry_price ?? ""}
                 placeholder="1.0850"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
               {errors.entry_price && <p className="text-[10px] text-loss mt-1">{errors.entry_price}</p>}
             </div>
@@ -280,19 +311,60 @@ export function ForexTradeForm({
               <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Exit Price</label>
               <input name="exit_price" type="number" step="any" defaultValue={editTrade?.exit_price ?? ""}
                 placeholder="1.0920"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
             </div>
             <div>
               <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Lot Size *</label>
               <input name="lot_size" type="number" step="any" defaultValue={editTrade?.lot_size ?? "1"}
                 placeholder="1"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
               {errors.lot_size && <p className="text-[10px] text-loss mt-1">{errors.lot_size}</p>}
             </div>
             <div>
               <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">Fees</label>
               <input name="fees" type="number" step="any" defaultValue={editTrade?.fees ?? "0"}
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50" />
+            </div>
+          </div>
+
+          {/* P&L */}
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">
+              P&L
+              {autoPnl !== null && !pnlIsManual && (
+                <span className="text-muted/60 ml-1">(auto)</span>
+              )}
+              {pnlIsManual && (
+                <span className="text-accent/60 ml-1">(manual)</span>
+              )}
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="any"
+                value={manualPnl}
+                onChange={(e) => { setManualPnl(e.target.value); setPnlIsManual(true); }}
+                placeholder={autoPnl != null ? autoPnl.toFixed(2) : "Auto-calculated from prices"}
+                className={`w-full px-3 py-2.5 rounded-xl bg-background border text-sm focus:outline-none focus:border-accent/50 ${
+                  manualPnl && parseFloat(manualPnl) > 0
+                    ? "border-win/30 text-win"
+                    : manualPnl && parseFloat(manualPnl) < 0
+                      ? "border-loss/30 text-loss"
+                      : "border-border text-foreground"
+                }`}
+              />
+              {pnlIsManual && (
+                <button
+                  type="button"
+                  onClick={() => { setPnlIsManual(false); setManualPnl(autoPnl != null ? autoPnl.toFixed(2) : ""); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-accent hover:text-accent-hover"
+                >
+                  Reset
+                </button>
+              )}
             </div>
           </div>
 

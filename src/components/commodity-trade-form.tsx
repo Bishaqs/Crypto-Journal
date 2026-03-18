@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { commodityTradeSchema, type CommodityTradeFormData } from "@/lib/validators";
 import { CommodityTrade, COMMODITY_SYMBOLS, COMMODITY_CATEGORIES, COMMODITY_EXCHANGES } from "@/lib/types";
@@ -34,6 +34,7 @@ export function CommodityTradeForm({
   variant?: "modal" | "inline";
 }) {
   const supabase = createClient();
+  const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -70,6 +71,31 @@ export function CommodityTradeForm({
 
   // Track exit
   const [hasExit, setHasExit] = useState(!!editTrade?.exit_price);
+
+  // P&L state: auto-calculated or manual override
+  const [manualPnl, setManualPnl] = useState<string>(editTrade?.pnl != null ? editTrade.pnl.toString() : "");
+  const [pnlIsManual, setPnlIsManual] = useState(false);
+  const [autoPnl, setAutoPnl] = useState<number | null>(null);
+
+  function recalculatePnl() {
+    if (!formRef.current) return;
+    const fd = new FormData(formRef.current);
+    const entry = parseFloat(fd.get("entry_price") as string);
+    const exit = parseFloat(fd.get("exit_price") as string);
+    const qty = parseFloat(fd.get("quantity") as string);
+    const fees = parseFloat(fd.get("fees") as string) || 0;
+    const pos = fd.get("position") as string;
+    const tickSz = symbolInfo?.tickSize;
+    const tickVal = symbolInfo?.tickValue;
+    if (!isNaN(entry) && !isNaN(exit) && !isNaN(qty) && entry > 0 && exit > 0 && qty > 0) {
+      const calculated = calculatePnl(pos, entry, exit, qty, fees, tickSz, tickVal);
+      setAutoPnl(calculated);
+      if (!pnlIsManual) setManualPnl(calculated.toFixed(2));
+    } else {
+      setAutoPnl(null);
+      if (!pnlIsManual) setManualPnl("");
+    }
+  }
 
   // Symbol suggestions for autocomplete
   const symbolKeys = useMemo(() => Object.keys(COMMODITY_SYMBOLS), []);
@@ -183,7 +209,10 @@ export function CommodityTradeForm({
       const data: CommodityTradeFormData = result.data;
 
       let pnl: number | null = null;
-      if (data.exit_price && data.close_timestamp) {
+      if (manualPnl.trim() !== "") {
+        const parsed = parseFloat(manualPnl);
+        if (!isNaN(parsed)) pnl = parsed;
+      } else if (data.exit_price) {
         pnl = calculatePnl(
           data.position,
           data.entry_price,
@@ -233,6 +262,7 @@ export function CommodityTradeForm({
         price_mfe: data.price_mfe ?? null,
         mfe_timestamp: data.mfe_timestamp ?? null,
         mae_timestamp: data.mae_timestamp ?? null,
+        playbook_id: data.playbook_id ?? null,
       };
 
       let dbError;
@@ -286,7 +316,7 @@ export function CommodityTradeForm({
         </div>
       )}
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* Contract Type Toggle: Spot / Futures / Options */}
           <div>
             <label className="block text-xs text-muted mb-1.5">Contract Type</label>
@@ -342,6 +372,7 @@ export function CommodityTradeForm({
               <select
                 name="position"
                 defaultValue={editTrade?.position ?? "long"}
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               >
                 <option value="long">Long</option>
@@ -392,6 +423,7 @@ export function CommodityTradeForm({
                 step="any"
                 defaultValue={editTrade?.entry_price ?? ""}
                 placeholder="0.00"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
               {errors.entry_price && (
@@ -408,7 +440,7 @@ export function CommodityTradeForm({
                 step="any"
                 defaultValue={editTrade?.exit_price ?? ""}
                 placeholder="0.00"
-                onChange={(e) => setHasExit(!!e.target.value)}
+                onChange={(e) => { setHasExit(!!e.target.value); recalculatePnl(); }}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
             </div>
@@ -461,6 +493,7 @@ export function CommodityTradeForm({
                 step="any"
                 defaultValue={editTrade?.quantity ?? ""}
                 placeholder="1"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
               {errors.quantity && (
@@ -475,8 +508,47 @@ export function CommodityTradeForm({
                 step="any"
                 defaultValue={editTrade?.fees ?? 0}
                 placeholder="0.00"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
+            </div>
+          </div>
+
+          {/* P&L */}
+          <div>
+            <label className="block text-xs text-muted mb-1">
+              P&L
+              {autoPnl !== null && !pnlIsManual && (
+                <span className="text-muted/60 ml-1">(auto)</span>
+              )}
+              {pnlIsManual && (
+                <span className="text-accent/60 ml-1">(manual)</span>
+              )}
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="any"
+                value={manualPnl}
+                onChange={(e) => { setManualPnl(e.target.value); setPnlIsManual(true); }}
+                placeholder={autoPnl != null ? autoPnl.toFixed(2) : "Auto-calculated from prices"}
+                className={`w-full px-3 py-2 rounded-lg bg-background border text-sm focus:outline-none focus:border-accent ${
+                  manualPnl && parseFloat(manualPnl) > 0
+                    ? "border-win/30 text-win"
+                    : manualPnl && parseFloat(manualPnl) < 0
+                      ? "border-loss/30 text-loss"
+                      : "border-border text-foreground"
+                }`}
+              />
+              {pnlIsManual && (
+                <button
+                  type="button"
+                  onClick={() => { setPnlIsManual(false); setManualPnl(autoPnl != null ? autoPnl.toFixed(2) : ""); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-accent hover:text-accent-hover"
+                >
+                  Reset
+                </button>
+              )}
             </div>
           </div>
 
