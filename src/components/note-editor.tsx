@@ -135,6 +135,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
   const [customEmotionText, setCustomEmotionText] = useState<string>(
     ((editNote?.structured_data as Record<string, unknown>)?.custom_emotion as string) ?? ""
   );
+  const [voiceCustomTemplates, setVoiceCustomTemplates] = useState<{ id: string; name: string }[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const supabase = createClient();
@@ -195,6 +196,17 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
     }
     loadData();
   }, [tradeTable]);
+
+  // Fetch custom templates for the voice input template picker
+  useEffect(() => {
+    supabase
+      .from("user_templates")
+      .select("id, name")
+      .order("created_at", { ascending: false })
+      .then(({ data }: { data: { id: string; name: string }[] | null }) => {
+        if (data) setVoiceCustomTemplates(data);
+      });
+  }, []);
 
   const tagOptions = useMemo(() => {
     const presets = getCustomTagPresets();
@@ -298,6 +310,10 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
     if (data.title) setTitle(data.title);
     if (data.template && TEMPLATES.some((t) => t.id === data.template)) {
       setAppliedTemplate(data.template);
+    }
+    // If AI returned structured_data for a structured template, populate form fields
+    if (data.structuredData && data.template && isStructuredTemplate(data.template)) {
+      setStructuredData((prev) => ({ ...prev, ...data.structuredData }));
     }
     if (data.content && contentRef.current) {
       contentRef.current.innerHTML = sanitizeHtml(data.content);
@@ -497,7 +513,11 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
           {/* Voice input — new notes only */}
           {!editNote && (
             <div className="px-5 pt-3 shrink-0">
-              <VoiceInput onResult={handleVoiceResult} />
+              <VoiceInput
+                onResult={handleVoiceResult}
+                currentTemplate={appliedTemplate}
+                customTemplates={voiceCustomTemplates}
+              />
             </div>
           )}
 

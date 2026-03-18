@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Mic, MicOff, Sparkles, Type, Loader2, RotateCcw } from "lucide-react";
+import { Mic, MicOff, Sparkles, Type, Loader2, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { TEMPLATE_FIELDS } from "@/components/note-editor/structured-templates";
 
 export interface VoiceResult {
   title: string;
@@ -10,11 +11,14 @@ export interface VoiceResult {
   emotion?: string;
   tags?: string[];
   confidence?: number;
+  structuredData?: Record<string, string | number | null>;
 }
 
 interface VoiceInputProps {
   onResult: (data: VoiceResult) => void;
   onRawTranscript?: (text: string) => void;
+  currentTemplate?: string;
+  customTemplates?: { id: string; name: string }[];
 }
 
 type RecordingState = "idle" | "recording" | "review" | "processing";
@@ -29,7 +33,37 @@ function getSpeechRecognition(): any {
 
 type MicPermission = "unknown" | "granted" | "prompt" | "denied";
 
-export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
+const TEMPLATE_CARD_INFO: Record<string, { label: string; desc: string }> = {
+  free: { label: "Free-form", desc: "Speak freely" },
+  "trade-entry": { label: "Trade Entry", desc: "Thesis, risk, checklist" },
+  "trade-review": { label: "Trade Review", desc: "What worked & lessons" },
+  "morning-plan": { label: "Morning Plan", desc: "Watchlist, limits, focus" },
+  "daily-review": { label: "Daily Review", desc: "P&L, wins, triggers" },
+  "weekly-recap": { label: "Weekly Recap", desc: "Best/worst, improvement" },
+  "monthly-recap": { label: "Monthly Recap", desc: "Grade, goals, lessons" },
+  mistake: { label: "Mistake Analysis", desc: "What happened & fix" },
+};
+
+function getVoicePrompts(templateId: string): string[] {
+  const fields = TEMPLATE_FIELDS[templateId];
+  if (!fields) return [];
+  return fields.map((field) => {
+    if (field.type === "emotion") return field.label ?? "How are you feeling?";
+    if (field.type === "confidence") return "How confident are you? (1-10)";
+    if (field.type === "process-score") return "Rate your process (1-10)";
+    if (field.type === "setup-type") return "What type of setup?";
+    if (field.type === "checklist") return field.label;
+    return field.label;
+  });
+}
+
+function getSimplifiedFields(templateId: string) {
+  const fields = TEMPLATE_FIELDS[templateId];
+  if (!fields) return undefined;
+  return fields.map((f) => ({ key: f.key, label: "label" in f ? (f.label ?? f.key) : f.key, type: f.type }));
+}
+
+export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customTemplates }: VoiceInputProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +80,17 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
     if (stored === "false") return false;
     return null;
   });
+
+  // Template selection for voice — syncs from parent's current template
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [showAllPrompts, setShowAllPrompts] = useState(false);
+
+  // Sync selected template when parent template changes (Path B: template picked before voice)
+  useEffect(() => {
+    if (currentTemplate && currentTemplate !== "free") {
+      setSelectedTemplate(currentTemplate);
+    }
+  }, [currentTemplate]);
 
   // Check microphone permission on mount
   useEffect(() => {
@@ -148,6 +193,7 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
     recognition.start();
     setState("recording");
     setTranscript("");
+    setShowAllPrompts(false);
   }, [onRawTranscript]);
 
   const stopRecording = useCallback(() => {
@@ -166,10 +212,26 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
       const model = localStorage.getItem("stargate-ai-model") || undefined;
       const apiKey = localStorage.getItem("stargate-ai-api-key") || undefined;
 
+      // Build template-aware payload
+      const templateId = selectedTemplate && selectedTemplate !== "free" ? selectedTemplate : undefined;
+      const templateFields = templateId ? getSimplifiedFields(templateId) : undefined;
+      // For custom templates, include the name
+      const customTemplateName = templateId && !TEMPLATE_FIELDS[templateId]
+        ? customTemplates?.find((t) => t.id === templateId)?.name
+        : undefined;
+
       const res = await fetch("/api/ai/structure-journal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript: transcript.trim(), provider, model, apiKey }),
+        body: JSON.stringify({
+          transcript: transcript.trim(),
+          provider,
+          model,
+          apiKey,
+          templateId,
+          templateFields,
+          customTemplateName,
+        }),
       });
 
       if (!res.ok) {
@@ -177,24 +239,33 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
         throw new Error(data.error || `HTTP ${res.status}`);
       }
 
-      const data: VoiceResult = await res.json();
-      onResult(data);
+      const data = await res.json();
+      const result: VoiceResult = {
+        title: data.title,
+        content: data.content,
+        template: data.template,
+        emotion: data.emotion,
+        tags: data.tags,
+        confidence: data.confidence,
+        structuredData: data.structured_data ?? undefined,
+      };
+      onResult(result);
       reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to process transcript");
       setState("review");
     }
-  }, [transcript, onResult]);
+  }, [transcript, onResult, selectedTemplate, customTemplates]);
 
   const useAsPlainText = useCallback(() => {
     if (!transcript.trim()) return;
     onResult({
       title: "",
       content: `<p>${transcript.trim().replace(/\n/g, "</p><p>")}</p>`,
-      template: "free",
+      template: selectedTemplate || "free",
     });
     reset();
-  }, [transcript, onResult]);
+  }, [transcript, onResult, selectedTemplate]);
 
   const reset = useCallback(() => {
     recognitionRef.current?.stop();
@@ -202,7 +273,17 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
     setState("idle");
     setTranscript("");
     setError(null);
+    setShowAllPrompts(false);
   }, []);
+
+  // Guided prompts for the currently selected template
+  const voicePrompts = selectedTemplate && selectedTemplate !== "free" ? getVoicePrompts(selectedTemplate) : [];
+  const customTemplateName = selectedTemplate && !TEMPLATE_FIELDS[selectedTemplate]
+    ? customTemplates?.find((t) => t.id === selectedTemplate)?.name
+    : null;
+  const MAX_VISIBLE_PROMPTS = 5;
+  const hasMorePrompts = voicePrompts.length > MAX_VISIBLE_PROMPTS;
+  const visiblePrompts = showAllPrompts ? voicePrompts : voicePrompts.slice(0, MAX_VISIBLE_PROMPTS);
 
   // Consent prompt — shown once, remembered in localStorage
   if (consented === null) {
@@ -347,7 +428,7 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
         </div>
       )}
 
-      {/* Recording: pulsing mic + live transcript */}
+      {/* Recording: pulsing mic + live transcript + guided prompts (Path B) */}
       {state === "recording" && (
         <div className="px-4 py-3 space-y-3">
           <div className="flex items-center gap-3">
@@ -369,10 +450,54 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
               {transcript}
             </p>
           )}
+
+          {/* Guided prompts — shown when a template is selected (Path B) */}
+          {voicePrompts.length > 0 && (
+            <div className="border-t border-border/20 pt-2">
+              <p className="text-[10px] uppercase tracking-wider text-muted/50 font-semibold mb-1.5">Talk about...</p>
+              <div className="max-h-[120px] overflow-y-auto space-y-1">
+                {visiblePrompts.map((prompt, i) => (
+                  <p key={i} className="text-xs text-muted/60 flex items-start gap-1.5">
+                    <span className="text-accent/40 shrink-0 mt-0.5">&bull;</span>
+                    {prompt}
+                  </p>
+                ))}
+              </div>
+              {hasMorePrompts && !showAllPrompts && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllPrompts(true)}
+                  className="flex items-center gap-1 text-[10px] text-accent/50 hover:text-accent mt-1 transition-colors"
+                >
+                  <ChevronDown size={10} />
+                  Show all {voicePrompts.length} prompts
+                </button>
+              )}
+              {showAllPrompts && hasMorePrompts && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllPrompts(false)}
+                  className="flex items-center gap-1 text-[10px] text-accent/50 hover:text-accent mt-1 transition-colors"
+                >
+                  <ChevronUp size={10} />
+                  Show less
+                </button>
+              )}
+            </div>
+          )}
+          {customTemplateName && (
+            <div className="border-t border-border/20 pt-2">
+              <p className="text-[10px] uppercase tracking-wider text-muted/50 font-semibold mb-1.5">Talk about...</p>
+              <p className="text-xs text-muted/60 flex items-start gap-1.5">
+                <span className="text-accent/40 shrink-0 mt-0.5">&bull;</span>
+                Describe your thoughts on &ldquo;{customTemplateName}&rdquo;
+              </p>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Review: show transcript + action buttons */}
+      {/* Review: show transcript + template picker (Path A) + action buttons */}
       {state === "review" && (
         <div className="px-4 py-3 space-y-3">
           <div className="flex items-center justify-between">
@@ -389,6 +514,49 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
             placeholder="No speech detected. Try again or type here..."
             className="w-full text-sm text-foreground/80 bg-background/50 rounded-lg px-3 py-2 leading-relaxed max-h-[120px] min-h-[60px] resize-y overflow-y-auto border border-border/30 focus:outline-none focus:border-accent/50 transition-colors"
           />
+
+          {/* Template picker — Path A: user recorded first, now picks a template */}
+          {transcript.trim() && (
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase tracking-wider text-muted/50 font-semibold">Structure as template</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {Object.entries(TEMPLATE_CARD_INFO).map(([id, info]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setSelectedTemplate(selectedTemplate === id ? null : id)}
+                    className={`text-left px-2.5 py-2 rounded-lg border text-xs transition-all ${
+                      selectedTemplate === id
+                        ? "border-accent/50 bg-accent/10 text-accent"
+                        : id === "free"
+                        ? "border-dashed border-border/40 text-muted/60 hover:text-muted hover:border-border/60"
+                        : "border-border/30 text-muted hover:text-foreground hover:border-border/60"
+                    }`}
+                  >
+                    <span className="font-medium block leading-tight">{info.label}</span>
+                    <span className="text-[10px] opacity-60 leading-tight">{info.desc}</span>
+                  </button>
+                ))}
+                {/* Custom templates */}
+                {customTemplates?.map((ct) => (
+                  <button
+                    key={ct.id}
+                    type="button"
+                    onClick={() => setSelectedTemplate(selectedTemplate === ct.id ? null : ct.id)}
+                    className={`text-left px-2.5 py-2 rounded-lg border text-xs transition-all ${
+                      selectedTemplate === ct.id
+                        ? "border-accent/50 bg-accent/10 text-accent"
+                        : "border-border/30 text-muted hover:text-foreground hover:border-border/60"
+                    }`}
+                  >
+                    <span className="font-medium block leading-tight">{ct.name}</span>
+                    <span className="text-[10px] opacity-60 leading-tight">Custom</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {transcript.trim() && (
             <div className="flex gap-2">
               <button
