@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PrivacyContent } from "@/components/legal/privacy-content";
 
 export const metadata = {
-  title: "Privacy Policy — Stargate",
+  title: "Privacy Policy — Traverse",
 };
 
 export default function PrivacyPage() {

@@ -20,7 +20,7 @@ const en = {
     no: "No",
     confirm: "Confirm",
     logOut: "Log Out",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -68,18 +68,18 @@ const en = {
     language: "Language",
 
     // Guide speech (per step)
-    speech0: "Welcome to Stargate! I'm Nova, your trading companion. Let's get you set up.",
+    speech0: "Welcome to Traverse! I'm Nova, your trading companion. Let's get you set up.",
     speech1WithName: "Nice to meet you, {name}! How long have you been trading?",
     speech1NoName: "What should I call you?",
     speech2: "How do you trade?",
     speech3: "Where do you execute your trades?",
     speech4: "What instruments do you trade?",
-    speech5: "What do you want to achieve with Stargate?",
+    speech5: "What do you want to achieve with Traverse?",
     speech6: "Almost done! Let's personalize your experience.",
     speech7: "Last one — how did you find us?",
 
     // Intro cinematic
-    welcomeTitle: "Welcome to Stargate",
+    welcomeTitle: "Welcome to Traverse",
     tapToSkip: "tap to skip",
 
     // Step indicator + navigation
@@ -348,7 +348,7 @@ const en = {
     welcome: {
       step0Title: "Ready for Liftoff?",
       step0Content: "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
-      step1Title: "Welcome to Stargate!",
+      step1Title: "Welcome to Traverse!",
       step1Content: "Hey! I'm Nova, your trading companion. Let me show you around. This takes about 2 minutes, and you can skip anytime.",
       step2Title: "Dashboard",
       step2Content: "This is home base. Your P&L, win rate, and equity curve all update live as you log trades.",

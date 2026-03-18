@@ -14,6 +14,7 @@ import { calculateStats, calculateAdvancedStats } from "@/lib/calculations";
 import { StatBlock } from "@/components/ui/stat-block";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import { LineChart as LineChartIcon, Target, TrendingUp, TrendingDown, Hash } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function TradeExpectancyPage() {
   const supabase = createClient();
@@ -68,7 +69,7 @@ export default function TradeExpectancyPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <LineChartIcon size={24} className="text-accent" />
-          Trade Expectancy
+          Trade Expectancy <InfoTooltip text="Your average expected profit per trade — the single most important metric for an edge" />
         </h1>
         <p className="text-sm text-muted mt-0.5">Expected value per trade based on your win rate and average win/loss</p>
       </div>
@@ -100,7 +101,7 @@ export default function TradeExpectancyPage() {
       {/* Rolling chart */}
       {rollingExpectancy.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Rolling Expectancy</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Rolling Expectancy <InfoTooltip text="Rolling average of how much you expect to make per trade. Stays above zero = you have an edge." size={12} /></h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={rollingExpectancy}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />

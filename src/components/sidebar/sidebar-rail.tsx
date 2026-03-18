@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Settings, LogOut, HelpCircle, Shield, MessageSquareText, ArrowUpDown } from "lucide-react";
-import { StargateLogo } from "../stargate-logo";
+import { TraverseLogo } from "../traverse-logo";
 import { LevelBadge } from "./level-badge";
 import { RAIL_CATEGORIES, getCategoryForPath } from "./sidebar-data";
 import { useI18n } from "@/lib/i18n";
 import { useHelpCenter } from "@/lib/help-center-context";
+import { useLevel } from "@/lib/xp/context";
 
 interface SidebarRailProps {
   activeCategory: string | null;
@@ -24,6 +25,7 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
   const currentCategory = getCategoryForPath(pathname);
   const { t } = useI18n();
   const { state: helpState, openHelpCenter } = useHelpCenter();
+  const { level } = useLevel();
 
   return (
     <div
@@ -33,7 +35,7 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
       {/* Logo */}
       <div className="p-3 flex items-center justify-center border-b border-border">
         <Link href="/dashboard">
-          <StargateLogo size={28} collapsed />
+          <TraverseLogo size={28} collapsed />
         </Link>
       </div>
 
@@ -45,9 +47,11 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
       {/* Category icons */}
       <div className="flex-1 flex flex-col items-center gap-1 py-3">
         {RAIL_CATEGORIES.filter(cat => {
+          if (viewMode === "expert") return true;
+          if (cat.requiredLevel && level < cat.requiredLevel) return false;
           if (viewMode === "beginner") return cat.showInBeginner !== false;
           if (viewMode === "advanced") return cat.showInAdvanced !== false;
-          return true; // expert sees everything
+          return true;
         }).map(cat => {
           const isHighlighted = activeCategory === cat.key || (!activeCategory && currentCategory === cat.key);
 

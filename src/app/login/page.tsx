@@ -276,7 +276,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-background">
       {/* Left — branding (desktop only) */}
       <div className="hidden lg:flex lg:w-[450px] shrink-0 flex-col justify-center px-12">
-        <h1 className="text-4xl font-bold text-foreground mb-3">Stargate</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-3">Traverse</h1>
         <p className="text-lg text-muted mb-12">
           Your edge starts with knowing yourself.
         </p>
@@ -366,7 +366,7 @@ export default function LoginPage() {
                 <p className="text-muted mt-2 text-sm">
                   {isSignUp
                     ? "Start tracking your trades in under a minute."
-                    : "Sign in to your Stargate dashboard."}
+                    : "Sign in to your Traverse dashboard."}
                 </p>
               </div>
 

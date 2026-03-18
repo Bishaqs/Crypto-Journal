@@ -11,7 +11,7 @@ import {
   type FaqEntry,
 } from "@/lib/help-content";
 import { useHelpCenter } from "@/lib/help-center-context";
-import { useGuide } from "@/components/stargate-guide/guide-context";
+import { useGuide } from "@/components/traverse-guide/guide-context";
 
 const POPULAR_CATEGORIES: FaqCategory[] = [
   "trading-journal",

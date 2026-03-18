@@ -144,7 +144,7 @@ export default function DashboardPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `stargate-trades-${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `traverse-trades-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }

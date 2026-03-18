@@ -25,7 +25,7 @@ import {
   Users,
 } from "lucide-react";
 import { useI18n, LOCALES } from "@/lib/i18n";
-import { StargateLogo } from "./stargate-logo";
+import { TraverseLogo } from "./traverse-logo";
 
 type OnboardingData = {
   displayName: string;
@@ -251,7 +251,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
         className="flex justify-center mb-3"
       >
         <div className="drop-shadow-[0_0_8px_rgba(0,180,216,0.4)]">
-          <StargateLogo size={32} collapsed={false} />
+          <TraverseLogo size={32} collapsed={false} />
         </div>
       </motion.div>
     );
@@ -273,7 +273,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                 animate={{ scale: 1, opacity: 1, rotate: 0 }}
                 transition={{ type: "spring", delay: 0.1, stiffness: 200 }}
               >
-                <StargateLogo size={72} collapsed={false} />
+                <TraverseLogo size={72} collapsed={false} />
               </motion.div>
             </motion.div>
             <motion.div
@@ -282,7 +282,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
               transition={{ delay: 0.3 }}
             >
               <h2 className="text-3xl font-bold text-foreground">
-                Welcome to Stargate
+                Welcome to Traverse
               </h2>
               <p className="text-muted mt-2">Your trading journal, reimagined. Let&apos;s set things up.</p>
             </motion.div>
@@ -619,7 +619,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             {renderCompanion()}
             <div className="text-center mb-2">
               <h2 className="text-2xl font-bold text-foreground">One Last Thing</h2>
-              <p className="text-sm text-muted mt-1">How did you hear about Stargate?</p>
+              <p className="text-sm text-muted mt-1">How did you hear about Traverse?</p>
             </div>
             <motion.div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg mx-auto" variants={staggerContainer} initial="enter" animate="center">
               {REFERRAL_SOURCES.map(src => {

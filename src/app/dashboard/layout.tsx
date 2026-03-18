@@ -12,7 +12,7 @@ import { LevelProvider } from "@/lib/xp";
 import { CosmeticProvider } from "@/lib/cosmetics";
 import { ChallengeProvider } from "@/lib/challenges";
 import { CoinsProvider } from "@/lib/coins";
-import { GuideProvider } from "@/components/stargate-guide";
+import { GuideProvider } from "@/components/traverse-guide";
 import { HelpCenterProvider } from "@/lib/help-center-context";
 import { FlashNewsProvider } from "@/lib/news/flash-news-context";
 import { PsychologyTierProvider } from "@/lib/psychology-tier-context";
@@ -26,10 +26,10 @@ const InviteRedeemer = dynamic(() => import("@/components/invite-redeemer").then
 const AchievementToast = dynamic(() => import("@/components/dashboard/achievement-toast").then(m => ({ default: m.AchievementToast })));
 const LevelUpToast = dynamic(() => import("@/components/dashboard/level-up-toast").then(m => ({ default: m.LevelUpToast })));
 const CelebrationOverlay = dynamic(() => import("@/components/dashboard/celebration-overlay").then(m => ({ default: m.CelebrationOverlay })));
-const StargateGuideCharacter = dynamic(() => import("@/components/stargate-guide/stargate-guide").then(m => ({ default: m.StargateGuideCharacter })));
-const GuideMenu = dynamic(() => import("@/components/stargate-guide/guide-menu").then(m => ({ default: m.GuideMenu })));
-const GuideHelp = dynamic(() => import("@/components/stargate-guide/guide-help").then(m => ({ default: m.GuideHelp })));
-const GuideSupport = dynamic(() => import("@/components/stargate-guide/guide-support").then(m => ({ default: m.GuideSupport })));
+const TraverseGuideCharacter = dynamic(() => import("@/components/traverse-guide/traverse-guide").then(m => ({ default: m.TraverseGuideCharacter })));
+const GuideMenu = dynamic(() => import("@/components/traverse-guide/guide-menu").then(m => ({ default: m.GuideMenu })));
+const GuideHelp = dynamic(() => import("@/components/traverse-guide/guide-help").then(m => ({ default: m.GuideHelp })));
+const GuideSupport = dynamic(() => import("@/components/traverse-guide/guide-support").then(m => ({ default: m.GuideSupport })));
 const Heartbeat = dynamic(() => import("@/components/heartbeat").then(m => ({ default: m.Heartbeat })));
 const FlashNewsBanner = dynamic(() => import("@/components/news/flash-news-banner").then(m => ({ default: m.FlashNewsBanner })));
 const HelpCenterPanel = dynamic(() => import("@/components/help-center/help-center-panel").then(m => ({ default: m.HelpCenterPanel })));
@@ -111,7 +111,7 @@ export default async function DashboardLayout({
                   <AchievementToast />
                   <LevelUpToast />
                   <CelebrationOverlay />
-                  <StargateGuideCharacter />
+                  <TraverseGuideCharacter />
                   <GuideMenu />
                   <GuideHelp />
                   <GuideSupport />

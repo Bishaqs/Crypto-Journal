@@ -20,7 +20,7 @@ const zh = {
     no: "否",
     confirm: "确认",
     logOut: "退出登录",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -64,18 +64,18 @@ const zh = {
     language: "语言",
 
     // Guide speech (per step)
-    speech0: "欢迎来到 Stargate！我是 Nova，你的交易伙伴。让我们开始设置吧。",
+    speech0: "欢迎来到 Traverse！我是 Nova，你的交易伙伴。让我们开始设置吧。",
     speech1WithName: "很高兴认识你，{name}！你做交易多久了？",
     speech1NoName: "我该怎么称呼你？",
     speech2: "你怎么做交易？",
     speech3: "你在哪里执行交易？",
     speech4: "你交易哪些品种？",
-    speech5: "你想用 Stargate 实现什么？",
+    speech5: "你想用 Traverse 实现什么？",
     speech6: "快完成了！让我们个性化你的体验。",
     speech7: "最后一个问题——你是怎么找到我们的？",
 
     // Intro cinematic
-    welcomeTitle: "欢迎来到 Stargate",
+    welcomeTitle: "欢迎来到 Traverse",
     tapToSkip: "点击跳过",
 
     // Step indicator + navigation
@@ -292,7 +292,7 @@ const zh = {
     welcome: {
       step0Title: "准备起飞？",
       step0Content: "跟我来。我是 Nova，我会带你了解成为盈利交易者所需的一切。",
-      step1Title: "欢迎来到 Stargate！",
+      step1Title: "欢迎来到 Traverse！",
       step1Content: "你好！我是 Nova，你的交易伙伴。让我带你四处看看。大约需要2分钟，你可以随时跳过。",
       step2Title: "仪表盘",
       step2Content: "这是你的大本营。你的盈亏、胜率和权益曲线会在你记录交易时实时更新。",

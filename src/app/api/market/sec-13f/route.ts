@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const SEC_SUBMISSIONS_BASE = "https://data.sec.gov/submissions";
 const SEC_SEARCH_BASE = "https://efts.sec.gov/LATEST/search-index";
-const SEC_USER_AGENT = "Stargate Journal admin@stargate-journal.com";
+const SEC_USER_AGENT = "Traverse Journal admin@traversejournal.com";
 
 type SecHolding = {
   nameOfIssuer: string;

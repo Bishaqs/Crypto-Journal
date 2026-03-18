@@ -15,7 +15,7 @@ import {
   Shield,
   MoreHorizontal,
 } from "lucide-react";
-import { StargateLogo } from "../stargate-logo";
+import { TraverseLogo } from "../traverse-logo";
 import { QuickActionMenu } from "../quick-action-fab";
 import {
   type NavItem,
@@ -281,9 +281,9 @@ export function SidebarMobile({
         {/* Logo + close */}
         <div className="p-4 border-b border-border flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2.5 overflow-visible" onClick={() => setMobileOpen(false)}>
-            <StargateLogo size={32} collapsed={false} />
+            <TraverseLogo size={32} collapsed={false} />
             <h1 className="text-lg font-bold tracking-tight whitespace-nowrap bg-gradient-to-r from-accent via-[#48CAE4] to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
-              Stargate
+              Traverse
             </h1>
           </Link>
           <div className="flex items-center gap-1.5">

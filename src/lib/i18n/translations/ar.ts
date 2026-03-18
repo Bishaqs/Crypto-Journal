@@ -20,7 +20,7 @@ const ar = {
     no: "لا",
     confirm: "تأكيد",
     logOut: "تسجيل الخروج",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -64,18 +64,18 @@ const ar = {
     language: "اللغة",
 
     // Guide speech (per step)
-    speech0: "مرحباً بك في Stargate! أنا Nova، رفيقك في التداول. دعنا نجهزك.",
+    speech0: "مرحباً بك في Traverse! أنا Nova، رفيقك في التداول. دعنا نجهزك.",
     speech1WithName: "سعيد بلقائك، {name}! منذ متى وأنت تتداول؟",
     speech1NoName: "ماذا أناديك؟",
     speech2: "كيف تتداول؟",
     speech3: "أين تنفذ صفقاتك؟",
     speech4: "ما الأدوات التي تتداولها؟",
-    speech5: "ماذا تريد تحقيقه مع Stargate؟",
+    speech5: "ماذا تريد تحقيقه مع Traverse؟",
     speech6: "اقتربنا! دعنا نخصص تجربتك.",
     speech7: "السؤال الأخير — كيف وجدتنا؟",
 
     // Intro cinematic
-    welcomeTitle: "مرحباً بك في Stargate",
+    welcomeTitle: "مرحباً بك في Traverse",
     tapToSkip: "اضغط للتخطي",
 
     // Step indicator + navigation
@@ -292,7 +292,7 @@ const ar = {
     welcome: {
       step0Title: "مستعد للانطلاق؟",
       step0Content: "تعال معي. أنا Nova، وسأريك كل ما تحتاجه لتصبح متداولاً مربحاً.",
-      step1Title: "!مرحباً بك في Stargate",
+      step1Title: "!مرحباً بك في Traverse",
       step1Content: "مرحباً! أنا Nova، رفيقك في التداول. دعني أعرفك على المكان. يستغرق هذا حوالي دقيقتين، ويمكنك التخطي في أي وقت.",
       step2Title: "لوحة التحكم",
       step2Content: "هذه قاعدتك الرئيسية. الأرباح والخسائر، معدل الربح، ومنحنى رأس المال تتحدث مباشرة عند تسجيل الصفقات.",

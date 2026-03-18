@@ -452,6 +452,86 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
     }
   }
 
+  // ── Phase 1.5: Cross-ID dedup (open:SYMBOL:SIDE vs real positionId) ──
+  // Handles duplicates where the stale open row has a synthetic broker_order_id
+  // and the closed row has the real Bitget positionId.
+  let crossIdDeduped = 0;
+  let crossIdNotesMoved = 0;
+
+  if (Date.now() < deadline - 2000) {
+    type StaleOpenRow = { id: string; broker_order_id: string; symbol: string; position: string; open_timestamp: string };
+    const staleOpenRows: StaleOpenRow[] = [];
+    let soPage = 0;
+    while (true) {
+      const { data } = await supabase
+        .from("trades")
+        .select("id, broker_order_id, symbol, position, open_timestamp")
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .is("exit_price", null)
+        .like("broker_order_id", "open:%")
+        .contains("tags", ["bitget-api-sync"])
+        .range(soPage * PAGE, (soPage + 1) * PAGE - 1);
+      if (!data || data.length === 0) break;
+      staleOpenRows.push(...(data as StaleOpenRow[]));
+      if (data.length < PAGE) break;
+      soPage++;
+    }
+
+    for (const staleRow of staleOpenRows) {
+      if (Date.now() >= deadline - 1500) break;
+
+      // Find matching closed row with a real positionId AND same open_timestamp
+      // (both come from Bitget's ctime for the same position — must match exactly)
+      const { data: closedMatch } = await supabase
+        .from("trades")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .eq("symbol", staleRow.symbol)
+        .eq("position", staleRow.position)
+        .eq("open_timestamp", staleRow.open_timestamp)
+        .not("exit_price", "is", null)
+        .not("broker_order_id", "like", "open:%")
+        .contains("tags", ["bitget-api-sync"])
+        .limit(1)
+        .maybeSingle();
+
+      if (!closedMatch) continue;
+
+      // Transfer journal links: junction table
+      await supabase
+        .from("journal_note_trades")
+        .update({ trade_id: closedMatch.id })
+        .eq("trade_id", staleRow.id);
+
+      // Transfer journal links: legacy column
+      const { data: legacyNotes } = await supabase
+        .from("journal_notes")
+        .select("id")
+        .eq("trade_id", staleRow.id);
+
+      if (legacyNotes && legacyNotes.length > 0) {
+        await supabase
+          .from("journal_notes")
+          .update({ trade_id: closedMatch.id })
+          .eq("trade_id", staleRow.id);
+        crossIdNotesMoved += legacyNotes.length;
+      }
+
+      // Delete the stale open row
+      const { error } = await supabase
+        .from("trades")
+        .delete()
+        .eq("id", staleRow.id);
+
+      if (!error) crossIdDeduped++;
+    }
+  }
+
+  deduped += crossIdDeduped;
+  notesMoved += crossIdNotesMoved;
+
   // ── Phase 2: Close stale open trades using Bitget API ──
   if (Date.now() < deadline - 2000) {
     try {

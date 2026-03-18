@@ -43,13 +43,15 @@ export function StreakWidget() {
   const supabase = createClient();
 
   const fetchAndUpdateStreak = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
     const today = new Date().toISOString().split("T")[0];
 
     // Check if user was active today (has trades or journal notes or check-in)
     const [tradesResult, notesResult, checkinResult] = await Promise.all([
       supabase.from("trades").select("id").gte("created_at", `${today}T00:00:00`).limit(1),
       supabase.from("journal_notes").select("id").gte("created_at", `${today}T00:00:00`).limit(1),
-      supabase.from("daily_checkins").select("id").eq("date", today).limit(1),
+      supabase.from("daily_checkins").select("id").eq("user_id", userId).eq("date", today).limit(1),
     ]);
 
     const activeToday =

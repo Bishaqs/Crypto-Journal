@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
-  title: "Paper Trading — Stargate",
+  title: "Paper Trading — Traverse",
 };
 
 export default async function SimulatorLayout({

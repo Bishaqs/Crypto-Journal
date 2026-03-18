@@ -10,6 +10,7 @@ import { useAccount } from "@/lib/account-context";
 import { groupTradesByTag } from "@/lib/trade-grouping";
 import { TreemapChart } from "@/components/dashboard/treemap-chart";
 import { TreePine, Hash, Award, TrendingDown } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function TreemapTagsPage() {
   const supabase = createClient();
@@ -54,7 +55,7 @@ export default function TreemapTagsPage() {
           <TreePine size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Treemap — Tags</h1>
+          <h1 className="text-2xl font-bold text-foreground">Treemap — Tags <InfoTooltip text="Visual map of P&L by tag — see which strategies contribute most to your results" /></h1>
           <p className="text-sm text-muted">
             {usingDemo ? "Sample data" : `${tagGroups.length} tags across ${filtered.length} trades`}
           </p>

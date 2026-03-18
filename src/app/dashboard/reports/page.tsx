@@ -40,6 +40,9 @@ export default function ReportsPage() {
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+
     const { data } = await fetchAllTrades(supabase);
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
@@ -51,6 +54,7 @@ export default function ReportsPage() {
     const { data: checkinData } = await supabase
       .from("daily_checkins")
       .select("*")
+      .eq("user_id", userId)
       .order("date", { ascending: true });
     setCheckins((checkinData as DailyCheckin[]) ?? []);
     setLoading(false);

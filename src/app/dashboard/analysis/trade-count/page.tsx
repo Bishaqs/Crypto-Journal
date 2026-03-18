@@ -21,6 +21,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Hash, CalendarDays, TrendingUp, BarChart3 } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function TradeCountPage() {
   const supabase = createClient();
@@ -86,7 +87,7 @@ export default function TradeCountPage() {
           <Hash size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Trade Count</h1>
+          <h1 className="text-2xl font-bold text-foreground">Trade Count <InfoTooltip text="How often you trade — helps identify overtrading or undertrading patterns" /></h1>
           <p className="text-sm text-muted">
             {usingDemo ? "Sample data" : `Trading frequency across ${filtered.length} trades`}
           </p>
@@ -117,7 +118,7 @@ export default function TradeCountPage() {
 
       {chartData.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Trades per Day (last 30 days)</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Trades per Day (last 30 days) <InfoTooltip text="Daily trade count over the last 30 days. Spikes may indicate impulsive trading." size={12} /></h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />

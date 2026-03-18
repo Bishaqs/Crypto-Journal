@@ -14,6 +14,7 @@ import { calculateAdvancedStats } from "@/lib/calculations";
 import { StatBlock } from "@/components/ui/stat-block";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, ReferenceLine } from "recharts";
 import { Ruler, TrendingUp, TrendingDown, Activity, Info } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function RValuePage() {
   const supabase = createClient();
@@ -65,7 +66,7 @@ export default function RValuePage() {
 
   if (!rData) return (
     <div className="max-w-[1600px] mx-auto space-y-6">
-      <div><h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><Ruler size={24} className="text-accent" />R-Value</h1></div>
+      <div><h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><Ruler size={24} className="text-accent" />R-Value <InfoTooltip text="Risk-adjusted returns measured in R-multiples — how many risk units each trade returned" /></h1></div>
       <div className="glass rounded-2xl border border-border/50 p-8 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
         <p className="text-muted">Need at least one losing trade to calculate R-multiples.</p>
       </div>
@@ -76,7 +77,7 @@ export default function RValuePage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       {usingDemo && <DemoBanner />}
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><Ruler size={24} className="text-accent" />R-Value</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><Ruler size={24} className="text-accent" />R-Value <InfoTooltip text="Risk-adjusted returns measured in R-multiples — how many risk units each trade returned" /></h1>
         <p className="text-sm text-muted mt-0.5">Risk-reward ratio per trade, normalized by your average loss (1R)</p>
       </div>
 

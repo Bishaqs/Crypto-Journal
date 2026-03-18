@@ -46,9 +46,9 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // GETTING STARTED (7)
   // ═══════════════════════════════════════════
   {
-    id: "gs-what-is-stargate",
-    question: "What is Stargate Journal?",
-    answer: "Stargate Journal is an all-in-one trading journal for crypto and stock traders. It helps you log trades, analyze performance, track emotions, journal your thoughts, and improve over time with AI-powered insights. Whether you're a day trader, swing trader, or long-term investor, Stargate gives you the data you need to grow.",
+    id: "gs-what-is-traverse",
+    question: "What is Traverse Journal?",
+    answer: "Traverse Journal is an all-in-one trading journal for crypto and stock traders. It helps you log trades, analyze performance, track emotions, journal your thoughts, and improve over time with AI-powered insights. Whether you're a day trader, swing trader, or long-term investor, Traverse gives you the data you need to grow.",
     category: "getting-started",
     tags: ["about", "overview", "what", "purpose"],
     relatedIds: ["gs-create-account", "gs-first-trade", "gs-demo-mode", "gs-import-trades"],
@@ -64,7 +64,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs-onboarding",
     question: "What happens during onboarding?",
-    answer: "The onboarding wizard runs automatically on your first login and takes about 60 seconds. It walks you through 5 steps: <strong>1)</strong> <strong>Language</strong> — choose your display language. <strong>2)</strong> <strong>Display Name</strong> — set the name shown on your dashboard. <strong>3)</strong> <strong>Experience Level</strong> — beginner, intermediate, or advanced (this tailors Nova suggestions). <strong>4)</strong> <strong>Trade Type</strong> — crypto, stocks, or both (this configures which market tools and screeners appear). <strong>5)</strong> <strong>Input Method</strong> — choose whether you prefer manual trade entry or CSV import. After completing the wizard, a Getting Started checklist appears on your dashboard with 4 actions to help you get the most out of Stargate right away.",
+    answer: "The onboarding wizard runs automatically on your first login and takes about 60 seconds. It walks you through 5 steps: <strong>1)</strong> <strong>Language</strong> — choose your display language. <strong>2)</strong> <strong>Display Name</strong> — set the name shown on your dashboard. <strong>3)</strong> <strong>Experience Level</strong> — beginner, intermediate, or advanced (this tailors Nova suggestions). <strong>4)</strong> <strong>Trade Type</strong> — crypto, stocks, or both (this configures which market tools and screeners appear). <strong>5)</strong> <strong>Input Method</strong> — choose whether you prefer manual trade entry or CSV import. After completing the wizard, a Getting Started checklist appears on your dashboard with 4 actions to help you get the most out of Traverse right away.",
     category: "getting-started",
     tags: ["setup", "wizard", "first time", "welcome"],
     relatedIds: ["gs-first-trade", "gs-getting-started-checklist", "as-change-language"],
@@ -87,7 +87,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs-demo-mode",
-    question: "Can I try Stargate without real data?",
+    question: "Can I try Traverse without real data?",
     answer: "Yes — when your account has no trades logged, the dashboard, analytics pages, equity curve, and AI Coach automatically display <strong>sample demo data</strong> (approximately 50 realistic trades across BTC, ETH, and SOL). Demo data is clearly labeled with a banner so you always know you're looking at sample trades, not real ones. This lets you explore every chart, metric, and feature before committing your own data. Once you log your first real trade, the demo data is automatically replaced with your actual trading history. There is nothing to \"clear\" manually — the transition happens seamlessly.",
     category: "getting-started",
     tags: ["demo", "sample", "try", "preview", "test"],
@@ -108,7 +108,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj-edit-trade",
     question: "How do I edit or delete a trade?",
-    answer: "<p>Every trade you log in Stargate is fully editable after the fact. Whether you made a typo in your entry price, forgot to add tags, or want to update your notes after reflecting on the trade — you can change anything at any time.</p><h3>How to Edit a Trade</h3><ol><li><strong>Open the Trade Log</strong> — click <strong>Trade Log</strong> in the sidebar. You'll see all your trades listed.</li><li><strong>Click on any trade row</strong> — this opens the full trade detail page where every field is editable.</li><li><strong>Make your changes</strong> — you can update: symbol, entry/exit prices, entry/exit dates, position size, direction (long/short), fees, tags, notes, emotions, process score, and checklist items.</li><li><strong>Click Save</strong> — your changes are saved immediately and all analytics (P&L, win rate, equity curve) recalculate automatically.</li></ol><h3>How to Delete a Trade</h3><p>On the trade detail page, scroll to the bottom and click the <strong>Delete Trade</strong> button. You'll see a confirmation dialog — read it carefully because <strong>deletion is permanent and cannot be undone</strong>. Once deleted, the trade is removed from all analytics and reports.</p><h3>Pro Tips</h3><ul><li><strong>Edit notes the same day</strong> — your memory of the trade fades fast. Add notes about what you were thinking, what the market was doing, and what you'd do differently within 24 hours.</li><li><strong>Use the process score honestly</strong> — it's tempting to bump it up after a winning trade. Rate your process at entry, not after you know the result.</li><li><strong>Export before bulk deletes</strong> — if you need to clean up bad data, export your trades first via Settings → Export as a backup.</li></ul><h3>Common Mistakes</h3><ul><li><strong>Swapping entry and exit prices</strong> — this flips your P&L. If a long trade shows a loss but you know it was profitable, check if the prices are reversed.</li><li><strong>Forgetting to update the exit date</strong> — if the exit date is the same as the entry date but the trade lasted 3 days, your hold time analytics will be wrong.</li><li><strong>Deleting instead of editing</strong> — if the trade data is just wrong, edit it rather than deleting and re-creating. This preserves the trade's history in your analytics timeline.</li></ul>",
+    answer: "<p>Every trade you log in Traverse is fully editable after the fact. Whether you made a typo in your entry price, forgot to add tags, or want to update your notes after reflecting on the trade — you can change anything at any time.</p><h3>How to Edit a Trade</h3><ol><li><strong>Open the Trade Log</strong> — click <strong>Trade Log</strong> in the sidebar. You'll see all your trades listed.</li><li><strong>Click on any trade row</strong> — this opens the full trade detail page where every field is editable.</li><li><strong>Make your changes</strong> — you can update: symbol, entry/exit prices, entry/exit dates, position size, direction (long/short), fees, tags, notes, emotions, process score, and checklist items.</li><li><strong>Click Save</strong> — your changes are saved immediately and all analytics (P&L, win rate, equity curve) recalculate automatically.</li></ol><h3>How to Delete a Trade</h3><p>On the trade detail page, scroll to the bottom and click the <strong>Delete Trade</strong> button. You'll see a confirmation dialog — read it carefully because <strong>deletion is permanent and cannot be undone</strong>. Once deleted, the trade is removed from all analytics and reports.</p><h3>Pro Tips</h3><ul><li><strong>Edit notes the same day</strong> — your memory of the trade fades fast. Add notes about what you were thinking, what the market was doing, and what you'd do differently within 24 hours.</li><li><strong>Use the process score honestly</strong> — it's tempting to bump it up after a winning trade. Rate your process at entry, not after you know the result.</li><li><strong>Export before bulk deletes</strong> — if you need to clean up bad data, export your trades first via Settings → Export as a backup.</li></ul><h3>Common Mistakes</h3><ul><li><strong>Swapping entry and exit prices</strong> — this flips your P&L. If a long trade shows a loss but you know it was profitable, check if the prices are reversed.</li><li><strong>Forgetting to update the exit date</strong> — if the exit date is the same as the entry date but the trade lasted 3 days, your hold time analytics will be wrong.</li><li><strong>Deleting instead of editing</strong> — if the trade data is just wrong, edit it rather than deleting and re-creating. This preserves the trade's history in your analytics timeline.</li></ul>",
     category: "trading-journal",
     tags: ["edit", "delete", "modify", "update", "change"],
     relatedIds: ["gs-first-trade", "tj-tags", "tj-notes"],
@@ -276,7 +276,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai-privacy",
     question: "Is my trading data safe with the AI?",
-    answer: "Nova can see your <strong>trade log entries</strong> (symbols, prices, P&L, dates, tags), <strong>emotion ratings</strong>, <strong>process scores</strong>, and <strong>journal entries</strong> — only the data you've logged in Stargate. It does <strong>not</strong> have access to your email, password, payment information, or any data outside of Stargate. Your trading data is processed in real-time to generate insights but is never stored in AI conversation logs, shared with third parties, or used to train AI models. All data stays within Stargate's infrastructure and is encrypted in transit and at rest.",
+    answer: "Nova can see your <strong>trade log entries</strong> (symbols, prices, P&L, dates, tags), <strong>emotion ratings</strong>, <strong>process scores</strong>, and <strong>journal entries</strong> — only the data you've logged in Traverse. It does <strong>not</strong> have access to your email, password, payment information, or any data outside of Traverse. Your trading data is processed in real-time to generate insights but is never stored in AI conversation logs, shared with third parties, or used to train AI models. All data stays within Traverse's infrastructure and is encrypted in transit and at rest.",
     category: "ai-coach",
     tags: ["privacy", "security", "data", "safe", "confidential"],
     relatedIds: ["ai-how-it-works", "as-export-data", "bi-data-ownership"],
@@ -404,7 +404,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ap-shared-trades",
     question: "How do Shared Trades work?",
-    answer: "The <strong>Shared Trades</strong> page lets you share specific trades with others via a link. Share your best setups, trade reviews, or educational examples. The recipient can see the trade details without needing a Stargate account. You control which trades are shared and can revoke access anytime.",
+    answer: "The <strong>Shared Trades</strong> page lets you share specific trades with others via a link. Share your best setups, trade reviews, or educational examples. The recipient can see the trade details without needing a Traverse account. You control which trades are shared and can revoke access anytime.",
     category: "apps",
     tags: ["share", "shared", "link", "public", "social", "community"],
     relatedIds: ["tj-trade-views", "gs-first-trade", "ap-compare-trades"],
@@ -432,7 +432,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi-plans-overview",
     question: "What plans are available?",
-    answer: "Stargate offers three tiers: <strong>Free</strong> — core trading journal with limited features, <strong>Pro</strong> — full analytics, AI Coach, and advanced tools, <strong>Max</strong> — everything in Pro plus stock trading, options tools, and premium market data. Visit the <strong>Pricing</strong> page to see the full feature comparison for each tier.",
+    answer: "Traverse offers three tiers: <strong>Free</strong> — core trading journal with limited features, <strong>Pro</strong> — full analytics, AI Coach, and advanced tools, <strong>Max</strong> — everything in Pro plus stock trading, options tools, and premium market data. Visit the <strong>Pricing</strong> page to see the full feature comparison for each tier.",
     category: "billing",
     tags: ["plans", "pricing", "tiers", "free", "pro", "max", "subscription"],
     relatedIds: ["bi-upgrade", "bi-free-vs-paid", "bi-cancel"],
@@ -484,7 +484,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as-change-language",
     question: "Can I change the language?",
-    answer: "Yes! Stargate supports 12 languages. Go to <strong>Settings</strong> to change your language preference. The interface, labels, and navigation will update immediately. Languages include English, German, Spanish, French, Portuguese, Japanese, Korean, Chinese, Russian, Arabic, Hindi, and Turkish.",
+    answer: "Yes! Traverse supports 12 languages. Go to <strong>Settings</strong> to change your language preference. The interface, labels, and navigation will update immediately. Languages include English, German, Spanish, French, Portuguese, Japanese, Korean, Chinese, Russian, Arabic, Hindi, and Turkish.",
     category: "account-settings",
     tags: ["language", "locale", "translate", "german", "spanish", "french", "i18n"],
     relatedIds: ["as-change-theme", "gs-onboarding"],
@@ -512,7 +512,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr-trades-not-syncing",
     question: "Why aren't my trades showing up?",
-    answer: "If trades aren't appearing, work through these steps: <strong>1)</strong> Do a hard refresh with <code>Ctrl+Shift+R</code> (or <code>Cmd+Shift+R</code> on Mac) — data may not have loaded on the initial page render. <strong>2)</strong> Check the <strong>date range filter</strong> at the top of the Trade Log — if it's set to \"This Week\" but your trade was last month, it won't show. Set it to \"All Time\" to confirm. <strong>3)</strong> Check the <strong>account filter</strong> — you might be viewing a different trading account. <strong>4)</strong> If you just imported via CSV, trades typically appear within 5-10 seconds; wait briefly and refresh again. <strong>5)</strong> If none of the above works, log out completely and log back in to reset your session. If the problem persists, email <strong>support@stargate.trade</strong> with your account email and a description of the missing trades.",
+    answer: "If trades aren't appearing, work through these steps: <strong>1)</strong> Do a hard refresh with <code>Ctrl+Shift+R</code> (or <code>Cmd+Shift+R</code> on Mac) — data may not have loaded on the initial page render. <strong>2)</strong> Check the <strong>date range filter</strong> at the top of the Trade Log — if it's set to \"This Week\" but your trade was last month, it won't show. Set it to \"All Time\" to confirm. <strong>3)</strong> Check the <strong>account filter</strong> — you might be viewing a different trading account. <strong>4)</strong> If you just imported via CSV, trades typically appear within 5-10 seconds; wait briefly and refresh again. <strong>5)</strong> If none of the above works, log out completely and log back in to reset your session. If the problem persists, email <strong>support@traversejournal.com</strong> with your account email and a description of the missing trades.",
     category: "troubleshooting",
     tags: ["missing", "trades", "not showing", "sync", "loading", "empty", "gone"],
     relatedIds: ["gs-import-trades", "tr-chart-not-loading", "tr-contact-support"],
@@ -520,7 +520,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr-chart-not-loading",
     question: "A chart or page isn't loading — what do I do?",
-    answer: "Try these steps in order: <strong>1)</strong> Do a hard refresh with <code>Ctrl+Shift+R</code> (or <code>Cmd+Shift+R</code> on Mac) — this bypasses the browser cache and forces a fresh load. <strong>2)</strong> Check if an <strong>ad blocker or privacy extension</strong> is active — extensions like uBlock Origin or Privacy Badger can block API requests that charts depend on. Try disabling them for Stargate temporarily. <strong>3)</strong> Open the browser console with <code>F12 → Console</code> and look for red error messages — note any you see. <strong>4)</strong> Clear your full browser cache via <code>Ctrl+Shift+Delete</code> and select \"Cached images and files.\" <strong>5)</strong> Try Chrome or Edge if you're on a different browser. If the chart still won't load, email <strong>support@stargate.trade</strong> with a screenshot of the console errors and the page URL.",
+    answer: "Try these steps in order: <strong>1)</strong> Do a hard refresh with <code>Ctrl+Shift+R</code> (or <code>Cmd+Shift+R</code> on Mac) — this bypasses the browser cache and forces a fresh load. <strong>2)</strong> Check if an <strong>ad blocker or privacy extension</strong> is active — extensions like uBlock Origin or Privacy Badger can block API requests that charts depend on. Try disabling them for Traverse temporarily. <strong>3)</strong> Open the browser console with <code>F12 → Console</code> and look for red error messages — note any you see. <strong>4)</strong> Clear your full browser cache via <code>Ctrl+Shift+Delete</code> and select \"Cached images and files.\" <strong>5)</strong> Try Chrome or Edge if you're on a different browser. If the chart still won't load, email <strong>support@traversejournal.com</strong> with a screenshot of the console errors and the page URL.",
     category: "troubleshooting",
     tags: ["chart", "loading", "error", "blank", "broken", "not working", "stuck"],
     relatedIds: ["tr-trades-not-syncing", "tr-data-discrepancy", "tr-contact-support"],
@@ -536,7 +536,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr-contact-support",
     question: "How do I contact support?",
-    answer: "Email us at <a href=\"mailto:support@stargate.trade\" class=\"text-accent hover:text-accent-hover transition-colors\">support@stargate.trade</a> — we typically respond within <strong>24 hours</strong> on business days. To help us resolve your issue quickly, please include: <strong>1)</strong> Your account email address. <strong>2)</strong> What you were trying to do and what happened instead. <strong>3)</strong> Any error messages you see (screenshots are ideal — press <code>F12 → Console</code> to capture browser errors). <strong>4)</strong> Your browser name and version. The more detail you provide upfront, the faster we can diagnose and fix the issue without back-and-forth emails.",
+    answer: "Email us at <a href=\"mailto:support@traversejournal.com\" class=\"text-accent hover:text-accent-hover transition-colors\">support@traversejournal.com</a> — we typically respond within <strong>24 hours</strong> on business days. To help us resolve your issue quickly, please include: <strong>1)</strong> Your account email address. <strong>2)</strong> What you were trying to do and what happened instead. <strong>3)</strong> Any error messages you see (screenshots are ideal — press <code>F12 → Console</code> to capture browser errors). <strong>4)</strong> Your browser name and version. The more detail you provide upfront, the faster we can diagnose and fix the issue without back-and-forth emails.",
     category: "troubleshooting",
     tags: ["support", "contact", "help", "email", "bug", "report", "issue"],
     relatedIds: ["tr-trades-not-syncing", "tr-chart-not-loading", "tr-data-discrepancy"],
@@ -572,7 +572,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps-delete-account",
     question: "Can I delete my account and all my data?",
-    answer: "Yes. Contact us at <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a> with your account email and we'll permanently delete your account and all associated data (trades, journal entries, settings, analytics). This action is irreversible. Before deleting, we recommend exporting your data from <strong>Settings → Export</strong>.",
+    answer: "Yes. Contact us at <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a> with your account email and we'll permanently delete your account and all associated data (trades, journal entries, settings, analytics). This action is irreversible. Before deleting, we recommend exporting your data from <strong>Settings → Export</strong>.",
     category: "privacy-security",
     tags: ["delete", "account", "erase", "remove", "gdpr", "data", "permanent"],
     relatedIds: ["as-export-data", "bi-data-ownership", "ps-data-sold"],
@@ -616,7 +616,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm-max-drawdown",
     question: "What is maximum drawdown and how do I track it?",
-    answer: "Maximum drawdown is the largest peak-to-trough decline in your account equity. If your account went from $10,000 to $8,500, that's a 15% drawdown. Stargate tracks this automatically on your equity curve and performance metrics. A healthy drawdown depends on your strategy, but keeping it under 10-15% is a good target. The <strong>Prop Firm Tracker</strong> also monitors drawdown limits for funded account challenges.",
+    answer: "Maximum drawdown is the largest peak-to-trough decline in your account equity. If your account went from $10,000 to $8,500, that's a 15% drawdown. Traverse tracks this automatically on your equity curve and performance metrics. A healthy drawdown depends on your strategy, but keeping it under 10-15% is a good target. The <strong>Prop Firm Tracker</strong> also monitors drawdown limits for funded account challenges.",
     category: "risk-management",
     tags: ["drawdown", "max", "peak", "trough", "equity", "decline", "recovery"],
     relatedIds: ["an-equity-curve", "rm-prop-firm", "rm-position-sizing"],
@@ -624,7 +624,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm-prop-firm",
     question: "How does the Prop Firm Tracker work?",
-    answer: "The <strong>Prop Firm Tracker</strong> monitors your progress on funded account challenges (FTMO, TopStep, etc.). Set your challenge parameters — account size, profit target, daily loss limit, max drawdown — and Stargate tracks your progress in real-time. It shows your current P&L against the targets, warns you when approaching limits, and calculates your remaining buffer. Helps you pass challenges without blowing the rules.",
+    answer: "The <strong>Prop Firm Tracker</strong> monitors your progress on funded account challenges (FTMO, TopStep, etc.). Set your challenge parameters — account size, profit target, daily loss limit, max drawdown — and Traverse tracks your progress in real-time. It shows your current P&L against the targets, warns you when approaching limits, and calculates your remaining buffer. Helps you pass challenges without blowing the rules.",
     category: "risk-management",
     tags: ["prop firm", "funded", "ftmo", "topstep", "challenge", "daily loss", "profit target"],
     relatedIds: ["rm-max-drawdown", "an-execution", "rm-position-sizing"],
@@ -643,8 +643,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // ═══════════════════════════════════════════
   {
     id: "gs-supported-markets",
-    question: "What trading markets does Stargate support?",
-    answer: "Stargate supports <strong>crypto</strong> (CEX and DEX trades across 7+ chains) and <strong>stocks</strong> (equities and options). For crypto, you can log trades from Binance, Bybit, OKX, Coinbase, Kraken, and many more exchanges, plus DEX trades on Ethereum, Solana, Base, Arbitrum, BSC, Polygon, and Avalanche. Stock trading includes equities, calls, and puts with sector tracking.",
+    question: "What trading markets does Traverse support?",
+    answer: "Traverse supports <strong>crypto</strong> (CEX and DEX trades across 7+ chains) and <strong>stocks</strong> (equities and options). For crypto, you can log trades from Binance, Bybit, OKX, Coinbase, Kraken, and many more exchanges, plus DEX trades on Ethereum, Solana, Base, Arbitrum, BSC, Polygon, and Avalanche. Stock trading includes equities, calls, and puts with sector tracking.",
     category: "getting-started",
     tags: ["markets", "crypto", "stocks", "exchanges", "dex", "options", "supported"],
     relatedIds: ["gs-import-trades", "gs-first-trade", "as-exchange-connections"],
@@ -659,16 +659,16 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs-mobile-support",
-    question: "Can I use Stargate on my phone?",
-    answer: "Yes! Stargate is a responsive web app that works in any mobile browser (Chrome, Safari, Firefox). The dashboard, trade logging, journal, and all analytics are fully usable on mobile. While there's no dedicated native app yet, you can add Stargate to your home screen for an app-like experience — just tap Share → Add to Home Screen in your mobile browser.",
+    question: "Can I use Traverse on my phone?",
+    answer: "Yes! Traverse is a responsive web app that works in any mobile browser (Chrome, Safari, Firefox). The dashboard, trade logging, journal, and all analytics are fully usable on mobile. While there's no dedicated native app yet, you can add Traverse to your home screen for an app-like experience — just tap Share → Add to Home Screen in your mobile browser.",
     category: "getting-started",
     tags: ["mobile", "phone", "tablet", "responsive", "app", "ios", "android", "pwa"],
     relatedIds: ["gs-create-account", "tr-chart-not-loading", "as-change-theme"],
   },
   {
     id: "gs-paper-trading",
-    question: "Can I use Stargate for paper trading?",
-    answer: "While Stargate doesn't connect to a paper trading engine, you can log simulated trades manually as practice. Create a separate trading account in Settings (e.g., \"Paper Account\") and log your paper trades there. You'll get the same analytics and journaling features, keeping your paper trades separate from live data. The <strong>Trading Simulator</strong> also lets you run what-if scenarios on historical data.",
+    question: "Can I use Traverse for paper trading?",
+    answer: "While Traverse doesn't connect to a paper trading engine, you can log simulated trades manually as practice. Create a separate trading account in Settings (e.g., \"Paper Account\") and log your paper trades there. You'll get the same analytics and journaling features, keeping your paper trades separate from live data. The <strong>Trading Simulator</strong> also lets you run what-if scenarios on historical data.",
     category: "getting-started",
     tags: ["paper trading", "practice", "simulated", "demo", "virtual", "test"],
     relatedIds: ["gs-demo-mode", "ap-simulator", "tj-multi-accounts"],
@@ -719,8 +719,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "tj-csv-format",
-    question: "What CSV format does Stargate accept for imports?",
-    answer: "Stargate accepts CSVs with these columns: <strong>Symbol, Entry Date, Exit Date, Entry Price, Exit Price, Quantity, Direction</strong> (long/short). Optional columns: fees, tags, notes. Dates should be in ISO format (YYYY-MM-DD) or common formats (MM/DD/YYYY). We also have exchange-specific presets for Binance, Bybit, Coinbase, Kraken, and 15+ other exchanges that auto-map their CSV format.",
+    question: "What CSV format does Traverse accept for imports?",
+    answer: "Traverse accepts CSVs with these columns: <strong>Symbol, Entry Date, Exit Date, Entry Price, Exit Price, Quantity, Direction</strong> (long/short). Optional columns: fees, tags, notes. Dates should be in ISO format (YYYY-MM-DD) or common formats (MM/DD/YYYY). We also have exchange-specific presets for Binance, Bybit, Coinbase, Kraken, and 15+ other exchanges that auto-map their CSV format.",
     category: "trading-journal",
     tags: ["csv", "format", "columns", "import", "template", "fields", "date format"],
     relatedIds: ["gs-import-trades", "tj-import-fails", "tj-import-duplicates"],
@@ -756,7 +756,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an-drawdown",
     question: "How is drawdown calculated?",
-    answer: "Drawdown measures the decline from your equity peak to the lowest point before recovering. <strong>Maximum drawdown</strong> is the largest such decline ever recorded. For example, if your account peaked at $12,000 then dropped to $9,600, that's a 20% drawdown. Stargate tracks current drawdown, max drawdown, and recovery time on your performance dashboard. Keeping drawdown low is critical for long-term survival.",
+    answer: "Drawdown measures the decline from your equity peak to the lowest point before recovering. <strong>Maximum drawdown</strong> is the largest such decline ever recorded. For example, if your account peaked at $12,000 then dropped to $9,600, that's a 20% drawdown. Traverse tracks current drawdown, max drawdown, and recovery time on your performance dashboard. Keeping drawdown low is critical for long-term survival.",
     category: "analytics",
     tags: ["drawdown", "decline", "peak", "trough", "maximum", "recovery"],
     relatedIds: ["an-equity-curve", "rm-max-drawdown", "an-expectancy"],
@@ -780,7 +780,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an-gross-vs-net",
     question: "What's the difference between gross P&L and net P&L?",
-    answer: "<strong>Gross P&L</strong> is your profit/loss before trading costs (commissions, fees, slippage). <strong>Net P&L</strong> is what you actually keep after all costs are deducted. For active traders, the difference can be significant — $5 per trade in fees across 200 trades/month is $1,000. Stargate shows both so you can see how much fees are eating into your profits.",
+    answer: "<strong>Gross P&L</strong> is your profit/loss before trading costs (commissions, fees, slippage). <strong>Net P&L</strong> is what you actually keep after all costs are deducted. For active traders, the difference can be significant — $5 per trade in fees across 200 trades/month is $1,000. Traverse shows both so you can see how much fees are eating into your profits.",
     category: "analytics",
     tags: ["gross", "net", "pnl", "fees", "commissions", "before", "after"],
     relatedIds: ["tj-fees", "an-equity-curve", "an-profit-factor"],
@@ -816,7 +816,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai-weekly-reports",
     question: "What are the AI Weekly Reports?",
-    answer: "Every week, Stargate generates an AI-powered report summarizing your trading performance. It covers: total P&L, win rate, best/worst trades, emotional patterns, rule compliance, and specific recommendations for the upcoming week. Reports are available under <strong>Intelligence → Reports</strong>. They're a great way to stay accountable without spending hours analyzing your data manually.",
+    answer: "Every week, Traverse generates an AI-powered report summarizing your trading performance. It covers: total P&L, win rate, best/worst trades, emotional patterns, rule compliance, and specific recommendations for the upcoming week. Reports are available under <strong>Intelligence → Reports</strong>. They're a great way to stay accountable without spending hours analyzing your data manually.",
     category: "ai-coach",
     tags: ["weekly", "report", "summary", "automated", "review", "performance"],
     relatedIds: ["ai-how-it-works", "an-equity-curve", "an-execution"],
@@ -835,8 +835,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // ═══════════════════════════════════════════
   {
     id: "mt-data-sources",
-    question: "Where does Stargate's market data come from?",
-    answer: "Stargate pulls data from multiple reliable sources: <strong>CoinGecko</strong> for crypto prices, market caps, and historical data (aggregated across major exchanges). <strong>Yahoo Finance</strong> for stock prices, equity screeners, and company data. <strong>Exchange APIs</strong> (Binance, Bybit, OKX) for real-time funding rates. Options flow data comes from market data aggregators tracking large institutional trades. Seasonality charts are calculated from historical CoinGecko data going back several years. Screeners auto-refresh throughout the day, and you can manually refresh any page to get the latest data by pulling down or pressing <code>F5</code>.",
+    question: "Where does Traverse's market data come from?",
+    answer: "Traverse pulls data from multiple reliable sources: <strong>CoinGecko</strong> for crypto prices, market caps, and historical data (aggregated across major exchanges). <strong>Yahoo Finance</strong> for stock prices, equity screeners, and company data. <strong>Exchange APIs</strong> (Binance, Bybit, OKX) for real-time funding rates. Options flow data comes from market data aggregators tracking large institutional trades. Seasonality charts are calculated from historical CoinGecko data going back several years. Screeners auto-refresh throughout the day, and you can manually refresh any page to get the latest data by pulling down or pressing <code>F5</code>.",
     category: "market-tools",
     tags: ["data", "source", "coingecko", "yahoo", "provider", "where", "prices"],
     relatedIds: ["mt-screener", "mt-seasonality", "mt-funding-rates"],
@@ -880,7 +880,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ap-achievements",
     question: "How does the Achievements system work?",
-    answer: "Stargate gamifies your trading journey with achievements across 5 categories: <strong>Consistency</strong> (journaling streaks), <strong>Risk Management</strong> (discipline milestones), <strong>Psychology</strong> (emotional awareness), <strong>Analysis</strong> (learning habits), and <strong>Milestones</strong> (longevity rewards). Achievements have 4 tiers: Bronze, Silver, Gold, and Diamond. Your active badge displays on your profile. Check your progress under <strong>Achievements</strong>.",
+    answer: "Traverse gamifies your trading journey with achievements across 5 categories: <strong>Consistency</strong> (journaling streaks), <strong>Risk Management</strong> (discipline milestones), <strong>Psychology</strong> (emotional awareness), <strong>Analysis</strong> (learning habits), and <strong>Milestones</strong> (longevity rewards). Achievements have 4 tiers: Bronze, Silver, Gold, and Diamond. Your active badge displays on your profile. Check your progress under <strong>Achievements</strong>.",
     category: "apps",
     tags: ["achievements", "badges", "gamification", "rewards", "streak", "tier", "milestone"],
     relatedIds: ["tj-write-journal", "an-execution", "tj-process-score"],
@@ -888,7 +888,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ap-tax-reports",
     question: "How do Tax Reports work?",
-    answer: "Go to <strong>Reports → Tax Reports</strong> to generate IRS-compliant tax documents. Stargate supports <strong>Form 8949</strong> exports for US traders. Choose your cost basis method — <strong>FIFO</strong> (first in, first out), <strong>LIFO</strong> (last in, first out), or <strong>HIFO</strong> (highest in, first out) — and export a CSV ready for your tax filing. Note: consult a tax professional for your specific situation.",
+    answer: "Go to <strong>Reports → Tax Reports</strong> to generate IRS-compliant tax documents. Traverse supports <strong>Form 8949</strong> exports for US traders. Choose your cost basis method — <strong>FIFO</strong> (first in, first out), <strong>LIFO</strong> (last in, first out), or <strong>HIFO</strong> (highest in, first out) — and export a CSV ready for your tax filing. Note: consult a tax professional for your specific situation.",
     category: "apps",
     tags: ["tax", "taxes", "form 8949", "irs", "fifo", "lifo", "hifo", "cost basis", "report"],
     relatedIds: ["as-export-data", "bi-free-vs-paid", "tr-contact-support"],
@@ -896,7 +896,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ap-daily-checkin",
     question: "What is the Daily Check-In?",
-    answer: "The Daily Check-In pops up when you first open Stargate each day. It asks about your mood, energy level, and focus — creating a daily emotional baseline. Over time, this data reveals powerful correlations: \"When my energy is low, my win rate drops 15%\" or \"I overtrade on high-excitement days.\" It also includes optional breathing exercises and CBT reframing prompts to get you in the right headspace before trading.",
+    answer: "The Daily Check-In pops up when you first open Traverse each day. It asks about your mood, energy level, and focus — creating a daily emotional baseline. Over time, this data reveals powerful correlations: \"When my energy is low, my win rate drops 15%\" or \"I overtrade on high-excitement days.\" It also includes optional breathing exercises and CBT reframing prompts to get you in the right headspace before trading.",
     category: "apps",
     tags: ["daily check-in", "mood", "energy", "focus", "psychology", "morning", "routine"],
     relatedIds: ["tj-emotions", "ai-emotions", "ap-breathing-exercise"],
@@ -960,7 +960,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as-reset-password",
     question: "How do I reset my password?",
-    answer: "Click <strong>Forgot Password</strong> on the login page and enter your email. You'll receive a password reset link. If you're already logged in, you can change your password in <strong>Settings → Account</strong>. If you don't receive the reset email, check your spam folder. Still stuck? Email <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a>.",
+    answer: "Click <strong>Forgot Password</strong> on the login page and enter your email. You'll receive a password reset link. If you're already logged in, you can change your password in <strong>Settings → Account</strong>. If you don't receive the reset email, check your spam folder. Still stuck? Email <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a>.",
     category: "account-settings",
     tags: ["password", "reset", "forgot", "change", "login", "access"],
     relatedIds: ["gs-create-account", "tr-contact-support"],
@@ -1012,7 +1012,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr-numbers-differ",
     question: "Why do my numbers differ from my exchange's reports?",
-    answer: "Common causes: <strong>1)</strong> <strong>Fee handling</strong> — exchanges may include/exclude fees differently. <strong>2)</strong> <strong>Cost basis method</strong> — Stargate defaults to FIFO, your exchange might use average cost. <strong>3)</strong> <strong>Timezone differences</strong> — daily P&L depends on when \"today\" starts. <strong>4)</strong> <strong>Currency conversion</strong> — if your display currency differs from trading currency. <strong>5)</strong> <strong>Partial data</strong> — make sure all trades were imported, not just recent ones.",
+    answer: "Common causes: <strong>1)</strong> <strong>Fee handling</strong> — exchanges may include/exclude fees differently. <strong>2)</strong> <strong>Cost basis method</strong> — Traverse defaults to FIFO, your exchange might use average cost. <strong>3)</strong> <strong>Timezone differences</strong> — daily P&L depends on when \"today\" starts. <strong>4)</strong> <strong>Currency conversion</strong> — if your display currency differs from trading currency. <strong>5)</strong> <strong>Partial data</strong> — make sure all trades were imported, not just recent ones.",
     category: "troubleshooting",
     tags: ["different", "numbers", "exchange", "mismatch", "wrong", "calculation", "discrepancy"],
     relatedIds: ["tr-data-discrepancy", "tj-fees", "as-timezone"],
@@ -1039,7 +1039,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // ═══════════════════════════════════════════
   {
     id: "gs2-keyboard-shortcuts",
-    question: "Are there keyboard shortcuts in Stargate?",
+    question: "Are there keyboard shortcuts in Traverse?",
     answer: "Yes! Press <code>?</code> or <code>Ctrl+/</code> anywhere in the app to see the full shortcut list. Common shortcuts include <code>N</code> to create a new trade, <code>J</code> to open the journal, <code>D</code> to go to the dashboard, and <code>/</code> to focus the search bar. Keyboard shortcuts save significant time when logging multiple trades in a session.",
     category: "getting-started",
     tags: ["keyboard", "shortcuts", "hotkeys", "keys", "quick", "speed", "productivity"],
@@ -1191,7 +1191,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "an2-streak-tracking",
-    question: "Does Stargate track my winning and losing streaks?",
+    question: "Does Traverse track my winning and losing streaks?",
     answer: "Yes! Your current streak and longest historical streaks (both winning and losing) are displayed on the <strong>Performance → Metrics</strong> page. Streak data helps with psychology: knowing your historical worst losing streak (e.g., 7 in a row) prepares you to handle similar stretches without panicking. The AI Coach also references streak data when giving advice.",
     category: "analytics",
     tags: ["streak", "winning", "losing", "consecutive", "run", "series", "hot", "cold"],
@@ -1215,8 +1215,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "an2-account-milestones",
-    question: "Does Stargate track account milestones?",
-    answer: "Yes! Under <strong>Performance → Milestones</strong>, Stargate automatically tracks key achievements: first profitable week, first 100 trades, longest winning streak, account high-water mark, and more. You can also set custom milestones (e.g., \"reach $50K account\") and track your progress toward them. Milestones are tied to the <strong>Achievements</strong> badge system.",
+    question: "Does Traverse track account milestones?",
+    answer: "Yes! Under <strong>Performance → Milestones</strong>, Traverse automatically tracks key achievements: first profitable week, first 100 trades, longest winning streak, account high-water mark, and more. You can also set custom milestones (e.g., \"reach $50K account\") and track your progress toward them. Milestones are tied to the <strong>Achievements</strong> badge system.",
     category: "analytics",
     tags: ["milestones", "goals", "targets", "achievements", "records", "personal best", "progress"],
     relatedIds: ["ap-achievements", "ap-target-simulator", "an-equity-curve"],
@@ -1319,7 +1319,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "mt2-news-feed",
-    question: "Does Stargate have a news feed?",
+    question: "Does Traverse have a news feed?",
     answer: "Yes! The <strong>News</strong> section aggregates crypto and stock market news from major sources. Headlines are tagged with relevant symbols so you can filter news for assets in your watchlist. Breaking news alerts appear as notifications if enabled. While not a replacement for dedicated news platforms, it keeps you informed without leaving the trading journal.",
     category: "market-tools",
     tags: ["news", "headlines", "feed", "alerts", "breaking", "updates", "media"],
@@ -1432,7 +1432,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi2-refund-policy",
     question: "What is your refund policy?",
-    answer: "We offer a <strong>7-day money-back guarantee</strong> on your first subscription payment. If you are not satisfied within the first 7 days, contact <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a> for a full refund. After 7 days, refunds are handled on a case-by-case basis. Canceling your subscription stops future charges but does not refund the current billing period.",
+    answer: "We offer a <strong>7-day money-back guarantee</strong> on your first subscription payment. If you are not satisfied within the first 7 days, contact <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a> for a full refund. After 7 days, refunds are handled on a case-by-case basis. Canceling your subscription stops future charges but does not refund the current billing period.",
     category: "billing",
     tags: ["refund", "money back", "guarantee", "return", "policy", "cancel", "charge"],
     relatedIds: ["bi-cancel", "bi-plans-overview", "tr-contact-support"],
@@ -1448,7 +1448,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi2-team-plans",
     question: "Do you offer team or group plans?",
-    answer: "Team plans for trading firms, prop desks, and trading groups are available on request. Team plans include shared analytics, admin dashboards, and volume discounts. Contact <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a> with your team size and requirements for a custom quote.",
+    answer: "Team plans for trading firms, prop desks, and trading groups are available on request. Team plans include shared analytics, admin dashboards, and volume discounts. Contact <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a> with your team size and requirements for a custom quote.",
     category: "billing",
     tags: ["team", "group", "enterprise", "firm", "business", "volume", "discount", "corporate"],
     relatedIds: ["bi-plans-overview", "tr-contact-support", "bi-referral"],
@@ -1456,7 +1456,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi2-crypto-payment",
     question: "Can I pay with cryptocurrency?",
-    answer: "Crypto payments are not currently supported — we process payments through Stripe, which accepts major credit and debit cards. Crypto payment integration is on our roadmap. If this is important to you, let us know at <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a> — user demand helps us prioritize feature development.",
+    answer: "Crypto payments are not currently supported — we process payments through Stripe, which accepts major credit and debit cards. Crypto payment integration is on our roadmap. If this is important to you, let us know at <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a> — user demand helps us prioritize feature development.",
     category: "billing",
     tags: ["crypto", "bitcoin", "payment", "btc", "eth", "cryptocurrency", "alternative"],
     relatedIds: ["bi-payment-methods", "bi-plans-overview", "tr-contact-support"],
@@ -1484,7 +1484,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as2-dark-light-auto",
     question: "Can the theme switch automatically between dark and light mode?",
-    answer: "Yes! In the theme picker, select <strong>System</strong> to match your operating system's dark/light mode preference. Stargate will automatically switch between your chosen dark theme and light theme based on your system settings. This works on macOS, Windows, iOS, and Android devices that support automatic dark mode scheduling.",
+    answer: "Yes! In the theme picker, select <strong>System</strong> to match your operating system's dark/light mode preference. Traverse will automatically switch between your chosen dark theme and light theme based on your system settings. This works on macOS, Windows, iOS, and Android devices that support automatic dark mode scheduling.",
     category: "account-settings",
     tags: ["auto", "dark mode", "light mode", "system", "automatic", "schedule", "os"],
     relatedIds: ["as-change-theme", "gs-mobile-support", "as-browser-support"],
@@ -1523,8 +1523,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "as2-accessibility",
-    question: "What accessibility features does Stargate offer?",
-    answer: "Stargate supports: keyboard navigation for all interactive elements, screen reader compatibility with ARIA labels, high-contrast theme option, adjustable font sizes via browser zoom, and reduced-motion mode that disables animations. If you have specific accessibility needs that are not met, email <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a> — we take accessibility seriously.",
+    question: "What accessibility features does Traverse offer?",
+    answer: "Traverse supports: keyboard navigation for all interactive elements, screen reader compatibility with ARIA labels, high-contrast theme option, adjustable font sizes via browser zoom, and reduced-motion mode that disables animations. If you have specific accessibility needs that are not met, email <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a> — we take accessibility seriously.",
     category: "account-settings",
     tags: ["accessibility", "a11y", "screen reader", "keyboard", "contrast", "font size", "aria"],
     relatedIds: ["as-change-theme", "as-browser-support", "tr-contact-support"],
@@ -1536,7 +1536,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr2-slow-loading",
     question: "The app is loading slowly — how do I speed it up?",
-    answer: "Try these steps: <strong>1)</strong> Close unused browser tabs (they consume memory). <strong>2)</strong> Clear browser cache and cookies for Stargate. <strong>3)</strong> Disable browser extensions that might interfere (ad blockers, VPNs). <strong>4)</strong> Switch to Chrome if you are on a different browser. <strong>5)</strong> Check your internet speed — Stargate needs a stable connection. If slowness persists, the issue may be temporary server load.",
+    answer: "Try these steps: <strong>1)</strong> Close unused browser tabs (they consume memory). <strong>2)</strong> Clear browser cache and cookies for Traverse. <strong>3)</strong> Disable browser extensions that might interfere (ad blockers, VPNs). <strong>4)</strong> Switch to Chrome if you are on a different browser. <strong>5)</strong> Check your internet speed — Traverse needs a stable connection. If slowness persists, the issue may be temporary server load.",
     category: "troubleshooting",
     tags: ["slow", "performance", "speed", "loading", "laggy", "sluggish", "optimize"],
     relatedIds: ["tr-chart-not-loading", "as-browser-support", "tr-contact-support"],
@@ -1567,8 +1567,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "tr2-email-not-received",
-    question: "I'm not receiving emails from Stargate — what should I check?",
-    answer: "Check these: <strong>1)</strong> Look in your spam/junk folder. <strong>2)</strong> Search for emails from <code>noreply@stargate.trade</code>. <strong>3)</strong> Add our domain to your email whitelist/safe senders. <strong>4)</strong> If using Gmail, check the Promotions or Updates tabs. <strong>5)</strong> Verify the email address in your account settings is correct. If the issue persists after these steps, contact support via a different email address.",
+    question: "I'm not receiving emails from Traverse — what should I check?",
+    answer: "Check these: <strong>1)</strong> Look in your spam/junk folder. <strong>2)</strong> Search for emails from <code>noreply@traversejournal.com</code>. <strong>3)</strong> Add our domain to your email whitelist/safe senders. <strong>4)</strong> If using Gmail, check the Promotions or Updates tabs. <strong>5)</strong> Verify the email address in your account settings is correct. If the issue persists after these steps, contact support via a different email address.",
     category: "troubleshooting",
     tags: ["email", "not received", "spam", "missing", "verification", "notification", "inbox"],
     relatedIds: ["gs-create-account", "as-reset-password", "tr-contact-support"],
@@ -1584,7 +1584,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr2-browser-storage",
     question: "The app says my browser storage is full — what do I do?",
-    answer: "Stargate stores some data locally (theme preferences, cache) in your browser's localStorage. If storage is full: <strong>1)</strong> Clear Stargate's site data in browser settings (this only resets local preferences, not your account data). <strong>2)</strong> Close other tabs that might be consuming storage. <strong>3)</strong> Your actual trade data is stored on our servers, so clearing local storage will not delete any trades.",
+    answer: "Traverse stores some data locally (theme preferences, cache) in your browser's localStorage. If storage is full: <strong>1)</strong> Clear Traverse's site data in browser settings (this only resets local preferences, not your account data). <strong>2)</strong> Close other tabs that might be consuming storage. <strong>3)</strong> Your actual trade data is stored on our servers, so clearing local storage will not delete any trades.",
     category: "troubleshooting",
     tags: ["storage", "full", "localStorage", "cache", "browser", "space", "clear", "quota"],
     relatedIds: ["as-browser-support", "tr2-slow-loading", "tr-contact-support"],
@@ -1592,7 +1592,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr2-timezone-mismatch",
     question: "My daily P&L doesn't match what I traded today — why?",
-    answer: "This is almost always a <strong>timezone mismatch</strong>. If your Stargate timezone differs from your exchange's timezone, trades near midnight may appear on a different day. Go to <strong>Settings → Global Settings</strong> and set your timezone to match where you trade. After updating, analytics will recalculate and daily P&L should align with your trading session.",
+    answer: "This is almost always a <strong>timezone mismatch</strong>. If your Traverse timezone differs from your exchange's timezone, trades near midnight may appear on a different day. Go to <strong>Settings → Global Settings</strong> and set your timezone to match where you trade. After updating, analytics will recalculate and daily P&L should align with your trading session.",
     category: "troubleshooting",
     tags: ["timezone", "daily pnl", "wrong day", "mismatch", "midnight", "date", "calendar"],
     relatedIds: ["as-timezone", "tr-numbers-differ", "an-calendar"],
@@ -1651,7 +1651,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps2-third-party-access",
-    question: "What third-party services does Stargate use?",
+    question: "What third-party services does Traverse use?",
     answer: "We use a minimal set of trusted services: <strong>Supabase</strong> (database and auth), <strong>Stripe</strong> (payments — we never see your card details), <strong>Vercel</strong> (hosting), <strong>CoinGecko</strong> and <strong>Yahoo Finance</strong> (market data), and an <strong>AI provider</strong> (for the coaching feature). Each service only receives the minimum data needed for its function. No analytics trackers or advertising SDKs are included.",
     category: "privacy-security",
     tags: ["third party", "services", "providers", "integrations", "supabase", "stripe", "vercel"],
@@ -1667,16 +1667,16 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps2-open-source",
-    question: "Is Stargate open source?",
-    answer: "The Stargate codebase is currently private. We are evaluating open-sourcing certain components (such as trade import parsers and analytics calculation libraries) in the future. If open-source availability is important to you, let us know — community demand influences our roadmap. You can always export your data in standard formats (CSV, JSON) to use with other tools.",
+    question: "Is Traverse open source?",
+    answer: "The Traverse codebase is currently private. We are evaluating open-sourcing certain components (such as trade import parsers and analytics calculation libraries) in the future. If open-source availability is important to you, let us know — community demand influences our roadmap. You can always export your data in standard formats (CSV, JSON) to use with other tools.",
     category: "privacy-security",
     tags: ["open source", "source code", "github", "transparent", "code", "public", "inspect"],
     relatedIds: ["as-export-data", "ps-data-sold", "tr-contact-support"],
   },
   {
     id: "ps2-coppa-minors",
-    question: "Can minors use Stargate?",
-    answer: "Stargate is designed for users <strong>18 years and older</strong>. We do not knowingly collect data from minors under 18. If you are under 18 and interested in learning about trading, we recommend using the demo data features with parental guidance. If we become aware that a user is under 18, we will contact the account holder and may restrict the account pending verification.",
+    question: "Can minors use Traverse?",
+    answer: "Traverse is designed for users <strong>18 years and older</strong>. We do not knowingly collect data from minors under 18. If you are under 18 and interested in learning about trading, we recommend using the demo data features with parental guidance. If we become aware that a user is under 18, we will contact the account holder and may restrict the account pending verification.",
     category: "privacy-security",
     tags: ["minors", "age", "children", "coppa", "18", "underage", "young", "parental"],
     relatedIds: ["gs-create-account", "ps-gdpr-compliance", "gs-demo-mode"],
@@ -1696,7 +1696,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm2-daily-loss-limit",
     question: "How do I set and enforce a daily loss limit?",
-    answer: "Go to <strong>Settings → Risk Rules</strong> and set your maximum daily loss (e.g., 2% of account or $200). When your daily losses reach this threshold, Stargate displays a <strong>warning overlay</strong> and activates the cool-off timer. You can optionally lock yourself out of trade entry for the rest of the day. The AI Coach also monitors this and will remind you to step away when your limit is hit.",
+    answer: "Go to <strong>Settings → Risk Rules</strong> and set your maximum daily loss (e.g., 2% of account or $200). When your daily losses reach this threshold, Traverse displays a <strong>warning overlay</strong> and activates the cool-off timer. You can optionally lock yourself out of trade entry for the rest of the day. The AI Coach also monitors this and will remind you to step away when your limit is hit.",
     category: "risk-management",
     tags: ["daily loss", "limit", "maximum", "cap", "stop trading", "cool off", "circuit breaker"],
     relatedIds: ["rm-max-drawdown", "rm-prop-firm", "ap-breathing-exercise"],
@@ -1752,7 +1752,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm2-drawdown-recovery",
     question: "How do I calculate recovery from a drawdown?",
-    answer: "Recovery from drawdown is not symmetrical: a 10% loss requires an 11% gain to break even, a 25% loss requires 33%, and a 50% loss requires a 100% gain. This is why limiting drawdowns is critical — the deeper the hole, the exponentially harder it is to climb out. Stargate displays your current drawdown and estimated recovery time based on your average daily returns under <strong>Performance → Drawdown</strong>.",
+    answer: "Recovery from drawdown is not symmetrical: a 10% loss requires an 11% gain to break even, a 25% loss requires 33%, and a 50% loss requires a 100% gain. This is why limiting drawdowns is critical — the deeper the hole, the exponentially harder it is to climb out. Traverse displays your current drawdown and estimated recovery time based on your average daily returns under <strong>Performance → Drawdown</strong>.",
     category: "risk-management",
     tags: ["recovery", "drawdown", "break even", "asymmetric", "math", "percentage", "climb back"],
     relatedIds: ["rm-max-drawdown", "an-drawdown", "an-equity-curve"],
@@ -1769,24 +1769,24 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // MORE GETTING STARTED -- BATCH 3 (+18)
   {
     id: "gs3-multi-device-sync",
-    question: "Can I use Stargate on multiple devices at the same time?",
-    answer: "Yes — your Stargate account syncs across all devices in real time. Log in on your laptop, tablet, or phone and your trades, journal entries, and settings stay in sync. Changes made on one device appear on others within seconds.",
+    question: "Can I use Traverse on multiple devices at the same time?",
+    answer: "Yes — your Traverse account syncs across all devices in real time. Log in on your laptop, tablet, or phone and your trades, journal entries, and settings stay in sync. Changes made on one device appear on others within seconds.",
     category: "getting-started",
     tags: ["sync", "multi-device", "cloud", "real-time", "cross-platform", "mobile", "desktop"],
     relatedIds: ["gs-mobile-support", "gs-create-account", "as-timezone"],
   },
   {
     id: "gs3-guest-mode",
-    question: "Can I try Stargate without creating an account?",
-    answer: "Stargate offers a <strong>demo mode</strong> that lets you explore the interface with sample data before signing up. To access it, click <code>Try Demo</code> on the landing page. Note that any trades or notes entered in guest mode are not saved — you will need to create an account to persist your data.",
+    question: "Can I try Traverse without creating an account?",
+    answer: "Traverse offers a <strong>demo mode</strong> that lets you explore the interface with sample data before signing up. To access it, click <code>Try Demo</code> on the landing page. Note that any trades or notes entered in guest mode are not saved — you will need to create an account to persist your data.",
     category: "getting-started",
     tags: ["guest", "demo", "trial", "no-account", "explore", "sample-data", "preview"],
     relatedIds: ["gs-demo-mode", "gs-create-account", "bi-free-trial"],
   },
   {
     id: "gs3-browser-extensions",
-    question: "Are there browser extensions for Stargate?",
-    answer: "Stargate is a web-based application and does not currently require a browser extension. All features — trade logging, journaling, analytics — are available directly at the dashboard URL. You can add Stargate to your home screen on mobile or pin the tab in your browser for quick access.",
+    question: "Are there browser extensions for Traverse?",
+    answer: "Traverse is a web-based application and does not currently require a browser extension. All features — trade logging, journaling, analytics — are available directly at the dashboard URL. You can add Traverse to your home screen on mobile or pin the tab in your browser for quick access.",
     category: "getting-started",
     tags: ["browser", "extension", "chrome", "firefox", "web-app", "pwa", "pin-tab"],
     relatedIds: ["gs-mobile-support", "gs2-sidebar-navigation", "gs-onboarding"],
@@ -1802,14 +1802,14 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs3-demo-data",
     question: "What is the demo data and can I remove it?",
-    answer: "Demo data is a set of sample trades, journal entries, and analytics pre-loaded to help you understand Stargate's features. It is only active in <strong>demo mode</strong> and is never mixed with your real account data. If you see demo trades after signing up, go to <code>Settings &gt; Data</code> and click <strong>Clear Demo Data</strong>.",
+    answer: "Demo data is a set of sample trades, journal entries, and analytics pre-loaded to help you understand Traverse's features. It is only active in <strong>demo mode</strong> and is never mixed with your real account data. If you see demo trades after signing up, go to <code>Settings &gt; Data</code> and click <strong>Clear Demo Data</strong>.",
     category: "getting-started",
     tags: ["demo", "sample", "data", "remove", "clear", "example", "test-trades"],
     relatedIds: ["gs-demo-mode", "gs-first-trade", "gs-import-trades"],
   },
   {
     id: "gs3-invite-codes",
-    question: "Does Stargate have an invite or referral system?",
+    question: "Does Traverse have an invite or referral system?",
     answer: "Yes — you can share your unique referral link from <code>Settings &gt; Referrals</code>. When someone signs up using your link, both of you may receive benefits depending on the current promotion. Referral rewards are tracked automatically in your account dashboard.",
     category: "getting-started",
     tags: ["invite", "referral", "share", "link", "rewards", "promotion", "friend"],
@@ -1817,15 +1817,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs3-first-day-guide",
-    question: "What should I do on my first day using Stargate?",
-    answer: "Start by completing the <strong>Getting Started Checklist</strong> — it walks you through setting your timezone, importing existing trades, and logging your first journal entry. After that, explore the <code>Analytics</code> tab to see how Stargate visualizes your performance. Even a single trade will start generating insights.",
+    question: "What should I do on my first day using Traverse?",
+    answer: "Start by completing the <strong>Getting Started Checklist</strong> — it walks you through setting your timezone, importing existing trades, and logging your first journal entry. After that, explore the <code>Analytics</code> tab to see how Traverse visualizes your performance. Even a single trade will start generating insights.",
     category: "getting-started",
     tags: ["first-day", "beginner", "setup", "checklist", "start", "onboarding", "guide"],
     relatedIds: ["gs-getting-started-checklist", "gs-first-trade", "gs-onboarding"],
   },
   {
     id: "gs3-navigation-tips",
-    question: "What are the best ways to navigate Stargate quickly?",
+    question: "What are the best ways to navigate Traverse quickly?",
     answer: "Use the <strong>sidebar</strong> for primary navigation between sections like Journal, Analytics, and Apps. Press <code>/</code> to open the global search bar, which lets you jump to any trade, page, or setting instantly. You can also use <code>Cmd+K</code> (Mac) or <code>Ctrl+K</code> (Windows) as a shortcut to the command palette.",
     category: "getting-started",
     tags: ["navigation", "sidebar", "search", "command-palette", "shortcuts", "quick-access", "jump"],
@@ -1841,7 +1841,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs3-quick-start-video",
-    question: "Is there a quick-start video tutorial for Stargate?",
+    question: "Is there a quick-start video tutorial for Traverse?",
     answer: "Yes — after signing up, you will see a <strong>Watch Quick Start</strong> link on your dashboard. The video covers trade logging, journal entries, and reading your analytics in under 5 minutes. You can also access it anytime from <code>Help &gt; Quick Start Video</code>.",
     category: "getting-started",
     tags: ["video", "tutorial", "quick-start", "walkthrough", "learning", "introduction", "help"],
@@ -1849,15 +1849,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs3-keyboard-shortcuts-advanced",
-    question: "What advanced keyboard shortcuts does Stargate support?",
-    answer: "Beyond basic navigation, Stargate supports <code>Cmd+Shift+T</code> to open the quick trade entry form, <code>Cmd+J</code> to start a new journal entry, and <code>Cmd+Shift+A</code> to jump to analytics. Press <code>?</code> on any page to see the full shortcut reference for that view.",
+    question: "What advanced keyboard shortcuts does Traverse support?",
+    answer: "Beyond basic navigation, Traverse supports <code>Cmd+Shift+T</code> to open the quick trade entry form, <code>Cmd+J</code> to start a new journal entry, and <code>Cmd+Shift+A</code> to jump to analytics. Press <code>?</code> on any page to see the full shortcut reference for that view.",
     category: "getting-started",
     tags: ["keyboard", "shortcuts", "hotkeys", "advanced", "productivity", "quick-entry", "power-user"],
     relatedIds: ["gs2-keyboard-shortcuts", "gs2-quick-trade-widget", "gs2-search-function"],
   },
   {
     id: "gs3-theme-customization-deep",
-    question: "Can I customize Stargate's appearance beyond dark and light mode?",
+    question: "Can I customize Traverse's appearance beyond dark and light mode?",
     answer: "Yes — go to <code>Settings &gt; Appearance</code> to choose between multiple color themes including <strong>Organic Tech</strong>, <strong>Midnight Blue</strong>, and <strong>Classic Light</strong>. Each theme adjusts the background, accent colors, and chart palettes. Your chosen theme syncs across all devices.",
     category: "getting-started",
     tags: ["theme", "appearance", "dark-mode", "light-mode", "colors", "customization", "ui"],
@@ -1865,15 +1865,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs3-language-support",
-    question: "Does Stargate support languages other than English?",
-    answer: "Stargate's interface is currently available in <strong>English</strong>, with additional languages on the roadmap. The AI Coach can understand and respond in multiple languages, so you can write journal entries and ask questions in your preferred language. Check <code>Settings &gt; Language</code> for the latest available options.",
+    question: "Does Traverse support languages other than English?",
+    answer: "Traverse's interface is currently available in <strong>English</strong>, with additional languages on the roadmap. The AI Coach can understand and respond in multiple languages, so you can write journal entries and ask questions in your preferred language. Check <code>Settings &gt; Language</code> for the latest available options.",
     category: "getting-started",
     tags: ["language", "localization", "translation", "i18n", "multilingual", "international", "settings"],
     relatedIds: ["ai-how-it-works", "as-timezone", "gs-onboarding"],
   },
   {
     id: "gs3-notification-setup",
-    question: "How do I configure notifications in Stargate?",
+    question: "How do I configure notifications in Traverse?",
     answer: "Navigate to <code>Settings &gt; Notifications</code> to enable or disable alerts for daily check-in reminders, weekly report availability, and AI Coach insights. You can choose between browser push notifications and email digests. Each notification type can be toggled independently.",
     category: "getting-started",
     tags: ["notifications", "alerts", "reminders", "email", "push", "settings", "configure"],
@@ -1881,7 +1881,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs3-favorites-bookmarks",
-    question: "Can I bookmark or favorite specific pages in Stargate?",
+    question: "Can I bookmark or favorite specific pages in Traverse?",
     answer: "Yes — click the <strong>star icon</strong> in the top bar of any page to add it to your Favorites. Favorited pages appear in a quick-access section at the top of the sidebar. This is useful for pinning frequently visited analytics views or specific app pages.",
     category: "getting-started",
     tags: ["favorites", "bookmarks", "star", "quick-access", "sidebar", "pin", "save"],
@@ -1897,7 +1897,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs3-recent-activity-feed",
-    question: "Where can I see my recent activity in Stargate?",
+    question: "Where can I see my recent activity in Traverse?",
     answer: "Your <strong>Recent Activity</strong> feed is available on the dashboard home page. It shows a chronological list of your latest actions — trades logged, journal entries written, analytics viewed, and settings changed. Click any item in the feed to jump directly to that record.",
     category: "getting-started",
     tags: ["activity", "feed", "recent", "history", "timeline", "log", "dashboard"],
@@ -1905,8 +1905,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs3-session-restore",
-    question: "Does Stargate restore my previous session when I return?",
-    answer: "Yes — Stargate remembers your last active page, open tabs, and scroll position. When you log back in, you are returned to exactly where you left off. If you prefer to always start on the dashboard, toggle <strong>Always Start on Dashboard</strong> in <code>Settings &gt; General</code>.",
+    question: "Does Traverse restore my previous session when I return?",
+    answer: "Yes — Traverse remembers your last active page, open tabs, and scroll position. When you log back in, you are returned to exactly where you left off. If you prefer to always start on the dashboard, toggle <strong>Always Start on Dashboard</strong> in <code>Settings &gt; General</code>.",
     category: "getting-started",
     tags: ["session", "restore", "remember", "state", "login", "persistence", "return"],
     relatedIds: ["gs-create-account", "gs3-multi-device-sync", "gs2-dashboard-overview"],
@@ -1924,23 +1924,23 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj3-options-journaling",
     question: "Can I journal options trades with Greeks and expiry dates?",
-    answer: "Yes — when you select <strong>Options</strong> as the instrument type, additional fields appear for strike price, expiry date, and option type (call/put). Stargate also logs the Greeks (delta, gamma, theta, vega) at entry if provided. This data feeds into your analytics for options-specific performance tracking.",
+    answer: "Yes — when you select <strong>Options</strong> as the instrument type, additional fields appear for strike price, expiry date, and option type (call/put). Traverse also logs the Greeks (delta, gamma, theta, vega) at entry if provided. This data feeds into your analytics for options-specific performance tracking.",
     category: "trading-journal",
     tags: ["options", "greeks", "expiry", "strike", "call", "put", "derivatives"],
     relatedIds: ["ap-options-flow", "ap-options-payoff", "tj3-multi-leg-trades"],
   },
   {
     id: "tj3-forex-pairs",
-    question: "Does Stargate support forex pair trading journals?",
-    answer: "Absolutely. Stargate supports all major, minor, and exotic forex pairs. When logging a forex trade, enter the pair symbol (e.g., <code>EUR/USD</code>) and Stargate will recognize it as forex and apply pip-based P&L calculations. Lot sizes, swap fees, and session times are all trackable.",
+    question: "Does Traverse support forex pair trading journals?",
+    answer: "Absolutely. Traverse supports all major, minor, and exotic forex pairs. When logging a forex trade, enter the pair symbol (e.g., <code>EUR/USD</code>) and Traverse will recognize it as forex and apply pip-based P&L calculations. Lot sizes, swap fees, and session times are all trackable.",
     category: "trading-journal",
     tags: ["forex", "fx", "currency", "pairs", "pips", "lots", "swap"],
     relatedIds: ["gs-supported-markets", "tj-fees", "an-hold-time"],
   },
   {
     id: "tj3-crypto-futures-specifics",
-    question: "How does Stargate handle crypto futures with leverage and funding rates?",
-    answer: "When logging a crypto futures trade, you can specify the <strong>leverage multiplier</strong> and <strong>margin type</strong> (cross or isolated). Stargate calculates your effective position size and actual return on margin. Funding rate payments can be logged as fees to keep your net P&L accurate.",
+    question: "How does Traverse handle crypto futures with leverage and funding rates?",
+    answer: "When logging a crypto futures trade, you can specify the <strong>leverage multiplier</strong> and <strong>margin type</strong> (cross or isolated). Traverse calculates your effective position size and actual return on margin. Funding rate payments can be logged as fees to keep your net P&L accurate.",
     category: "trading-journal",
     tags: ["crypto", "futures", "leverage", "funding-rate", "margin", "perpetual", "position-size"],
     relatedIds: ["tj2-futures-logging", "mt-funding-rates", "rm-position-sizing"],
@@ -1956,7 +1956,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj3-batch-import-history",
     question: "Can I batch-import my entire trading history at once?",
-    answer: "Yes — go to <code>Settings &gt; Import</code> and upload a CSV file containing your historical trades. Stargate supports CSV exports from major exchanges and brokers including Binance, Coinbase, Interactive Brokers, and TD Ameritrade. The importer maps columns automatically and shows a preview before committing.",
+    answer: "Yes — go to <code>Settings &gt; Import</code> and upload a CSV file containing your historical trades. Traverse supports CSV exports from major exchanges and brokers including Binance, Coinbase, Interactive Brokers, and TD Ameritrade. The importer maps columns automatically and shows a preview before committing.",
     category: "trading-journal",
     tags: ["batch", "import", "history", "csv", "bulk", "exchange", "broker"],
     relatedIds: ["gs-import-trades", "tj-csv-format", "tj-import-fails"],
@@ -1972,7 +1972,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj3-voice-notes",
     question: "Can I add voice notes to my journal entries?",
-    answer: "Yes — click the <strong>microphone icon</strong> in the journal editor to record a voice note. Stargate will attach the audio clip to your entry and automatically transcribe it to text. Voice notes are ideal for capturing post-trade thoughts quickly before emotions fade. Transcriptions are searchable.",
+    answer: "Yes — click the <strong>microphone icon</strong> in the journal editor to record a voice note. Traverse will attach the audio clip to your entry and automatically transcribe it to text. Voice notes are ideal for capturing post-trade thoughts quickly before emotions fade. Transcriptions are searchable.",
     category: "trading-journal",
     tags: ["voice", "audio", "recording", "transcription", "microphone", "dictation", "speech"],
     relatedIds: ["tj-notes", "tj-write-journal", "tj2-quick-emotion"],
@@ -2004,7 +2004,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj3-commission-tracking",
     question: "How do I track commissions and fees per trade?",
-    answer: "When logging a trade, enter the commission amount in the <strong>Fees</strong> field. Stargate tracks fees per leg and per trade, rolling them into your net P&L automatically. You can view total fees paid over any date range in <code>Analytics &gt; Fees Breakdown</code>. This is critical for accurately measuring your real edge.",
+    answer: "When logging a trade, enter the commission amount in the <strong>Fees</strong> field. Traverse tracks fees per leg and per trade, rolling them into your net P&L automatically. You can view total fees paid over any date range in <code>Analytics &gt; Fees Breakdown</code>. This is critical for accurately measuring your real edge.",
     category: "trading-journal",
     tags: ["commission", "fees", "costs", "trading-costs", "net-pnl", "broker", "breakdown"],
     relatedIds: ["tj-fees", "an-gross-vs-net", "tj3-pnl-adjustments"],
@@ -2012,7 +2012,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj3-slippage-logging",
     question: "Can I log slippage on my trades?",
-    answer: "Yes — Stargate has a <strong>Slippage</strong> field where you record the difference between your intended fill price and actual fill price. This data is tracked over time so you can see which symbols, sessions, or order types suffer the most slippage. It is included in your execution quality analytics.",
+    answer: "Yes — Traverse has a <strong>Slippage</strong> field where you record the difference between your intended fill price and actual fill price. This data is tracked over time so you can see which symbols, sessions, or order types suffer the most slippage. It is included in your execution quality analytics.",
     category: "trading-journal",
     tags: ["slippage", "execution", "fill-price", "order", "market-order", "limit", "tracking"],
     relatedIds: ["an-execution", "tj3-execution-quality-scoring", "tj-fees"],
@@ -2044,7 +2044,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj3-entry-exit-criteria",
     question: "Can I log my planned entry and exit criteria for each trade?",
-    answer: "Yes — every trade form includes <strong>Entry Criteria</strong> and <strong>Exit Criteria</strong> text fields where you document your reasons for entering and your planned exit conditions. After the trade closes, Stargate shows these side-by-side with your actual execution so you can evaluate plan adherence.",
+    answer: "Yes — every trade form includes <strong>Entry Criteria</strong> and <strong>Exit Criteria</strong> text fields where you document your reasons for entering and your planned exit conditions. After the trade closes, Traverse shows these side-by-side with your actual execution so you can evaluate plan adherence.",
     category: "trading-journal",
     tags: ["entry", "exit", "criteria", "plan", "rules", "discipline", "checklist"],
     relatedIds: ["tj2-trade-checklist", "tj3-plan-vs-actual", "an-playbook"],
@@ -2052,7 +2052,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj3-execution-quality-scoring",
     question: "What is the execution quality score?",
-    answer: "Stargate calculates an <strong>Execution Quality Score</strong> (0-100) for each trade based on how closely your actual entry and exit matched the optimal points within the trade's price range (MFE/MAE). A score of 100 means you entered at the best price and exited at the peak. Track this over time to improve your timing.",
+    answer: "Traverse calculates an <strong>Execution Quality Score</strong> (0-100) for each trade based on how closely your actual entry and exit matched the optimal points within the trade's price range (MFE/MAE). A score of 100 means you entered at the best price and exited at the peak. Track this over time to improve your timing.",
     category: "trading-journal",
     tags: ["execution", "quality", "score", "timing", "entry", "exit", "mfe-mae"],
     relatedIds: ["an-execution", "an-mfe-mae", "tj3-slippage-logging"],
@@ -2060,14 +2060,14 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj3-plan-vs-actual",
     question: "How does the trade plan vs. actual comparison work?",
-    answer: "When you fill in your <strong>Entry Criteria</strong>, target price, and stop loss before a trade, Stargate saves this as your plan. After the trade closes, the <code>Plan vs Actual</code> tab shows a side-by-side comparison — planned entry vs actual entry, planned exit vs actual exit, and planned R vs realized R. This builds discipline over time.",
+    answer: "When you fill in your <strong>Entry Criteria</strong>, target price, and stop loss before a trade, Traverse saves this as your plan. After the trade closes, the <code>Plan vs Actual</code> tab shows a side-by-side comparison — planned entry vs actual entry, planned exit vs actual exit, and planned R vs realized R. This builds discipline over time.",
     category: "trading-journal",
     tags: ["plan", "actual", "comparison", "discipline", "target", "stop-loss", "review"],
     relatedIds: ["tj3-entry-exit-criteria", "an-r-value", "rm-risk-reward"],
   },
   {
     id: "tj3-playbook-management",
-    question: "What is playbook management in Stargate?",
+    question: "What is playbook management in Traverse?",
     answer: "A <strong>playbook</strong> is a named trading strategy (e.g., \"Breakout Pullback\" or \"VWAP Fade\") with defined rules for entry, exit, and risk. Manage your playbooks in <code>Journal &gt; Playbooks</code>, then tag each trade with the playbook it followed. Analytics will break down your performance per playbook so you can see which strategies truly work.",
     category: "trading-journal",
     tags: ["playbook", "strategy", "rules", "management", "performance", "edge", "system"],
@@ -2078,7 +2078,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an3-monthly-reports",
     question: "How do I generate a monthly performance report?",
-    answer: "Go to <code>Analytics &gt; Reports</code> and select a month. Stargate generates a comprehensive report including total P&L, win rate, best/worst trades, most-traded symbols, and emotional patterns. You can download the report as a PDF or share it via a private link.",
+    answer: "Go to <code>Analytics &gt; Reports</code> and select a month. Traverse generates a comprehensive report including total P&L, win rate, best/worst trades, most-traded symbols, and emotional patterns. You can download the report as a PDF or share it via a private link.",
     category: "analytics",
     tags: ["monthly", "report", "summary", "performance", "pdf", "download", "review"],
     relatedIds: ["an-date-filter", "ai-weekly-reports", "as-export-data"],
@@ -2086,7 +2086,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an3-annual-summary",
     question: "Is there an annual summary or year-in-review feature?",
-    answer: "Yes — at the end of each calendar year (or any time from <code>Analytics &gt; Annual Summary</code>), Stargate compiles your full-year statistics: total P&L, total trades, best month, worst month, longest win streak, and growth of equity. It is a powerful reflection tool for setting next-year goals.",
+    answer: "Yes — at the end of each calendar year (or any time from <code>Analytics &gt; Annual Summary</code>), Traverse compiles your full-year statistics: total P&L, total trades, best month, worst month, longest win streak, and growth of equity. It is a powerful reflection tool for setting next-year goals.",
     category: "analytics",
     tags: ["annual", "yearly", "summary", "review", "recap", "statistics", "goals"],
     relatedIds: ["an3-monthly-reports", "an-equity-curve", "ai2-goal-setting"],
@@ -2101,7 +2101,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "an3-custom-metrics",
-    question: "Can I create custom metrics or KPIs in Stargate?",
+    question: "Can I create custom metrics or KPIs in Traverse?",
     answer: "Yes — navigate to <code>Analytics &gt; Custom Metrics</code> and click <strong>New Metric</strong>. Define a formula using built-in variables like <code>winRate</code>, <code>avgWin</code>, <code>avgLoss</code>, and <code>tradeCount</code>. Your custom metric appears on your dashboard and in reports alongside the built-in statistics.",
     category: "analytics",
     tags: ["custom", "metrics", "kpi", "formula", "create", "dashboard", "personalized"],
@@ -2125,7 +2125,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "an3-volatility-analysis",
-    question: "Does Stargate analyze how market volatility affects my trading?",
+    question: "Does Traverse analyze how market volatility affects my trading?",
     answer: "Yes — the <strong>Volatility Analysis</strong> view in Analytics plots your trade performance against market volatility (measured by VIX for stocks or historical volatility for crypto). This reveals whether you perform better in calm or volatile markets. Use this insight to adjust your position sizing or sit out during unfavorable conditions.",
     category: "analytics",
     tags: ["volatility", "vix", "market-conditions", "performance", "correlation", "risk", "environment"],
@@ -2134,7 +2134,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an3-win-streak-analysis",
     question: "How does win streak analysis work?",
-    answer: "Stargate tracks your consecutive wins and losses over time and visualizes them as <strong>streak charts</strong>. You can see your longest win streak, longest losing streak, and average streak length. This data is cross-referenced with your emotional logs to detect whether you become overconfident after wins or fearful after losses.",
+    answer: "Traverse tracks your consecutive wins and losses over time and visualizes them as <strong>streak charts</strong>. You can see your longest win streak, longest losing streak, and average streak length. This data is cross-referenced with your emotional logs to detect whether you become overconfident after wins or fearful after losses.",
     category: "analytics",
     tags: ["streak", "winning", "losing", "consecutive", "pattern", "overconfidence", "fear"],
     relatedIds: ["an2-streak-tracking", "an-consecutive-losses", "tj-emotions"],
@@ -2142,7 +2142,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an3-recovery-factor",
     question: "What is the recovery factor metric?",
-    answer: "The <strong>recovery factor</strong> measures your total net profit divided by your maximum drawdown. A recovery factor above 3 is considered strong — it means you have earned 3x more than your worst drawdown. Stargate calculates this automatically and displays it on your analytics dashboard alongside other risk metrics.",
+    answer: "The <strong>recovery factor</strong> measures your total net profit divided by your maximum drawdown. A recovery factor above 3 is considered strong — it means you have earned 3x more than your worst drawdown. Traverse calculates this automatically and displays it on your analytics dashboard alongside other risk metrics.",
     category: "analytics",
     tags: ["recovery", "factor", "drawdown", "risk", "metric", "ratio", "performance"],
     relatedIds: ["an-drawdown", "rm2-drawdown-recovery", "an2-sharpe-ratio"],
@@ -2157,7 +2157,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "an3-trade-frequency-analysis",
-    question: "Does Stargate track how often I trade?",
+    question: "Does Traverse track how often I trade?",
     answer: "Yes — the <strong>Trade Frequency</strong> chart shows the number of trades you take per day, week, or month. It overlays your P&L so you can see if higher frequency correlates with better or worse results. Many traders discover they perform best within a specific frequency range.",
     category: "analytics",
     tags: ["frequency", "count", "overtrading", "daily", "weekly", "volume", "activity"],
@@ -2165,8 +2165,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "an3-overtrading-detection",
-    question: "Can Stargate detect when I am overtrading?",
-    answer: "Yes — Stargate monitors your trade frequency, average hold time, and P&L trajectory. When it detects a pattern consistent with overtrading (high frequency + declining returns + emotional tags like \"revenge\" or \"FOMO\"), it flags a <strong>yellow alert</strong> on your dashboard and the AI Coach may suggest a break.",
+    question: "Can Traverse detect when I am overtrading?",
+    answer: "Yes — Traverse monitors your trade frequency, average hold time, and P&L trajectory. When it detects a pattern consistent with overtrading (high frequency + declining returns + emotional tags like \"revenge\" or \"FOMO\"), it flags a <strong>yellow alert</strong> on your dashboard and the AI Coach may suggest a break.",
     category: "analytics",
     tags: ["overtrading", "detection", "alert", "frequency", "revenge", "fomo", "warning"],
     relatedIds: ["an3-trade-frequency-analysis", "ai-emotions", "ai3-tilt-detection"],
@@ -2182,7 +2182,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an3-confidence-tracking",
     question: "Can I track my confidence level per trade?",
-    answer: "Yes — when logging a trade, rate your <strong>confidence level</strong> from 1 to 5. Over time, Stargate correlates your confidence ratings with actual outcomes. This reveals whether high-confidence trades truly perform better and whether low-confidence trades should be skipped or sized down.",
+    answer: "Yes — when logging a trade, rate your <strong>confidence level</strong> from 1 to 5. Over time, Traverse correlates your confidence ratings with actual outcomes. This reveals whether high-confidence trades truly perform better and whether low-confidence trades should be skipped or sized down.",
     category: "analytics",
     tags: ["confidence", "rating", "conviction", "self-assessment", "correlation", "sizing", "edge"],
     relatedIds: ["tj-emotions", "tj-process-score", "rm-position-sizing"],
@@ -2206,7 +2206,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an3-multi-account-analytics",
     question: "Can I see combined analytics across multiple trading accounts?",
-    answer: "Yes — if you have linked multiple accounts (e.g., separate exchange accounts or a prop firm), Stargate can display <strong>combined analytics</strong> or let you filter by individual account. Toggle between combined and per-account views using the account selector in the analytics toolbar.",
+    answer: "Yes — if you have linked multiple accounts (e.g., separate exchange accounts or a prop firm), Traverse can display <strong>combined analytics</strong> or let you filter by individual account. Toggle between combined and per-account views using the account selector in the analytics toolbar.",
     category: "analytics",
     tags: ["multi-account", "combined", "aggregate", "filter", "exchange", "prop-firm", "portfolio"],
     relatedIds: ["tj-multi-accounts", "rm-prop-firm", "an-equity-curve"],
@@ -2214,7 +2214,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an3-comparative-analytics",
     question: "How do I compare two different time periods or strategies?",
-    answer: "Use <code>Analytics &gt; Compare</code> to select two date ranges, playbooks, or accounts side by side. Stargate generates a comparison table showing win rate, expectancy, profit factor, Sharpe ratio, and other key metrics for each. This is invaluable for measuring whether changes to your approach are working.",
+    answer: "Use <code>Analytics &gt; Compare</code> to select two date ranges, playbooks, or accounts side by side. Traverse generates a comparison table showing win rate, expectancy, profit factor, Sharpe ratio, and other key metrics for each. This is invaluable for measuring whether changes to your approach are working.",
     category: "analytics",
     tags: ["compare", "side-by-side", "periods", "strategies", "before-after", "improvement", "evaluate"],
     relatedIds: ["an2-compare-periods", "an-playbook", "an2-sharpe-ratio"],
@@ -2230,7 +2230,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an3-time-in-trade",
     question: "What is time-in-trade analysis?",
-    answer: "<strong>Time-in-trade analysis</strong> measures how long you hold positions and correlates hold duration with P&L outcomes. Stargate generates a scatter plot and histogram in <code>Analytics &gt; Hold Time</code>. This reveals your optimal holding period — many traders find they are most profitable within a specific time window.",
+    answer: "<strong>Time-in-trade analysis</strong> measures how long you hold positions and correlates hold duration with P&L outcomes. Traverse generates a scatter plot and histogram in <code>Analytics &gt; Hold Time</code>. This reveals your optimal holding period — many traders find they are most profitable within a specific time window.",
     category: "analytics",
     tags: ["time-in-trade", "hold-time", "duration", "correlation", "optimal", "swing", "scalp"],
     relatedIds: ["an-hold-time", "an2-time-analysis", "an-execution"],
@@ -2264,7 +2264,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai3-behavioral-feedback",
     question: "Can the AI Coach give me feedback on my trading behavior?",
-    answer: "Absolutely. The AI Coach analyzes behavioral patterns like <strong>revenge trading</strong>, <strong>premature exits</strong>, <strong>position sizing inconsistency</strong>, and <strong>plan deviation</strong>. It provides this feedback with specific examples from your journal and suggests behavioral adjustments. This is one of Stargate's most impactful features for improving discipline.",
+    answer: "Absolutely. The AI Coach analyzes behavioral patterns like <strong>revenge trading</strong>, <strong>premature exits</strong>, <strong>position sizing inconsistency</strong>, and <strong>plan deviation</strong>. It provides this feedback with specific examples from your journal and suggests behavioral adjustments. This is one of Traverse's most impactful features for improving discipline.",
     category: "ai-coach",
     tags: ["behavioral", "feedback", "discipline", "revenge-trading", "psychology", "habits", "improvement"],
     relatedIds: ["ai-emotions", "ai3-emotional-pattern-coaching", "tj-process-score"],
@@ -2272,7 +2272,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai3-ai-vs-human-coaching",
     question: "How does AI coaching compare to working with a human trading coach?",
-    answer: "Stargate's AI Coach excels at <strong>data-driven pattern recognition</strong> — it reviews every trade objectively and never forgets. A human coach brings empathy, experience, and accountability. Many traders use both: the AI Coach for daily insights and a human coach for strategic direction. The AI Coach is available 24/7 and included in your subscription.",
+    answer: "Traverse's AI Coach excels at <strong>data-driven pattern recognition</strong> — it reviews every trade objectively and never forgets. A human coach brings empathy, experience, and accountability. Many traders use both: the AI Coach for daily insights and a human coach for strategic direction. The AI Coach is available 24/7 and included in your subscription.",
     category: "ai-coach",
     tags: ["comparison", "human", "coach", "advantages", "limitations", "complementary", "value"],
     relatedIds: ["ai-how-it-works", "ai-limitations", "ai-what-to-ask"],
@@ -2328,7 +2328,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai3-tilt-detection",
     question: "What is tilt detection and how does it work?",
-    answer: "<strong>Tilt detection</strong> monitors for signs you are trading emotionally — rapid-fire trades after a loss, increased position sizes, or deviations from your playbook. When detected, Stargate shows a <strong>tilt warning</strong> banner suggesting you pause. The AI Coach follows up with a calm analysis of what triggered the tilt and how to reset.",
+    answer: "<strong>Tilt detection</strong> monitors for signs you are trading emotionally — rapid-fire trades after a loss, increased position sizes, or deviations from your playbook. When detected, Traverse shows a <strong>tilt warning</strong> banner suggesting you pause. The AI Coach follows up with a calm analysis of what triggered the tilt and how to reset.",
     category: "ai-coach",
     tags: ["tilt", "detection", "emotional", "warning", "pause", "revenge-trading", "reset"],
     relatedIds: ["an3-overtrading-detection", "ai-emotions", "ai3-streak-coaching"],
@@ -2369,8 +2369,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // MORE MARKET TOOLS -- BATCH 3 (+18)
   {
     id: "mt3-technical-indicators",
-    question: "What technical indicators are available in Stargate?",
-    answer: "<p>Stargate includes a comprehensive <strong>technical indicators library</strong> with over 50 built-in indicators including RSI, MACD, Bollinger Bands, Ichimoku Cloud, and more. You can overlay multiple indicators on any chart from <code>Market Tools → Indicators</code> and save your favorite combinations as presets.</p>",
+    question: "What technical indicators are available in Traverse?",
+    answer: "<p>Traverse includes a comprehensive <strong>technical indicators library</strong> with over 50 built-in indicators including RSI, MACD, Bollinger Bands, Ichimoku Cloud, and more. You can overlay multiple indicators on any chart from <code>Market Tools → Indicators</code> and save your favorite combinations as presets.</p>",
     category: "market-tools",
     tags: ["technical indicators", "RSI", "MACD", "Bollinger Bands", "chart overlays", "indicators library", "presets"],
     relatedIds: ["mt-screener", "mt2-volume-profile", "mt2-watchlist"],
@@ -2378,7 +2378,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "mt3-fundamental-data",
     question: "Can I overlay fundamental data on my charts?",
-    answer: "<p>Yes. Stargate supports <strong>fundamental data overlays</strong> including earnings per share, revenue growth, and P/E ratios directly on price charts. Toggle these from the <code>Overlays → Fundamentals</code> panel to see how price reacts to fundamental shifts. This is available for stocks and select crypto assets with on-chain fundamental metrics.</p>",
+    answer: "<p>Yes. Traverse supports <strong>fundamental data overlays</strong> including earnings per share, revenue growth, and P/E ratios directly on price charts. Toggle these from the <code>Overlays → Fundamentals</code> panel to see how price reacts to fundamental shifts. This is available for stocks and select crypto assets with on-chain fundamental metrics.</p>",
     category: "market-tools",
     tags: ["fundamental data", "overlays", "earnings", "revenue", "P/E ratio", "on-chain metrics", "chart analysis"],
     relatedIds: ["mt-screener", "mt-stock-screener", "an-equity-curve"],
@@ -2393,7 +2393,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "mt3-ipo-calendar",
-    question: "Does Stargate track upcoming IPOs?",
+    question: "Does Traverse track upcoming IPOs?",
     answer: "<p>Yes. The <strong>IPO calendar</strong> under <code>Market Tools → IPO Calendar</code> lists upcoming initial public offerings with expected pricing dates, price ranges, underwriters, and sector classifications. You can filter by sector or market cap range and set reminders so you never miss a listing you are interested in.</p>",
     category: "market-tools",
     tags: ["IPO", "initial public offering", "new listings", "IPO calendar", "pricing date", "underwriters", "market cap"],
@@ -2417,7 +2417,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "mt3-fear-greed-index",
-    question: "Does Stargate show the Fear and Greed Index?",
+    question: "Does Traverse show the Fear and Greed Index?",
     answer: "<p>Yes. The <strong>Fear and Greed Index</strong> is displayed under <code>Market Tools → Sentiment</code> for both crypto (based on volatility, volume, social media, and dominance) and traditional markets (based on VIX, put/call ratios, and breadth). Historical readings are charted alongside price so you can spot contrarian opportunities at sentiment extremes.</p>",
     category: "market-tools",
     tags: ["fear and greed", "sentiment", "VIX", "contrarian", "put/call ratio", "market sentiment", "volatility"],
@@ -2433,7 +2433,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "mt3-whale-tracking",
-    question: "Can Stargate alert me to whale transactions?",
+    question: "Can Traverse alert me to whale transactions?",
     answer: "<p><strong>Whale tracking alerts</strong> notify you when large on-chain transfers exceed a configurable threshold (default: $1M+). Enable them under <code>Market Tools → Whale Alerts</code>. You will see the asset, amount, and whether the transfer was to or from an exchange — exchange inflows often signal potential selling pressure.</p>",
     category: "market-tools",
     tags: ["whale tracking", "on-chain", "large transfers", "exchange inflow", "selling pressure", "alerts", "blockchain"],
@@ -2457,7 +2457,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "mt3-sector-rotation",
-    question: "Does Stargate support sector rotation analysis?",
+    question: "Does Traverse support sector rotation analysis?",
     answer: "<p>Yes. The <strong>sector rotation tool</strong> at <code>Market Tools → Sectors</code> maps the 11 GICS sectors on a relative rotation graph, showing which sectors are leading, weakening, lagging, or improving relative to the S&P 500. Use this to align your trades with the prevailing macro trend and avoid sectors losing momentum.</p>",
     category: "market-tools",
     tags: ["sector rotation", "GICS sectors", "relative rotation", "S&P 500", "macro trend", "momentum", "leading sectors"],
@@ -2465,7 +2465,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "mt3-commodity-prices",
-    question: "Can I view commodity price feeds in Stargate?",
+    question: "Can I view commodity price feeds in Traverse?",
     answer: "<p><strong>Commodity price feeds</strong> for gold, silver, crude oil, natural gas, and agricultural products are available under <code>Market Tools → Commodities</code>. Prices update in real time and you can overlay commodity charts against your equity or crypto positions to spot intermarket correlations and hedge opportunities.</p>",
     category: "market-tools",
     tags: ["commodities", "gold", "crude oil", "silver", "natural gas", "intermarket", "price feeds"],
@@ -2482,7 +2482,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "mt3-bond-yields",
     question: "Can I track bond yields and the yield curve?",
-    answer: "<p>Yes. The <strong>bond yield tracker</strong> under <code>Market Tools → Bonds</code> displays US Treasury yields across maturities (2Y, 5Y, 10Y, 30Y) and plots the yield curve in real time. An inverted yield curve is a widely watched recession indicator — Stargate highlights inversions automatically and logs them to your market timeline.</p>",
+    answer: "<p>Yes. The <strong>bond yield tracker</strong> under <code>Market Tools → Bonds</code> displays US Treasury yields across maturities (2Y, 5Y, 10Y, 30Y) and plots the yield curve in real time. An inverted yield curve is a widely watched recession indicator — Traverse highlights inversions automatically and logs them to your market timeline.</p>",
     category: "market-tools",
     tags: ["bond yields", "Treasury", "yield curve", "inversion", "recession indicator", "10Y", "interest rates"],
     relatedIds: ["mt2-economic-calendar", "mt2-news-feed", "mt2-alerts"],
@@ -2515,16 +2515,16 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // MORE APPS -- BATCH 3 (+20)
   {
     id: "ap3-marketplace-overview",
-    question: "What is the Stargate App Marketplace?",
-    answer: "<p>The <strong>App Marketplace</strong> is a curated collection of built-in and third-party tools that extend Stargate's functionality. Browse it from <code>Apps → Marketplace</code>. Each app has a description, user ratings, and a one-click install. Apps range from advanced charting tools to wellness exercises and tax calculators.</p>",
+    question: "What is the Traverse App Marketplace?",
+    answer: "<p>The <strong>App Marketplace</strong> is a curated collection of built-in and third-party tools that extend Traverse's functionality. Browse it from <code>Apps → Marketplace</code>. Each app has a description, user ratings, and a one-click install. Apps range from advanced charting tools to wellness exercises and tax calculators.</p>",
     category: "apps",
     tags: ["marketplace", "app store", "third-party apps", "install", "extensions", "tools", "curated"],
     relatedIds: ["gs-onboarding", "gs2-dashboard-overview", "ap-simulator"],
   },
   {
     id: "ap3-third-party-integrations",
-    question: "Can I connect third-party services to Stargate?",
-    answer: "<p>Yes. Stargate supports <strong>third-party integrations</strong> with popular services like TradingView, Discord, Slack, and various exchanges. Configure them under <code>Apps → Integrations</code>. Each integration has its own setup guide and permissions scope so you control exactly what data is shared.</p>",
+    question: "Can I connect third-party services to Traverse?",
+    answer: "<p>Yes. Traverse supports <strong>third-party integrations</strong> with popular services like TradingView, Discord, Slack, and various exchanges. Configure them under <code>Apps → Integrations</code>. Each integration has its own setup guide and permissions scope so you control exactly what data is shared.</p>",
     category: "apps",
     tags: ["third-party", "integrations", "TradingView", "Discord", "Slack", "exchanges", "connect"],
     relatedIds: ["as-exchange-connections", "gs-import-trades", "ap2-portfolio-tracker"],
@@ -2547,8 +2547,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ap3-custom-app-building",
-    question: "Can I build my own custom apps for Stargate?",
-    answer: "<p>Developers can build <strong>custom apps</strong> using the Stargate App SDK. The SDK provides access to trade data, journal entries, and analytics via a typed API. Publish your app to the marketplace or keep it private for personal use. Get started at <code>Apps → Developer → Create New App</code>.</p>",
+    question: "Can I build my own custom apps for Traverse?",
+    answer: "<p>Developers can build <strong>custom apps</strong> using the Traverse App SDK. The SDK provides access to trade data, journal entries, and analytics via a typed API. Publish your app to the marketplace or keep it private for personal use. Get started at <code>Apps → Developer → Create New App</code>.</p>",
     category: "apps",
     tags: ["custom apps", "SDK", "developer", "build", "API", "publish", "app development"],
     relatedIds: ["gs-supported-markets", "ap-simulator", "ap2-trade-journal-ai"],
@@ -2563,7 +2563,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ap3-performance-metrics",
-    question: "Can I see how apps affect Stargate's performance?",
+    question: "Can I see how apps affect Traverse's performance?",
     answer: "<p>Yes. The <strong>app performance metrics</strong> panel at <code>Apps → Performance</code> shows load time impact, memory usage, and API call counts for each installed app. If an app is slowing down your experience, you can disable it temporarily without uninstalling. Apps consuming excessive resources are flagged automatically.</p>",
     category: "apps",
     tags: ["performance", "load time", "memory usage", "API calls", "disable", "resource usage", "optimization"],
@@ -2588,7 +2588,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ap3-keyboard-shortcuts",
     question: "Do apps support keyboard shortcuts?",
-    answer: "<p>Yes. Apps can register their own <strong>keyboard shortcuts</strong> that appear in the global shortcut menu (<code>Ctrl/Cmd + K</code>). If two apps conflict on the same shortcut, you can reassign keys under <code>Settings → Keyboard Shortcuts → Apps</code>. Core Stargate shortcuts always take priority over app-defined ones.</p>",
+    answer: "<p>Yes. Apps can register their own <strong>keyboard shortcuts</strong> that appear in the global shortcut menu (<code>Ctrl/Cmd + K</code>). If two apps conflict on the same shortcut, you can reassign keys under <code>Settings → Keyboard Shortcuts → Apps</code>. Core Traverse shortcuts always take priority over app-defined ones.</p>",
     category: "apps",
     tags: ["keyboard shortcuts", "hotkeys", "Ctrl+K", "shortcut conflicts", "reassign keys", "productivity", "quick access"],
     relatedIds: ["gs2-keyboard-shortcuts", "gs2-sidebar-navigation", "gs2-dashboard-overview"],
@@ -2628,15 +2628,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ap3-desktop-vs-web",
     question: "Are there differences between the desktop and web app?",
-    answer: "<p>Stargate is a <strong>web-first application</strong> — the desktop app is a wrapper around the same codebase with a few extras: native notifications, offline trade logging, and local data caching for faster load times. All features and apps work identically in both environments. Your data syncs seamlessly between them.</p>",
+    answer: "<p>Traverse is a <strong>web-first application</strong> — the desktop app is a wrapper around the same codebase with a few extras: native notifications, offline trade logging, and local data caching for faster load times. All features and apps work identically in both environments. Your data syncs seamlessly between them.</p>",
     category: "apps",
     tags: ["desktop", "web app", "native notifications", "offline", "local caching", "sync", "cross-platform"],
     relatedIds: ["gs-mobile-support", "as-browser-support", "as2-data-backup"],
   },
   {
     id: "ap3-api-access",
-    question: "How do developers access the Stargate API?",
-    answer: "<p>Developers can access the <strong>Stargate REST API</strong> by generating an API key under <code>Settings → API Keys</code>. The API provides endpoints for trades, journal entries, analytics, and account data with full CRUD operations. Rate limits are tier-based — free accounts get 100 requests/hour, paid accounts get 10,000 requests/hour.</p>",
+    question: "How do developers access the Traverse API?",
+    answer: "<p>Developers can access the <strong>Traverse REST API</strong> by generating an API key under <code>Settings → API Keys</code>. The API provides endpoints for trades, journal entries, analytics, and account data with full CRUD operations. Rate limits are tier-based — free accounts get 100 requests/hour, paid accounts get 10,000 requests/hour.</p>",
     category: "apps",
     tags: ["API", "REST API", "developer", "API key", "endpoints", "rate limits", "CRUD"],
     relatedIds: ["ps-api-keys", "bi-free-vs-paid", "ap3-custom-app-building"],
@@ -2644,14 +2644,14 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ap3-webhook-integrations",
     question: "How do I set up webhook integrations?",
-    answer: "<p><strong>Webhooks</strong> let external services send data to Stargate automatically — for example, receiving trade alerts from TradingView. Set them up at <code>Settings → Webhooks → Add Endpoint</code>. Each webhook gets a unique URL and secret for signature verification. You can filter which events trigger the webhook and view a delivery log for debugging.</p>",
+    answer: "<p><strong>Webhooks</strong> let external services send data to Traverse automatically — for example, receiving trade alerts from TradingView. Set them up at <code>Settings → Webhooks → Add Endpoint</code>. Each webhook gets a unique URL and secret for signature verification. You can filter which events trigger the webhook and view a delivery log for debugging.</p>",
     category: "apps",
     tags: ["webhooks", "TradingView", "automation", "endpoint", "signature verification", "event triggers", "delivery log"],
     relatedIds: ["as-exchange-connections", "mt2-alerts", "gs-import-trades"],
   },
   {
     id: "ap3-automation-rules",
-    question: "Can I create automation rules in Stargate?",
+    question: "Can I create automation rules in Traverse?",
     answer: "<p>The <strong>automation rules engine</strong> at <code>Apps → Automations</code> lets you create if/then workflows. For example: <em>if a trade is closed with a loss greater than 2%, then tag it as 'review needed' and trigger a journal prompt</em>. Rules run on every new trade and can chain multiple actions together including notifications, tagging, and data exports.</p>",
     category: "apps",
     tags: ["automation", "rules engine", "if/then", "workflows", "triggers", "auto-tag", "journal prompt"],
@@ -2667,8 +2667,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ap3-zapier-ifttt",
-    question: "Does Stargate connect to Zapier or IFTTT?",
-    answer: "<p>Yes. Stargate offers official <strong>Zapier and IFTTT integrations</strong> that expose triggers (new trade logged, journal entry created, alert fired) and actions (create trade, add note, send notification). This lets you connect Stargate to 5,000+ external apps — for example, logging trades to a Google Sheet or sending Telegram alerts on large losses.</p>",
+    question: "Does Traverse connect to Zapier or IFTTT?",
+    answer: "<p>Yes. Traverse offers official <strong>Zapier and IFTTT integrations</strong> that expose triggers (new trade logged, journal entry created, alert fired) and actions (create trade, add note, send notification). This lets you connect Traverse to 5,000+ external apps — for example, logging trades to a Google Sheet or sending Telegram alerts on large losses.</p>",
     category: "apps",
     tags: ["Zapier", "IFTTT", "automation", "triggers", "actions", "Google Sheets", "Telegram", "external apps"],
     relatedIds: ["ap3-webhook-integrations", "ap3-automation-rules", "mt2-alerts"],
@@ -2677,7 +2677,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // MORE BILLING & PLANS -- BATCH 3 (+16)
   {
     id: "bi3-enterprise-plans",
-    question: "Does Stargate offer enterprise plans?",
+    question: "Does Traverse offer enterprise plans?",
     answer: "<p>Yes. <strong>Enterprise plans</strong> are designed for prop firms, trading floors, and financial institutions with 10+ users. They include dedicated support, custom onboarding, SSO/SAML authentication, and volume-based pricing. Contact us at <code>Settings → Billing → Enterprise Inquiry</code> or email sales for a custom quote.</p>",
     category: "billing",
     tags: ["enterprise", "prop firms", "SSO", "SAML", "custom pricing", "dedicated support", "institutions"],
@@ -2686,14 +2686,14 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi3-student-discount",
     question: "Are there discounts for students or educators?",
-    answer: "<p>Stargate offers a <strong>50% educational discount</strong> for verified students and educators. Apply with a valid .edu email address or student ID at <code>Settings → Billing → Educational Discount</code>. Verification typically takes 24-48 hours, and the discount applies for the duration of your enrollment (re-verification required annually).</p>",
+    answer: "<p>Traverse offers a <strong>50% educational discount</strong> for verified students and educators. Apply with a valid .edu email address or student ID at <code>Settings → Billing → Educational Discount</code>. Verification typically takes 24-48 hours, and the discount applies for the duration of your enrollment (re-verification required annually).</p>",
     category: "billing",
     tags: ["student discount", "education", "educators", ".edu", "verification", "50% off", "academic"],
     relatedIds: ["bi-plans-overview", "bi-free-vs-paid", "bi-upgrade"],
   },
   {
     id: "bi3-nonprofit-pricing",
-    question: "Does Stargate have special pricing for nonprofits?",
+    question: "Does Traverse have special pricing for nonprofits?",
     answer: "<p><strong>Nonprofit organizations</strong> receive a 40% discount on all paid plans. To qualify, provide your organization's 501(c)(3) documentation or equivalent nonprofit registration. Apply through <code>Settings → Billing → Nonprofit Discount</code>. The discount is applied to your account within 5 business days of approval.</p>",
     category: "billing",
     tags: ["nonprofit", "discount", "501(c)(3)", "organizations", "special pricing", "charity", "NGO"],
@@ -2702,7 +2702,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi3-lifetime-deal",
     question: "Is a lifetime deal available?",
-    answer: "<p>Stargate occasionally offers <strong>lifetime deals</strong> during special promotions and launch events. These provide permanent access to a specific plan tier for a one-time payment. Follow our announcements at <code>Settings → Billing → Promotions</code> or subscribe to the newsletter to be notified when the next lifetime deal becomes available.</p>",
+    answer: "<p>Traverse occasionally offers <strong>lifetime deals</strong> during special promotions and launch events. These provide permanent access to a specific plan tier for a one-time payment. Follow our announcements at <code>Settings → Billing → Promotions</code> or subscribe to the newsletter to be notified when the next lifetime deal becomes available.</p>",
     category: "billing",
     tags: ["lifetime deal", "one-time payment", "promotions", "permanent access", "launch event", "special offer", "LTD"],
     relatedIds: ["bi-plans-overview", "bi3-promotional-codes", "bi-upgrade"],
@@ -2710,7 +2710,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi3-payment-currencies",
     question: "What currencies can I pay in?",
-    answer: "<p>Stargate accepts payments in <strong>USD, EUR, GBP, and CAD</strong> via credit card, and in <strong>BTC, ETH, and USDC</strong> via crypto payments. Your billing currency is set during checkout and can be changed at <code>Settings → Billing → Payment Currency</code>. All prices shown on the website are in USD but convert at current market rates.</p>",
+    answer: "<p>Traverse accepts payments in <strong>USD, EUR, GBP, and CAD</strong> via credit card, and in <strong>BTC, ETH, and USDC</strong> via crypto payments. Your billing currency is set during checkout and can be changed at <code>Settings → Billing → Payment Currency</code>. All prices shown on the website are in USD but convert at current market rates.</p>",
     category: "billing",
     tags: ["payment currencies", "USD", "EUR", "GBP", "BTC", "ETH", "USDC", "crypto payment"],
     relatedIds: ["bi-payment-methods", "bi2-crypto-payment", "bi-plans-overview"],
@@ -2718,7 +2718,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi3-billing-cycles",
     question: "What billing cycle options are available?",
-    answer: "<p>Stargate supports <strong>monthly, quarterly, and annual billing cycles</strong>. Annual plans save you 20% compared to monthly. Quarterly plans save 10%. You can switch your billing cycle at any time from <code>Settings → Billing → Change Cycle</code> — the prorated difference is applied to your next invoice automatically.</p>",
+    answer: "<p>Traverse supports <strong>monthly, quarterly, and annual billing cycles</strong>. Annual plans save you 20% compared to monthly. Quarterly plans save 10%. You can switch your billing cycle at any time from <code>Settings → Billing → Change Cycle</code> — the prorated difference is applied to your next invoice automatically.</p>",
     category: "billing",
     tags: ["billing cycle", "monthly", "quarterly", "annual", "prorated", "save", "cycle options"],
     relatedIds: ["bi-annual-discount", "bi2-switch-plan", "bi-plans-overview"],
@@ -2750,7 +2750,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi3-partner-program",
     question: "How does the partner program work?",
-    answer: "<p>The <strong>Stargate Partner Program</strong> is for trading educators, prop firms, and fintech platforms that want to bundle Stargate for their users. Partners get co-branded dashboards, revenue sharing, and dedicated account management. Apply at <code>Settings → Billing → Partner Program</code> with details about your organization and expected user volume.</p>",
+    answer: "<p>The <strong>Traverse Partner Program</strong> is for trading educators, prop firms, and fintech platforms that want to bundle Traverse for their users. Partners get co-branded dashboards, revenue sharing, and dedicated account management. Apply at <code>Settings → Billing → Partner Program</code> with details about your organization and expected user volume.</p>",
     category: "billing",
     tags: ["partner program", "co-branded", "revenue sharing", "trading educators", "prop firms", "fintech", "bundle"],
     relatedIds: ["bi3-enterprise-plans", "bi-referral", "bi2-team-plans"],
@@ -2758,7 +2758,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi3-affiliate-commission",
     question: "What is the affiliate commission structure?",
-    answer: "<p>Stargate's <strong>affiliate program</strong> pays a 30% recurring commission on all referred paid subscriptions for the first 12 months. You receive a unique referral link and real-time tracking dashboard at <code>Settings → Billing → Affiliate Dashboard</code>. Payouts are made monthly via PayPal or crypto once you reach the $50 minimum threshold.</p>",
+    answer: "<p>Traverse's <strong>affiliate program</strong> pays a 30% recurring commission on all referred paid subscriptions for the first 12 months. You receive a unique referral link and real-time tracking dashboard at <code>Settings → Billing → Affiliate Dashboard</code>. Payouts are made monthly via PayPal or crypto once you reach the $50 minimum threshold.</p>",
     category: "billing",
     tags: ["affiliate", "commission", "referral link", "recurring", "30%", "payout", "PayPal"],
     relatedIds: ["bi-referral", "bi-plans-overview", "bi3-partner-program"],
@@ -2774,7 +2774,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi3-grandfathering-policy",
     question: "What happens to my plan if prices change?",
-    answer: "<p>Stargate follows a <strong>grandfathering policy</strong> — if you are on an active paid plan when a price increase occurs, you keep your current rate for at least 12 months after the change. You will receive a 60-day advance notice before any price adjustment affects your account. Downgrades and re-upgrades after a price change are billed at the new rate.</p>",
+    answer: "<p>Traverse follows a <strong>grandfathering policy</strong> — if you are on an active paid plan when a price increase occurs, you keep your current rate for at least 12 months after the change. You will receive a 60-day advance notice before any price adjustment affects your account. Downgrades and re-upgrades after a price change are billed at the new rate.</p>",
     category: "billing",
     tags: ["grandfathering", "price increase", "existing users", "rate lock", "advance notice", "pricing policy", "protection"],
     relatedIds: ["bi-plans-overview", "bi3-billing-cycles", "bi2-switch-plan"],
@@ -2782,7 +2782,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi3-price-notifications",
     question: "Will I be notified before a price change?",
-    answer: "<p>Yes. Stargate sends <strong>price change notifications</strong> at least 60 days before any adjustment takes effect. Notifications are sent via email and in-app banner. You can review upcoming changes at <code>Settings → Billing → Upcoming Changes</code>. If you disagree with new pricing, you can lock in the current rate by switching to an annual plan before the change date.</p>",
+    answer: "<p>Yes. Traverse sends <strong>price change notifications</strong> at least 60 days before any adjustment takes effect. Notifications are sent via email and in-app banner. You can review upcoming changes at <code>Settings → Billing → Upcoming Changes</code>. If you disagree with new pricing, you can lock in the current rate by switching to an annual plan before the change date.</p>",
     category: "billing",
     tags: ["price notification", "advance notice", "60 days", "email alert", "annual lock-in", "price change", "transparency"],
     relatedIds: ["bi3-grandfathering-policy", "bi3-billing-cycles", "bi-annual-discount"],
@@ -2808,7 +2808,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as3-profile-photo",
     question: "How do I upload or change my profile photo?",
-    answer: "<p>Go to <code>Settings → Profile → Photo</code> and click the avatar placeholder to upload a new image. Stargate accepts <strong>JPG, PNG, and WebP</strong> files up to 5MB. Your photo appears in your journal entries, leaderboard rankings, and any shared reports. You can also remove it to revert to the default initials avatar.</p>",
+    answer: "<p>Go to <code>Settings → Profile → Photo</code> and click the avatar placeholder to upload a new image. Traverse accepts <strong>JPG, PNG, and WebP</strong> files up to 5MB. Your photo appears in your journal entries, leaderboard rankings, and any shared reports. You can also remove it to revert to the default initials avatar.</p>",
     category: "account-settings",
     tags: ["profile photo", "avatar", "upload", "JPG", "PNG", "WebP", "profile picture"],
     relatedIds: ["as-change-display-name", "gs-create-account", "gs-onboarding"],
@@ -2831,7 +2831,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "as3-api-key-management",
-    question: "How do I manage my Stargate API keys?",
+    question: "How do I manage my Traverse API keys?",
     answer: "<p>Create and manage API keys at <code>Settings → API Keys</code>. You can generate multiple keys with different <strong>permission scopes</strong> (read-only, read-write, admin). Each key shows its creation date, last used timestamp, and can be revoked instantly. Never share API keys publicly — use separate keys for different integrations so you can revoke one without affecting others.</p>",
     category: "account-settings",
     tags: ["API keys", "permissions", "scopes", "revoke", "read-only", "read-write", "key management"],
@@ -2840,15 +2840,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as3-webhook-configuration",
     question: "How do I configure outgoing webhooks?",
-    answer: "<p>Set up <strong>outgoing webhooks</strong> at <code>Settings → Webhooks</code> to push events from Stargate to your own endpoints. Select which events to send (trade created, journal updated, alert triggered), specify the target URL, and optionally add custom headers for authentication. Each webhook includes a delivery log with response codes for debugging.</p>",
+    answer: "<p>Set up <strong>outgoing webhooks</strong> at <code>Settings → Webhooks</code> to push events from Traverse to your own endpoints. Select which events to send (trade created, journal updated, alert triggered), specify the target URL, and optionally add custom headers for authentication. Each webhook includes a delivery log with response codes for debugging.</p>",
     category: "account-settings",
     tags: ["webhooks", "outgoing", "events", "endpoint", "delivery log", "custom headers", "automation"],
     relatedIds: ["ap3-webhook-integrations", "ap3-automation-rules", "mt2-alerts"],
   },
   {
     id: "as3-data-retention",
-    question: "How long does Stargate retain my data?",
-    answer: "<p>Stargate retains your data <strong>indefinitely while your account is active</strong>. If you cancel your subscription, your data is preserved for 90 days in case you return. After 90 days, it is permanently deleted. You can request immediate deletion at any time from <code>Settings → Privacy → Delete My Data</code>. Exported backups are yours to keep forever.</p>",
+    question: "How long does Traverse retain my data?",
+    answer: "<p>Traverse retains your data <strong>indefinitely while your account is active</strong>. If you cancel your subscription, your data is preserved for 90 days in case you return. After 90 days, it is permanently deleted. You can request immediate deletion at any time from <code>Settings → Privacy → Delete My Data</code>. Exported backups are yours to keep forever.</p>",
     category: "account-settings",
     tags: ["data retention", "storage duration", "90 days", "deletion", "cancellation", "backup", "permanent"],
     relatedIds: ["ps-delete-account", "as2-data-backup", "as-export-data"],
@@ -2895,7 +2895,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "as3-account-linking",
-    question: "Can I merge two Stargate accounts?",
+    question: "Can I merge two Traverse accounts?",
     answer: "<p><strong>Account merging</strong> is available by contacting support at <code>Settings → Support → Merge Accounts</code>. You will need to verify ownership of both accounts. Once merged, all trades, journal entries, and analytics from the secondary account are transferred to the primary account. This action is irreversible, so review the preview carefully before confirming.</p>",
     category: "account-settings",
     tags: ["account merge", "linking", "transfer data", "multiple accounts", "consolidate", "support", "irreversible"],
@@ -2903,16 +2903,16 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "as3-data-portability",
-    question: "What data portability options does Stargate offer?",
-    answer: "<p>Stargate supports full <strong>data portability</strong> via <code>Settings → Data → Export All</code>. You can export your complete dataset — trades, journal entries, analytics, settings, and tags — in CSV, JSON, or Stargate's native format. The native format can be re-imported into a new account with zero data loss, making it easy to migrate or back up your entire history.</p>",
+    question: "What data portability options does Traverse offer?",
+    answer: "<p>Traverse supports full <strong>data portability</strong> via <code>Settings → Data → Export All</code>. You can export your complete dataset — trades, journal entries, analytics, settings, and tags — in CSV, JSON, or Traverse's native format. The native format can be re-imported into a new account with zero data loss, making it easy to migrate or back up your entire history.</p>",
     category: "account-settings",
     tags: ["data portability", "export", "CSV", "JSON", "migration", "backup", "full export"],
     relatedIds: ["as-export-data", "as2-data-backup", "ps-gdpr-compliance"],
   },
   {
     id: "as3-custom-css",
-    question: "Can I apply custom CSS themes to Stargate?",
-    answer: "<p>Elite plan users can inject <strong>custom CSS</strong> via <code>Settings → Appearance → Custom CSS</code>. This lets you override colors, fonts, spacing, and layout to match your personal aesthetic. Changes are applied in real time with a live preview. Be careful with structural overrides — Stargate's responsive layout may break if core layout properties are modified.</p>",
+    question: "Can I apply custom CSS themes to Traverse?",
+    answer: "<p>Elite plan users can inject <strong>custom CSS</strong> via <code>Settings → Appearance → Custom CSS</code>. This lets you override colors, fonts, spacing, and layout to match your personal aesthetic. Changes are applied in real time with a live preview. Be careful with structural overrides — Traverse's responsive layout may break if core layout properties are modified.</p>",
     category: "account-settings",
     tags: ["custom CSS", "themes", "appearance", "colors", "fonts", "Elite plan", "personalization"],
     relatedIds: ["as-change-theme", "as2-dark-light-auto", "bi-upgrade"],
@@ -2928,7 +2928,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as3-layout-presets",
     question: "Are there pre-built dashboard layout presets?",
-    answer: "<p>Yes. Stargate includes several <strong>dashboard presets</strong> accessible from <code>Dashboard → Customize → Presets</code>: Trader (focused on P&L and open positions), Analyst (heavy on charts and analytics), Journalist (centered on journal and review), and Minimal (clean and distraction-free). Select a preset as a starting point and customize it further to your liking.</p>",
+    answer: "<p>Yes. Traverse includes several <strong>dashboard presets</strong> accessible from <code>Dashboard → Customize → Presets</code>: Trader (focused on P&L and open positions), Analyst (heavy on charts and analytics), Journalist (centered on journal and review), and Minimal (clean and distraction-free). Select a preset as a starting point and customize it further to your liking.</p>",
     category: "account-settings",
     tags: ["layout presets", "dashboard templates", "Trader", "Analyst", "Journalist", "Minimal", "quick setup"],
     relatedIds: ["gs2-dashboard-overview", "as3-widget-layout", "gs-onboarding"],
@@ -2936,7 +2936,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as3-performance-mode",
     question: "What does performance mode do?",
-    answer: "<p><strong>Performance mode</strong> at <code>Settings → Performance → Enable Performance Mode</code> reduces visual effects (animations, transitions, background particles) and limits real-time data refresh rates to lighten CPU and memory usage. Enable this on older hardware or when running Stargate alongside resource-heavy charting platforms. It does not affect data accuracy — only visual fidelity.</p>",
+    answer: "<p><strong>Performance mode</strong> at <code>Settings → Performance → Enable Performance Mode</code> reduces visual effects (animations, transitions, background particles) and limits real-time data refresh rates to lighten CPU and memory usage. Enable this on older hardware or when running Traverse alongside resource-heavy charting platforms. It does not affect data accuracy — only visual fidelity.</p>",
     category: "account-settings",
     tags: ["performance mode", "optimization", "CPU", "memory", "animations", "older hardware", "resource usage"],
     relatedIds: ["as-browser-support", "tr-chart-not-loading", "gs2-dashboard-overview"],
@@ -2954,7 +2954,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr3-websocket-disconnect",
     question: "Why does my real-time data keep disconnecting?",
-    answer: "WebSocket disconnections usually happen due to unstable internet, a VPN dropping packets, or browser sleep mode on inactive tabs. <strong>1)</strong> Check your network connection. <strong>2)</strong> Disable any VPN temporarily to test. <strong>3)</strong> Keep the Stargate tab active — browsers throttle background tabs. The app will auto-reconnect within a few seconds, but if disconnections are frequent, switch to a wired connection.",
+    answer: "WebSocket disconnections usually happen due to unstable internet, a VPN dropping packets, or browser sleep mode on inactive tabs. <strong>1)</strong> Check your network connection. <strong>2)</strong> Disable any VPN temporarily to test. <strong>3)</strong> Keep the Traverse tab active — browsers throttle background tabs. The app will auto-reconnect within a few seconds, but if disconnections are frequent, switch to a wired connection.",
     category: "troubleshooting",
     tags: ["websocket", "disconnect", "real-time", "connection", "live data", "dropped", "reconnect"],
     relatedIds: ["mt-data-sources", "tr-chart-not-loading", "tr2-slow-loading"],
@@ -2969,8 +2969,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "tr3-clear-cache",
-    question: "How do I clear the Stargate app cache?",
-    answer: "Go to your browser settings and clear cached data for <code>stargate-journal.vercel.app</code>. In Chrome: <strong>Settings → Privacy → Clear Browsing Data → Cached images and files</strong>. Alternatively, do a hard refresh with <code>Ctrl+Shift+R</code> (Windows) or <code>Cmd+Shift+R</code> (Mac). Clearing the cache does not delete your account data — all trades and journal entries are stored server-side.",
+    question: "How do I clear the Traverse app cache?",
+    answer: "Go to your browser settings and clear cached data for <code>traversejournal.com</code>. In Chrome: <strong>Settings → Privacy → Clear Browsing Data → Cached images and files</strong>. Alternatively, do a hard refresh with <code>Ctrl+Shift+R</code> (Windows) or <code>Cmd+Shift+R</code> (Mac). Clearing the cache does not delete your account data — all trades and journal entries are stored server-side.",
     category: "troubleshooting",
     tags: ["cache", "clear", "hard refresh", "browser", "reset", "stale", "stored", "local"],
     relatedIds: ["tr2-browser-storage", "tr2-slow-loading", "as-browser-support"],
@@ -2985,15 +2985,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "tr3-high-memory",
-    question: "Stargate is using a lot of memory in my browser — is that normal?",
-    answer: "Pages with large charts (equity curve, heatmaps) or many rows of trade data can consume 200-400 MB of browser memory. This is normal for data-heavy apps. If memory exceeds 500 MB: <strong>1)</strong> Reduce the date range on analytics pages. <strong>2)</strong> Close other Stargate tabs — each tab is a separate instance. <strong>3)</strong> Avoid keeping the Screener and Heatmaps open simultaneously. Refreshing the page reclaims all memory.",
+    question: "Traverse is using a lot of memory in my browser — is that normal?",
+    answer: "Pages with large charts (equity curve, heatmaps) or many rows of trade data can consume 200-400 MB of browser memory. This is normal for data-heavy apps. If memory exceeds 500 MB: <strong>1)</strong> Reduce the date range on analytics pages. <strong>2)</strong> Close other Traverse tabs — each tab is a separate instance. <strong>3)</strong> Avoid keeping the Screener and Heatmaps open simultaneously. Refreshing the page reclaims all memory.",
     category: "troubleshooting",
     tags: ["memory", "RAM", "high usage", "browser", "heavy", "consumption", "megabytes"],
     relatedIds: ["tr2-slow-loading", "tr3-performance-tips", "as-browser-support"],
   },
   {
     id: "tr3-cpu-spikes",
-    question: "Why does my CPU spike when using Stargate?",
+    question: "Why does my CPU spike when using Traverse?",
     answer: "CPU spikes usually come from rendering large charts or running the Monte Carlo simulator with high iteration counts. <strong>1)</strong> Reduce Monte Carlo iterations to 1,000 or fewer. <strong>2)</strong> Close chart-heavy pages you are not actively using. <strong>3)</strong> Disable animations in <code>Settings → Appearance</code> if available. If CPU stays high with no charts open, try clearing cache and reloading — a rendering glitch may be causing an animation loop.",
     category: "troubleshooting",
     tags: ["CPU", "spike", "processor", "fan", "hot", "rendering", "slow", "compute"],
@@ -3026,7 +3026,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr3-search-not-working",
     question: "The search function is not returning expected results — what's wrong?",
-    answer: "Stargate search matches against trade symbols, notes, tags, and journal titles. If results seem missing: <strong>1)</strong> Check your spelling — search is exact-match for symbols. <strong>2)</strong> Remove filters that may be hiding matching trades (date range, tags, side). <strong>3)</strong> Search is scoped to the current page — use the global search bar in the top navigation. <strong>4)</strong> Trades imported via CSV use the symbol format from your file, which may differ from what you expect.",
+    answer: "Traverse search matches against trade symbols, notes, tags, and journal titles. If results seem missing: <strong>1)</strong> Check your spelling — search is exact-match for symbols. <strong>2)</strong> Remove filters that may be hiding matching trades (date range, tags, side). <strong>3)</strong> Search is scoped to the current page — use the global search bar in the top navigation. <strong>4)</strong> Trades imported via CSV use the symbol format from your file, which may differ from what you expect.",
     category: "troubleshooting",
     tags: ["search", "find", "results", "missing", "filter", "query", "lookup", "not found"],
     relatedIds: ["tj-tags", "tj-notes", "an-date-filter"],
@@ -3050,7 +3050,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr3-sync-conflict",
     question: "I edited a trade on two devices and now the data seems conflicted — what happened?",
-    answer: "If you edit the same trade on two devices before either syncs, the last write wins. Stargate uses a <strong>last-write-wins</strong> conflict resolution strategy. To avoid this: <strong>1)</strong> Refresh the page before editing to ensure you have the latest version. <strong>2)</strong> Avoid editing the same trades simultaneously on multiple devices. If data was overwritten, contact support within 7 days — we may be able to retrieve the previous version from backups.",
+    answer: "If you edit the same trade on two devices before either syncs, the last write wins. Traverse uses a <strong>last-write-wins</strong> conflict resolution strategy. To avoid this: <strong>1)</strong> Refresh the page before editing to ensure you have the latest version. <strong>2)</strong> Avoid editing the same trades simultaneously on multiple devices. If data was overwritten, contact support within 7 days — we may be able to retrieve the previous version from backups.",
     category: "troubleshooting",
     tags: ["sync", "conflict", "two devices", "overwrite", "simultaneous", "merge", "duplicate"],
     relatedIds: ["as2-data-backup", "tr-data-discrepancy", "tj-edit-trade"],
@@ -3082,7 +3082,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr3-integration-disconnect",
     question: "My third-party integration (exchange, broker) disconnected — how do I reconnect?",
-    answer: "Integrations can disconnect when API keys expire, get rotated, or when the exchange changes their API. To reconnect: <strong>1)</strong> Go to <code>Settings → Integrations</code> and check the connection status. <strong>2)</strong> If it shows disconnected, re-enter your API keys. <strong>3)</strong> Make sure the API key still has read permissions on the exchange. <strong>4)</strong> Some exchanges require IP whitelisting — verify the Stargate IP is still allowed.",
+    answer: "Integrations can disconnect when API keys expire, get rotated, or when the exchange changes their API. To reconnect: <strong>1)</strong> Go to <code>Settings → Integrations</code> and check the connection status. <strong>2)</strong> If it shows disconnected, re-enter your API keys. <strong>3)</strong> Make sure the API key still has read permissions on the exchange. <strong>4)</strong> Some exchanges require IP whitelisting — verify the Traverse IP is still allowed.",
     category: "troubleshooting",
     tags: ["integration", "disconnect", "exchange", "API key", "reconnect", "broker", "expired"],
     relatedIds: ["ps-api-keys", "gs-import-trades", "tr-trades-not-syncing"],
@@ -3090,7 +3090,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr3-webhook-failure",
     question: "My webhook alerts are not being delivered — how do I troubleshoot?",
-    answer: "Webhook failures are usually caused by the receiving endpoint being unreachable. <strong>1)</strong> Verify your webhook URL is correct in <code>Settings → Integrations → Webhooks</code>. <strong>2)</strong> Check that the endpoint returns a <code>200</code> status — Stargate retries failed deliveries 3 times over 15 minutes, then stops. <strong>3)</strong> Test with a service like webhook.site to confirm the payload format. <strong>4)</strong> Check the delivery log for error details.",
+    answer: "Webhook failures are usually caused by the receiving endpoint being unreachable. <strong>1)</strong> Verify your webhook URL is correct in <code>Settings → Integrations → Webhooks</code>. <strong>2)</strong> Check that the endpoint returns a <code>200</code> status — Traverse retries failed deliveries 3 times over 15 minutes, then stops. <strong>3)</strong> Test with a service like webhook.site to confirm the payload format. <strong>4)</strong> Check the delivery log for error details.",
     category: "troubleshooting",
     tags: ["webhook", "delivery", "failed", "endpoint", "alert", "automation", "retry", "payload"],
     relatedIds: ["mt2-alerts", "as2-notifications", "tr-contact-support"],
@@ -3099,15 +3099,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // MORE PRIVACY & SECURITY -- BATCH 3 (+18)
   {
     id: "ps3-soc2-compliance",
-    question: "Is Stargate SOC 2 compliant?",
-    answer: "Stargate relies on <strong>SOC 2 Type II compliant</strong> infrastructure providers — Supabase (database) and Vercel (hosting) both maintain SOC 2 certifications. Our application-level security follows SOC 2 principles including access controls, encryption, and audit logging. As we scale, we plan to pursue our own SOC 2 certification. Enterprise customers can request our security documentation via support.",
+    question: "Is Traverse SOC 2 compliant?",
+    answer: "Traverse relies on <strong>SOC 2 Type II compliant</strong> infrastructure providers — Supabase (database) and Vercel (hosting) both maintain SOC 2 certifications. Our application-level security follows SOC 2 principles including access controls, encryption, and audit logging. As we scale, we plan to pursue our own SOC 2 certification. Enterprise customers can request our security documentation via support.",
     category: "privacy-security",
     tags: ["SOC 2", "compliance", "audit", "certification", "enterprise", "controls", "standard"],
     relatedIds: ["ps2-data-location", "ps-data-encrypted", "ps-gdpr-compliance"],
   },
   {
     id: "ps3-dpa",
-    question: "Does Stargate offer a Data Processing Agreement (DPA)?",
+    question: "Does Traverse offer a Data Processing Agreement (DPA)?",
     answer: "Yes. If you need a <strong>DPA</strong> for GDPR or other regulatory compliance, contact us at support and we will provide a signed agreement. Our DPA covers data processing purposes, retention periods, sub-processor lists, and your rights as a data controller. This is available for all paid plans and is especially relevant for EU-based traders or firms subject to data protection regulations.",
     category: "privacy-security",
     tags: ["DPA", "data processing", "agreement", "GDPR", "controller", "processor", "legal"],
@@ -3115,8 +3115,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps3-cookie-policy",
-    question: "What cookies does Stargate use?",
-    answer: "Stargate uses only <strong>essential cookies</strong> for authentication and session management. We do not use advertising or marketing cookies. A session cookie keeps you logged in, and a preference cookie stores your theme and language choice. No third-party tracking cookies are set. You can view and delete cookies in your browser settings under the <code>stargate-journal.vercel.app</code> domain.",
+    question: "What cookies does Traverse use?",
+    answer: "Traverse uses only <strong>essential cookies</strong> for authentication and session management. We do not use advertising or marketing cookies. A session cookie keeps you logged in, and a preference cookie stores your theme and language choice. No third-party tracking cookies are set. You can view and delete cookies in your browser settings under the <code>traversejournal.com</code> domain.",
     category: "privacy-security",
     tags: ["cookies", "tracking", "session", "essential", "third-party", "advertising", "consent"],
     relatedIds: ["ps-data-sold", "ps2-session-security", "ps-gdpr-compliance"],
@@ -3124,7 +3124,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps3-analytics-optout",
     question: "Can I opt out of analytics tracking?",
-    answer: "Stargate does not use third-party analytics trackers like Google Analytics. We collect only <strong>anonymous, aggregate usage metrics</strong> (page views, feature usage counts) to improve the product — no personal identifiers are tied to this data. Since we do not run advertising SDKs or fingerprinting, there is nothing to opt out of. Your trading data is never included in any analytics pipeline.",
+    answer: "Traverse does not use third-party analytics trackers like Google Analytics. We collect only <strong>anonymous, aggregate usage metrics</strong> (page views, feature usage counts) to improve the product — no personal identifiers are tied to this data. Since we do not run advertising SDKs or fingerprinting, there is nothing to opt out of. Your trading data is never included in any analytics pipeline.",
     category: "privacy-security",
     tags: ["analytics", "opt-out", "tracking", "usage", "metrics", "anonymous", "privacy"],
     relatedIds: ["ps-data-sold", "ps3-cookie-policy", "ps-gdpr-compliance"],
@@ -3139,7 +3139,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps3-data-anonymization",
-    question: "How does Stargate anonymize data it uses internally?",
+    question: "How does Traverse anonymize data it uses internally?",
     answer: "Any data used for product improvement (aggregate statistics, feature usage patterns) is <strong>stripped of personally identifiable information</strong> before processing. Your email, trade details, and journal entries are never included in aggregate datasets. If you use the AI Coach, your prompts are not used to train AI models. Anonymization is applied at the database query level — personal fields are excluded before results leave the secure environment.",
     category: "privacy-security",
     tags: ["anonymization", "PII", "stripped", "aggregate", "internal", "de-identified", "privacy"],
@@ -3163,7 +3163,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps3-security-audit",
-    question: "Does Stargate undergo independent security audits?",
+    question: "Does Traverse undergo independent security audits?",
     answer: "Our infrastructure providers (Supabase, Vercel) undergo regular independent security audits and maintain SOC 2 certifications. At the application level, we conduct internal code reviews for all changes and run automated vulnerability scanning via GitHub. As we grow, we plan to engage third-party security auditors for formal penetration testing. Audit results and certifications are available on request for enterprise customers.",
     category: "privacy-security",
     tags: ["security audit", "independent", "review", "assessment", "third-party", "verification", "report"],
@@ -3171,7 +3171,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps3-pentest",
-    question: "How often does Stargate conduct penetration testing?",
+    question: "How often does Traverse conduct penetration testing?",
     answer: "We run <strong>automated vulnerability scans</strong> on every deployment via CI/CD. Comprehensive penetration testing of the application and API is planned on a <strong>semi-annual</strong> schedule as the platform scales. Infrastructure-level penetration testing is handled by our providers (Supabase, Vercel) as part of their SOC 2 compliance. Critical findings from any test are patched within 48 hours.",
     category: "privacy-security",
     tags: ["penetration testing", "pentest", "vulnerability", "scan", "schedule", "frequency", "assessment"],
@@ -3180,22 +3180,22 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps3-vulnerability-reporting",
     question: "How do I report a security vulnerability?",
-    answer: "If you discover a security vulnerability, please email <strong>security@stargate.trade</strong> with a description of the issue, steps to reproduce, and any supporting evidence. Do not disclose the vulnerability publicly until we have had a chance to investigate and patch it. We acknowledge reports within <strong>48 hours</strong> and aim to resolve critical issues within 7 days. We are grateful for responsible disclosure.",
+    answer: "If you discover a security vulnerability, please email <strong>security@traversejournal.com</strong> with a description of the issue, steps to reproduce, and any supporting evidence. Do not disclose the vulnerability publicly until we have had a chance to investigate and patch it. We acknowledge reports within <strong>48 hours</strong> and aim to resolve critical issues within 7 days. We are grateful for responsible disclosure.",
     category: "privacy-security",
     tags: ["vulnerability", "report", "disclosure", "responsible", "security", "bug", "email"],
     relatedIds: ["ps3-bug-bounty", "ps3-pentest", "tr-contact-support"],
   },
   {
     id: "ps3-bug-bounty",
-    question: "Does Stargate have a bug bounty program?",
-    answer: "We do not have a formal public bug bounty program at this time, but we deeply appreciate and acknowledge security researchers who report vulnerabilities responsibly. Depending on the severity of the finding, we offer <strong>credit toward paid plans</strong> or public acknowledgment (with your permission). Email <strong>security@stargate.trade</strong> with your findings and we will work with you on appropriate recognition.",
+    question: "Does Traverse have a bug bounty program?",
+    answer: "We do not have a formal public bug bounty program at this time, but we deeply appreciate and acknowledge security researchers who report vulnerabilities responsibly. Depending on the severity of the finding, we offer <strong>credit toward paid plans</strong> or public acknowledgment (with your permission). Email <strong>security@traversejournal.com</strong> with your findings and we will work with you on appropriate recognition.",
     category: "privacy-security",
     tags: ["bug bounty", "reward", "security researcher", "responsible disclosure", "recognition", "program"],
     relatedIds: ["ps3-vulnerability-reporting", "ps3-pentest", "tr-contact-support"],
   },
   {
     id: "ps3-employee-access",
-    question: "Which Stargate employees can access my data?",
+    question: "Which Traverse employees can access my data?",
     answer: "Access to production data is limited to a <strong>minimal set of authorized engineers</strong> who need it for debugging and support. All production database access is logged and auditable. Support staff can view your account metadata (email, plan, trade count) but cannot read your journal entries or trade notes without your explicit permission. We follow the principle of least privilege for all internal access.",
     category: "privacy-security",
     tags: ["employee access", "internal", "who can see", "staff", "least privilege", "logged", "auditable"],
@@ -3203,7 +3203,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps3-incident-response",
-    question: "What is Stargate's incident response process?",
+    question: "What is Traverse's incident response process?",
     answer: "Our incident response follows four phases: <strong>1) Detection</strong> — automated monitoring alerts our team to anomalies. <strong>2) Containment</strong> — we isolate affected systems within minutes. <strong>3) Recovery</strong> — we restore service from clean backups and patch the vulnerability. <strong>4) Communication</strong> — affected users are notified via email within 72 hours with details on impact and remediation. Post-mortems are published for significant incidents.",
     category: "privacy-security",
     tags: ["incident response", "process", "breach", "detection", "containment", "recovery", "notify"],
@@ -3219,7 +3219,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps3-disaster-recovery",
-    question: "What is Stargate's disaster recovery plan?",
+    question: "What is Traverse's disaster recovery plan?",
     answer: "Our disaster recovery plan includes <strong>automated daily backups</strong> with point-in-time recovery, multi-region infrastructure failover, and a recovery time objective (RTO) of under 4 hours. In the event of a complete data center failure, service is restored from the most recent backup in an alternate region. We test disaster recovery procedures quarterly to ensure reliability.",
     category: "privacy-security",
     tags: ["disaster recovery", "backup", "failover", "RTO", "continuity", "resilience", "plan"],
@@ -3227,15 +3227,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ps3-certifications",
-    question: "What security certifications does Stargate hold?",
-    answer: "Stargate leverages infrastructure providers that hold <strong>SOC 2 Type II</strong>, <strong>ISO 27001</strong>, and <strong>GDPR</strong> certifications (Supabase on AWS, Vercel). All data in transit uses TLS 1.3 and data at rest uses AES-256 encryption. Our payment processor (Stripe) is <strong>PCI DSS Level 1</strong> compliant. We are pursuing our own SOC 2 certification as the platform scales to enterprise customers.",
+    question: "What security certifications does Traverse hold?",
+    answer: "Traverse leverages infrastructure providers that hold <strong>SOC 2 Type II</strong>, <strong>ISO 27001</strong>, and <strong>GDPR</strong> certifications (Supabase on AWS, Vercel). All data in transit uses TLS 1.3 and data at rest uses AES-256 encryption. Our payment processor (Stripe) is <strong>PCI DSS Level 1</strong> compliant. We are pursuing our own SOC 2 certification as the platform scales to enterprise customers.",
     category: "privacy-security",
     tags: ["certifications", "SOC 2", "ISO 27001", "PCI DSS", "GDPR", "TLS", "compliance"],
     relatedIds: ["ps3-soc2-compliance", "ps-data-encrypted", "ps-gdpr-compliance"],
   },
   {
     id: "ps3-data-classification",
-    question: "How does Stargate classify different types of user data?",
+    question: "How does Traverse classify different types of user data?",
     answer: "We classify data into three levels: <strong>Public</strong> (display name, avatar), <strong>Private</strong> (trades, journal entries, analytics), and <strong>Sensitive</strong> (email, password hash, API keys). Each level has different access controls — public data is visible to other users if you share your profile, private data is visible only to you, and sensitive data is encrypted and accessible only to authentication systems. This classification guides our security controls.",
     category: "privacy-security",
     tags: ["data classification", "levels", "public", "private", "sensitive", "access control", "tiers"],
@@ -3270,7 +3270,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm3-breakeven-stop",
     question: "When should I move my stop loss to breakeven?",
-    answer: "Moving to breakeven removes risk from a trade, but doing it too early increases the chance of being stopped out before the move develops. A common rule: move to breakeven once the trade reaches <strong>1R profit</strong> (your initial risk distance). For example, if you risked $2 per share, move the stop to entry when the trade is $2 in profit. Track this in Stargate by noting the stop adjustment in your trade notes — your MFE data will show if you are moving to breakeven too aggressively.",
+    answer: "Moving to breakeven removes risk from a trade, but doing it too early increases the chance of being stopped out before the move develops. A common rule: move to breakeven once the trade reaches <strong>1R profit</strong> (your initial risk distance). For example, if you risked $2 per share, move the stop to entry when the trade is $2 in profit. Track this in Traverse by noting the stop adjustment in your trade notes — your MFE data will show if you are moving to breakeven too aggressively.",
     category: "risk-management",
     tags: ["breakeven", "stop loss", "move", "risk-free", "1R", "adjustment", "protect", "entry"],
     relatedIds: ["rm-stop-loss", "an-mfe-mae", "rm2-trailing-stop"],
@@ -3278,7 +3278,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm3-hedging",
     question: "What are common hedging approaches for active traders?",
-    answer: "Hedging reduces exposure without closing your primary position. Common methods: <strong>1)</strong> Take an opposing position in a correlated asset (long BTC, short an altcoin). <strong>2)</strong> Buy put options against a long position. <strong>3)</strong> Use inverse ETFs or futures to offset directional risk. <strong>4)</strong> Reduce position size instead of fully hedging. Log both the primary and hedge trade in Stargate and link them with a tag so you can analyze the combined P&L.",
+    answer: "Hedging reduces exposure without closing your primary position. Common methods: <strong>1)</strong> Take an opposing position in a correlated asset (long BTC, short an altcoin). <strong>2)</strong> Buy put options against a long position. <strong>3)</strong> Use inverse ETFs or futures to offset directional risk. <strong>4)</strong> Reduce position size instead of fully hedging. Log both the primary and hedge trade in Traverse and link them with a tag so you can analyze the combined P&L.",
     category: "risk-management",
     tags: ["hedging", "hedge", "protection", "offsetting", "options", "inverse", "correlated", "reduce risk"],
     relatedIds: ["rm2-correlation-risk", "tj-tags", "ap-options-flow"],
@@ -3294,7 +3294,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm3-sector-exposure",
     question: "How do I set and monitor sector exposure limits?",
-    answer: "Sector exposure limits prevent overconcentration. A common rule is <strong>no more than 25-30%</strong> of your portfolio in any single sector (DeFi, L1s, memecoins, etc.). Tag your trades by sector in Stargate, then use the <strong>Analytics → Tags</strong> breakdown to see your exposure by category. If one sector dominates, reduce new entries in that sector or trim existing positions. The Correlation Matrix also helps identify hidden sector overlap between assets.",
+    answer: "Sector exposure limits prevent overconcentration. A common rule is <strong>no more than 25-30%</strong> of your portfolio in any single sector (DeFi, L1s, memecoins, etc.). Tag your trades by sector in Traverse, then use the <strong>Analytics → Tags</strong> breakdown to see your exposure by category. If one sector dominates, reduce new entries in that sector or trim existing positions. The Correlation Matrix also helps identify hidden sector overlap between assets.",
     category: "risk-management",
     tags: ["sector", "exposure", "limit", "concentration", "diversification", "allocation", "category"],
     relatedIds: ["tj-tags", "mt2-correlation-matrix", "rm2-portfolio-heat"],
@@ -3374,7 +3374,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm3-risk-budgeting",
     question: "What is risk budgeting across multiple strategies?",
-    answer: "<strong>Risk budgeting</strong> allocates your total acceptable risk across different strategies. For example, with a 10% total risk budget: 4% to momentum trades, 3% to mean-reversion, and 3% to breakouts. This ensures no single strategy can blow up your account. Track each strategy's performance and risk usage using <strong>tags</strong> in Stargate — the analytics breakdown by tag shows you which strategies are consuming the most risk relative to their returns.",
+    answer: "<strong>Risk budgeting</strong> allocates your total acceptable risk across different strategies. For example, with a 10% total risk budget: 4% to momentum trades, 3% to mean-reversion, and 3% to breakouts. This ensures no single strategy can blow up your account. Track each strategy's performance and risk usage using <strong>tags</strong> in Traverse — the analytics breakdown by tag shows you which strategies are consuming the most risk relative to their returns.",
     category: "risk-management",
     tags: ["risk budget", "allocation", "strategy", "diversify", "distribute", "multiple", "total risk"],
     relatedIds: ["tj-tags", "rm2-portfolio-heat", "rm3-systematic-framework"],
@@ -3393,15 +3393,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-what-is-trading-journal",
     question: "What is a trading journal and why do I need one?",
-    answer: "<p>A trading journal is a structured record of every trade you take, including your reasoning, emotions, and outcomes. Think of it as a logbook that turns your trading history into actionable data. Without one, you are relying on memory and gut feelings to improve -- and research shows traders consistently misremember their own performance.</p><p><strong>Why it matters:</strong> Professional traders universally credit journaling as the single most important habit for long-term profitability. By reviewing your journal, you can identify which setups actually make you money, which emotional states lead to bad decisions, and whether your edge is growing or shrinking over time. Stargate automates the hard parts -- calculating P&L, tracking win rates, and surfacing patterns -- so you can focus on learning from your data.</p>",
+    answer: "<p>A trading journal is a structured record of every trade you take, including your reasoning, emotions, and outcomes. Think of it as a logbook that turns your trading history into actionable data. Without one, you are relying on memory and gut feelings to improve -- and research shows traders consistently misremember their own performance.</p><p><strong>Why it matters:</strong> Professional traders universally credit journaling as the single most important habit for long-term profitability. By reviewing your journal, you can identify which setups actually make you money, which emotional states lead to bad decisions, and whether your edge is growing or shrinking over time. Traverse automates the hard parts -- calculating P&L, tracking win rates, and surfacing patterns -- so you can focus on learning from your data.</p>",
     category: "getting-started",
     tags: ["trading journal", "why journal", "beginner", "purpose", "overview", "improvement"],
-    relatedIds: ["gs-what-is-stargate", "gs-first-trade", "an-equity-curve"],
+    relatedIds: ["gs-what-is-traverse", "gs-first-trade", "an-equity-curve"],
   },
   {
     id: "gs4-what-to-include",
     question: "What should I include in every trade entry?",
-    answer: "<p>A complete trade entry captures both the <strong>quantitative data</strong> and the <strong>qualitative context</strong>. For data, always record: symbol/ticker, entry price, exit price, position size, direction (long or short), entry date, and exit date. For context, add: <strong>tags</strong> describing your setup (e.g., <code>breakout</code>, <code>earnings-play</code>), <strong>notes</strong> explaining why you entered and exited, your <strong>emotion rating</strong> at the time, and a <strong>process score</strong> (1-10) for how well you followed your plan.</p><p>The more context you capture, the more useful your analytics become. For example, if you tag every trade with your setup type, Stargate can show you that your <code>reversal</code> trades lose money while your <code>trend-following</code> trades are highly profitable. You can also add screenshots of your chart at entry for visual review later.</p>",
+    answer: "<p>A complete trade entry captures both the <strong>quantitative data</strong> and the <strong>qualitative context</strong>. For data, always record: symbol/ticker, entry price, exit price, position size, direction (long or short), entry date, and exit date. For context, add: <strong>tags</strong> describing your setup (e.g., <code>breakout</code>, <code>earnings-play</code>), <strong>notes</strong> explaining why you entered and exited, your <strong>emotion rating</strong> at the time, and a <strong>process score</strong> (1-10) for how well you followed your plan.</p><p>The more context you capture, the more useful your analytics become. For example, if you tag every trade with your setup type, Traverse can show you that your <code>reversal</code> trades lose money while your <code>trend-following</code> trades are highly profitable. You can also add screenshots of your chart at entry for visual review later.</p>",
     category: "getting-started",
     tags: ["trade entry", "fields", "what to log", "notes", "tags", "emotions", "beginner"],
     relatedIds: ["gs-first-trade", "tj-tags", "tj-emotions"],
@@ -3409,7 +3409,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-minimum-required-fields",
     question: "What are the minimum required fields when logging a trade?",
-    answer: "<p>The absolute minimum fields to save a trade in Stargate are: <strong>symbol</strong> (e.g., BTC, AAPL), <strong>direction</strong> (long or short), <strong>entry price</strong>, and <strong>position size</strong>. These four fields are enough to create a trade record. However, to get meaningful analytics you should also add an <strong>exit price</strong> and <strong>exit date</strong> when you close the trade -- without these, the trade shows as an open position and P&L cannot be calculated.</p><p>While only four fields are technically required, we strongly recommend also filling in tags and at least a brief note. It takes 30 extra seconds per trade and makes your data exponentially more valuable when you review it weeks or months later.</p>",
+    answer: "<p>The absolute minimum fields to save a trade in Traverse are: <strong>symbol</strong> (e.g., BTC, AAPL), <strong>direction</strong> (long or short), <strong>entry price</strong>, and <strong>position size</strong>. These four fields are enough to create a trade record. However, to get meaningful analytics you should also add an <strong>exit price</strong> and <strong>exit date</strong> when you close the trade -- without these, the trade shows as an open position and P&L cannot be calculated.</p><p>While only four fields are technically required, we strongly recommend also filling in tags and at least a brief note. It takes 30 extra seconds per trade and makes your data exponentially more valuable when you review it weeks or months later.</p>",
     category: "getting-started",
     tags: ["required fields", "minimum", "mandatory", "symbol", "entry price", "beginner"],
     relatedIds: ["gs-first-trade", "gs4-what-to-include", "tj-edit-trade"],
@@ -3417,7 +3417,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-how-often-update",
     question: "How often should I update my journal?",
-    answer: "<p>The best practice is to <strong>log every trade immediately after you take it</strong>, or at minimum at the end of each trading session. The longer you wait, the more context you forget -- your reasoning, emotional state, and market conditions fade from memory within hours. Stargate's quick trade entry makes this fast: most trades take under 60 seconds to log.</p><p>Beyond individual trades, consider writing a <strong>daily journal entry</strong> at the end of each trading day summarizing your overall performance, mood, and lessons learned. Weekly reviews (every Sunday, for example) where you look at your analytics dashboard and identify patterns are also extremely valuable. The AI Coach can help with these reviews by highlighting trends you might miss.</p>",
+    answer: "<p>The best practice is to <strong>log every trade immediately after you take it</strong>, or at minimum at the end of each trading session. The longer you wait, the more context you forget -- your reasoning, emotional state, and market conditions fade from memory within hours. Traverse's quick trade entry makes this fast: most trades take under 60 seconds to log.</p><p>Beyond individual trades, consider writing a <strong>daily journal entry</strong> at the end of each trading day summarizing your overall performance, mood, and lessons learned. Weekly reviews (every Sunday, for example) where you look at your analytics dashboard and identify patterns are also extremely valuable. The AI Coach can help with these reviews by highlighting trends you might miss.</p>",
     category: "getting-started",
     tags: ["frequency", "how often", "daily", "routine", "habit", "consistency", "beginner"],
     relatedIds: ["tj-write-journal", "gs-first-trade", "ai-how-it-works"],
@@ -3425,39 +3425,39 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-record-every-trade",
     question: "Do I need to record every single trade?",
-    answer: "<p><strong>Yes, ideally you should record every trade.</strong> Selective logging creates a distorted picture of your performance -- most traders unconsciously skip logging their worst trades, which means your analytics will overstate your win rate and profitability. The whole point of a journal is an honest, complete record.</p><p>That said, if you take dozens of micro-trades per day (scalping), logging each one manually is impractical. In that case, use Stargate's <strong>CSV import</strong> feature to bulk-upload your trades from your broker or exchange at the end of the day. This ensures every trade is captured without interrupting your workflow. Go to <code>Settings -> Import & Export</code> to upload your trade history file.</p>",
+    answer: "<p><strong>Yes, ideally you should record every trade.</strong> Selective logging creates a distorted picture of your performance -- most traders unconsciously skip logging their worst trades, which means your analytics will overstate your win rate and profitability. The whole point of a journal is an honest, complete record.</p><p>That said, if you take dozens of micro-trades per day (scalping), logging each one manually is impractical. In that case, use Traverse's <strong>CSV import</strong> feature to bulk-upload your trades from your broker or exchange at the end of the day. This ensures every trade is captured without interrupting your workflow. Go to <code>Settings -> Import & Export</code> to upload your trade history file.</p>",
     category: "getting-started",
     tags: ["every trade", "all trades", "completeness", "selective logging", "scalping", "beginner"],
     relatedIds: ["gs-import-trades", "tj-csv-format", "an-win-rate"],
   },
   {
     id: "gs4-mobile-tablet",
-    question: "Can I use Stargate on my phone or tablet?",
-    answer: "<p>Yes, Stargate is a <strong>fully responsive web application</strong> that works on phones, tablets, and desktops. Simply open your browser (Safari, Chrome, Firefox, or Edge) and navigate to the Stargate URL. The interface automatically adapts to your screen size -- the sidebar collapses into a hamburger menu on smaller screens, and trade forms stack vertically for easy thumb input.</p><p>For the best mobile experience, you can <strong>add Stargate to your home screen</strong> as a Progressive Web App (PWA). On iOS, tap the Share button in Safari and select <strong>Add to Home Screen</strong>. On Android, tap the three-dot menu in Chrome and select <strong>Add to Home screen</strong>. This gives you an app-like experience with a dedicated icon and no browser chrome.</p>",
+    question: "Can I use Traverse on my phone or tablet?",
+    answer: "<p>Yes, Traverse is a <strong>fully responsive web application</strong> that works on phones, tablets, and desktops. Simply open your browser (Safari, Chrome, Firefox, or Edge) and navigate to the Traverse URL. The interface automatically adapts to your screen size -- the sidebar collapses into a hamburger menu on smaller screens, and trade forms stack vertically for easy thumb input.</p><p>For the best mobile experience, you can <strong>add Traverse to your home screen</strong> as a Progressive Web App (PWA). On iOS, tap the Share button in Safari and select <strong>Add to Home Screen</strong>. On Android, tap the three-dot menu in Chrome and select <strong>Add to Home screen</strong>. This gives you an app-like experience with a dedicated icon and no browser chrome.</p>",
     category: "getting-started",
     tags: ["mobile", "phone", "tablet", "responsive", "iOS", "Android", "PWA"],
     relatedIds: ["gs-mobile-support", "as-browser-support", "gs4-desktop-app"],
   },
   {
     id: "gs4-vs-spreadsheet",
-    question: "What is the difference between Stargate and a spreadsheet?",
-    answer: "<p>A spreadsheet (Excel or Google Sheets) can technically store trade data, but it requires you to build and maintain everything yourself: formulas for P&L calculations, charts for equity curves, conditional formatting for win/loss coloring, and manual data entry with no validation. One broken formula can silently corrupt weeks of data.</p><p>Stargate gives you all of that <strong>out of the box</strong>: automatic P&L calculation, equity curves, win rate, expectancy, profit factor, emotion tracking, an AI coach that reads your data, tag-based analytics, calendar heatmaps, and dozens of other features. You also get data validation (no accidental text in price fields), cloud sync across devices, and the ability to import/export CSV files. The time you save not building and maintaining spreadsheet formulas can be spent actually analyzing your trades and improving.</p>",
+    question: "What is the difference between Traverse and a spreadsheet?",
+    answer: "<p>A spreadsheet (Excel or Google Sheets) can technically store trade data, but it requires you to build and maintain everything yourself: formulas for P&L calculations, charts for equity curves, conditional formatting for win/loss coloring, and manual data entry with no validation. One broken formula can silently corrupt weeks of data.</p><p>Traverse gives you all of that <strong>out of the box</strong>: automatic P&L calculation, equity curves, win rate, expectancy, profit factor, emotion tracking, an AI coach that reads your data, tag-based analytics, calendar heatmaps, and dozens of other features. You also get data validation (no accidental text in price fields), cloud sync across devices, and the ability to import/export CSV files. The time you save not building and maintaining spreadsheet formulas can be spent actually analyzing your trades and improving.</p>",
     category: "getting-started",
     tags: ["spreadsheet", "Excel", "Google Sheets", "comparison", "difference", "alternative"],
-    relatedIds: ["gs-what-is-stargate", "an-equity-curve", "an-expectancy"],
+    relatedIds: ["gs-what-is-traverse", "an-equity-curve", "an-expectancy"],
   },
   {
     id: "gs4-better-than-excel",
-    question: "What makes Stargate better than Excel for trade journaling?",
-    answer: "<p>Excel is a general-purpose tool; Stargate is purpose-built for traders. Here are the key advantages: <strong>1)</strong> <strong>Automatic calculations</strong> -- P&L, win rate, expectancy, profit factor, R-value, and dozens of other metrics update instantly without formulas. <strong>2)</strong> <strong>AI Coach</strong> -- an AI that reads your actual trading data and gives personalized advice, something no spreadsheet can do. <strong>3)</strong> <strong>Emotion and psychology tracking</strong> -- built-in mood logging and process scoring that correlate with your trade outcomes.</p><p><strong>4)</strong> <strong>Visual analytics</strong> -- equity curves, calendar heatmaps, MFE/MAE charts, and tag breakdowns are generated automatically. <strong>5)</strong> <strong>No formula maintenance</strong> -- spreadsheets break when you add rows, change column order, or accidentally overwrite a cell. Stargate's data integrity is guaranteed. You can still export to CSV anytime if you want spreadsheet access to your raw data.</p>",
+    question: "What makes Traverse better than Excel for trade journaling?",
+    answer: "<p>Excel is a general-purpose tool; Traverse is purpose-built for traders. Here are the key advantages: <strong>1)</strong> <strong>Automatic calculations</strong> -- P&L, win rate, expectancy, profit factor, R-value, and dozens of other metrics update instantly without formulas. <strong>2)</strong> <strong>AI Coach</strong> -- an AI that reads your actual trading data and gives personalized advice, something no spreadsheet can do. <strong>3)</strong> <strong>Emotion and psychology tracking</strong> -- built-in mood logging and process scoring that correlate with your trade outcomes.</p><p><strong>4)</strong> <strong>Visual analytics</strong> -- equity curves, calendar heatmaps, MFE/MAE charts, and tag breakdowns are generated automatically. <strong>5)</strong> <strong>No formula maintenance</strong> -- spreadsheets break when you add rows, change column order, or accidentally overwrite a cell. Traverse's data integrity is guaranteed. You can still export to CSV anytime if you want spreadsheet access to your raw data.</p>",
     category: "getting-started",
-    tags: ["Excel", "better than", "advantages", "features", "comparison", "why Stargate"],
+    tags: ["Excel", "better than", "advantages", "features", "comparison", "why Traverse"],
     relatedIds: ["gs4-vs-spreadsheet", "ai-how-it-works", "an-win-rate"],
   },
   {
     id: "gs4-free-start",
     question: "Can I get started for free?",
-    answer: "<p><strong>Yes, Stargate has a completely free tier</strong> with no credit card required. The Free plan includes core trade logging, basic journal, calendar view, and simple analytics -- everything you need to start building the journaling habit. There is no time limit on the free plan; you can use it indefinitely.</p><p>When you are ready for more advanced features like the AI Coach, MFE/MAE analysis, R-value tracking, strategy backtesting, and premium market data, you can upgrade to <strong>Pro</strong> or <strong>Max</strong> from <code>Settings</code>. Upgrades take effect instantly and you can downgrade back to Free at any time without losing any of your data. Visit the Pricing page to see the full feature comparison.</p>",
+    answer: "<p><strong>Yes, Traverse has a completely free tier</strong> with no credit card required. The Free plan includes core trade logging, basic journal, calendar view, and simple analytics -- everything you need to start building the journaling habit. There is no time limit on the free plan; you can use it indefinitely.</p><p>When you are ready for more advanced features like the AI Coach, MFE/MAE analysis, R-value tracking, strategy backtesting, and premium market data, you can upgrade to <strong>Pro</strong> or <strong>Max</strong> from <code>Settings</code>. Upgrades take effect instantly and you can downgrade back to Free at any time without losing any of your data. Visit the Pricing page to see the full feature comparison.</p>",
     category: "getting-started",
     tags: ["free", "no cost", "trial", "pricing", "get started", "no credit card"],
     relatedIds: ["bi-plans-overview", "bi-free-vs-paid", "bi-free-trial"],
@@ -3465,7 +3465,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-tutorials-guides",
     question: "Where can I find tutorials and guides?",
-    answer: "<p>Stargate has several built-in help resources: <strong>1)</strong> The <strong>Help Center</strong> (the page you are reading now) contains searchable FAQ entries covering every feature. <strong>2)</strong> <strong>Interactive tours</strong> appear automatically when you visit key pages for the first time, walking you through the interface step by step. <strong>3)</strong> The <strong>Getting Started checklist</strong> on your dashboard guides you through your first actions after signing up.</p><p>For deeper learning, try asking the <strong>AI Coach</strong> questions like \"How should I use tags effectively?\" or \"Walk me through the analytics page.\" The AI has full knowledge of Stargate's features and can give you personalized guidance based on your specific trading style and experience level. You can also reach out to our support team via <code>Settings -> Contact Support</code> for direct help.</p>",
+    answer: "<p>Traverse has several built-in help resources: <strong>1)</strong> The <strong>Help Center</strong> (the page you are reading now) contains searchable FAQ entries covering every feature. <strong>2)</strong> <strong>Interactive tours</strong> appear automatically when you visit key pages for the first time, walking you through the interface step by step. <strong>3)</strong> The <strong>Getting Started checklist</strong> on your dashboard guides you through your first actions after signing up.</p><p>For deeper learning, try asking the <strong>AI Coach</strong> questions like \"How should I use tags effectively?\" or \"Walk me through the analytics page.\" The AI has full knowledge of Traverse's features and can give you personalized guidance based on your specific trading style and experience level. You can also reach out to our support team via <code>Settings -> Contact Support</code> for direct help.</p>",
     category: "getting-started",
     tags: ["tutorials", "guides", "help", "learn", "documentation", "getting started"],
     relatedIds: ["gs-onboarding", "ai-how-it-works", "tr-contact-support"],
@@ -3473,7 +3473,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-supported-products",
     question: "What trading products are supported (stocks, options, futures, forex, crypto)?",
-    answer: "<p>Stargate supports <strong>cryptocurrency</strong> and <strong>stock</strong> trading as its primary asset classes. You can log trades for any crypto pair (BTC/USDT, ETH/USD, etc.) and any stock ticker (AAPL, TSLA, MSFT, etc.). The platform also supports <strong>options</strong> and <strong>futures</strong> logging with specialized fields for strike price, expiration, contract multiplier, and funding rates.</p><p><strong>Forex</strong> pairs can be logged using the standard symbol format (e.g., EUR/USD) since the core trade fields (entry price, exit price, direction, size) apply to any market. Stargate's analytics, AI Coach, and journal features work identically across all asset classes. If you trade multiple markets, you can use <strong>tags</strong> to categorize trades by asset class and view performance breakdowns for each.</p>",
+    answer: "<p>Traverse supports <strong>cryptocurrency</strong> and <strong>stock</strong> trading as its primary asset classes. You can log trades for any crypto pair (BTC/USDT, ETH/USD, etc.) and any stock ticker (AAPL, TSLA, MSFT, etc.). The platform also supports <strong>options</strong> and <strong>futures</strong> logging with specialized fields for strike price, expiration, contract multiplier, and funding rates.</p><p><strong>Forex</strong> pairs can be logged using the standard symbol format (e.g., EUR/USD) since the core trade fields (entry price, exit price, direction, size) apply to any market. Traverse's analytics, AI Coach, and journal features work identically across all asset classes. If you trade multiple markets, you can use <strong>tags</strong> to categorize trades by asset class and view performance breakdowns for each.</p>",
     category: "getting-started",
     tags: ["stocks", "crypto", "options", "futures", "forex", "asset classes", "supported markets"],
     relatedIds: ["gs-supported-markets", "tj-tags", "an-tag-analytics"],
@@ -3481,7 +3481,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-multiple-asset-classes",
     question: "Can I track multiple asset classes in the same account?",
-    answer: "<p><strong>Yes, a single Stargate account can track trades across all supported asset classes.</strong> You can log a crypto trade in the morning, a stock trade at lunch, and an options trade in the afternoon -- all in the same trade log. Each trade is identified by its symbol, so your BTC trades and AAPL trades coexist without conflict.</p><p>To keep things organized, use <strong>tags</strong> like <code>crypto</code>, <code>stocks</code>, or <code>options</code> to categorize your trades by asset class. Then use the tag filter in your Trade Log and Analytics pages to view performance for each class separately. The <strong>Summaries -> Tags</strong> page will show you a breakdown of P&L, win rate, and expectancy for each tag, making it easy to see which market you perform best in.</p>",
+    answer: "<p><strong>Yes, a single Traverse account can track trades across all supported asset classes.</strong> You can log a crypto trade in the morning, a stock trade at lunch, and an options trade in the afternoon -- all in the same trade log. Each trade is identified by its symbol, so your BTC trades and AAPL trades coexist without conflict.</p><p>To keep things organized, use <strong>tags</strong> like <code>crypto</code>, <code>stocks</code>, or <code>options</code> to categorize your trades by asset class. Then use the tag filter in your Trade Log and Analytics pages to view performance for each class separately. The <strong>Summaries -> Tags</strong> page will show you a breakdown of P&L, win rate, and expectancy for each tag, making it easy to see which market you perform best in.</p>",
     category: "getting-started",
     tags: ["multiple assets", "mixed portfolio", "crypto and stocks", "account", "tags", "organize"],
     relatedIds: ["tj-tags", "an-tag-analytics", "tj-multi-accounts"],
@@ -3489,7 +3489,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-navigate-sidebar",
     question: "How do I navigate the sidebar?",
-    answer: "<p>The sidebar is your main navigation hub in Stargate. It appears on the left side of the screen and contains links to all major sections: <strong>Dashboard</strong>, <strong>Trade Log</strong>, <strong>Journal</strong>, <strong>Analytics</strong>, <strong>AI Coach</strong>, <strong>Calendar</strong>, <strong>Apps</strong>, and <strong>Settings</strong>. Click any item to navigate to that page. The currently active page is highlighted so you always know where you are.</p><p>On <strong>mobile devices</strong>, the sidebar collapses into a hamburger menu icon (three horizontal lines) in the top-left corner -- tap it to open the navigation drawer. You can also use <strong>keyboard shortcuts</strong> for faster navigation: press <code>?</code> on any page to see the full list of available shortcuts. If you have pinned or favorited specific pages, those appear at the top of the sidebar for quick access.</p>",
+    answer: "<p>The sidebar is your main navigation hub in Traverse. It appears on the left side of the screen and contains links to all major sections: <strong>Dashboard</strong>, <strong>Trade Log</strong>, <strong>Journal</strong>, <strong>Analytics</strong>, <strong>AI Coach</strong>, <strong>Calendar</strong>, <strong>Apps</strong>, and <strong>Settings</strong>. Click any item to navigate to that page. The currently active page is highlighted so you always know where you are.</p><p>On <strong>mobile devices</strong>, the sidebar collapses into a hamburger menu icon (three horizontal lines) in the top-left corner -- tap it to open the navigation drawer. You can also use <strong>keyboard shortcuts</strong> for faster navigation: press <code>?</code> on any page to see the full list of available shortcuts. If you have pinned or favorited specific pages, those appear at the top of the sidebar for quick access.</p>",
     category: "getting-started",
     tags: ["sidebar", "navigation", "menu", "pages", "sections", "hamburger menu"],
     relatedIds: ["gs2-sidebar-navigation", "gs2-keyboard-shortcuts", "gs-mobile-support"],
@@ -3505,7 +3505,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-customize-dashboard",
     question: "How do I customize my dashboard layout?",
-    answer: "<p>Stargate's dashboard layout is designed to show the most important information by default. You can adjust what you see by using the <strong>date range filter</strong> at the top to change the time period displayed across all widgets (today, this week, this month, all time, or a custom range). This instantly updates your equity curve, stats, and recent trades to reflect the selected window.</p><p>Some dashboard elements can be dismissed (like the Getting Started checklist once completed). For more granular customization of your analytics views, use the dedicated <strong>Analytics</strong> and <strong>Summaries</strong> pages where you can filter by tag, symbol, direction, and date range. As Stargate evolves, drag-and-drop widget customization is on the roadmap -- stay tuned for updates.</p>",
+    answer: "<p>Traverse's dashboard layout is designed to show the most important information by default. You can adjust what you see by using the <strong>date range filter</strong> at the top to change the time period displayed across all widgets (today, this week, this month, all time, or a custom range). This instantly updates your equity curve, stats, and recent trades to reflect the selected window.</p><p>Some dashboard elements can be dismissed (like the Getting Started checklist once completed). For more granular customization of your analytics views, use the dedicated <strong>Analytics</strong> and <strong>Summaries</strong> pages where you can filter by tag, symbol, direction, and date range. As Traverse evolves, drag-and-drop widget customization is on the roadmap -- stay tuned for updates.</p>",
     category: "getting-started",
     tags: ["customize", "layout", "dashboard", "widgets", "personalize", "date range"],
     relatedIds: ["gs2-dashboard-overview", "an-equity-curve", "tj-trade-views"],
@@ -3513,22 +3513,22 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs4-global-search",
     question: "How do I use the global search bar?",
-    answer: "<p>The global search bar is located at the top of the page. Click it or press <code>/</code> on your keyboard to activate it. Type any keyword and Stargate will search across your <strong>trades</strong> (by symbol, tags, or notes), <strong>journal entries</strong> (by content), and <strong>help articles</strong> (by topic). Results appear instantly as you type, grouped by category.</p><p>Click any search result to navigate directly to that trade, journal entry, or help article. Search is especially useful for finding specific trades -- for example, type <code>AAPL</code> to see all your Apple trades, or <code>FOMO</code> to find trades you tagged with that emotion. The search also supports partial matching, so typing <code>break</code> will find trades tagged <code>breakout</code>.</p>",
+    answer: "<p>The global search bar is located at the top of the page. Click it or press <code>/</code> on your keyboard to activate it. Type any keyword and Traverse will search across your <strong>trades</strong> (by symbol, tags, or notes), <strong>journal entries</strong> (by content), and <strong>help articles</strong> (by topic). Results appear instantly as you type, grouped by category.</p><p>Click any search result to navigate directly to that trade, journal entry, or help article. Search is especially useful for finding specific trades -- for example, type <code>AAPL</code> to see all your Apple trades, or <code>FOMO</code> to find trades you tagged with that emotion. The search also supports partial matching, so typing <code>break</code> will find trades tagged <code>breakout</code>.</p>",
     category: "getting-started",
     tags: ["search", "find", "lookup", "global search", "keyboard shortcut", "filter"],
     relatedIds: ["gs2-search-function", "gs2-keyboard-shortcuts", "tj-tags"],
   },
   {
     id: "gs4-undo-action",
-    question: "Can I undo an action in Stargate?",
-    answer: "<p>Stargate does not have a universal \"undo\" button, but most actions are reversible through editing. If you <strong>made a mistake on a trade</strong>, simply click on that trade in the Trade Log and edit any field -- changes save immediately. If you <strong>accidentally deleted a trade</strong>, that action is permanent and cannot be undone, which is why Stargate shows a confirmation dialog before every deletion.</p><p>For imports, if you imported a batch of trades with incorrect data, you can use <strong>bulk edit</strong> to fix common issues or delete the imported trades and re-import a corrected file. As a best practice, <strong>export your data regularly</strong> from <code>Settings -> Import & Export</code> as a backup. This way you always have a snapshot you can refer to if something goes wrong.</p>",
+    question: "Can I undo an action in Traverse?",
+    answer: "<p>Traverse does not have a universal \"undo\" button, but most actions are reversible through editing. If you <strong>made a mistake on a trade</strong>, simply click on that trade in the Trade Log and edit any field -- changes save immediately. If you <strong>accidentally deleted a trade</strong>, that action is permanent and cannot be undone, which is why Traverse shows a confirmation dialog before every deletion.</p><p>For imports, if you imported a batch of trades with incorrect data, you can use <strong>bulk edit</strong> to fix common issues or delete the imported trades and re-import a corrected file. As a best practice, <strong>export your data regularly</strong> from <code>Settings -> Import & Export</code> as a backup. This way you always have a snapshot you can refer to if something goes wrong.</p>",
     category: "getting-started",
     tags: ["undo", "redo", "revert", "mistake", "accidental", "delete", "restore"],
     relatedIds: ["tj-edit-trade", "as-export-data", "tj2-bulk-edit"],
   },
   {
     id: "gs4-log-out",
-    question: "How do I log out of Stargate?",
+    question: "How do I log out of Traverse?",
     answer: "<p>To log out, click on the <strong>sidebar menu</strong> and scroll to the bottom where you will find the <strong>Sign Out</strong> button. Alternatively, go to <code>Settings</code> and click <strong>Sign Out</strong> there. Logging out clears your session on the current device only -- if you are logged in on other devices, those sessions remain active.</p><p>If you want to <strong>sign out of all devices at once</strong> (for example, if you logged in on a shared computer), go to <code>Settings -> Security</code> and use the <strong>Sign Out All Devices</strong> option. Your data is safely stored in the cloud and will be there when you log back in. For added security, consider enabling <strong>two-factor authentication (2FA)</strong> to protect your account.</p>",
     category: "getting-started",
     tags: ["log out", "sign out", "logout", "session", "security", "sign off"],
@@ -3536,34 +3536,34 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs4-supported-browsers",
-    question: "What browsers work best with Stargate?",
-    answer: "<p>Stargate works best on the latest versions of <strong>Google Chrome</strong>, <strong>Microsoft Edge</strong>, <strong>Mozilla Firefox</strong>, and <strong>Apple Safari</strong>. Chrome and Edge generally deliver the best performance due to their V8 JavaScript engine. All modern browsers released within the last two years are fully supported.</p><p>We recommend keeping your browser <strong>updated to the latest version</strong> for the best experience and security. If you encounter display issues or slow performance, try clearing your browser cache (<code>Ctrl+Shift+Delete</code> or <code>Cmd+Shift+Delete</code>) and disabling any ad-blocker extensions that may interfere with the app. Internet Explorer is not supported. For the most app-like experience, consider adding Stargate to your home screen as a Progressive Web App.</p>",
+    question: "What browsers work best with Traverse?",
+    answer: "<p>Traverse works best on the latest versions of <strong>Google Chrome</strong>, <strong>Microsoft Edge</strong>, <strong>Mozilla Firefox</strong>, and <strong>Apple Safari</strong>. Chrome and Edge generally deliver the best performance due to their V8 JavaScript engine. All modern browsers released within the last two years are fully supported.</p><p>We recommend keeping your browser <strong>updated to the latest version</strong> for the best experience and security. If you encounter display issues or slow performance, try clearing your browser cache (<code>Ctrl+Shift+Delete</code> or <code>Cmd+Shift+Delete</code>) and disabling any ad-blocker extensions that may interfere with the app. Internet Explorer is not supported. For the most app-like experience, consider adding Traverse to your home screen as a Progressive Web App.</p>",
     category: "getting-started",
     tags: ["browser", "Chrome", "Firefox", "Safari", "Edge", "compatibility", "supported"],
     relatedIds: ["as-browser-support", "gs4-mobile-tablet", "gs4-desktop-app"],
   },
   {
     id: "gs4-desktop-app",
-    question: "Is there a desktop app for Stargate?",
-    answer: "<p>Stargate is a <strong>web-based application</strong> and does not currently have a native desktop app for Windows or Mac. However, you can get a near-native experience by installing it as a <strong>Progressive Web App (PWA)</strong>. In Chrome or Edge, visit Stargate and click the install icon in the address bar (or go to the browser menu and select <strong>Install Stargate</strong>). This creates a desktop shortcut that opens Stargate in its own window without browser tabs or toolbars.</p><p>The PWA version looks and feels like a desktop app -- it has its own icon in your taskbar/dock, opens in a dedicated window, and supports keyboard shortcuts. All your data syncs through the cloud, so there is no difference in functionality between the browser version and the PWA. A dedicated native desktop app is on the roadmap for a future release.</p>",
+    question: "Is there a desktop app for Traverse?",
+    answer: "<p>Traverse is a <strong>web-based application</strong> and does not currently have a native desktop app for Windows or Mac. However, you can get a near-native experience by installing it as a <strong>Progressive Web App (PWA)</strong>. In Chrome or Edge, visit Traverse and click the install icon in the address bar (or go to the browser menu and select <strong>Install Traverse</strong>). This creates a desktop shortcut that opens Traverse in its own window without browser tabs or toolbars.</p><p>The PWA version looks and feels like a desktop app -- it has its own icon in your taskbar/dock, opens in a dedicated window, and supports keyboard shortcuts. All your data syncs through the cloud, so there is no difference in functionality between the browser version and the PWA. A dedicated native desktop app is on the roadmap for a future release.</p>",
     category: "getting-started",
     tags: ["desktop app", "Windows", "Mac", "PWA", "install", "native", "download"],
-    relatedIds: ["gs4-mobile-tablet", "as-browser-support", "gs-what-is-stargate"],
+    relatedIds: ["gs4-mobile-tablet", "as-browser-support", "gs-what-is-traverse"],
   },
 
   // IMPORT & DATA BASICS -- BATCH 4 (+20)
   {
     id: "tj4-supported-brokers",
     question: "Which brokers and exchanges are supported for import?",
-    answer: "<p>Stargate currently supports CSV file imports from virtually <strong>any broker or exchange</strong> that lets you export your trade history. This includes major platforms like <strong>Binance</strong>, <strong>Coinbase</strong>, <strong>Robinhood</strong>, <strong>Interactive Brokers</strong>, <strong>TD Ameritrade</strong>, <strong>Webull</strong>, <strong>Kraken</strong>, <strong>KuCoin</strong>, <strong>Bybit</strong>, and many more. As long as your broker exports a CSV or Excel file with trade data, you can import it.</p><p>During the import process, Stargate's column mapper lets you match your file's column headers to the required fields (symbol, date, price, quantity, direction). This means even custom or unusual CSV formats can be imported. If your broker's export format is not recognized automatically, use the <strong>manual column mapping</strong> tool on the import page to assign each column.</p>",
+    answer: "<p>Traverse currently supports CSV file imports from virtually <strong>any broker or exchange</strong> that lets you export your trade history. This includes major platforms like <strong>Binance</strong>, <strong>Coinbase</strong>, <strong>Robinhood</strong>, <strong>Interactive Brokers</strong>, <strong>TD Ameritrade</strong>, <strong>Webull</strong>, <strong>Kraken</strong>, <strong>KuCoin</strong>, <strong>Bybit</strong>, and many more. As long as your broker exports a CSV or Excel file with trade data, you can import it.</p><p>During the import process, Traverse's column mapper lets you match your file's column headers to the required fields (symbol, date, price, quantity, direction). This means even custom or unusual CSV formats can be imported. If your broker's export format is not recognized automatically, use the <strong>manual column mapping</strong> tool on the import page to assign each column.</p>",
     category: "trading-journal",
     tags: ["brokers", "exchanges", "supported", "import", "Binance", "Coinbase", "Robinhood"],
     relatedIds: ["gs-import-trades", "tj-csv-format", "tj-import-fails"],
   },
   {
     id: "tj4-file-formats",
-    question: "What file formats does Stargate accept for importing trades?",
-    answer: "<p>Stargate accepts <strong>CSV (Comma-Separated Values)</strong> files as the primary import format. This is the most common export format from brokers and exchanges. The file should contain one trade per row with columns for key fields like symbol, date, price, quantity, and side (buy/sell). Headers in the first row are required so the importer can map columns correctly.</p><p>If your broker exports in <strong>Excel (.xlsx)</strong> format, simply open the file in Excel or Google Sheets and save/export it as CSV before uploading. The maximum file size for import is generous enough to handle years of trading history. Make sure your file uses <strong>UTF-8 encoding</strong> and that numeric fields do not contain currency symbols (e.g., use <code>150.50</code>, not <code>$150.50</code>).</p>",
+    question: "What file formats does Traverse accept for importing trades?",
+    answer: "<p>Traverse accepts <strong>CSV (Comma-Separated Values)</strong> files as the primary import format. This is the most common export format from brokers and exchanges. The file should contain one trade per row with columns for key fields like symbol, date, price, quantity, and side (buy/sell). Headers in the first row are required so the importer can map columns correctly.</p><p>If your broker exports in <strong>Excel (.xlsx)</strong> format, simply open the file in Excel or Google Sheets and save/export it as CSV before uploading. The maximum file size for import is generous enough to handle years of trading history. Make sure your file uses <strong>UTF-8 encoding</strong> and that numeric fields do not contain currency symbols (e.g., use <code>150.50</code>, not <code>$150.50</code>).</p>",
     category: "trading-journal",
     tags: ["CSV", "file format", "Excel", "import format", "upload", "encoding"],
     relatedIds: ["tj-csv-format", "gs-import-trades", "tj-import-fails"],
@@ -3571,7 +3571,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-import-binance",
     question: "How do I import trades from Binance?",
-    answer: "<p><strong>1)</strong> Log in to your Binance account and go to <code>Orders -> Spot Order -> Trade History</code> (or <code>Orders -> Futures Order</code> for futures trades). <strong>2)</strong> Click <strong>Export</strong> and select your date range. Binance will generate a CSV file for download. <strong>3)</strong> In Stargate, go to <code>Settings -> Import & Export</code>, click <strong>Import Trades</strong>, and upload the Binance CSV file.</p><p>Stargate's importer will detect Binance's column format and auto-map the fields. Review the preview to confirm trades look correct, then click <strong>Confirm Import</strong>. If you trade Binance Futures, make sure to export from the Futures section specifically, as the column format differs from Spot. For very large accounts, Binance may split exports into multiple files -- import each file separately.</p>",
+    answer: "<p><strong>1)</strong> Log in to your Binance account and go to <code>Orders -> Spot Order -> Trade History</code> (or <code>Orders -> Futures Order</code> for futures trades). <strong>2)</strong> Click <strong>Export</strong> and select your date range. Binance will generate a CSV file for download. <strong>3)</strong> In Traverse, go to <code>Settings -> Import & Export</code>, click <strong>Import Trades</strong>, and upload the Binance CSV file.</p><p>Traverse's importer will detect Binance's column format and auto-map the fields. Review the preview to confirm trades look correct, then click <strong>Confirm Import</strong>. If you trade Binance Futures, make sure to export from the Futures section specifically, as the column format differs from Spot. For very large accounts, Binance may split exports into multiple files -- import each file separately.</p>",
     category: "trading-journal",
     tags: ["Binance", "import", "exchange", "crypto", "CSV", "trade history"],
     relatedIds: ["gs-import-trades", "tj4-supported-brokers", "tj-import-fails"],
@@ -3579,7 +3579,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-import-coinbase",
     question: "How do I import trades from Coinbase?",
-    answer: "<p><strong>1)</strong> Log in to Coinbase and navigate to your transaction history. On <strong>Coinbase Pro / Advanced Trade</strong>, go to <code>Statements -> Generate -> Account</code> and select CSV format and your date range. On <strong>Coinbase</strong> (basic), go to <code>Taxes -> Documents</code> or <code>Transaction History</code> and export. <strong>2)</strong> Download the generated CSV file. <strong>3)</strong> In Stargate, go to <code>Settings -> Import & Export</code>, click <strong>Import Trades</strong>, and upload the file.</p><p>Coinbase exports may include non-trade transactions like deposits and withdrawals. Stargate's importer will attempt to filter these out and show only buy/sell transactions in the preview. Review the preview carefully and deselect any rows that are not actual trades. If the column names are not auto-detected, use the manual column mapper to assign symbol, date, price, quantity, and side fields.</p>",
+    answer: "<p><strong>1)</strong> Log in to Coinbase and navigate to your transaction history. On <strong>Coinbase Pro / Advanced Trade</strong>, go to <code>Statements -> Generate -> Account</code> and select CSV format and your date range. On <strong>Coinbase</strong> (basic), go to <code>Taxes -> Documents</code> or <code>Transaction History</code> and export. <strong>2)</strong> Download the generated CSV file. <strong>3)</strong> In Traverse, go to <code>Settings -> Import & Export</code>, click <strong>Import Trades</strong>, and upload the file.</p><p>Coinbase exports may include non-trade transactions like deposits and withdrawals. Traverse's importer will attempt to filter these out and show only buy/sell transactions in the preview. Review the preview carefully and deselect any rows that are not actual trades. If the column names are not auto-detected, use the manual column mapper to assign symbol, date, price, quantity, and side fields.</p>",
     category: "trading-journal",
     tags: ["Coinbase", "import", "exchange", "crypto", "CSV", "trade history"],
     relatedIds: ["gs-import-trades", "tj4-supported-brokers", "tj-import-fails"],
@@ -3587,7 +3587,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-import-robinhood",
     question: "How do I import trades from Robinhood?",
-    answer: "<p><strong>1)</strong> In the Robinhood app or website, go to <code>Account -> Statements & History -> Account Statements</code>. Download your monthly statements or request your <strong>full account history</strong> from <code>Account -> Settings -> Account Information -> Download Account Statements</code>. <strong>2)</strong> Robinhood provides a CSV file with all transactions. <strong>3)</strong> In Stargate, go to <code>Settings -> Import & Export</code>, upload the CSV, and review the column mapping.</p><p>Robinhood's export includes all activity (deposits, dividends, trades), so you may need to filter to just trade rows during import. The importer preview shows each detected trade -- deselect any non-trade rows before confirming. If the auto-mapper does not correctly identify columns, use the manual column mapping dropdown to assign each required field. Robinhood exports use US date format (MM/DD/YYYY) which Stargate handles automatically.</p>",
+    answer: "<p><strong>1)</strong> In the Robinhood app or website, go to <code>Account -> Statements & History -> Account Statements</code>. Download your monthly statements or request your <strong>full account history</strong> from <code>Account -> Settings -> Account Information -> Download Account Statements</code>. <strong>2)</strong> Robinhood provides a CSV file with all transactions. <strong>3)</strong> In Traverse, go to <code>Settings -> Import & Export</code>, upload the CSV, and review the column mapping.</p><p>Robinhood's export includes all activity (deposits, dividends, trades), so you may need to filter to just trade rows during import. The importer preview shows each detected trade -- deselect any non-trade rows before confirming. If the auto-mapper does not correctly identify columns, use the manual column mapping dropdown to assign each required field. Robinhood exports use US date format (MM/DD/YYYY) which Traverse handles automatically.</p>",
     category: "trading-journal",
     tags: ["Robinhood", "import", "broker", "stocks", "CSV", "trade history"],
     relatedIds: ["gs-import-trades", "tj4-supported-brokers", "tj-import-fails"],
@@ -3595,7 +3595,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-import-interactive-brokers",
     question: "How do I import trades from Interactive Brokers?",
-    answer: "<p><strong>1)</strong> In the IBKR Client Portal, go to <code>Performance & Reports -> Flex Queries</code> (or <code>Statements -> Activity</code>). Create a <strong>Trade Confirmation Flex Query</strong> that includes: symbol, date/time, quantity, price, side (buy/sell), and commission. Choose CSV as the delivery format. <strong>2)</strong> Run the query and download the file. <strong>3)</strong> In Stargate, go to <code>Settings -> Import & Export</code> and upload the IBKR CSV.</p><p>Interactive Brokers has the most flexible export system of any broker but can also be the most confusing. For the simplest approach, use the <strong>Activity Statement</strong> (not Flex Query): go to <code>Statements -> Activity</code>, select your date range, choose CSV, and download. This file contains your trades along with other account activity. Stargate will parse out the trade rows. If columns are not auto-detected, manually map them using the dropdown selectors.</p>",
+    answer: "<p><strong>1)</strong> In the IBKR Client Portal, go to <code>Performance & Reports -> Flex Queries</code> (or <code>Statements -> Activity</code>). Create a <strong>Trade Confirmation Flex Query</strong> that includes: symbol, date/time, quantity, price, side (buy/sell), and commission. Choose CSV as the delivery format. <strong>2)</strong> Run the query and download the file. <strong>3)</strong> In Traverse, go to <code>Settings -> Import & Export</code> and upload the IBKR CSV.</p><p>Interactive Brokers has the most flexible export system of any broker but can also be the most confusing. For the simplest approach, use the <strong>Activity Statement</strong> (not Flex Query): go to <code>Statements -> Activity</code>, select your date range, choose CSV, and download. This file contains your trades along with other account activity. Traverse will parse out the trade rows. If columns are not auto-detected, manually map them using the dropdown selectors.</p>",
     category: "trading-journal",
     tags: ["Interactive Brokers", "IBKR", "import", "Flex Query", "broker", "CSV"],
     relatedIds: ["gs-import-trades", "tj4-supported-brokers", "tj-import-fails"],
@@ -3603,7 +3603,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-import-no-trades-found",
     question: "Why does my import show \"no trades found\"?",
-    answer: "<p>The \"no trades found\" message means Stargate could not detect any valid trade rows in your uploaded file. The most common causes are: <strong>1)</strong> The file contains only non-trade data (deposits, withdrawals, account summaries). <strong>2)</strong> The column headers do not match any recognized format and auto-mapping failed. <strong>3)</strong> The file is empty or corrupted during download.</p><p>To fix this: open your CSV file in a text editor or spreadsheet program and verify it actually contains trade rows with columns like symbol/ticker, date, price, and quantity. Make sure the <strong>first row contains column headers</strong> (not data). If the headers are in a non-standard format, try the import again and use <strong>manual column mapping</strong> to explicitly tell Stargate which column is which. If the file looks correct but import still fails, try re-exporting from your broker with a smaller date range to rule out file size issues.</p>",
+    answer: "<p>The \"no trades found\" message means Traverse could not detect any valid trade rows in your uploaded file. The most common causes are: <strong>1)</strong> The file contains only non-trade data (deposits, withdrawals, account summaries). <strong>2)</strong> The column headers do not match any recognized format and auto-mapping failed. <strong>3)</strong> The file is empty or corrupted during download.</p><p>To fix this: open your CSV file in a text editor or spreadsheet program and verify it actually contains trade rows with columns like symbol/ticker, date, price, and quantity. Make sure the <strong>first row contains column headers</strong> (not data). If the headers are in a non-standard format, try the import again and use <strong>manual column mapping</strong> to explicitly tell Traverse which column is which. If the file looks correct but import still fails, try re-exporting from your broker with a smaller date range to rule out file size issues.</p>",
     category: "trading-journal",
     tags: ["no trades found", "import error", "empty import", "CSV problem", "troubleshooting"],
     relatedIds: ["tj-import-fails", "tj-csv-format", "gs-import-trades"],
@@ -3619,7 +3619,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-date-format",
     question: "Is my date format correct for importing?",
-    answer: "<p>Stargate's importer recognizes several common date formats automatically: <strong>YYYY-MM-DD</strong> (e.g., 2026-03-15), <strong>MM/DD/YYYY</strong> (e.g., 03/15/2026), <strong>DD/MM/YYYY</strong> (e.g., 15/03/2026), and <strong>ISO 8601</strong> (e.g., 2026-03-15T14:30:00Z). Date-time combinations with hours, minutes, and seconds are also supported.</p><p>The most common date-related import errors happen when: <strong>1)</strong> Day and month are ambiguous (e.g., <code>03/04/2026</code> could be March 4th or April 3rd) -- Stargate defaults to MM/DD/YYYY for ambiguous cases. <strong>2)</strong> The date column contains non-date text like \"N/A\" or blank cells. <strong>3)</strong> The timezone is stripped, causing trades to shift by hours. If your dates look wrong after import, check the original CSV to confirm the format and edit any incorrect trades in the Trade Log.</p>",
+    answer: "<p>Traverse's importer recognizes several common date formats automatically: <strong>YYYY-MM-DD</strong> (e.g., 2026-03-15), <strong>MM/DD/YYYY</strong> (e.g., 03/15/2026), <strong>DD/MM/YYYY</strong> (e.g., 15/03/2026), and <strong>ISO 8601</strong> (e.g., 2026-03-15T14:30:00Z). Date-time combinations with hours, minutes, and seconds are also supported.</p><p>The most common date-related import errors happen when: <strong>1)</strong> Day and month are ambiguous (e.g., <code>03/04/2026</code> could be March 4th or April 3rd) -- Traverse defaults to MM/DD/YYYY for ambiguous cases. <strong>2)</strong> The date column contains non-date text like \"N/A\" or blank cells. <strong>3)</strong> The timezone is stripped, causing trades to shift by hours. If your dates look wrong after import, check the original CSV to confirm the format and edit any incorrect trades in the Trade Log.</p>",
     category: "trading-journal",
     tags: ["date format", "dates", "import", "YYYY-MM-DD", "timezone", "parsing"],
     relatedIds: ["tj-csv-format", "tj-import-fails", "as-timezone"],
@@ -3635,7 +3635,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-auto-sync",
     question: "Can I sync my trades automatically instead of importing files?",
-    answer: "<p>Automatic trade sync via exchange API is on Stargate's roadmap but is <strong>not yet available</strong>. Currently, the primary import method is CSV file upload from your broker or exchange. We are building direct API integrations with major exchanges (Binance, Coinbase, Kraken, and others) that will allow real-time automatic trade sync.</p><p>In the meantime, the fastest workflow is to <strong>export your trades as CSV</strong> from your exchange at the end of each day or week, then upload the file to Stargate via <code>Settings -> Import & Export</code>. Stargate's duplicate detection will skip any trades that have already been imported, so you can safely re-import overlapping date ranges without creating duplicates. When auto-sync launches, you will be able to enable it from your account settings.</p>",
+    answer: "<p>Automatic trade sync via exchange API is on Traverse's roadmap but is <strong>not yet available</strong>. Currently, the primary import method is CSV file upload from your broker or exchange. We are building direct API integrations with major exchanges (Binance, Coinbase, Kraken, and others) that will allow real-time automatic trade sync.</p><p>In the meantime, the fastest workflow is to <strong>export your trades as CSV</strong> from your exchange at the end of each day or week, then upload the file to Traverse via <code>Settings -> Import & Export</code>. Traverse's duplicate detection will skip any trades that have already been imported, so you can safely re-import overlapping date ranges without creating duplicates. When auto-sync launches, you will be able to enable it from your account settings.</p>",
     category: "trading-journal",
     tags: ["auto sync", "automatic", "API sync", "real-time", "exchange connection", "upcoming"],
     relatedIds: ["gs-import-trades", "tj-import-duplicates", "tj4-supported-brokers"],
@@ -3643,7 +3643,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-sync-refresh-rate",
     question: "How often does automatic trade sync refresh?",
-    answer: "<p>Automatic trade sync is <strong>not yet available</strong> -- it is currently in development. When it launches, the planned refresh interval will be approximately <strong>every 15-30 minutes</strong> for connected exchanges. You will be able to trigger a manual refresh at any time by clicking a sync button on the import page.</p><p>Until auto-sync is released, the best approach is to import your trades via CSV file. For active traders, we recommend exporting and importing <strong>daily</strong> to keep your journal current. For swing traders or less frequent traders, a <strong>weekly</strong> import is usually sufficient. Stargate will automatically detect and skip duplicate trades during import, so you do not need to worry about re-importing the same trades. Follow our updates on the Pricing or Settings page for the auto-sync launch announcement.</p>",
+    answer: "<p>Automatic trade sync is <strong>not yet available</strong> -- it is currently in development. When it launches, the planned refresh interval will be approximately <strong>every 15-30 minutes</strong> for connected exchanges. You will be able to trigger a manual refresh at any time by clicking a sync button on the import page.</p><p>Until auto-sync is released, the best approach is to import your trades via CSV file. For active traders, we recommend exporting and importing <strong>daily</strong> to keep your journal current. For swing traders or less frequent traders, a <strong>weekly</strong> import is usually sufficient. Traverse will automatically detect and skip duplicate trades during import, so you do not need to worry about re-importing the same trades. Follow our updates on the Pricing or Settings page for the auto-sync launch announcement.</p>",
     category: "trading-journal",
     tags: ["sync frequency", "refresh rate", "automatic sync", "interval", "update", "real-time"],
     relatedIds: ["tj4-auto-sync", "gs-import-trades", "tj-import-duplicates"],
@@ -3651,7 +3651,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-undo-import",
     question: "Can I undo or reverse my last import?",
-    answer: "<p>Stargate does not have a one-click \"undo import\" button, but you can remove imported trades. When you import a batch, the trades are tagged internally with the import timestamp. To remove them, go to the <strong>Trade Log</strong>, sort by date (newest first), and select the recently imported trades. Use <strong>bulk edit</strong> to select multiple trades and delete them at once.</p><p>As a best practice, <strong>always review the import preview carefully</strong> before clicking Confirm. The preview shows every trade that will be created, including calculated P&L. If something looks wrong (wrong prices, flipped directions, missing data), cancel the import and fix your CSV file first. For safety, export your existing data from <code>Settings -> Import & Export</code> before doing any large import -- this gives you a backup to restore from if needed.</p>",
+    answer: "<p>Traverse does not have a one-click \"undo import\" button, but you can remove imported trades. When you import a batch, the trades are tagged internally with the import timestamp. To remove them, go to the <strong>Trade Log</strong>, sort by date (newest first), and select the recently imported trades. Use <strong>bulk edit</strong> to select multiple trades and delete them at once.</p><p>As a best practice, <strong>always review the import preview carefully</strong> before clicking Confirm. The preview shows every trade that will be created, including calculated P&L. If something looks wrong (wrong prices, flipped directions, missing data), cancel the import and fix your CSV file first. For safety, export your existing data from <code>Settings -> Import & Export</code> before doing any large import -- this gives you a backup to restore from if needed.</p>",
     category: "trading-journal",
     tags: ["undo import", "reverse import", "delete import", "rollback", "bulk delete"],
     relatedIds: ["tj2-bulk-edit", "gs-import-trades", "as-export-data"],
@@ -3659,7 +3659,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-import-limit",
     question: "How many trades can I import at once?",
-    answer: "<p>Stargate can handle imports of <strong>up to several thousand trades</strong> in a single CSV file. Most traders will never hit this limit -- even importing a full year of daily trading typically results in a few hundred rows. The importer processes the file in your browser before uploading, so very large files (10,000+ rows) may take a few extra seconds to parse and preview.</p><p>If you have an extremely large trade history (e.g., years of high-frequency trading), consider splitting your CSV into smaller chunks by date range (e.g., one file per month) and importing them sequentially. Each import is additive and duplicate detection ensures no trades are created twice. If you experience browser slowness during a large import, try using <strong>Chrome</strong> (which handles large datasets best) and close other tabs to free up memory.</p>",
+    answer: "<p>Traverse can handle imports of <strong>up to several thousand trades</strong> in a single CSV file. Most traders will never hit this limit -- even importing a full year of daily trading typically results in a few hundred rows. The importer processes the file in your browser before uploading, so very large files (10,000+ rows) may take a few extra seconds to parse and preview.</p><p>If you have an extremely large trade history (e.g., years of high-frequency trading), consider splitting your CSV into smaller chunks by date range (e.g., one file per month) and importing them sequentially. Each import is additive and duplicate detection ensures no trades are created twice. If you experience browser slowness during a large import, try using <strong>Chrome</strong> (which handles large datasets best) and close other tabs to free up memory.</p>",
     category: "trading-journal",
     tags: ["import limit", "maximum trades", "batch size", "large import", "bulk", "capacity"],
     relatedIds: ["gs-import-trades", "tj-csv-format", "tj4-storage-limits"],
@@ -3667,7 +3667,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-storage-limits",
     question: "Are there limits on total trades I can store?",
-    answer: "<p>On the <strong>Free plan</strong>, there is a generous trade limit that allows you to store enough trades for several months of active trading. <strong>Pro</strong> and <strong>Max</strong> plans have significantly higher limits that accommodate even the most active traders with years of history. The exact limits are displayed on the Pricing page and in your account settings.</p><p>Stargate stores all your data securely in the cloud, so trades do not take up space on your device. If you ever approach your plan's limit, you will see a notification in the app. You can either upgrade your plan for more capacity or export older trades to CSV for archival and then remove them from Stargate to free up space. Deleted trades cannot be recovered, so always export before deleting.</p>",
+    answer: "<p>On the <strong>Free plan</strong>, there is a generous trade limit that allows you to store enough trades for several months of active trading. <strong>Pro</strong> and <strong>Max</strong> plans have significantly higher limits that accommodate even the most active traders with years of history. The exact limits are displayed on the Pricing page and in your account settings.</p><p>Traverse stores all your data securely in the cloud, so trades do not take up space on your device. If you ever approach your plan's limit, you will see a notification in the app. You can either upgrade your plan for more capacity or export older trades to CSV for archival and then remove them from Traverse to free up space. Deleted trades cannot be recovered, so always export before deleting.</p>",
     category: "trading-journal",
     tags: ["storage limit", "trade limit", "capacity", "maximum", "plan limits", "data storage"],
     relatedIds: ["bi-plans-overview", "as-export-data", "bi-free-vs-paid"],
@@ -3675,7 +3675,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-close-open-trade",
     question: "How do I close a trade that is still showing as open?",
-    answer: "<p>An open trade is one that has an entry price but no exit price or exit date. To close it: <strong>1)</strong> Go to the <strong>Trade Log</strong> and find the open trade (open trades may be highlighted or appear in the <strong>Summaries -> Open Trades</strong> section). <strong>2)</strong> Click on the trade to open its detail view. <strong>3)</strong> Enter the <strong>exit price</strong> and <strong>exit date</strong> and click <strong>Save</strong>.</p><p>Once both the exit price and exit date are filled in, Stargate automatically calculates the realized P&L, marks the trade as closed, and includes it in your win rate, equity curve, and all other analytics. If a trade was closed in real life but you forgot to log the exit, enter the actual exit price and date from your broker's records. Open trades do not count toward your win rate or expectancy calculations since the outcome is not yet finalized.</p>",
+    answer: "<p>An open trade is one that has an entry price but no exit price or exit date. To close it: <strong>1)</strong> Go to the <strong>Trade Log</strong> and find the open trade (open trades may be highlighted or appear in the <strong>Summaries -> Open Trades</strong> section). <strong>2)</strong> Click on the trade to open its detail view. <strong>3)</strong> Enter the <strong>exit price</strong> and <strong>exit date</strong> and click <strong>Save</strong>.</p><p>Once both the exit price and exit date are filled in, Traverse automatically calculates the realized P&L, marks the trade as closed, and includes it in your win rate, equity curve, and all other analytics. If a trade was closed in real life but you forgot to log the exit, enter the actual exit price and date from your broker's records. Open trades do not count toward your win rate or expectancy calculations since the outcome is not yet finalized.</p>",
     category: "trading-journal",
     tags: ["close trade", "open trade", "exit price", "exit date", "mark closed", "position"],
     relatedIds: ["tj-edit-trade", "gs-first-trade", "an-equity-curve"],
@@ -3683,7 +3683,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-merge-trades",
     question: "Can I merge two trades into one?",
-    answer: "<p>Stargate does not currently have an automatic merge button, but you can manually combine two trades into one. To do this: <strong>1)</strong> Open both trades and note down all the details (entry price, exit price, quantities, dates, fees). <strong>2)</strong> Edit one of the trades to reflect the combined position -- use the <strong>average entry price</strong> (weighted by size), <strong>total quantity</strong>, and the <strong>final exit price/date</strong>. <strong>3)</strong> Delete the other trade.</p><p>This is most commonly needed when you scaled into a position with multiple entries. For example, if you bought 1 BTC at $40,000 and another 1 BTC at $42,000, the merged trade would show 2 BTC at an average entry of $41,000. Make sure to combine fees as well. Before deleting the second trade, consider copying any unique notes or tags from it into the remaining trade so you do not lose that context.</p>",
+    answer: "<p>Traverse does not currently have an automatic merge button, but you can manually combine two trades into one. To do this: <strong>1)</strong> Open both trades and note down all the details (entry price, exit price, quantities, dates, fees). <strong>2)</strong> Edit one of the trades to reflect the combined position -- use the <strong>average entry price</strong> (weighted by size), <strong>total quantity</strong>, and the <strong>final exit price/date</strong>. <strong>3)</strong> Delete the other trade.</p><p>This is most commonly needed when you scaled into a position with multiple entries. For example, if you bought 1 BTC at $40,000 and another 1 BTC at $42,000, the merged trade would show 2 BTC at an average entry of $41,000. Make sure to combine fees as well. Before deleting the second trade, consider copying any unique notes or tags from it into the remaining trade so you do not lose that context.</p>",
     category: "trading-journal",
     tags: ["merge trades", "combine", "average price", "scale in", "multiple entries"],
     relatedIds: ["tj-edit-trade", "tj2-bulk-edit", "tj-fees"],
@@ -3691,7 +3691,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj4-split-trade",
     question: "Can I split one trade into two separate trades?",
-    answer: "<p>Stargate does not have an automatic split function, but you can manually split a trade: <strong>1)</strong> Edit the original trade to reflect the <strong>first partial exit</strong> -- adjust the quantity to the portion you closed and set the exit price/date accordingly. <strong>2)</strong> Create a <strong>new trade</strong> with the same entry details but the remaining quantity, and enter the second exit price/date when you close that portion.</p><p>This is useful when you take partial profits on a position. For example, if you bought 100 shares of AAPL and sold 50 at one price and 50 later at a different price, split it into two 50-share trades. Both trades should share the same entry price and date but have different exit prices, exit dates, and quantities. Copy tags and notes to both trades so your analytics stay consistent. Some traders prefer logging partial exits from the start using the trade detail fields.</p>",
+    answer: "<p>Traverse does not have an automatic split function, but you can manually split a trade: <strong>1)</strong> Edit the original trade to reflect the <strong>first partial exit</strong> -- adjust the quantity to the portion you closed and set the exit price/date accordingly. <strong>2)</strong> Create a <strong>new trade</strong> with the same entry details but the remaining quantity, and enter the second exit price/date when you close that portion.</p><p>This is useful when you take partial profits on a position. For example, if you bought 100 shares of AAPL and sold 50 at one price and 50 later at a different price, split it into two 50-share trades. Both trades should share the same entry price and date but have different exit prices, exit dates, and quantities. Copy tags and notes to both trades so your analytics stay consistent. Some traders prefer logging partial exits from the start using the trade detail fields.</p>",
     category: "trading-journal",
     tags: ["split trade", "partial exit", "divide", "scale out", "partial profit"],
     relatedIds: ["tj-edit-trade", "gs-first-trade", "tj4-merge-trades"],
@@ -3716,8 +3716,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // BILLING BASICS -- BATCH 4 (+20)
   {
     id: "bi4-really-free",
-    question: "Is Stargate really free? What is the catch?",
-    answer: "<p><strong>Yes, the Free plan is genuinely free with no hidden catch.</strong> You get core trade logging, basic journal, calendar view, and simple analytics at no cost, forever. No credit card is required to sign up, there is no trial period that expires, and we will never retroactively charge you or lock your existing data behind a paywall.</p><p>The way Stargate sustains itself is through <strong>Pro</strong> and <strong>Max</strong> paid plans that offer advanced features like AI Coach, premium analytics (MFE/MAE, R-value, expectancy breakdowns), stock trading tools, options flow, and more. The free tier is intentionally generous because we want you to build the journaling habit first -- once you see the value, you can decide if the premium features are worth upgrading for. Your data belongs to you regardless of your plan.</p>",
+    question: "Is Traverse really free? What is the catch?",
+    answer: "<p><strong>Yes, the Free plan is genuinely free with no hidden catch.</strong> You get core trade logging, basic journal, calendar view, and simple analytics at no cost, forever. No credit card is required to sign up, there is no trial period that expires, and we will never retroactively charge you or lock your existing data behind a paywall.</p><p>The way Traverse sustains itself is through <strong>Pro</strong> and <strong>Max</strong> paid plans that offer advanced features like AI Coach, premium analytics (MFE/MAE, R-value, expectancy breakdowns), stock trading tools, options flow, and more. The free tier is intentionally generous because we want you to build the journaling habit first -- once you see the value, you can decide if the premium features are worth upgrading for. Your data belongs to you regardless of your plan.</p>",
     category: "billing",
     tags: ["free plan", "no catch", "cost", "genuinely free", "pricing", "no credit card"],
     relatedIds: ["bi-plans-overview", "bi-free-vs-paid", "bi-data-ownership"],
@@ -3733,7 +3733,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-free-trial-how",
     question: "How does the free trial work exactly?",
-    answer: "<p>When you sign up for Stargate, you may be eligible for a <strong>free trial of the Pro or Max plan</strong> that gives you full access to all premium features for a limited time (typically 7-14 days). During the trial, you can explore the AI Coach, advanced analytics, and all premium tools with no restrictions. <strong>No credit card is required</strong> to start the trial.</p><p>When the trial ends, your account automatically reverts to the Free plan. You do not get charged anything. All your data (trades, journal entries, notes) remains intact -- you just lose access to premium-only features until you upgrade. You can upgrade to a paid plan at any time during or after the trial from <code>Settings</code>. If you are unsure whether to upgrade, use the trial period to test the AI Coach and advanced analytics with your real trading data to see if they provide value.</p>",
+    answer: "<p>When you sign up for Traverse, you may be eligible for a <strong>free trial of the Pro or Max plan</strong> that gives you full access to all premium features for a limited time (typically 7-14 days). During the trial, you can explore the AI Coach, advanced analytics, and all premium tools with no restrictions. <strong>No credit card is required</strong> to start the trial.</p><p>When the trial ends, your account automatically reverts to the Free plan. You do not get charged anything. All your data (trades, journal entries, notes) remains intact -- you just lose access to premium-only features until you upgrade. You can upgrade to a paid plan at any time during or after the trial from <code>Settings</code>. If you are unsure whether to upgrade, use the trial period to test the AI Coach and advanced analytics with your real trading data to see if they provide value.</p>",
     category: "billing",
     tags: ["free trial", "trial period", "how it works", "no credit card", "automatic", "expiration"],
     relatedIds: ["bi-free-trial", "bi-upgrade", "bi-free-vs-paid"],
@@ -3741,7 +3741,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-how-to-upgrade",
     question: "How do I upgrade from the free plan to a paid plan?",
-    answer: "<p>Upgrading is simple: <strong>1)</strong> Go to <code>Settings</code> and look for the <strong>Upgrade</strong> or <strong>Manage Subscription</strong> section. <strong>2)</strong> Select the plan you want (Pro or Max) and choose monthly or annual billing. <strong>3)</strong> Enter your payment details and confirm. Your upgrade takes effect <strong>immediately</strong> -- all premium features unlock the moment payment is processed.</p><p>You can also upgrade by clicking any <strong>upgrade prompt</strong> that appears when you try to access a premium-only feature (like the AI Coach on the Free plan). Both paths lead to the same checkout page. Annual billing is discounted compared to monthly, so if you plan to use Stargate long-term, annual is the better value. After upgrading, explore the AI Coach first -- it is the feature most users find most valuable right away.</p>",
+    answer: "<p>Upgrading is simple: <strong>1)</strong> Go to <code>Settings</code> and look for the <strong>Upgrade</strong> or <strong>Manage Subscription</strong> section. <strong>2)</strong> Select the plan you want (Pro or Max) and choose monthly or annual billing. <strong>3)</strong> Enter your payment details and confirm. Your upgrade takes effect <strong>immediately</strong> -- all premium features unlock the moment payment is processed.</p><p>You can also upgrade by clicking any <strong>upgrade prompt</strong> that appears when you try to access a premium-only feature (like the AI Coach on the Free plan). Both paths lead to the same checkout page. Annual billing is discounted compared to monthly, so if you plan to use Traverse long-term, annual is the better value. After upgrading, explore the AI Coach first -- it is the feature most users find most valuable right away.</p>",
     category: "billing",
     tags: ["upgrade", "subscribe", "paid plan", "checkout", "payment", "how to upgrade"],
     relatedIds: ["bi-upgrade", "bi-plans-overview", "bi-annual-discount"],
@@ -3757,7 +3757,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-switch-billing-cycle",
     question: "Can I switch between monthly and annual billing mid-cycle?",
-    answer: "<p><strong>Yes, you can switch between monthly and annual billing at any time.</strong> Go to <code>Settings -> Manage Subscription</code> and select your preferred billing cycle. If you switch from monthly to annual, you will be charged the annual rate immediately, and any unused time from your current monthly period will be prorated as a credit. If you switch from annual to monthly, the change takes effect at the end of your current annual billing period.</p><p>Annual billing typically saves you <strong>20% or more</strong> compared to paying monthly for a full year. If you have been using Stargate on a monthly plan for a few months and know you want to continue, switching to annual is a good way to reduce your costs. The exact pricing for both options is always visible on the Pricing page and in your subscription management settings.</p>",
+    answer: "<p><strong>Yes, you can switch between monthly and annual billing at any time.</strong> Go to <code>Settings -> Manage Subscription</code> and select your preferred billing cycle. If you switch from monthly to annual, you will be charged the annual rate immediately, and any unused time from your current monthly period will be prorated as a credit. If you switch from annual to monthly, the change takes effect at the end of your current annual billing period.</p><p>Annual billing typically saves you <strong>20% or more</strong> compared to paying monthly for a full year. If you have been using Traverse on a monthly plan for a few months and know you want to continue, switching to annual is a good way to reduce your costs. The exact pricing for both options is always visible on the Pricing page and in your subscription management settings.</p>",
     category: "billing",
     tags: ["billing cycle", "monthly", "annual", "switch", "prorate", "change plan"],
     relatedIds: ["bi-annual-discount", "bi2-switch-plan", "bi-upgrade"],
@@ -3773,7 +3773,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-payment-fails",
     question: "What happens if my payment fails?",
-    answer: "<p>If your payment fails (expired card, insufficient funds, bank decline), Stargate will <strong>automatically retry the charge</strong> a few times over the next several days. You will receive an email notification alerting you to the failed payment and asking you to update your payment method. During this retry period, your premium features <strong>remain active</strong> so you do not lose access immediately.</p><p>If the payment continues to fail after all retry attempts, your account will be downgraded to the Free plan at the end of your current billing period. <strong>Your data is never deleted</strong> due to a failed payment. To fix the issue, go to <code>Settings -> Manage Subscription</code> and update your credit card information. Once a valid payment method is on file, your premium access will be restored. If you believe the charge was blocked in error, contact your bank first, then reach out to our support team if the issue persists.</p>",
+    answer: "<p>If your payment fails (expired card, insufficient funds, bank decline), Traverse will <strong>automatically retry the charge</strong> a few times over the next several days. You will receive an email notification alerting you to the failed payment and asking you to update your payment method. During this retry period, your premium features <strong>remain active</strong> so you do not lose access immediately.</p><p>If the payment continues to fail after all retry attempts, your account will be downgraded to the Free plan at the end of your current billing period. <strong>Your data is never deleted</strong> due to a failed payment. To fix the issue, go to <code>Settings -> Manage Subscription</code> and update your credit card information. Once a valid payment method is on file, your premium access will be restored. If you believe the charge was blocked in error, contact your bank first, then reach out to our support team if the issue persists.</p>",
     category: "billing",
     tags: ["payment failed", "declined", "retry", "card expired", "billing error", "downgrade"],
     relatedIds: ["bi2-failed-payment", "bi4-update-credit-card", "tr-contact-support"],
@@ -3781,7 +3781,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-update-credit-card",
     question: "How do I update my credit card information?",
-    answer: "<p>To update your payment method: <strong>1)</strong> Go to <code>Settings -> Manage Subscription</code>. <strong>2)</strong> Click <strong>Update Payment Method</strong> or <strong>Manage Billing</strong>. <strong>3)</strong> Enter your new card details and save. The new card will be used for all future charges immediately. Your existing subscription continues without interruption.</p><p>If your current card is about to expire, update it <strong>before</strong> the next billing date to avoid a failed payment. Stargate uses <strong>Stripe</strong> for payment processing, so your card details are handled securely and never stored on our servers. If you are having trouble updating your card (e.g., the new card is being declined), try a different card or contact your bank to ensure they are not blocking the transaction. You can also contact our support team for billing assistance.</p>",
+    answer: "<p>To update your payment method: <strong>1)</strong> Go to <code>Settings -> Manage Subscription</code>. <strong>2)</strong> Click <strong>Update Payment Method</strong> or <strong>Manage Billing</strong>. <strong>3)</strong> Enter your new card details and save. The new card will be used for all future charges immediately. Your existing subscription continues without interruption.</p><p>If your current card is about to expire, update it <strong>before</strong> the next billing date to avoid a failed payment. Traverse uses <strong>Stripe</strong> for payment processing, so your card details are handled securely and never stored on our servers. If you are having trouble updating your card (e.g., the new card is being declined), try a different card or contact your bank to ensure they are not blocking the transaction. You can also contact our support team for billing assistance.</p>",
     category: "billing",
     tags: ["update card", "credit card", "payment method", "change card", "billing", "Stripe"],
     relatedIds: ["bi-payment-methods", "bi4-payment-fails", "bi2-failed-payment"],
@@ -3797,7 +3797,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-pause-subscription",
     question: "Can I pause my subscription instead of canceling?",
-    answer: "<p>Stargate does not currently offer a formal \"pause\" feature that freezes your billing for a set period. However, you can <strong>cancel your subscription</strong> and your premium features will remain active until the end of your current billing period. Your data stays safe indefinitely on the Free plan, and you can <strong>reactivate anytime</strong> with a single click.</p><p>This effectively works like a pause: cancel before your next billing date, use the Free plan while you are away from trading, and upgrade again when you are ready to resume. Since your data is never deleted, everything will be right where you left it. If you are going on a break longer than a month, this is the recommended approach. If you have specific needs (e.g., pausing for military deployment), contact support and we will work with you on a custom arrangement.</p>",
+    answer: "<p>Traverse does not currently offer a formal \"pause\" feature that freezes your billing for a set period. However, you can <strong>cancel your subscription</strong> and your premium features will remain active until the end of your current billing period. Your data stays safe indefinitely on the Free plan, and you can <strong>reactivate anytime</strong> with a single click.</p><p>This effectively works like a pause: cancel before your next billing date, use the Free plan while you are away from trading, and upgrade again when you are ready to resume. Since your data is never deleted, everything will be right where you left it. If you are going on a break longer than a month, this is the recommended approach. If you have specific needs (e.g., pausing for military deployment), contact support and we will work with you on a custom arrangement.</p>",
     category: "billing",
     tags: ["pause", "freeze", "suspend", "temporary", "break", "hiatus"],
     relatedIds: ["bi-cancel", "bi4-reactivate-account", "bi-data-ownership"],
@@ -3805,7 +3805,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-refund-policy",
     question: "What is your refund policy?",
-    answer: "<p>Stargate offers a <strong>satisfaction-based refund policy</strong>. If you are unhappy with your purchase within the first <strong>14 days</strong> of a new subscription or renewal, contact us via <code>Settings -> Contact Support</code> and we will process a full refund, no questions asked. We want you to feel confident in your purchase.</p><p>After 14 days, refunds are evaluated on a case-by-case basis. If you experienced a technical issue that prevented you from using the service, or if there was a billing error, we will always make it right. Refunds are processed back to your original payment method and typically appear within 5-10 business days depending on your bank. To avoid unwanted charges, remember to cancel your subscription before the next billing cycle if you do not plan to continue using premium features.</p>",
+    answer: "<p>Traverse offers a <strong>satisfaction-based refund policy</strong>. If you are unhappy with your purchase within the first <strong>14 days</strong> of a new subscription or renewal, contact us via <code>Settings -> Contact Support</code> and we will process a full refund, no questions asked. We want you to feel confident in your purchase.</p><p>After 14 days, refunds are evaluated on a case-by-case basis. If you experienced a technical issue that prevented you from using the service, or if there was a billing error, we will always make it right. Refunds are processed back to your original payment method and typically appear within 5-10 business days depending on your bank. To avoid unwanted charges, remember to cancel your subscription before the next billing cycle if you do not plan to continue using premium features.</p>",
     category: "billing",
     tags: ["refund", "money back", "guarantee", "return", "policy", "14 days"],
     relatedIds: ["bi2-refund-policy", "bi-cancel", "tr-contact-support"],
@@ -3821,7 +3821,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-reactivate-account",
     question: "How do I reactivate my account after canceling?",
-    answer: "<p>Reactivating is just as easy as upgrading for the first time. <strong>1)</strong> Log in to your Stargate account (your credentials still work even on the Free plan). <strong>2)</strong> Go to <code>Settings -> Manage Subscription</code>. <strong>3)</strong> Select the plan you want and enter payment details. Your premium access is restored <strong>immediately</strong> upon payment.</p><p>All your historical data -- trades, journal entries, analytics -- will be right where you left it. The advanced analytics (AI Coach, MFE/MAE, R-value, etc.) will immediately recalculate using your full trade history, including any trades you logged while on the Free plan. There is no penalty for reactivating, no re-onboarding required, and no data migration. It is seamless. If you had an annual plan that lapsed, you can choose either monthly or annual billing when reactivating.</p>",
+    answer: "<p>Reactivating is just as easy as upgrading for the first time. <strong>1)</strong> Log in to your Traverse account (your credentials still work even on the Free plan). <strong>2)</strong> Go to <code>Settings -> Manage Subscription</code>. <strong>3)</strong> Select the plan you want and enter payment details. Your premium access is restored <strong>immediately</strong> upon payment.</p><p>All your historical data -- trades, journal entries, analytics -- will be right where you left it. The advanced analytics (AI Coach, MFE/MAE, R-value, etc.) will immediately recalculate using your full trade history, including any trades you logged while on the Free plan. There is no penalty for reactivating, no re-onboarding required, and no data migration. It is seamless. If you had an annual plan that lapsed, you can choose either monthly or annual billing when reactivating.</p>",
     category: "billing",
     tags: ["reactivate", "resubscribe", "renew", "come back", "restore", "rejoin"],
     relatedIds: ["bi-cancel", "bi-upgrade", "bi-data-ownership"],
@@ -3829,7 +3829,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-family-plan",
     question: "Is there a family or household plan?",
-    answer: "<p>Stargate does not currently offer a family or household plan. Each user needs their own individual account and subscription. This is because trading journals contain highly personal financial data, performance metrics, and AI-generated insights that are specific to each trader's history and goals.</p><p>If multiple people in your household trade, each person should create their own account with their own email address. The <strong>Free plan</strong> is always available for anyone who wants to try Stargate at no cost. For couples or families where multiple members want paid plans, consider using our <strong>referral program</strong> -- you can earn credits that reduce your subscription costs. Check <code>Settings</code> for your referral link. If you need a team or group plan (e.g., for a trading desk or prop firm), see our team pricing options or contact support.</p>",
+    answer: "<p>Traverse does not currently offer a family or household plan. Each user needs their own individual account and subscription. This is because trading journals contain highly personal financial data, performance metrics, and AI-generated insights that are specific to each trader's history and goals.</p><p>If multiple people in your household trade, each person should create their own account with their own email address. The <strong>Free plan</strong> is always available for anyone who wants to try Traverse at no cost. For couples or families where multiple members want paid plans, consider using our <strong>referral program</strong> -- you can earn credits that reduce your subscription costs. Check <code>Settings</code> for your referral link. If you need a team or group plan (e.g., for a trading desk or prop firm), see our team pricing options or contact support.</p>",
     category: "billing",
     tags: ["family plan", "household", "shared", "multiple users", "couple", "group"],
     relatedIds: ["bi2-team-plans", "bi-referral", "bi-plans-overview"],
@@ -3837,7 +3837,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-bulk-team-pricing",
     question: "Do you offer bulk or volume pricing for teams?",
-    answer: "<p>Yes, Stargate offers <strong>team pricing</strong> for trading desks, prop firms, trading communities, and educational groups. Team plans include volume discounts that increase with the number of seats: <strong>5-10 seats</strong> receive a moderate discount, <strong>11-25 seats</strong> receive a larger discount, and <strong>25+ seats</strong> get custom enterprise pricing.</p><p>Team plans include all Pro or Max features for every member, plus optional admin features like group-level analytics and member management. To set up a team plan, contact our sales team via <code>Settings -> Contact Support</code> with the number of users you need and we will provide a custom quote. For trading educators or course creators, we also offer special partnership programs -- reach out for details.</p>",
+    answer: "<p>Yes, Traverse offers <strong>team pricing</strong> for trading desks, prop firms, trading communities, and educational groups. Team plans include volume discounts that increase with the number of seats: <strong>5-10 seats</strong> receive a moderate discount, <strong>11-25 seats</strong> receive a larger discount, and <strong>25+ seats</strong> get custom enterprise pricing.</p><p>Team plans include all Pro or Max features for every member, plus optional admin features like group-level analytics and member management. To set up a team plan, contact our sales team via <code>Settings -> Contact Support</code> with the number of users you need and we will provide a custom quote. For trading educators or course creators, we also offer special partnership programs -- reach out for details.</p>",
     category: "billing",
     tags: ["team pricing", "bulk", "volume", "prop firm", "group", "enterprise", "discount"],
     relatedIds: ["bi2-team-plans", "bi-plans-overview", "tr-contact-support"],
@@ -3845,7 +3845,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-paypal",
     question: "Can I pay with PayPal?",
-    answer: "<p>Stargate currently processes payments through <strong>Stripe</strong>, which accepts all major credit and debit cards (Visa, Mastercard, American Express, Discover). <strong>PayPal is not supported as a direct payment method at this time.</strong> However, if your PayPal account has a linked debit card, you may be able to use that card number directly in the Stripe checkout.</p><p>We are evaluating adding PayPal as a payment option in the future based on user demand. If PayPal support is important to you, let us know via <code>Settings -> Contact Support</code> -- user feedback directly influences our feature roadmap. In the meantime, most debit cards, credit cards, and some digital wallets (Apple Pay, Google Pay where supported by Stripe) can be used for payment.</p>",
+    answer: "<p>Traverse currently processes payments through <strong>Stripe</strong>, which accepts all major credit and debit cards (Visa, Mastercard, American Express, Discover). <strong>PayPal is not supported as a direct payment method at this time.</strong> However, if your PayPal account has a linked debit card, you may be able to use that card number directly in the Stripe checkout.</p><p>We are evaluating adding PayPal as a payment option in the future based on user demand. If PayPal support is important to you, let us know via <code>Settings -> Contact Support</code> -- user feedback directly influences our feature roadmap. In the meantime, most debit cards, credit cards, and some digital wallets (Apple Pay, Google Pay where supported by Stripe) can be used for payment.</p>",
     category: "billing",
     tags: ["PayPal", "payment method", "credit card", "debit card", "Stripe", "Apple Pay"],
     relatedIds: ["bi-payment-methods", "bi4-update-credit-card", "tr-contact-support"],
@@ -3861,7 +3861,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "bi4-billing-currency",
     question: "What currency am I charged in?",
-    answer: "<p>All Stargate subscriptions are billed in <strong>US Dollars (USD)</strong>. If your credit card or bank account uses a different currency, your bank will automatically convert the charge at their current exchange rate. This conversion is handled entirely by your bank or card issuer, and a small foreign exchange fee may apply depending on your bank's policies.</p><p>The amount shown on the Pricing page and during checkout is always in USD. Your bank statement may show a slightly different amount due to the exchange rate at the time of the charge. If you want to know exactly how much you will be charged in your local currency, check your bank's current USD exchange rate. For billing questions related to currency conversion, your bank is the best point of contact since Stargate does not control exchange rates or foreign transaction fees.</p>",
+    answer: "<p>All Traverse subscriptions are billed in <strong>US Dollars (USD)</strong>. If your credit card or bank account uses a different currency, your bank will automatically convert the charge at their current exchange rate. This conversion is handled entirely by your bank or card issuer, and a small foreign exchange fee may apply depending on your bank's policies.</p><p>The amount shown on the Pricing page and during checkout is always in USD. Your bank statement may show a slightly different amount due to the exchange rate at the time of the charge. If you want to know exactly how much you will be charged in your local currency, check your bank's current USD exchange rate. For billing questions related to currency conversion, your bank is the best point of contact since Traverse does not control exchange rates or foreign transaction fees.</p>",
     category: "billing",
     tags: ["currency", "USD", "exchange rate", "foreign transaction", "billing currency"],
     relatedIds: ["bi-payment-methods", "bi4-hidden-fees", "as-currency"],
@@ -3919,7 +3919,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-data-after-deletion",
     question: "What happens to my data when I delete my account?",
-    answer: "<p>When you delete your account, <strong>all of the following are permanently removed</strong> from our servers: your profile information, all trades, journal entries, tags, notes, emotion ratings, process scores, screenshots, AI Coach conversation history, settings, and any connected exchange API keys. This data cannot be recovered after deletion.</p><p>The deletion process is thorough and complies with <strong>GDPR</strong> and other data protection regulations. Your data is removed from active databases immediately and from backups within 30 days. Any active subscription is canceled and you will not be charged again. If you think you might return to Stargate in the future, consider simply <strong>downgrading to the Free plan</strong> instead of deleting -- your data stays safe indefinitely and you can upgrade again anytime. Always <strong>export your data first</strong> from <code>Settings -> Import & Export</code> before deleting.</p>",
+    answer: "<p>When you delete your account, <strong>all of the following are permanently removed</strong> from our servers: your profile information, all trades, journal entries, tags, notes, emotion ratings, process scores, screenshots, AI Coach conversation history, settings, and any connected exchange API keys. This data cannot be recovered after deletion.</p><p>The deletion process is thorough and complies with <strong>GDPR</strong> and other data protection regulations. Your data is removed from active databases immediately and from backups within 30 days. Any active subscription is canceled and you will not be charged again. If you think you might return to Traverse in the future, consider simply <strong>downgrading to the Free plan</strong> instead of deleting -- your data stays safe indefinitely and you can upgrade again anytime. Always <strong>export your data first</strong> from <code>Settings -> Import & Export</code> before deleting.</p>",
     category: "account-settings",
     tags: ["data deletion", "what happens", "account removal", "GDPR", "permanent", "backup"],
     relatedIds: ["ps-delete-account", "ps-gdpr-compliance", "as-export-data"],
@@ -3935,7 +3935,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-change-language",
     question: "Can I change the app language?",
-    answer: "<p>Yes, Stargate supports <strong>12 languages</strong>. To change: go to <code>Settings</code> and find the <strong>Language</strong> dropdown. Select your preferred language and the entire interface will update immediately -- all navigation labels, buttons, tooltips, and system messages will appear in the selected language.</p><p>Available languages: <strong>English, German (Deutsch), Spanish (Espanol), French (Francais), Portuguese (Portugues), Japanese, Korean, Chinese (Simplified), Russian, Arabic, Hindi, and Turkish</strong>. Your language preference is saved to your account and will apply on all devices. Note that user-generated content (your trade notes, journal entries, tags) remains in whatever language you wrote them in -- only the app interface text is translated. If you would like to see a language that is not listed, let us know via <code>Settings -> Contact Support</code>.</p>",
+    answer: "<p>Yes, Traverse supports <strong>12 languages</strong>. To change: go to <code>Settings</code> and find the <strong>Language</strong> dropdown. Select your preferred language and the entire interface will update immediately -- all navigation labels, buttons, tooltips, and system messages will appear in the selected language.</p><p>Available languages: <strong>English, German (Deutsch), Spanish (Espanol), French (Francais), Portuguese (Portugues), Japanese, Korean, Chinese (Simplified), Russian, Arabic, Hindi, and Turkish</strong>. Your language preference is saved to your account and will apply on all devices. Note that user-generated content (your trade notes, journal entries, tags) remains in whatever language you wrote them in -- only the app interface text is translated. If you would like to see a language that is not listed, let us know via <code>Settings -> Contact Support</code>.</p>",
     category: "account-settings",
     tags: ["language", "translation", "locale", "internationalization", "Spanish", "French", "German"],
     relatedIds: ["gs-onboarding", "as-change-theme", "tr-contact-support"],
@@ -3958,8 +3958,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "as4-other-languages",
-    question: "Can I use Stargate in Spanish, French, or other languages?",
-    answer: "<p><strong>Yes!</strong> Stargate supports Spanish (Espanol), French (Francais), and 10 other languages. The full list is: English, German, Spanish, French, Portuguese, Japanese, Korean, Chinese (Simplified), Russian, Arabic, Hindi, and Turkish. To switch, go to <code>Settings</code> and select your language from the dropdown.</p><p>All interface elements translate instantly: sidebar navigation, buttons, form labels, tooltips, dashboard widget titles, and system notifications. Your personal content (trade notes, journal entries, AI Coach conversations) stays in the language you wrote them in. The AI Coach can understand and respond in multiple languages, so feel free to write to it in your preferred language. If your language is not supported yet, please let us know -- we are actively expanding language coverage based on user demand.</p>",
+    question: "Can I use Traverse in Spanish, French, or other languages?",
+    answer: "<p><strong>Yes!</strong> Traverse supports Spanish (Espanol), French (Francais), and 10 other languages. The full list is: English, German, Spanish, French, Portuguese, Japanese, Korean, Chinese (Simplified), Russian, Arabic, Hindi, and Turkish. To switch, go to <code>Settings</code> and select your language from the dropdown.</p><p>All interface elements translate instantly: sidebar navigation, buttons, form labels, tooltips, dashboard widget titles, and system notifications. Your personal content (trade notes, journal entries, AI Coach conversations) stays in the language you wrote them in. The AI Coach can understand and respond in multiple languages, so feel free to write to it in your preferred language. If your language is not supported yet, please let us know -- we are actively expanding language coverage based on user demand.</p>",
     category: "account-settings",
     tags: ["Spanish", "French", "multilingual", "language support", "translation", "localization"],
     relatedIds: ["as4-change-language", "gs-onboarding", "ai-how-it-works"],
@@ -3967,7 +3967,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-email-notifications",
     question: "How do I turn email notifications on or off?",
-    answer: "<p>To manage email notifications: go to <code>Settings -> Notifications</code> (or <code>Settings -> Preferences</code>). You will see toggles for different notification types: <strong>weekly performance digest</strong>, <strong>AI Coach insights</strong>, <strong>billing reminders</strong>, <strong>product updates</strong>, and <strong>tips & educational content</strong>. Toggle each one on or off based on your preferences.</p><p>Changes save immediately. If you want to stop all emails from Stargate, turn off every toggle. You can also click the <strong>unsubscribe</strong> link at the bottom of any email we send to opt out of that specific notification type. We never send spam or sell your email to third parties. Billing-related emails (payment receipts, failed payment alerts) cannot be fully disabled since they contain important account information, but they are infrequent and only sent when there is a billing event.</p>",
+    answer: "<p>To manage email notifications: go to <code>Settings -> Notifications</code> (or <code>Settings -> Preferences</code>). You will see toggles for different notification types: <strong>weekly performance digest</strong>, <strong>AI Coach insights</strong>, <strong>billing reminders</strong>, <strong>product updates</strong>, and <strong>tips & educational content</strong>. Toggle each one on or off based on your preferences.</p><p>Changes save immediately. If you want to stop all emails from Traverse, turn off every toggle. You can also click the <strong>unsubscribe</strong> link at the bottom of any email we send to opt out of that specific notification type. We never send spam or sell your email to third parties. Billing-related emails (payment receipts, failed payment alerts) cannot be fully disabled since they contain important account information, but they are infrequent and only sent when there is a billing event.</p>",
     category: "account-settings",
     tags: ["email notifications", "alerts", "digest", "unsubscribe", "preferences", "toggle"],
     relatedIds: ["as2-notifications", "bi4-payment-fails", "tr-contact-support"],
@@ -3975,7 +3975,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-export-all-data",
     question: "How do I export all my data?",
-    answer: "<p>To export your complete trade data: <strong>1)</strong> Go to <code>Settings -> Import & Export</code>. <strong>2)</strong> Click <strong>Export Trades</strong>. <strong>3)</strong> A CSV file will be downloaded containing all your trades with every field: symbol, entry/exit prices, dates, direction, position size, P&L, fees, tags, notes, emotion ratings, and process scores. This file can be opened in Excel, Google Sheets, or any spreadsheet program.</p><p>We recommend exporting your data <strong>regularly</strong> (at least monthly) as a backup. The CSV export is also useful for doing custom analysis that goes beyond Stargate's built-in analytics, or for sharing specific data with a mentor or trading coach. Journal entries may be exported separately. If you are migrating to another platform, the CSV export provides a complete, portable record of your trading history that any other journal can import.</p>",
+    answer: "<p>To export your complete trade data: <strong>1)</strong> Go to <code>Settings -> Import & Export</code>. <strong>2)</strong> Click <strong>Export Trades</strong>. <strong>3)</strong> A CSV file will be downloaded containing all your trades with every field: symbol, entry/exit prices, dates, direction, position size, P&L, fees, tags, notes, emotion ratings, and process scores. This file can be opened in Excel, Google Sheets, or any spreadsheet program.</p><p>We recommend exporting your data <strong>regularly</strong> (at least monthly) as a backup. The CSV export is also useful for doing custom analysis that goes beyond Traverse's built-in analytics, or for sharing specific data with a mentor or trading coach. Journal entries may be exported separately. If you are migrating to another platform, the CSV export provides a complete, portable record of your trading history that any other journal can import.</p>",
     category: "account-settings",
     tags: ["export", "download", "CSV", "backup", "data export", "all data", "spreadsheet"],
     relatedIds: ["as-export-data", "bi-data-ownership", "gs-import-trades"],
@@ -3983,7 +3983,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-export-format",
     question: "What format does the data export come in?",
-    answer: "<p>Stargate exports your data as a <strong>CSV (Comma-Separated Values)</strong> file, which is the most universally compatible format. CSV files can be opened in Microsoft Excel, Google Sheets, Apple Numbers, LibreOffice Calc, and any text editor. Each row represents one trade, and columns include: symbol, entry date, exit date, entry price, exit price, quantity, direction, realized P&L, fees, tags (comma-separated within the cell), notes, emotion rating, and process score.</p><p>The CSV uses <strong>UTF-8 encoding</strong> to support all character sets (including notes written in non-English languages). Dates are exported in <strong>ISO 8601</strong> format (YYYY-MM-DDTHH:MM:SSZ) for unambiguous parsing. If you need the data in a different format (JSON, Excel .xlsx, etc.), open the CSV in Google Sheets or Excel and use \"Save As\" to convert it. The export includes all trades regardless of date range -- it is a complete dump of your entire trade history.</p>",
+    answer: "<p>Traverse exports your data as a <strong>CSV (Comma-Separated Values)</strong> file, which is the most universally compatible format. CSV files can be opened in Microsoft Excel, Google Sheets, Apple Numbers, LibreOffice Calc, and any text editor. Each row represents one trade, and columns include: symbol, entry date, exit date, entry price, exit price, quantity, direction, realized P&L, fees, tags (comma-separated within the cell), notes, emotion rating, and process score.</p><p>The CSV uses <strong>UTF-8 encoding</strong> to support all character sets (including notes written in non-English languages). Dates are exported in <strong>ISO 8601</strong> format (YYYY-MM-DDTHH:MM:SSZ) for unambiguous parsing. If you need the data in a different format (JSON, Excel .xlsx, etc.), open the CSV in Google Sheets or Excel and use \"Save As\" to convert it. The export includes all trades regardless of date range -- it is a complete dump of your entire trade history.</p>",
     category: "account-settings",
     tags: ["export format", "CSV", "file type", "Excel", "data format", "UTF-8", "ISO 8601"],
     relatedIds: ["as-export-data", "as4-export-all-data", "tj-csv-format"],
@@ -3991,7 +3991,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-import-from-other-journals",
     question: "Can I import data from another trading journal like TraderSync or Tradervue?",
-    answer: "<p><strong>Yes, as long as the other journal lets you export to CSV.</strong> Most trading journals (TraderSync, Tradervue, TradeZella, Edgewonk, etc.) offer a CSV export feature. Export your data from the other platform, then import the CSV into Stargate via <code>Settings -> Import & Export</code>. Stargate's column mapper will let you match the exported columns to Stargate's fields.</p><p>Different journals use different column names and formats, so you may need to use the <strong>manual column mapping</strong> tool during import. Common differences include: field names (\"Ticker\" vs \"Symbol\"), date formats, and how direction is expressed (\"Buy/Sell\" vs \"Long/Short\"). If the other journal's export includes extra columns Stargate does not use, those will simply be ignored. After importing, review a few trades to confirm prices, dates, and P&L are correct. If you run into issues with a specific platform's export format, contact support and we can help troubleshoot the mapping.</p>",
+    answer: "<p><strong>Yes, as long as the other journal lets you export to CSV.</strong> Most trading journals (TraderSync, Tradervue, TradeZella, Edgewonk, etc.) offer a CSV export feature. Export your data from the other platform, then import the CSV into Traverse via <code>Settings -> Import & Export</code>. Traverse's column mapper will let you match the exported columns to Traverse's fields.</p><p>Different journals use different column names and formats, so you may need to use the <strong>manual column mapping</strong> tool during import. Common differences include: field names (\"Ticker\" vs \"Symbol\"), date formats, and how direction is expressed (\"Buy/Sell\" vs \"Long/Short\"). If the other journal's export includes extra columns Traverse does not use, those will simply be ignored. After importing, review a few trades to confirm prices, dates, and P&L are correct. If you run into issues with a specific platform's export format, contact support and we can help troubleshoot the mapping.</p>",
     category: "account-settings",
     tags: ["TraderSync", "Tradervue", "TradeZella", "migrate", "switch", "other journal", "import"],
     relatedIds: ["gs-import-trades", "tj-csv-format", "tj4-supported-brokers"],
@@ -3999,7 +3999,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-connect-exchange-api",
     question: "How do I connect my exchange account via API?",
-    answer: "<p>Exchange API connections are <strong>coming soon</strong> to Stargate. When available, the setup process will be: <strong>1)</strong> Go to <code>Settings -> Connections</code> or <code>Settings -> API Keys</code>. <strong>2)</strong> Select your exchange (Binance, Coinbase, Kraken, etc.). <strong>3)</strong> Enter your API key and secret (generated from your exchange account). <strong>4)</strong> Save and Stargate will begin syncing your trades automatically.</p><p>In the meantime, you can import trades via CSV file from any exchange. Go to <code>Settings -> Import & Export</code> and upload your trade history export. When API connections launch, you will be able to connect your exchange and have trades sync automatically without manual imports. We will only ever request <strong>read-only</strong> API permissions -- Stargate will never need the ability to place trades or withdraw funds from your exchange account. Watch for updates in the app or our communications.</p>",
+    answer: "<p>Exchange API connections are <strong>coming soon</strong> to Traverse. When available, the setup process will be: <strong>1)</strong> Go to <code>Settings -> Connections</code> or <code>Settings -> API Keys</code>. <strong>2)</strong> Select your exchange (Binance, Coinbase, Kraken, etc.). <strong>3)</strong> Enter your API key and secret (generated from your exchange account). <strong>4)</strong> Save and Traverse will begin syncing your trades automatically.</p><p>In the meantime, you can import trades via CSV file from any exchange. Go to <code>Settings -> Import & Export</code> and upload your trade history export. When API connections launch, you will be able to connect your exchange and have trades sync automatically without manual imports. We will only ever request <strong>read-only</strong> API permissions -- Traverse will never need the ability to place trades or withdraw funds from your exchange account. Watch for updates in the app or our communications.</p>",
     category: "account-settings",
     tags: ["API", "exchange connection", "API key", "sync", "Binance API", "automatic import"],
     relatedIds: ["gs-import-trades", "as4-api-key-security", "as4-api-permissions"],
@@ -4007,15 +4007,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-api-key-security",
     question: "Is my exchange API key stored securely?",
-    answer: "<p><strong>Yes, API key security is a top priority.</strong> When API connections are available, your API keys will be <strong>encrypted at rest</strong> using industry-standard AES-256 encryption before being stored. The encryption keys are managed separately from the database, following security best practices. Your API secret is never displayed in plain text after initial setup -- it is shown once during entry and then masked.</p><p>Additionally, we enforce that all exchange API keys must be <strong>read-only</strong> (no trade or withdrawal permissions). This means even in the unlikely event of a security breach, your exchange funds cannot be accessed or moved through your Stargate-stored API key. You can revoke or delete your API key from Stargate at any time via <code>Settings -> Connections</code>, and you should also revoke it directly on your exchange if you no longer want Stargate to have access.</p>",
+    answer: "<p><strong>Yes, API key security is a top priority.</strong> When API connections are available, your API keys will be <strong>encrypted at rest</strong> using industry-standard AES-256 encryption before being stored. The encryption keys are managed separately from the database, following security best practices. Your API secret is never displayed in plain text after initial setup -- it is shown once during entry and then masked.</p><p>Additionally, we enforce that all exchange API keys must be <strong>read-only</strong> (no trade or withdrawal permissions). This means even in the unlikely event of a security breach, your exchange funds cannot be accessed or moved through your Traverse-stored API key. You can revoke or delete your API key from Traverse at any time via <code>Settings -> Connections</code>, and you should also revoke it directly on your exchange if you no longer want Traverse to have access.</p>",
     category: "account-settings",
     tags: ["API key security", "encryption", "AES-256", "secure storage", "read-only", "safety"],
     relatedIds: ["ps-data-encrypted", "as4-connect-exchange-api", "as4-api-permissions"],
   },
   {
     id: "as4-api-permissions",
-    question: "What API key permissions does Stargate need?",
-    answer: "<p>Stargate only needs <strong>read-only</strong> permissions on your exchange API key. Specifically, you should enable: <strong>Read Account Info</strong> and <strong>Read Trade History</strong>. <strong>Do NOT enable</strong> trading permissions, withdrawal permissions, or transfer permissions. Stargate will never attempt to place trades or move funds -- it only reads your trade history for import.</p><p>Here is how to create a read-only API key on common exchanges: <strong>Binance</strong>: go to API Management, create a key, and enable only \"Enable Reading\". <strong>Coinbase</strong>: go to API Settings, create a key with \"view\" (not \"trade\" or \"transfer\") permissions. <strong>Kraken</strong>: go to Settings -> API, create a key with only \"Query Funds\" and \"Query Orders & Trades\" checked. If you accidentally create a key with too many permissions, delete it and create a new one with only read access. Never share your API secret with anyone.</p>",
+    question: "What API key permissions does Traverse need?",
+    answer: "<p>Traverse only needs <strong>read-only</strong> permissions on your exchange API key. Specifically, you should enable: <strong>Read Account Info</strong> and <strong>Read Trade History</strong>. <strong>Do NOT enable</strong> trading permissions, withdrawal permissions, or transfer permissions. Traverse will never attempt to place trades or move funds -- it only reads your trade history for import.</p><p>Here is how to create a read-only API key on common exchanges: <strong>Binance</strong>: go to API Management, create a key, and enable only \"Enable Reading\". <strong>Coinbase</strong>: go to API Settings, create a key with \"view\" (not \"trade\" or \"transfer\") permissions. <strong>Kraken</strong>: go to Settings -> API, create a key with only \"Query Funds\" and \"Query Orders & Trades\" checked. If you accidentally create a key with too many permissions, delete it and create a new one with only read access. Never share your API secret with anyone.</p>",
     category: "account-settings",
     tags: ["API permissions", "read-only", "exchange API", "Binance API", "Coinbase API", "security"],
     relatedIds: ["as4-connect-exchange-api", "as4-api-key-security", "ps-data-encrypted"],
@@ -4023,7 +4023,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "as4-disconnect-exchange",
     question: "Can I disconnect or revoke exchange access?",
-    answer: "<p>Yes, you can disconnect your exchange at any time. <strong>1)</strong> Go to <code>Settings -> Connections</code> (or <code>Settings -> API Keys</code>). <strong>2)</strong> Find the connected exchange and click <strong>Disconnect</strong> or <strong>Remove</strong>. <strong>3)</strong> Confirm the action. Stargate will immediately stop syncing new trades from that exchange and delete the stored API key from our servers.</p><p>For complete security, you should <strong>also revoke the API key on your exchange</strong> directly. Go to your exchange's API management page and delete the key you created for Stargate. This ensures the key cannot be used anywhere, even if someone obtained it before you disconnected. Trades that were already imported before disconnecting will <strong>remain in your Stargate account</strong> -- disconnecting only stops future syncs, it does not delete historical data. You can reconnect at any time by creating a new API key and adding it to Stargate.</p>",
+    answer: "<p>Yes, you can disconnect your exchange at any time. <strong>1)</strong> Go to <code>Settings -> Connections</code> (or <code>Settings -> API Keys</code>). <strong>2)</strong> Find the connected exchange and click <strong>Disconnect</strong> or <strong>Remove</strong>. <strong>3)</strong> Confirm the action. Traverse will immediately stop syncing new trades from that exchange and delete the stored API key from our servers.</p><p>For complete security, you should <strong>also revoke the API key on your exchange</strong> directly. Go to your exchange's API management page and delete the key you created for Traverse. This ensures the key cannot be used anywhere, even if someone obtained it before you disconnected. Trades that were already imported before disconnecting will <strong>remain in your Traverse account</strong> -- disconnecting only stops future syncs, it does not delete historical data. You can reconnect at any time by creating a new API key and adding it to Traverse.</p>",
     category: "account-settings",
     tags: ["disconnect", "revoke", "remove API", "unlink exchange", "stop sync", "delete key"],
     relatedIds: ["as4-connect-exchange-api", "as4-api-key-security", "as-export-data"],
@@ -4049,7 +4049,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an4-minimum-sample-size",
     question: "How many trades do I need before my statistics are meaningful?",
-    answer: "As a general rule, you need at least <strong>30 trades</strong> for basic statistics like win rate and average P&L to begin stabilizing. For more advanced metrics like expectancy, profit factor, and Sharpe ratio, aim for <strong>50-100 trades</strong> to reduce the impact of outliers. For statistically significant conclusions about specific setups or tags, you need <strong>30+ trades per category</strong>. Stargate displays a confidence indicator next to metrics that are based on too few data points. Avoid making strategic changes based on small sample sizes — a 10-trade losing streak can happen even in profitable systems.",
+    answer: "As a general rule, you need at least <strong>30 trades</strong> for basic statistics like win rate and average P&L to begin stabilizing. For more advanced metrics like expectancy, profit factor, and Sharpe ratio, aim for <strong>50-100 trades</strong> to reduce the impact of outliers. For statistically significant conclusions about specific setups or tags, you need <strong>30+ trades per category</strong>. Traverse displays a confidence indicator next to metrics that are based on too few data points. Avoid making strategic changes based on small sample sizes — a 10-trade losing streak can happen even in profitable systems.",
     category: "analytics",
     tags: ["sample size", "minimum trades", "statistical significance", "confidence", "data", "meaningful", "reliable"],
     relatedIds: ["an-win-rate", "an-expectancy", "an-consecutive-losses"],
@@ -4113,7 +4113,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an4-gross-net-pnl-difference",
     question: "What is the difference between gross and net P&L?",
-    answer: "<strong>Gross P&L</strong> is your raw profit or loss from price movement alone — entry price vs. exit price multiplied by position size. <strong>Net P&L</strong> subtracts all trading costs: commissions, exchange fees, slippage, and funding rates. For a day trader taking 20 trades per day at $5 per round-trip commission, that is <strong>$100/day or $2,000/month</strong> in fees alone. Stargate displays both figures side by side in all analytics views. If your gross P&L is positive but net P&L is negative, fees are eating your edge — consider reducing frequency, increasing position size (with proper risk management), or switching to a lower-fee exchange.",
+    answer: "<strong>Gross P&L</strong> is your raw profit or loss from price movement alone — entry price vs. exit price multiplied by position size. <strong>Net P&L</strong> subtracts all trading costs: commissions, exchange fees, slippage, and funding rates. For a day trader taking 20 trades per day at $5 per round-trip commission, that is <strong>$100/day or $2,000/month</strong> in fees alone. Traverse displays both figures side by side in all analytics views. If your gross P&L is positive but net P&L is negative, fees are eating your edge — consider reducing frequency, increasing position size (with proper risk management), or switching to a lower-fee exchange.",
     category: "analytics",
     tags: ["gross", "net", "pnl", "difference", "fees", "commissions", "costs"],
     relatedIds: ["an-gross-vs-net", "tj-fees", "an-profit-factor"],
@@ -4121,7 +4121,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an4-stats-mismatch-broker",
     question: "Why don't my statistics match my broker's numbers?",
-    answer: "Several factors cause discrepancies between Stargate and your broker: <strong>1)</strong> <strong>Fee calculation</strong> — your broker may include or exclude fees differently than Stargate. <strong>2)</strong> <strong>Cost basis method</strong> — Stargate defaults to FIFO; your broker may use average cost. <strong>3)</strong> <strong>Timezone offset</strong> — daily P&L depends on when \"today\" starts; check <code>Settings → Timezone</code>. <strong>4)</strong> <strong>Missing trades</strong> — verify all trades were imported (check date range filters). <strong>5)</strong> <strong>Currency conversion</strong> — if display currency differs from trading currency. Cross-reference a few specific trades between platforms to identify the systematic difference, then correct the root cause.",
+    answer: "Several factors cause discrepancies between Traverse and your broker: <strong>1)</strong> <strong>Fee calculation</strong> — your broker may include or exclude fees differently than Traverse. <strong>2)</strong> <strong>Cost basis method</strong> — Traverse defaults to FIFO; your broker may use average cost. <strong>3)</strong> <strong>Timezone offset</strong> — daily P&L depends on when \"today\" starts; check <code>Settings → Timezone</code>. <strong>4)</strong> <strong>Missing trades</strong> — verify all trades were imported (check date range filters). <strong>5)</strong> <strong>Currency conversion</strong> — if display currency differs from trading currency. Cross-reference a few specific trades between platforms to identify the systematic difference, then correct the root cause.",
     category: "analytics",
     tags: ["mismatch", "broker", "different", "numbers", "discrepancy", "exchange", "reconcile"],
     relatedIds: ["tr-data-discrepancy", "tr-numbers-differ", "as-timezone"],
@@ -4129,7 +4129,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an4-compare-periods",
     question: "Can I compare two time periods side by side?",
-    answer: "Yes — go to <code>Performance → Compare</code> and select two date ranges (e.g., this month vs. last month, or Q1 vs. Q2). Stargate generates a side-by-side comparison table showing win rate, expectancy, profit factor, Sharpe ratio, average R, trade count, max drawdown, and average hold time for each period. This reveals whether your trading is genuinely improving or just benefiting from favorable market conditions. You can also compare by playbook or account to evaluate strategic changes. Color-coded arrows show which metrics improved and which declined.",
+    answer: "Yes — go to <code>Performance → Compare</code> and select two date ranges (e.g., this month vs. last month, or Q1 vs. Q2). Traverse generates a side-by-side comparison table showing win rate, expectancy, profit factor, Sharpe ratio, average R, trade count, max drawdown, and average hold time for each period. This reveals whether your trading is genuinely improving or just benefiting from favorable market conditions. You can also compare by playbook or account to evaluate strategic changes. Color-coded arrows show which metrics improved and which declined.",
     category: "analytics",
     tags: ["compare", "periods", "side by side", "improvement", "before after", "progress", "evaluation"],
     relatedIds: ["an2-compare-periods", "an-date-filter", "an-equity-curve"],
@@ -4145,7 +4145,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an4-process-score-calculation",
     question: "What is the process score and how is it calculated?",
-    answer: "The process score is a <strong>self-assigned rating from 1 to 10</strong> that measures how well you followed your trading plan on each trade, regardless of outcome. It is not automatically calculated — you rate yourself when logging or reviewing a trade. Over time, Stargate correlates your process scores with actual results. Key insights to look for: <strong>1)</strong> Do high-process-score trades have better win rates? (They should.) <strong>2)</strong> Are you inflating scores on winners and deflating them on losers? (Be honest.) <strong>3)</strong> What is your average process score over time? Aim for <strong>7+</strong> consistently. View process analytics on <code>Performance → Execution</code>.",
+    answer: "The process score is a <strong>self-assigned rating from 1 to 10</strong> that measures how well you followed your trading plan on each trade, regardless of outcome. It is not automatically calculated — you rate yourself when logging or reviewing a trade. Over time, Traverse correlates your process scores with actual results. Key insights to look for: <strong>1)</strong> Do high-process-score trades have better win rates? (They should.) <strong>2)</strong> Are you inflating scores on winners and deflating them on losers? (Be honest.) <strong>3)</strong> What is your average process score over time? Aim for <strong>7+</strong> consistently. View process analytics on <code>Performance → Execution</code>.",
     category: "analytics",
     tags: ["process score", "calculation", "self-rating", "discipline", "execution", "plan adherence", "honest"],
     relatedIds: ["tj-process-score", "an-execution", "an-expectancy"],
@@ -4153,7 +4153,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "an4-track-commissions-stats",
     question: "How do I track commissions and fees in my statistics?",
-    answer: "Enter the fee amount in the <strong>Fees</strong> field when logging each trade. For CSV imports, include a fee column — Stargate maps it automatically for supported exchange formats. Once tracked, fees appear everywhere: <strong>1)</strong> Each trade shows gross vs. net P&L. <strong>2)</strong> <code>Analytics → Fees Breakdown</code> shows total fees by period, symbol, and account. <strong>3)</strong> Your equity curve and profit factor use net figures by default. If you forgot to log fees on past trades, use <strong>bulk edit</strong> to add a flat per-trade fee retroactively. Accurate fee tracking is critical — even $3-5 per trade adds up to thousands over a year of active trading.",
+    answer: "Enter the fee amount in the <strong>Fees</strong> field when logging each trade. For CSV imports, include a fee column — Traverse maps it automatically for supported exchange formats. Once tracked, fees appear everywhere: <strong>1)</strong> Each trade shows gross vs. net P&L. <strong>2)</strong> <code>Analytics → Fees Breakdown</code> shows total fees by period, symbol, and account. <strong>3)</strong> Your equity curve and profit factor use net figures by default. If you forgot to log fees on past trades, use <strong>bulk edit</strong> to add a flat per-trade fee retroactively. Accurate fee tracking is critical — even $3-5 per trade adds up to thousands over a year of active trading.",
     category: "analytics",
     tags: ["commissions", "fees", "tracking", "statistics", "costs", "net pnl", "breakdown"],
     relatedIds: ["tj-fees", "an-gross-vs-net", "tj3-commission-tracking"],
@@ -4163,7 +4163,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai4-predict-prices",
     question: "Can the AI coach predict future prices?",
-    answer: "No — and any tool claiming to predict prices reliably is misleading you. Stargate's AI Coach is designed to analyze <strong>your behavior and performance</strong>, not forecast markets. It identifies patterns in your trading decisions — which setups you execute best, when you make emotional mistakes, and where your edge actually comes from. Price prediction is fundamentally different from performance coaching. The Coach helps you become a better trader by improving your process, not by guessing where BTC or SPY will go next.",
+    answer: "No — and any tool claiming to predict prices reliably is misleading you. Traverse's AI Coach is designed to analyze <strong>your behavior and performance</strong>, not forecast markets. It identifies patterns in your trading decisions — which setups you execute best, when you make emotional mistakes, and where your edge actually comes from. Price prediction is fundamentally different from performance coaching. The Coach helps you become a better trader by improving your process, not by guessing where BTC or SPY will go next.",
     category: "ai-coach",
     tags: ["predict", "prices", "forecast", "future", "crystal ball", "limitations", "no"],
     relatedIds: ["ai-limitations", "ai2-market-context", "ai-how-it-works"],
@@ -4187,7 +4187,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai4-bad-financial-advice",
     question: "Can the AI give me bad financial advice?",
-    answer: "The AI Coach is explicitly designed as a <strong>performance coaching tool, not a financial advisor</strong>. It does not recommend specific trades, assets, or allocations. Its advice is limited to analyzing your past behavior and suggesting process improvements. That said, no AI is perfect — it may occasionally misinterpret patterns or draw conclusions from insufficient data. Always apply your own judgment. Stargate includes a disclaimer that the AI Coach does not constitute financial advice, and you should consult a licensed professional for investment decisions.",
+    answer: "The AI Coach is explicitly designed as a <strong>performance coaching tool, not a financial advisor</strong>. It does not recommend specific trades, assets, or allocations. Its advice is limited to analyzing your past behavior and suggesting process improvements. That said, no AI is perfect — it may occasionally misinterpret patterns or draw conclusions from insufficient data. Always apply your own judgment. Traverse includes a disclaimer that the AI Coach does not constitute financial advice, and you should consult a licensed professional for investment decisions.",
     category: "ai-coach",
     tags: ["financial advice", "disclaimer", "risk", "liability", "not advisor", "caution", "judgment"],
     relatedIds: ["ai-limitations", "ai-how-it-works", "ai4-accuracy"],
@@ -4195,7 +4195,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai4-conversation-privacy",
     question: "Is my AI conversation history private?",
-    answer: "Yes — your AI coaching conversations are <strong>completely private</strong>. They are stored in your account and are not visible to other users, Stargate staff, or third parties. Conversations are not used to train AI models. Your data is encrypted at rest and in transit. Only you can access your conversation history, and you can delete it at any time from <code>AI Coach → History</code>. If you delete your account, all conversation history is permanently erased.",
+    answer: "Yes — your AI coaching conversations are <strong>completely private</strong>. They are stored in your account and are not visible to other users, Traverse staff, or third parties. Conversations are not used to train AI models. Your data is encrypted at rest and in transit. Only you can access your conversation history, and you can delete it at any time from <code>AI Coach → History</code>. If you delete your account, all conversation history is permanently erased.",
     category: "ai-coach",
     tags: ["privacy", "private", "conversation", "confidential", "secure", "encrypted", "hidden"],
     relatedIds: ["ai-privacy", "ps-data-encrypted", "ps-data-sold"],
@@ -4218,8 +4218,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ai4-vs-chatgpt",
-    question: "How is Stargate's AI coach different from ChatGPT?",
-    answer: "ChatGPT is a general-purpose AI with no knowledge of your trading data. Stargate's AI Coach is <strong>deeply integrated with your actual trades, journal, emotions, and performance metrics</strong>. When you ask ChatGPT \"What am I doing wrong?\", it can only give generic advice. When you ask Stargate's Coach the same question, it responds with specifics: \"Your breakout trades have a 62% win rate but your reversal trades only win 28% — and you take 3x more reversal trades. Here are the 5 worst reversal trades and what they have in common.\" That is the difference between generic information and personalized coaching grounded in your own data.",
+    question: "How is Traverse's AI coach different from ChatGPT?",
+    answer: "ChatGPT is a general-purpose AI with no knowledge of your trading data. Traverse's AI Coach is <strong>deeply integrated with your actual trades, journal, emotions, and performance metrics</strong>. When you ask ChatGPT \"What am I doing wrong?\", it can only give generic advice. When you ask Traverse's Coach the same question, it responds with specifics: \"Your breakout trades have a 62% win rate but your reversal trades only win 28% — and you take 3x more reversal trades. Here are the 5 worst reversal trades and what they have in common.\" That is the difference between generic information and personalized coaching grounded in your own data.",
     category: "ai-coach",
     tags: ["chatgpt", "difference", "comparison", "personalized", "integrated", "generic", "advantage"],
     relatedIds: ["ai-how-it-works", "ai-what-to-ask", "ai2-pattern-detection"],
@@ -4275,7 +4275,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ai4-current-market-conditions",
     question: "Can I ask the AI about current market conditions?",
-    answer: "The AI Coach focuses on <strong>your personal trading performance</strong> rather than live market data. It does not provide real-time price analysis, market calls, or predictions. However, it can analyze how <strong>your performance varies</strong> across different market conditions. Ask questions like <strong>\"How do I perform in volatile markets?\"</strong> or <strong>\"Do I trade better in uptrends or downtrends?\"</strong> and the Coach will reference your historical data. For current market data, use Stargate's <code>Market Tools</code> section (screeners, heatmaps, funding rates), which provides real-time market information.",
+    answer: "The AI Coach focuses on <strong>your personal trading performance</strong> rather than live market data. It does not provide real-time price analysis, market calls, or predictions. However, it can analyze how <strong>your performance varies</strong> across different market conditions. Ask questions like <strong>\"How do I perform in volatile markets?\"</strong> or <strong>\"Do I trade better in uptrends or downtrends?\"</strong> and the Coach will reference your historical data. For current market data, use Traverse's <code>Market Tools</code> section (screeners, heatmaps, funding rates), which provides real-time market information.",
     category: "ai-coach",
     tags: ["market conditions", "current", "live", "real-time", "analysis", "not available", "alternative"],
     relatedIds: ["ai-limitations", "ai2-market-context", "mt2-crypto-overview"],
@@ -4285,14 +4285,14 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-auto-logout",
     question: "The app keeps logging me out automatically — why?",
-    answer: "Automatic logouts are typically caused by one of these issues: <strong>1)</strong> <strong>Browser cookie settings</strong> — if your browser clears cookies on close or blocks third-party cookies, your session token is deleted. Go to browser settings and whitelist <code>stargate.trade</code>. <strong>2)</strong> <strong>Session expiry</strong> — sessions last 7 days of inactivity by default. If you have not used the app in a week, you will need to log in again. <strong>3)</strong> <strong>Privacy extensions</strong> — ad blockers or privacy tools (uBlock, Privacy Badger) may strip authentication cookies. Add Stargate to your extension's whitelist. <strong>4)</strong> <strong>Incognito/private mode</strong> — sessions never persist in private browsing windows. Use a normal browser window for persistent login.",
+    answer: "Automatic logouts are typically caused by one of these issues: <strong>1)</strong> <strong>Browser cookie settings</strong> — if your browser clears cookies on close or blocks third-party cookies, your session token is deleted. Go to browser settings and whitelist <code>stargate.trade</code>. <strong>2)</strong> <strong>Session expiry</strong> — sessions last 7 days of inactivity by default. If you have not used the app in a week, you will need to log in again. <strong>3)</strong> <strong>Privacy extensions</strong> — ad blockers or privacy tools (uBlock, Privacy Badger) may strip authentication cookies. Add Traverse to your extension's whitelist. <strong>4)</strong> <strong>Incognito/private mode</strong> — sessions never persist in private browsing windows. Use a normal browser window for persistent login.",
     category: "troubleshooting",
     tags: ["logout", "automatic", "session", "cookies", "signed out", "keeps logging out", "persistent"],
     relatedIds: ["ps2-session-security", "tr2-login-issues", "as-browser-support"],
   },
   {
     id: "tr4-blank-white-screen",
-    question: "I see a blank white screen when I open Stargate — what do I do?",
+    question: "I see a blank white screen when I open Traverse — what do I do?",
     answer: "A blank white screen usually means the JavaScript bundle failed to load. Try these steps in order: <strong>1)</strong> <strong>Hard refresh</strong> — press <code>Ctrl+Shift+R</code> (Windows) or <code>Cmd+Shift+R</code> (Mac) to bypass the cache. <strong>2)</strong> <strong>Clear site data</strong> — go to browser settings → site settings → stargate.trade → clear all data. <strong>3)</strong> <strong>Disable extensions</strong> — ad blockers or script blockers can prevent the app from loading. <strong>4)</strong> <strong>Try a different browser</strong> — if Chrome fails, try Firefox or Edge. <strong>5)</strong> <strong>Check your internet connection</strong> — the app requires a stable connection to load. If none of these work, email support with your browser name, version, and a screenshot of the developer console (press <code>F12</code> → Console tab).",
     category: "troubleshooting",
     tags: ["blank screen", "white screen", "not loading", "empty", "broken", "javascript", "cache"],
@@ -4317,7 +4317,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-numbers-different-broker",
     question: "Why are my numbers different from what my broker shows?",
-    answer: "The five most common causes of discrepancies: <strong>1)</strong> <strong>Fees</strong> — if you did not log commissions, Stargate shows gross P&L while your broker shows net. Add fees to each trade or use bulk edit to add a flat fee retroactively. <strong>2)</strong> <strong>Timezone mismatch</strong> — daily P&L boundaries depend on timezone; check <code>Settings → Timezone</code>. <strong>3)</strong> <strong>Missing trades</strong> — verify your import captured all trades by comparing trade counts. <strong>4)</strong> <strong>Cost basis method</strong> — Stargate uses FIFO by default; your broker may use average cost. <strong>5)</strong> <strong>Unrealized vs. realized</strong> — open trades show unrealized P&L that may differ from your broker's mark-to-market. Pick one specific trade and compare it line by line to identify the systematic difference.",
+    answer: "The five most common causes of discrepancies: <strong>1)</strong> <strong>Fees</strong> — if you did not log commissions, Traverse shows gross P&L while your broker shows net. Add fees to each trade or use bulk edit to add a flat fee retroactively. <strong>2)</strong> <strong>Timezone mismatch</strong> — daily P&L boundaries depend on timezone; check <code>Settings → Timezone</code>. <strong>3)</strong> <strong>Missing trades</strong> — verify your import captured all trades by comparing trade counts. <strong>4)</strong> <strong>Cost basis method</strong> — Traverse uses FIFO by default; your broker may use average cost. <strong>5)</strong> <strong>Unrealized vs. realized</strong> — open trades show unrealized P&L that may differ from your broker's mark-to-market. Pick one specific trade and compare it line by line to identify the systematic difference.",
     category: "troubleshooting",
     tags: ["numbers", "different", "broker", "mismatch", "discrepancy", "wrong", "reconcile"],
     relatedIds: ["tr-data-discrepancy", "tr-numbers-differ", "tj-fees"],
@@ -4325,7 +4325,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-deleted-trade-recovery",
     question: "I accidentally deleted a trade — can I recover it?",
-    answer: "Deleted trades <strong>cannot be recovered</strong> — deletion is permanent and irreversible. To minimize the impact and prevent future losses: <strong>1)</strong> <strong>Re-import</strong> — if the trade came from a CSV import, re-import the original file; Stargate will re-create the trade. <strong>2)</strong> <strong>Re-enter manually</strong> — if you remember the trade details, log it again manually. <strong>3)</strong> <strong>Prevent future accidents</strong> — export your data regularly via <code>Settings → Export</code> as a backup. Stargate always shows a confirmation dialog before deleting, so read it carefully. If you need to clean up bad data, use <strong>Archive</strong> instead of delete — archived trades can be restored.",
+    answer: "Deleted trades <strong>cannot be recovered</strong> — deletion is permanent and irreversible. To minimize the impact and prevent future losses: <strong>1)</strong> <strong>Re-import</strong> — if the trade came from a CSV import, re-import the original file; Traverse will re-create the trade. <strong>2)</strong> <strong>Re-enter manually</strong> — if you remember the trade details, log it again manually. <strong>3)</strong> <strong>Prevent future accidents</strong> — export your data regularly via <code>Settings → Export</code> as a backup. Traverse always shows a confirmation dialog before deleting, so read it carefully. If you need to clean up bad data, use <strong>Archive</strong> instead of delete — archived trades can be restored.",
     category: "troubleshooting",
     tags: ["deleted", "recover", "undo", "accidentally", "restore", "lost", "permanent"],
     relatedIds: ["tr-deleted-trade", "as-export-data", "tj3-trade-archiving"],
@@ -4341,7 +4341,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-error-message",
     question: "I am getting an error message — what does it mean?",
-    answer: "Common error messages and their solutions: <strong>\"Network error\"</strong> — check your internet connection and refresh. <strong>\"Session expired\"</strong> — log in again; your session timed out. <strong>\"Rate limit exceeded\"</strong> — wait 60 seconds; you are making too many requests. <strong>\"Invalid data format\"</strong> — check your CSV for formatting issues (dates, numbers, special characters). <strong>\"Server error (500)\"</strong> — temporary server issue; wait a few minutes and retry. <strong>\"Forbidden (403)\"</strong> — you may need to upgrade your plan or re-authenticate. If you see an error not listed here, take a screenshot including the full error text and email it to <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a>.",
+    answer: "Common error messages and their solutions: <strong>\"Network error\"</strong> — check your internet connection and refresh. <strong>\"Session expired\"</strong> — log in again; your session timed out. <strong>\"Rate limit exceeded\"</strong> — wait 60 seconds; you are making too many requests. <strong>\"Invalid data format\"</strong> — check your CSV for formatting issues (dates, numbers, special characters). <strong>\"Server error (500)\"</strong> — temporary server issue; wait a few minutes and retry. <strong>\"Forbidden (403)\"</strong> — you may need to upgrade your plan or re-authenticate. If you see an error not listed here, take a screenshot including the full error text and email it to <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a>.",
     category: "troubleshooting",
     tags: ["error", "message", "meaning", "code", "500", "403", "network", "debug"],
     relatedIds: ["tr-contact-support", "tr-chart-not-loading", "tr2-api-rate-limit"],
@@ -4357,7 +4357,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-ai-not-responding",
     question: "The AI coach is not responding to my questions — what should I try?",
-    answer: "If the AI Coach is unresponsive, try these steps: <strong>1)</strong> <strong>Wait 15-20 seconds</strong> — the Coach analyzes your full trade history before responding, which can take time with large datasets. <strong>2)</strong> <strong>Refresh the page</strong> and try again with a simpler question. <strong>3)</strong> <strong>Check your query limit</strong> — if you have used all monthly queries, the chat is read-only until the limit resets. Look for a message at the bottom of the chat window. <strong>4)</strong> <strong>Check for service outages</strong> — the AI provider may be experiencing temporary issues. Wait 5 minutes and retry. <strong>5)</strong> <strong>Clear browser cache</strong> for Stargate and log in again. If the issue persists after all steps, contact support with the exact question you asked and any error messages displayed.",
+    answer: "If the AI Coach is unresponsive, try these steps: <strong>1)</strong> <strong>Wait 15-20 seconds</strong> — the Coach analyzes your full trade history before responding, which can take time with large datasets. <strong>2)</strong> <strong>Refresh the page</strong> and try again with a simpler question. <strong>3)</strong> <strong>Check your query limit</strong> — if you have used all monthly queries, the chat is read-only until the limit resets. Look for a message at the bottom of the chat window. <strong>4)</strong> <strong>Check for service outages</strong> — the AI provider may be experiencing temporary issues. Wait 5 minutes and retry. <strong>5)</strong> <strong>Clear browser cache</strong> for Traverse and log in again. If the issue persists after all steps, contact support with the exact question you asked and any error messages displayed.",
     category: "troubleshooting",
     tags: ["ai coach", "not responding", "stuck", "loading", "timeout", "broken", "unresponsive"],
     relatedIds: ["tr-ai-not-responding", "ai4-queries-per-month", "tr-contact-support"],
@@ -4365,7 +4365,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-wrong-day-pnl",
     question: "My daily P&L shows trades on the wrong day — why?",
-    answer: "This is almost always a <strong>timezone mismatch</strong>. If your Stargate timezone is set to UTC but you trade in US Eastern time, trades placed at 11 PM ET appear as the next day in UTC. Fix this by going to <code>Settings → Global Settings → Timezone</code> and selecting the timezone where you actively trade. After changing, all daily P&L calculations, calendar heatmaps, and day-of-week analytics will recalculate to reflect your local trading day. If you trade across multiple time zones, choose the one where you spend the most active trading hours.",
+    answer: "This is almost always a <strong>timezone mismatch</strong>. If your Traverse timezone is set to UTC but you trade in US Eastern time, trades placed at 11 PM ET appear as the next day in UTC. Fix this by going to <code>Settings → Global Settings → Timezone</code> and selecting the timezone where you actively trade. After changing, all daily P&L calculations, calendar heatmaps, and day-of-week analytics will recalculate to reflect your local trading day. If you trade across multiple time zones, choose the one where you spend the most active trading hours.",
     category: "troubleshooting",
     tags: ["wrong day", "daily pnl", "timezone", "mismatch", "date", "calendar", "midnight"],
     relatedIds: ["tr2-timezone-mismatch", "as-timezone", "an-calendar"],
@@ -4373,7 +4373,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-push-notifications-broken",
     question: "Push notifications are not working — how do I fix them?",
-    answer: "Browser push notifications require several things to work: <strong>1)</strong> <strong>Grant permission</strong> — when Stargate asks to send notifications, click Allow. If you previously denied it, go to browser settings → site settings → stargate.trade → Notifications → Allow. <strong>2)</strong> <strong>Enable in Stargate</strong> — go to <code>Settings → Notifications</code> and toggle on the notification types you want. <strong>3)</strong> <strong>System-level permissions</strong> — on macOS, check System Settings → Notifications → [your browser] → Allow. On Windows, check Settings → System → Notifications. <strong>4)</strong> <strong>Do Not Disturb</strong> — make sure DND/Focus mode is off. <strong>5)</strong> <strong>Browser must be running</strong> — push notifications only work when the browser is open (though the Stargate tab can be in the background).",
+    answer: "Browser push notifications require several things to work: <strong>1)</strong> <strong>Grant permission</strong> — when Traverse asks to send notifications, click Allow. If you previously denied it, go to browser settings → site settings → stargate.trade → Notifications → Allow. <strong>2)</strong> <strong>Enable in Traverse</strong> — go to <code>Settings → Notifications</code> and toggle on the notification types you want. <strong>3)</strong> <strong>System-level permissions</strong> — on macOS, check System Settings → Notifications → [your browser] → Allow. On Windows, check Settings → System → Notifications. <strong>4)</strong> <strong>Do Not Disturb</strong> — make sure DND/Focus mode is off. <strong>5)</strong> <strong>Browser must be running</strong> — push notifications only work when the browser is open (though the Traverse tab can be in the background).",
     category: "troubleshooting",
     tags: ["push notifications", "not working", "broken", "permission", "browser", "alerts", "enable"],
     relatedIds: ["as2-notifications", "gs3-notification-setup", "as-browser-support"],
@@ -4381,7 +4381,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-high-memory-usage",
     question: "The app is using too much memory on my browser — how do I reduce it?",
-    answer: "Stargate's memory usage increases with trade volume and animated themes. To reduce it: <strong>1)</strong> <strong>Switch to Obsidian theme</strong> — animated particle backgrounds can use 50-100MB of memory. <strong>2)</strong> <strong>Use date range filters</strong> — loading all-time analytics with 5,000+ trades is memory-intensive; filter to the current month. <strong>3)</strong> <strong>Close unused Stargate tabs</strong> — each open tab maintains its own data cache. <strong>4)</strong> <strong>Disable auto-refresh on market data pages</strong> — screeners and heatmaps that update every few seconds consume memory over time. <strong>5)</strong> <strong>Restart your browser periodically</strong> — long-running browser sessions accumulate memory that garbage collection does not always reclaim.",
+    answer: "Traverse's memory usage increases with trade volume and animated themes. To reduce it: <strong>1)</strong> <strong>Switch to Obsidian theme</strong> — animated particle backgrounds can use 50-100MB of memory. <strong>2)</strong> <strong>Use date range filters</strong> — loading all-time analytics with 5,000+ trades is memory-intensive; filter to the current month. <strong>3)</strong> <strong>Close unused Traverse tabs</strong> — each open tab maintains its own data cache. <strong>4)</strong> <strong>Disable auto-refresh on market data pages</strong> — screeners and heatmaps that update every few seconds consume memory over time. <strong>5)</strong> <strong>Restart your browser periodically</strong> — long-running browser sessions accumulate memory that garbage collection does not always reclaim.",
     category: "troubleshooting",
     tags: ["memory", "ram", "usage", "high", "browser", "heavy", "reduce"],
     relatedIds: ["tr2-slow-loading", "tr2-browser-storage", "as-change-theme"],
@@ -4389,7 +4389,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-screenshot-upload-formats",
     question: "I cannot upload a screenshot to my trade — what formats are supported?",
-    answer: "Stargate supports the following image formats for trade screenshots and journal attachments: <strong>PNG</strong>, <strong>JPG/JPEG</strong>, <strong>GIF</strong>, and <strong>WebP</strong>. Maximum file size is <strong>5MB per image</strong>. If your upload is failing: <strong>1)</strong> Check the file size — resize large screenshots using your OS image editor. <strong>2)</strong> Verify the format — HEIC (default iPhone format) is not supported; convert to JPG first. <strong>3)</strong> Check your internet connection — uploads require a stable connection. <strong>4)</strong> Try a different browser — some browser extensions block file uploads. You can upload multiple images per trade.",
+    answer: "Traverse supports the following image formats for trade screenshots and journal attachments: <strong>PNG</strong>, <strong>JPG/JPEG</strong>, <strong>GIF</strong>, and <strong>WebP</strong>. Maximum file size is <strong>5MB per image</strong>. If your upload is failing: <strong>1)</strong> Check the file size — resize large screenshots using your OS image editor. <strong>2)</strong> Verify the format — HEIC (default iPhone format) is not supported; convert to JPG first. <strong>3)</strong> Check your internet connection — uploads require a stable connection. <strong>4)</strong> Try a different browser — some browser extensions block file uploads. You can upload multiple images per trade.",
     category: "troubleshooting",
     tags: ["screenshot", "upload", "image", "format", "png", "jpg", "file size"],
     relatedIds: ["tj-screenshots", "tr-contact-support", "as-browser-support"],
@@ -4397,7 +4397,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tr4-report-bug-request-feature",
     question: "How do I report a bug or request a feature?",
-    answer: "There are two ways to share feedback: <strong>1)</strong> <strong>In-app feedback</strong> — click the <strong>?</strong> icon in the bottom-right corner of any page, then select <strong>Report a Bug</strong> or <strong>Request a Feature</strong>. Bug reports automatically capture your browser info, current page, and account context to help us reproduce the issue. <strong>2)</strong> <strong>Email</strong> — send details to <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a>. For bugs, include: what you expected to happen, what actually happened, and a screenshot if possible. For feature requests, describe the problem you are trying to solve. We review every submission and prioritize based on user demand.",
+    answer: "There are two ways to share feedback: <strong>1)</strong> <strong>In-app feedback</strong> — click the <strong>?</strong> icon in the bottom-right corner of any page, then select <strong>Report a Bug</strong> or <strong>Request a Feature</strong>. Bug reports automatically capture your browser info, current page, and account context to help us reproduce the issue. <strong>2)</strong> <strong>Email</strong> — send details to <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a>. For bugs, include: what you expected to happen, what actually happened, and a screenshot if possible. For feature requests, describe the problem you are trying to solve. We review every submission and prioritize based on user demand.",
     category: "troubleshooting",
     tags: ["bug report", "feature request", "feedback", "support", "issue", "suggestion", "help"],
     relatedIds: ["tr-contact-support", "as-browser-support", "tr4-error-message"],
@@ -4407,31 +4407,31 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps4-data-shared",
     question: "Is my trading data shared with anyone at all?",
-    answer: "No — your trading data is <strong>never shared with anyone</strong>. It is not shared with other Stargate users, advertisers, data brokers, analytics providers, or any third party. The only services that interact with your data are <strong>Supabase</strong> (database storage with encryption) and the <strong>AI provider</strong> (for coaching — and your data is not used to train their models). Stargate's business model is subscriptions, not data monetization. Your trades, journal entries, emotions, and analytics belong exclusively to you.",
+    answer: "No — your trading data is <strong>never shared with anyone</strong>. It is not shared with other Traverse users, advertisers, data brokers, analytics providers, or any third party. The only services that interact with your data are <strong>Supabase</strong> (database storage with encryption) and the <strong>AI provider</strong> (for coaching — and your data is not used to train their models). Traverse's business model is subscriptions, not data monetization. Your trades, journal entries, emotions, and analytics belong exclusively to you.",
     category: "privacy-security",
     tags: ["shared", "anyone", "third party", "data sharing", "never", "private", "exclusive"],
     relatedIds: ["ps-data-sold", "ps-who-can-see", "ps2-third-party-access"],
   },
   {
     id: "ps4-other-users-see-trades",
-    question: "Can other Stargate users see my trades or journal?",
-    answer: "No — your data is <strong>completely invisible to other users</strong> by default. Stargate uses row-level security (RLS) policies in the database, which means each user can only query their own data at the database level — not just the application level. The only exception is the <strong>Shared Trades</strong> feature, which requires you to explicitly generate a share link for a specific trade. Even then, shared trades only show the trade details you choose to include — your journal entries, emotions, and process scores are never exposed through shared links.",
+    question: "Can other Traverse users see my trades or journal?",
+    answer: "No — your data is <strong>completely invisible to other users</strong> by default. Traverse uses row-level security (RLS) policies in the database, which means each user can only query their own data at the database level — not just the application level. The only exception is the <strong>Shared Trades</strong> feature, which requires you to explicitly generate a share link for a specific trade. Even then, shared trades only show the trade details you choose to include — your journal entries, emotions, and process scores are never exposed through shared links.",
     category: "privacy-security",
     tags: ["other users", "visible", "trades", "journal", "private", "row-level security", "default"],
     relatedIds: ["ps-who-can-see", "ap-shared-trades", "ps-data-encrypted"],
   },
   {
     id: "ps4-broker-login-stored",
-    question: "Is my broker login information stored by Stargate?",
-    answer: "Stargate <strong>never stores your broker username or password</strong>. Exchange connections use <strong>API keys</strong>, which are separate credentials with limited permissions. Your API keys are encrypted at rest in the database and only used to fetch trade data. We strongly recommend creating <strong>read-only API keys</strong> with no withdrawal or trading permissions. If your exchange supports IP whitelisting for API keys, enable that as well. You can revoke API key access at any time from your exchange's settings, which immediately disconnects Stargate.",
+    question: "Is my broker login information stored by Traverse?",
+    answer: "Traverse <strong>never stores your broker username or password</strong>. Exchange connections use <strong>API keys</strong>, which are separate credentials with limited permissions. Your API keys are encrypted at rest in the database and only used to fetch trade data. We strongly recommend creating <strong>read-only API keys</strong> with no withdrawal or trading permissions. If your exchange supports IP whitelisting for API keys, enable that as well. You can revoke API key access at any time from your exchange's settings, which immediately disconnects Traverse.",
     category: "privacy-security",
     tags: ["broker", "login", "password", "stored", "api keys", "credentials", "never"],
     relatedIds: ["ps-api-keys", "as-exchange-connections", "ps-data-encrypted"],
   },
   {
     id: "ps4-data-if-shutdown",
-    question: "What happens to my data if Stargate shuts down?",
-    answer: "If Stargate were to shut down, we commit to: <strong>1)</strong> <strong>90-day advance notice</strong> — announced via email and in-app notification to all users. <strong>2)</strong> <strong>Data export period</strong> — the app remains accessible in read-only mode for at least 90 days so you can export all your data (trades, journal, analytics) in CSV and JSON formats. <strong>3)</strong> <strong>Data deletion confirmation</strong> — after the export period, all user data is permanently deleted from our servers, and you receive a confirmation email. We recommend exporting your data regularly via <code>Settings → Export</code> regardless — it is a good practice for any cloud service.",
+    question: "What happens to my data if Traverse shuts down?",
+    answer: "If Traverse were to shut down, we commit to: <strong>1)</strong> <strong>90-day advance notice</strong> — announced via email and in-app notification to all users. <strong>2)</strong> <strong>Data export period</strong> — the app remains accessible in read-only mode for at least 90 days so you can export all your data (trades, journal, analytics) in CSV and JSON formats. <strong>3)</strong> <strong>Data deletion confirmation</strong> — after the export period, all user data is permanently deleted from our servers, and you receive a confirmation email. We recommend exporting your data regularly via <code>Settings → Export</code> regardless — it is a good practice for any cloud service.",
     category: "privacy-security",
     tags: ["shutdown", "close", "data", "backup", "export", "advance notice", "contingency"],
     relatedIds: ["bi-data-ownership", "as-export-data", "as2-data-backup"],
@@ -4439,7 +4439,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps4-sell-data-advertisers",
     question: "Do you sell my data to advertisers or third parties?",
-    answer: "<strong>No — absolutely not.</strong> Stargate does not sell, license, rent, or share your data with advertisers, data brokers, marketing companies, or any third parties. We do not serve ads anywhere in the product. We do not build advertising profiles from your trading behavior. We do not participate in data exchanges or audience networks. Our revenue comes exclusively from subscription payments. This is a core business principle, not just a policy — we believe trading data is deeply personal and treating it as a product for sale would violate the trust our users place in us.",
+    answer: "<strong>No — absolutely not.</strong> Traverse does not sell, license, rent, or share your data with advertisers, data brokers, marketing companies, or any third parties. We do not serve ads anywhere in the product. We do not build advertising profiles from your trading behavior. We do not participate in data exchanges or audience networks. Our revenue comes exclusively from subscription payments. This is a core business principle, not just a policy — we believe trading data is deeply personal and treating it as a product for sale would violate the trust our users place in us.",
     category: "privacy-security",
     tags: ["sell", "advertisers", "third parties", "no ads", "monetize", "data broker", "never"],
     relatedIds: ["ps-data-sold", "ps4-data-shared", "bi-plans-overview"],
@@ -4455,23 +4455,23 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps4-keep-trades-private",
     question: "Can I keep my trades completely private from everyone?",
-    answer: "Yes — by default, your trades are <strong>completely private and invisible to everyone</strong> except you. No one at Stargate can browse your trades either (database access is protected by row-level security). To ensure maximum privacy: <strong>1)</strong> Do not use the <strong>Shared Trades</strong> feature (or revoke any existing share links from <code>Apps → Shared Trades → Manage</code>). <strong>2)</strong> Do not export data to shared drives. <strong>3)</strong> Enable <strong>two-factor authentication</strong> to prevent unauthorized account access. With these steps, your trading data is as private as it can possibly be.",
+    answer: "Yes — by default, your trades are <strong>completely private and invisible to everyone</strong> except you. No one at Traverse can browse your trades either (database access is protected by row-level security). To ensure maximum privacy: <strong>1)</strong> Do not use the <strong>Shared Trades</strong> feature (or revoke any existing share links from <code>Apps → Shared Trades → Manage</code>). <strong>2)</strong> Do not export data to shared drives. <strong>3)</strong> Enable <strong>two-factor authentication</strong> to prevent unauthorized account access. With these steps, your trading data is as private as it can possibly be.",
     category: "privacy-security",
     tags: ["private", "completely", "everyone", "hidden", "invisible", "maximum privacy", "default"],
     relatedIds: ["ps-who-can-see", "ps4-other-users-see-trades", "as2-two-factor-auth"],
   },
   {
     id: "ps4-gdpr-compliance",
-    question: "Does Stargate comply with GDPR?",
-    answer: "Yes — Stargate is fully GDPR compliant. Your rights under GDPR include: <strong>Right to access</strong> — export all your data anytime from <code>Settings → Export</code>. <strong>Right to rectification</strong> — edit any trade, journal entry, or profile data. <strong>Right to erasure</strong> — request complete account and data deletion by contacting support. <strong>Right to portability</strong> — download your data in standard CSV and JSON formats. <strong>Right to restrict processing</strong> — you control which features use your data (e.g., AI Coach can be disabled). We collect only the minimum data necessary to provide the service. Our privacy policy details exactly what we collect and why.",
+    question: "Does Traverse comply with GDPR?",
+    answer: "Yes — Traverse is fully GDPR compliant. Your rights under GDPR include: <strong>Right to access</strong> — export all your data anytime from <code>Settings → Export</code>. <strong>Right to rectification</strong> — edit any trade, journal entry, or profile data. <strong>Right to erasure</strong> — request complete account and data deletion by contacting support. <strong>Right to portability</strong> — download your data in standard CSV and JSON formats. <strong>Right to restrict processing</strong> — you control which features use your data (e.g., AI Coach can be disabled). We collect only the minimum data necessary to provide the service. Our privacy policy details exactly what we collect and why.",
     category: "privacy-security",
     tags: ["gdpr", "compliance", "rights", "european", "data protection", "privacy", "regulation"],
     relatedIds: ["ps-gdpr-compliance", "ps-delete-account", "as-export-data"],
   },
   {
     id: "ps4-request-data-copy",
-    question: "Can I request a copy of all data Stargate has about me?",
-    answer: "Yes — you have two options: <strong>1)</strong> <strong>Self-service export</strong> — go to <code>Settings → Import & Export → Export All Data</code> to download your trades, journal entries, and settings as CSV files. This covers the vast majority of your data. <strong>2)</strong> <strong>Full data request</strong> — email <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a> with the subject \"Data Access Request\" to receive a comprehensive export including all data we hold (profile, subscription history, login logs, AI conversation history, notification preferences). We fulfill data access requests within <strong>30 days</strong> as required by GDPR.",
+    question: "Can I request a copy of all data Traverse has about me?",
+    answer: "Yes — you have two options: <strong>1)</strong> <strong>Self-service export</strong> — go to <code>Settings → Import & Export → Export All Data</code> to download your trades, journal entries, and settings as CSV files. This covers the vast majority of your data. <strong>2)</strong> <strong>Full data request</strong> — email <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a> with the subject \"Data Access Request\" to receive a comprehensive export including all data we hold (profile, subscription history, login logs, AI conversation history, notification preferences). We fulfill data access requests within <strong>30 days</strong> as required by GDPR.",
     category: "privacy-security",
     tags: ["data copy", "request", "export", "access", "gdpr", "download", "all data"],
     relatedIds: ["ps4-gdpr-compliance", "as-export-data", "ps-delete-account"],
@@ -4479,15 +4479,15 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps4-opt-out-analytics",
     question: "How do I opt out of analytics tracking?",
-    answer: "Stargate does not use third-party analytics trackers (Google Analytics, Mixpanel, etc.) or advertising SDKs. We collect only <strong>minimal, first-party usage data</strong> to maintain service quality (e.g., page load times, error rates). If you want to opt out of even this: go to <code>Settings → Privacy → Usage Analytics</code> and toggle it off. This disables all first-party telemetry. Note that this does not affect your trading analytics — those are always calculated locally from your trade data and are never sent anywhere.",
+    answer: "Traverse does not use third-party analytics trackers (Google Analytics, Mixpanel, etc.) or advertising SDKs. We collect only <strong>minimal, first-party usage data</strong> to maintain service quality (e.g., page load times, error rates). If you want to opt out of even this: go to <code>Settings → Privacy → Usage Analytics</code> and toggle it off. This disables all first-party telemetry. Note that this does not affect your trading analytics — those are always calculated locally from your trade data and are never sent anywhere.",
     category: "privacy-security",
     tags: ["opt out", "analytics", "tracking", "telemetry", "privacy", "disable", "no tracking"],
     relatedIds: ["ps-data-sold", "ps2-ip-logging", "ps4-gdpr-compliance"],
   },
   {
     id: "ps4-hipaa-compliant",
-    question: "Is Stargate HIPAA compliant?",
-    answer: "HIPAA (Health Insurance Portability and Accountability Act) applies to healthcare data and protected health information (PHI). Stargate is a <strong>trading journal application</strong> and does not collect, store, or process any health-related data. Therefore, HIPAA compliance is not applicable to our service. While we do track self-reported emotional states (mood, stress level), these are trading-context entries — not medical records — and are protected by our standard encryption and privacy policies. If you have specific regulatory compliance questions for your organization, contact <a href=\"mailto:support@stargate.trade\" class=\"text-accent\">support@stargate.trade</a>.",
+    question: "Is Traverse HIPAA compliant?",
+    answer: "HIPAA (Health Insurance Portability and Accountability Act) applies to healthcare data and protected health information (PHI). Traverse is a <strong>trading journal application</strong> and does not collect, store, or process any health-related data. Therefore, HIPAA compliance is not applicable to our service. While we do track self-reported emotional states (mood, stress level), these are trading-context entries — not medical records — and are protected by our standard encryption and privacy policies. If you have specific regulatory compliance questions for your organization, contact <a href=\"mailto:support@traversejournal.com\" class=\"text-accent\">support@traversejournal.com</a>.",
     category: "privacy-security",
     tags: ["hipaa", "health", "compliance", "not applicable", "medical", "regulation", "healthcare"],
     relatedIds: ["ps4-gdpr-compliance", "ps-data-encrypted", "tj-emotions"],
@@ -4503,7 +4503,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps4-journal-e2e-encrypted",
     question: "Are my journal entries end-to-end encrypted?",
-    answer: "Journal entries are <strong>encrypted at rest</strong> (AES-256) and <strong>in transit</strong> (TLS 1.3), but they are not end-to-end encrypted (E2EE) in the strictest sense. E2EE would mean only you could decrypt the data, which would prevent the AI Coach from reading your journal entries to provide coaching insights. We made a deliberate tradeoff: strong encryption that protects your data from external threats while still enabling features like AI analysis, full-text search, and server-side report generation. If E2EE is critical for your use case, you can keep sensitive thoughts in a separate offline journal and use Stargate only for trade data.",
+    answer: "Journal entries are <strong>encrypted at rest</strong> (AES-256) and <strong>in transit</strong> (TLS 1.3), but they are not end-to-end encrypted (E2EE) in the strictest sense. E2EE would mean only you could decrypt the data, which would prevent the AI Coach from reading your journal entries to provide coaching insights. We made a deliberate tradeoff: strong encryption that protects your data from external threats while still enabling features like AI analysis, full-text search, and server-side report generation. If E2EE is critical for your use case, you can keep sensitive thoughts in a separate offline journal and use Traverse only for trade data.",
     category: "privacy-security",
     tags: ["end-to-end", "encrypted", "journal", "e2ee", "encryption", "tradeoff", "at rest"],
     relatedIds: ["ps-data-encrypted", "ps4-how-encrypted", "tj-write-journal"],
@@ -4511,7 +4511,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps4-law-enforcement-access",
     question: "Can law enforcement or government agencies access my data?",
-    answer: "Stargate will only provide user data to law enforcement or government agencies when <strong>compelled by a valid legal process</strong> — a court order, subpoena, or warrant issued by a court with jurisdiction. We will: <strong>1)</strong> Verify the legal validity of every request. <strong>2)</strong> Narrow the scope to only the data specifically required. <strong>3)</strong> Notify the affected user before disclosing data, unless legally prohibited from doing so (e.g., gag orders). <strong>4)</strong> Fight overly broad or fishing-expedition requests. We have never received a national security letter or FISA order. We publish a transparency report annually detailing the number and nature of law enforcement requests received.",
+    answer: "Traverse will only provide user data to law enforcement or government agencies when <strong>compelled by a valid legal process</strong> — a court order, subpoena, or warrant issued by a court with jurisdiction. We will: <strong>1)</strong> Verify the legal validity of every request. <strong>2)</strong> Narrow the scope to only the data specifically required. <strong>3)</strong> Notify the affected user before disclosing data, unless legally prohibited from doing so (e.g., gag orders). <strong>4)</strong> Fight overly broad or fishing-expedition requests. We have never received a national security letter or FISA order. We publish a transparency report annually detailing the number and nature of law enforcement requests received.",
     category: "privacy-security",
     tags: ["law enforcement", "government", "subpoena", "warrant", "legal", "disclosure", "transparency"],
     relatedIds: ["ps4-gdpr-compliance", "ps-data-encrypted", "ps2-breach-response"],
@@ -4519,7 +4519,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ps4-report-vulnerability",
     question: "How do I report a security vulnerability I found?",
-    answer: "We take security vulnerabilities seriously and appreciate responsible disclosure. To report a vulnerability: <strong>1)</strong> Email <a href=\"mailto:security@stargate.trade\" class=\"text-accent\">security@stargate.trade</a> with a detailed description of the vulnerability, steps to reproduce, and any proof-of-concept code. <strong>2)</strong> Do not publicly disclose the vulnerability until we have had time to investigate and patch it. <strong>3)</strong> Do not access, modify, or delete other users' data during your research. We aim to acknowledge reports within <strong>24 hours</strong> and provide an initial assessment within <strong>72 hours</strong>. Valid vulnerability reports may be eligible for a bug bounty reward. Please do not report vulnerabilities through the regular support email — use the security-specific address for faster routing.",
+    answer: "We take security vulnerabilities seriously and appreciate responsible disclosure. To report a vulnerability: <strong>1)</strong> Email <a href=\"mailto:security@traversejournal.com\" class=\"text-accent\">security@traversejournal.com</a> with a detailed description of the vulnerability, steps to reproduce, and any proof-of-concept code. <strong>2)</strong> Do not publicly disclose the vulnerability until we have had time to investigate and patch it. <strong>3)</strong> Do not access, modify, or delete other users' data during your research. We aim to acknowledge reports within <strong>24 hours</strong> and provide an initial assessment within <strong>72 hours</strong>. Valid vulnerability reports may be eligible for a bug bounty reward. Please do not report vulnerabilities through the regular support email — use the security-specific address for faster routing.",
     category: "privacy-security",
     tags: ["vulnerability", "security", "report", "bug bounty", "responsible disclosure", "hacker", "found"],
     relatedIds: ["ps-data-encrypted", "ps2-breach-response", "tr-contact-support"],
@@ -4528,16 +4528,16 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   // MARKET TOOLS BASICS -- BATCH 4 (+15)
   {
     id: "mt4-crypto-price-delay",
-    question: "Are crypto prices on Stargate real-time or delayed?",
-    answer: "Crypto prices on Stargate are <strong>near real-time</strong>, updating every 5-15 seconds depending on the asset and data provider. Major pairs like BTC/USD and ETH/USD refresh fastest due to higher liquidity and provider priority. Prices are sourced from aggregated exchange feeds, so you may see slight differences compared to a single exchange like Binance or Coinbase. For journaling purposes this level of accuracy is more than sufficient, but for precise execution timing always confirm prices on your actual trading platform before entering or exiting a position.",
+    question: "Are crypto prices on Traverse real-time or delayed?",
+    answer: "Crypto prices on Traverse are <strong>near real-time</strong>, updating every 5-15 seconds depending on the asset and data provider. Major pairs like BTC/USD and ETH/USD refresh fastest due to higher liquidity and provider priority. Prices are sourced from aggregated exchange feeds, so you may see slight differences compared to a single exchange like Binance or Coinbase. For journaling purposes this level of accuracy is more than sufficient, but for precise execution timing always confirm prices on your actual trading platform before entering or exiting a position.",
     category: "market-tools",
     tags: ["crypto prices", "real-time", "delayed", "data feed", "refresh rate", "price accuracy", "exchange data"],
     relatedIds: ["mt-data-sources", "mt2-crypto-overview", "mt2-watchlist"],
   },
   {
     id: "mt4-stock-price-delay",
-    question: "Are stock prices on Stargate real-time or delayed?",
-    answer: "Stock prices on Stargate are <strong>delayed by approximately 15 minutes</strong> during regular market hours, which is standard for free market data feeds. The delay applies to US equities (NYSE, NASDAQ) and most international markets. After-hours and pre-market data may have longer delays or limited availability. For trade journaling this is perfectly adequate since you log your actual execution prices manually. If you need real-time stock quotes for active trading, use your broker's platform alongside Stargate.",
+    question: "Are stock prices on Traverse real-time or delayed?",
+    answer: "Stock prices on Traverse are <strong>delayed by approximately 15 minutes</strong> during regular market hours, which is standard for free market data feeds. The delay applies to US equities (NYSE, NASDAQ) and most international markets. After-hours and pre-market data may have longer delays or limited availability. For trade journaling this is perfectly adequate since you log your actual execution prices manually. If you need real-time stock quotes for active trading, use your broker's platform alongside Traverse.",
     category: "market-tools",
     tags: ["stock prices", "15-minute delay", "real-time", "NYSE", "NASDAQ", "market data", "delayed quotes"],
     relatedIds: ["mt-data-sources", "mt-stock-screener", "mt2-watchlist"],
@@ -4584,8 +4584,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "mt4-data-sources",
-    question: "What data sources does Stargate use for market data?",
-    answer: "Stargate aggregates data from multiple <strong>institutional-grade providers</strong> to ensure accuracy and redundancy. Crypto data comes from aggregated exchange feeds covering Binance, Coinbase, Kraken, and others, weighted by volume. Stock data is sourced from major financial data providers covering NYSE, NASDAQ, and international exchanges. On-chain metrics come from blockchain analytics APIs. The specific providers may change as Stargate negotiates better data partnerships, but data quality and coverage are continuously monitored. You can see the data source attribution on any individual asset page under the price chart.",
+    question: "What data sources does Traverse use for market data?",
+    answer: "Traverse aggregates data from multiple <strong>institutional-grade providers</strong> to ensure accuracy and redundancy. Crypto data comes from aggregated exchange feeds covering Binance, Coinbase, Kraken, and others, weighted by volume. Stock data is sourced from major financial data providers covering NYSE, NASDAQ, and international exchanges. On-chain metrics come from blockchain analytics APIs. The specific providers may change as Traverse negotiates better data partnerships, but data quality and coverage are continuously monitored. You can see the data source attribution on any individual asset page under the price chart.",
     category: "market-tools",
     tags: ["data sources", "providers", "exchange feeds", "accuracy", "Binance", "Coinbase", "institutional grade"],
     relatedIds: ["mt-data-sources", "mt4-crypto-price-delay", "mt4-stock-price-delay"],
@@ -4601,7 +4601,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "mt4-premarket-afterhours",
     question: "Can I see pre-market and after-hours stock data?",
-    answer: "Yes. Stargate displays <strong>pre-market</strong> (4:00 AM - 9:30 AM ET) and <strong>after-hours</strong> (4:00 PM - 8:00 PM ET) pricing when available. Extended hours data appears with a distinct label on the price chart and in the watchlist. Note that extended hours volume is typically much lower, so prices can be more volatile and spreads wider. This data is useful for planning your session -- you can see overnight gaps and pre-market momentum before the regular session opens. Extended hours data may have slightly longer delays than regular session data.",
+    answer: "Yes. Traverse displays <strong>pre-market</strong> (4:00 AM - 9:30 AM ET) and <strong>after-hours</strong> (4:00 PM - 8:00 PM ET) pricing when available. Extended hours data appears with a distinct label on the price chart and in the watchlist. Note that extended hours volume is typically much lower, so prices can be more volatile and spreads wider. This data is useful for planning your session -- you can see overnight gaps and pre-market momentum before the regular session opens. Extended hours data may have slightly longer delays than regular session data.",
     category: "market-tools",
     tags: ["pre-market", "after-hours", "extended hours", "overnight", "gap", "stock data", "trading session"],
     relatedIds: ["mt-stock-screener", "mt2-watchlist", "mt4-stock-price-delay"],
@@ -4633,7 +4633,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "mt4-whale-activity",
     question: "Can I see institutional or whale trading activity?",
-    answer: "Yes. Stargate surfaces <strong>whale and institutional activity</strong> through several features: <strong>1)</strong> The <strong>Options Flow</strong> page shows large unusual options orders that often indicate institutional positioning. <strong>2)</strong> The <strong>SEC 13-F filings</strong> section displays quarterly holdings of major hedge funds and institutional investors. <strong>3)</strong> On-chain analytics for crypto track large wallet movements and exchange inflows/outflows. Access these from <code>Market Tools → Whale Activity</code> or through the individual app pages. Whale data is most useful as a confirmation signal -- when large players are positioning in the same direction as your thesis, it adds conviction.",
+    answer: "Yes. Traverse surfaces <strong>whale and institutional activity</strong> through several features: <strong>1)</strong> The <strong>Options Flow</strong> page shows large unusual options orders that often indicate institutional positioning. <strong>2)</strong> The <strong>SEC 13-F filings</strong> section displays quarterly holdings of major hedge funds and institutional investors. <strong>3)</strong> On-chain analytics for crypto track large wallet movements and exchange inflows/outflows. Access these from <code>Market Tools → Whale Activity</code> or through the individual app pages. Whale data is most useful as a confirmation signal -- when large players are positioning in the same direction as your thesis, it adds conviction.",
     category: "market-tools",
     tags: ["whale activity", "institutional", "options flow", "13-F", "on-chain", "large orders", "smart money"],
     relatedIds: ["ap-options-flow", "mt2-volume-profile", "mt2-crypto-overview"],
@@ -4641,7 +4641,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "mt4-dividend-tracking",
     question: "How do I track dividend payments on my stocks?",
-    answer: "Go to <code>Market Tools → Dividends</code> to see a calendar of upcoming ex-dividend dates and payment dates for stocks in your watchlist and portfolio. The tracker shows each stock's <strong>dividend yield</strong>, <strong>payout ratio</strong>, <strong>payment frequency</strong>, and <strong>historical dividend growth rate</strong>. You can filter by ex-date range or yield threshold. Stargate calculates your estimated annual dividend income based on your current holdings logged in the Trade Log. Set alerts for ex-dividend dates so you can decide whether to hold through the dividend or exit beforehand -- this decision should be part of your trading plan and logged in your trade notes.",
+    answer: "Go to <code>Market Tools → Dividends</code> to see a calendar of upcoming ex-dividend dates and payment dates for stocks in your watchlist and portfolio. The tracker shows each stock's <strong>dividend yield</strong>, <strong>payout ratio</strong>, <strong>payment frequency</strong>, and <strong>historical dividend growth rate</strong>. You can filter by ex-date range or yield threshold. Traverse calculates your estimated annual dividend income based on your current holdings logged in the Trade Log. Set alerts for ex-dividend dates so you can decide whether to hold through the dividend or exit beforehand -- this decision should be part of your trading plan and logged in your trade notes.",
     category: "market-tools",
     tags: ["dividends", "ex-dividend", "yield", "payout", "income", "dividend calendar", "stock income"],
     relatedIds: ["mt3-dividend-tracker", "ap2-portfolio-tracker", "mt-stock-screener"],
@@ -4651,7 +4651,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-daily-loss-limit",
     question: "What is a realistic daily loss limit I should set?",
-    answer: "A realistic daily loss limit for most traders is <strong>1% to 3% of your total account balance</strong>. For example, with a $10,000 account, stop trading for the day after losing $100-$300. Beginners should start at 1% until they have a proven track record. The purpose is not just financial protection -- it prevents <strong>revenge trading</strong>, where you chase losses with increasingly risky trades. Set your daily loss limit in Stargate under <code>Apps → Rule Tracker</code> and the system will warn you when you approach your threshold. Review your daily P&L calendar monthly to see how often you hit your limit and whether adjusting it would improve your overall results.",
+    answer: "A realistic daily loss limit for most traders is <strong>1% to 3% of your total account balance</strong>. For example, with a $10,000 account, stop trading for the day after losing $100-$300. Beginners should start at 1% until they have a proven track record. The purpose is not just financial protection -- it prevents <strong>revenge trading</strong>, where you chase losses with increasingly risky trades. Set your daily loss limit in Traverse under <code>Apps → Rule Tracker</code> and the system will warn you when you approach your threshold. Review your daily P&L calendar monthly to see how often you hit your limit and whether adjusting it would improve your overall results.",
     category: "risk-management",
     tags: ["daily loss limit", "risk management", "account protection", "revenge trading", "stop trading", "threshold", "discipline"],
     relatedIds: ["rm2-daily-loss-limit", "ap-rule-tracker", "an-calendar"],
@@ -4659,7 +4659,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-position-size-step-by-step",
     question: "How do I calculate my position size step by step?",
-    answer: "Follow this formula: <strong>1)</strong> Determine your account balance (e.g., $10,000). <strong>2)</strong> Decide your risk per trade as a percentage (e.g., 1% = $100 at risk). <strong>3)</strong> Identify your entry price and stop-loss price to calculate the per-unit risk (e.g., entry at $50, stop at $48, risk per share = $2). <strong>4)</strong> Divide your dollar risk by the per-unit risk: $100 / $2 = 50 shares. <strong>5)</strong> Your position size is 50 shares, totaling $2,500. This method ensures you never risk more than your planned percentage regardless of the asset's price. Use Stargate's <code>Risk Calculator</code> to automate this calculation before every trade.",
+    answer: "Follow this formula: <strong>1)</strong> Determine your account balance (e.g., $10,000). <strong>2)</strong> Decide your risk per trade as a percentage (e.g., 1% = $100 at risk). <strong>3)</strong> Identify your entry price and stop-loss price to calculate the per-unit risk (e.g., entry at $50, stop at $48, risk per share = $2). <strong>4)</strong> Divide your dollar risk by the per-unit risk: $100 / $2 = 50 shares. <strong>5)</strong> Your position size is 50 shares, totaling $2,500. This method ensures you never risk more than your planned percentage regardless of the asset's price. Use Traverse's <code>Risk Calculator</code> to automate this calculation before every trade.",
     category: "risk-management",
     tags: ["position sizing", "calculation", "step by step", "risk per trade", "stop loss", "formula", "shares"],
     relatedIds: ["rm-position-sizing", "mt-risk-calculator", "rm2-risk-per-trade"],
@@ -4675,7 +4675,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-kelly-criterion",
     question: "How do I use the Kelly Criterion for position sizing?",
-    answer: "The <strong>Kelly Criterion</strong> calculates the optimal percentage of your account to risk based on your win rate and reward-to-risk ratio. The formula is: <code>Kelly % = W - [(1 - W) / R]</code>, where W is your win rate (as a decimal) and R is your average win divided by your average loss. For example, with a 55% win rate and 2:1 reward-to-risk: Kelly = 0.55 - (0.45 / 2) = 0.325, or 32.5%. Most traders use <strong>half-Kelly or quarter-Kelly</strong> (8-16% in this example) because full Kelly is extremely aggressive and assumes perfect data. Use your Stargate analytics (win rate and profit factor) to calculate your Kelly percentage, and track whether half-Kelly sizing improves your equity curve over time.",
+    answer: "The <strong>Kelly Criterion</strong> calculates the optimal percentage of your account to risk based on your win rate and reward-to-risk ratio. The formula is: <code>Kelly % = W - [(1 - W) / R]</code>, where W is your win rate (as a decimal) and R is your average win divided by your average loss. For example, with a 55% win rate and 2:1 reward-to-risk: Kelly = 0.55 - (0.45 / 2) = 0.325, or 32.5%. Most traders use <strong>half-Kelly or quarter-Kelly</strong> (8-16% in this example) because full Kelly is extremely aggressive and assumes perfect data. Use your Traverse analytics (win rate and profit factor) to calculate your Kelly percentage, and track whether half-Kelly sizing improves your equity curve over time.",
     category: "risk-management",
     tags: ["Kelly Criterion", "optimal sizing", "win rate", "reward-to-risk", "formula", "half-Kelly", "position sizing"],
     relatedIds: ["rm2-kelly-criterion", "an-win-rate", "an-expectancy"],
@@ -4683,7 +4683,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-risk-of-ruin",
     question: "What is risk of ruin explained in plain English?",
-    answer: "<strong>Risk of ruin</strong> is the probability that you will lose so much money that you can no longer trade. Think of it like a game: if you flip a weighted coin 1,000 times and bet 50% of your stack each time, even with a slight edge you will eventually go broke because one bad streak wipes you out. The three factors that determine your risk of ruin are <strong>win rate</strong>, <strong>reward-to-risk ratio</strong>, and <strong>percentage risked per trade</strong>. A trader risking 1% per trade with a 50% win rate and 2:1 R:R has a near-zero risk of ruin, while the same edge at 10% risk per trade has a dangerously high ruin probability. Stargate's Monte Carlo simulator can model your risk of ruin based on your actual trading history.",
+    answer: "<strong>Risk of ruin</strong> is the probability that you will lose so much money that you can no longer trade. Think of it like a game: if you flip a weighted coin 1,000 times and bet 50% of your stack each time, even with a slight edge you will eventually go broke because one bad streak wipes you out. The three factors that determine your risk of ruin are <strong>win rate</strong>, <strong>reward-to-risk ratio</strong>, and <strong>percentage risked per trade</strong>. A trader risking 1% per trade with a 50% win rate and 2:1 R:R has a near-zero risk of ruin, while the same edge at 10% risk per trade has a dangerously high ruin probability. Traverse's Monte Carlo simulator can model your risk of ruin based on your actual trading history.",
     category: "risk-management",
     tags: ["risk of ruin", "probability", "bankruptcy", "survival", "edge", "compounding losses", "Monte Carlo"],
     relatedIds: ["rm2-risk-of-ruin", "ap-monte-carlo", "rm4-one-percent-rule"],
@@ -4691,7 +4691,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-too-much-leverage",
     question: "How do I know if I am using too much leverage?",
-    answer: "You are likely using too much leverage if: <strong>1)</strong> A normal market move (1-3% for stocks, 5-10% for crypto) would result in a loss greater than 2% of your account. <strong>2)</strong> You feel anxious watching your positions because the dollar swings are uncomfortably large. <strong>3)</strong> You have been liquidated or margin-called more than once. <strong>4)</strong> Your equity curve shows sharp drawdowns followed by recovery attempts. A simple test: calculate your total exposure (position size x number of positions) and divide by your account balance. If that number exceeds 3x for stocks or 2x for crypto, you are likely overleveraged. Reduce leverage gradually and track whether your equity curve smooths out -- Stargate's analytics will show the difference clearly.",
+    answer: "You are likely using too much leverage if: <strong>1)</strong> A normal market move (1-3% for stocks, 5-10% for crypto) would result in a loss greater than 2% of your account. <strong>2)</strong> You feel anxious watching your positions because the dollar swings are uncomfortably large. <strong>3)</strong> You have been liquidated or margin-called more than once. <strong>4)</strong> Your equity curve shows sharp drawdowns followed by recovery attempts. A simple test: calculate your total exposure (position size x number of positions) and divide by your account balance. If that number exceeds 3x for stocks or 2x for crypto, you are likely overleveraged. Reduce leverage gradually and track whether your equity curve smooths out -- Traverse's analytics will show the difference clearly.",
     category: "risk-management",
     tags: ["leverage", "overleveraged", "margin", "liquidation", "exposure", "account size", "drawdown"],
     relatedIds: ["rm3-leverage-management", "rm2-portfolio-heat", "an-equity-curve"],
@@ -4707,7 +4707,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-stop-loss-placement",
     question: "How do I set a stop loss properly for different markets?",
-    answer: "Stop loss placement should be based on <strong>market structure, not arbitrary percentages</strong>. For <strong>stocks</strong>: place stops below the most recent swing low for longs (above swing high for shorts), typically 1-3% from entry for day trades and 5-8% for swing trades. For <strong>crypto</strong>: use wider stops (3-10% for spot, tighter for leverage) because crypto is more volatile. For <strong>forex</strong>: use ATR-based stops, typically 1.5-2x the current ATR. The key rule: your stop should be at a price where your trade thesis is <strong>invalidated</strong>, not just where you would feel uncomfortable. Log your stop placement reasoning in your Stargate trade notes and use MFE/MAE analytics to refine your stop distances over time.",
+    answer: "Stop loss placement should be based on <strong>market structure, not arbitrary percentages</strong>. For <strong>stocks</strong>: place stops below the most recent swing low for longs (above swing high for shorts), typically 1-3% from entry for day trades and 5-8% for swing trades. For <strong>crypto</strong>: use wider stops (3-10% for spot, tighter for leverage) because crypto is more volatile. For <strong>forex</strong>: use ATR-based stops, typically 1.5-2x the current ATR. The key rule: your stop should be at a price where your trade thesis is <strong>invalidated</strong>, not just where you would feel uncomfortable. Log your stop placement reasoning in your Traverse trade notes and use MFE/MAE analytics to refine your stop distances over time.",
     category: "risk-management",
     tags: ["stop loss", "placement", "swing low", "market structure", "ATR", "invalidation", "trade management"],
     relatedIds: ["rm-stop-loss", "rm3-atr-stop-loss", "an-mfe-mae"],
@@ -4715,7 +4715,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-mental-vs-hard-stops",
     question: "Should I use mental stops or hard (automatic) stops?",
-    answer: "<strong>Hard stops are almost always better</strong>, especially for newer traders. A hard stop is an actual order placed with your broker that executes automatically at your predetermined price. A mental stop is just a price you plan to exit at -- but when the moment comes, emotions often prevent you from following through. The only scenario where mental stops make sense is in very illiquid markets where a hard stop could be hunted by a price wick. If you insist on mental stops, treat them with the same discipline: set an alert at the stop price in Stargate and commit to exiting within seconds of the alert firing. Track in your journal whether you honored your mental stops -- your process score should reflect this honestly.",
+    answer: "<strong>Hard stops are almost always better</strong>, especially for newer traders. A hard stop is an actual order placed with your broker that executes automatically at your predetermined price. A mental stop is just a price you plan to exit at -- but when the moment comes, emotions often prevent you from following through. The only scenario where mental stops make sense is in very illiquid markets where a hard stop could be hunted by a price wick. If you insist on mental stops, treat them with the same discipline: set an alert at the stop price in Traverse and commit to exiting within seconds of the alert firing. Track in your journal whether you honored your mental stops -- your process score should reflect this honestly.",
     category: "risk-management",
     tags: ["mental stop", "hard stop", "automatic", "discipline", "stop hunting", "liquidity", "order type"],
     relatedIds: ["rm-stop-loss", "rm2-trailing-stop", "tj-process-score"],
@@ -4723,7 +4723,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-portfolio-heat",
     question: "What is portfolio heat explained in simple terms?",
-    answer: "<strong>Portfolio heat</strong> is the total percentage of your account that is at risk across all your open positions combined. If you have 5 open trades each risking 1%, your portfolio heat is 5%. Most professional traders keep portfolio heat between <strong>5% and 10%</strong> at any given time. Exceeding 10% means a correlated market move could deal a serious blow to your account. To calculate yours: add up the dollar amount at risk (distance from entry to stop loss times position size) for each open trade, then divide by your account balance. Stargate's Position Manager displays your current portfolio heat in real time, making it easy to decide whether you have room for a new trade.",
+    answer: "<strong>Portfolio heat</strong> is the total percentage of your account that is at risk across all your open positions combined. If you have 5 open trades each risking 1%, your portfolio heat is 5%. Most professional traders keep portfolio heat between <strong>5% and 10%</strong> at any given time. Exceeding 10% means a correlated market move could deal a serious blow to your account. To calculate yours: add up the dollar amount at risk (distance from entry to stop loss times position size) for each open trade, then divide by your account balance. Traverse's Position Manager displays your current portfolio heat in real time, making it easy to decide whether you have room for a new trade.",
     category: "risk-management",
     tags: ["portfolio heat", "total risk", "open positions", "account exposure", "risk budget", "position manager", "combined risk"],
     relatedIds: ["rm2-portfolio-heat", "ap2-position-manager", "rm2-max-open-positions"],
@@ -4731,7 +4731,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-max-open-trades",
     question: "How many trades should I have open at the same time?",
-    answer: "The ideal number depends on your strategy and attention bandwidth, but a good general guideline is <strong>3 to 6 open positions</strong> for active traders. Fewer than 3 means you may be underutilizing your capital; more than 8-10 makes it difficult to monitor each position properly and increases the chance of correlated losses. Day traders often hold 1-3 positions at a time because they need intense focus. Swing traders can manage 5-8 because positions require less moment-to-moment attention. Use the <strong>portfolio heat rule</strong> as your hard limit -- even if you want 10 positions, stop adding new ones once your total risk exceeds your heat cap. Track this in Stargate's Position Manager to see if you perform better with fewer, more focused trades.",
+    answer: "The ideal number depends on your strategy and attention bandwidth, but a good general guideline is <strong>3 to 6 open positions</strong> for active traders. Fewer than 3 means you may be underutilizing your capital; more than 8-10 makes it difficult to monitor each position properly and increases the chance of correlated losses. Day traders often hold 1-3 positions at a time because they need intense focus. Swing traders can manage 5-8 because positions require less moment-to-moment attention. Use the <strong>portfolio heat rule</strong> as your hard limit -- even if you want 10 positions, stop adding new ones once your total risk exceeds your heat cap. Track this in Traverse's Position Manager to see if you perform better with fewer, more focused trades.",
     category: "risk-management",
     tags: ["max positions", "open trades", "concentration", "attention", "portfolio management", "position count", "focus"],
     relatedIds: ["rm2-max-open-positions", "rm4-portfolio-heat", "ap2-position-manager"],
@@ -4739,7 +4739,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-drawdown-recovery",
     question: "How do I recover mentally and financially from a big drawdown?",
-    answer: "<strong>Financially:</strong> <strong>1)</strong> Immediately reduce your position sizes by 50% to stop the bleeding. <strong>2)</strong> Return to your best, highest-probability setup only -- no experiments. <strong>3)</strong> Set a strict daily loss limit at half your normal level. <strong>4)</strong> Gradually increase size back to normal only after 10-20 consecutive trades following your rules. <strong>Mentally:</strong> <strong>1)</strong> Review your equity curve in Stargate to see that drawdowns are normal (every profitable trader has them). <strong>2)</strong> Use the journal to write out what went wrong without self-blame. <strong>3)</strong> Use the breathing exercise app before each session. <strong>4)</strong> Consider taking 2-3 days off to reset emotionally. The math is clear: a 20% drawdown requires a 25% gain to recover, so capital preservation during drawdowns is critical.",
+    answer: "<strong>Financially:</strong> <strong>1)</strong> Immediately reduce your position sizes by 50% to stop the bleeding. <strong>2)</strong> Return to your best, highest-probability setup only -- no experiments. <strong>3)</strong> Set a strict daily loss limit at half your normal level. <strong>4)</strong> Gradually increase size back to normal only after 10-20 consecutive trades following your rules. <strong>Mentally:</strong> <strong>1)</strong> Review your equity curve in Traverse to see that drawdowns are normal (every profitable trader has them). <strong>2)</strong> Use the journal to write out what went wrong without self-blame. <strong>3)</strong> Use the breathing exercise app before each session. <strong>4)</strong> Consider taking 2-3 days off to reset emotionally. The math is clear: a 20% drawdown requires a 25% gain to recover, so capital preservation during drawdowns is critical.",
     category: "risk-management",
     tags: ["drawdown", "recovery", "mental health", "position size reduction", "discipline", "tilt", "equity curve"],
     relatedIds: ["rm2-drawdown-recovery", "an-equity-curve", "ap-breathing-exercise"],
@@ -4747,7 +4747,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-max-risk-single-trade",
     question: "What is the maximum percentage I should risk on a single trade?",
-    answer: "For most traders, the absolute maximum risk on a single trade should be <strong>2% of your account balance</strong>, with 0.5-1% being more appropriate for beginners or during drawdowns. Professional fund managers often risk as little as 0.25-0.5% per trade. The reasoning is mathematical: at 1% risk per trade, you can endure 20 consecutive losses and still have 82% of your account intact. At 5% risk per trade, 20 consecutive losses would leave you with only 36% -- a hole that requires a 178% return to escape. Your max risk percentage should be defined in your trading plan, enforced by Stargate's Rule Tracker, and never increased in the heat of the moment.",
+    answer: "For most traders, the absolute maximum risk on a single trade should be <strong>2% of your account balance</strong>, with 0.5-1% being more appropriate for beginners or during drawdowns. Professional fund managers often risk as little as 0.25-0.5% per trade. The reasoning is mathematical: at 1% risk per trade, you can endure 20 consecutive losses and still have 82% of your account intact. At 5% risk per trade, 20 consecutive losses would leave you with only 36% -- a hole that requires a 178% return to escape. Your max risk percentage should be defined in your trading plan, enforced by Traverse's Rule Tracker, and never increased in the heat of the moment.",
     category: "risk-management",
     tags: ["max risk", "percentage", "per trade", "capital preservation", "2% rule", "account protection", "survival"],
     relatedIds: ["rm2-risk-per-trade", "rm4-one-percent-rule", "rm2-risk-of-ruin"],
@@ -4755,7 +4755,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-tracking-risk-rules",
     question: "How do I track whether I am following my risk rules?",
-    answer: "Stargate offers several tools for tracking risk rule compliance: <strong>1)</strong> Use the <strong>Rule Tracker</strong> app (<code>Apps → Rule Tracker</code>) to define your rules (max risk per trade, daily loss limit, max open positions) and check them off before each trade. <strong>2)</strong> The <strong>process score</strong> on each trade is your self-assessment of rule adherence -- rate honestly. <strong>3)</strong> Review <code>Analytics → Execution</code> to see aggregate compliance metrics over time. <strong>4)</strong> Write a weekly journal entry reflecting on which rules you followed and which you broke. The pattern you will discover is that your most profitable months are almost always the months with the highest process scores and rule compliance.",
+    answer: "Traverse offers several tools for tracking risk rule compliance: <strong>1)</strong> Use the <strong>Rule Tracker</strong> app (<code>Apps → Rule Tracker</code>) to define your rules (max risk per trade, daily loss limit, max open positions) and check them off before each trade. <strong>2)</strong> The <strong>process score</strong> on each trade is your self-assessment of rule adherence -- rate honestly. <strong>3)</strong> Review <code>Analytics → Execution</code> to see aggregate compliance metrics over time. <strong>4)</strong> Write a weekly journal entry reflecting on which rules you followed and which you broke. The pattern you will discover is that your most profitable months are almost always the months with the highest process scores and rule compliance.",
     category: "risk-management",
     tags: ["rule tracking", "compliance", "process score", "discipline", "self-assessment", "execution", "accountability"],
     relatedIds: ["ap-rule-tracker", "tj-process-score", "an-execution"],
@@ -4763,7 +4763,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "rm4-risk-vs-volatility",
     question: "What is the difference between risk and volatility?",
-    answer: "<strong>Volatility</strong> is how much an asset's price moves up and down over time -- it is a statistical measure of price dispersion. <strong>Risk</strong> is the actual probability and magnitude of losing money on your specific position. A highly volatile asset is not necessarily risky if you size your position appropriately and use proper stops. Conversely, a low-volatility asset can be very risky if you take an oversized position with leverage. For example, Bitcoin might move 5% daily (high volatility) but if you risk only 1% of your account per BTC trade, your risk is controlled. Always size positions based on volatility -- use wider stops and smaller sizes for volatile assets, and Stargate's risk calculator factors this in automatically.",
+    answer: "<strong>Volatility</strong> is how much an asset's price moves up and down over time -- it is a statistical measure of price dispersion. <strong>Risk</strong> is the actual probability and magnitude of losing money on your specific position. A highly volatile asset is not necessarily risky if you size your position appropriately and use proper stops. Conversely, a low-volatility asset can be very risky if you take an oversized position with leverage. For example, Bitcoin might move 5% daily (high volatility) but if you risk only 1% of your account per BTC trade, your risk is controlled. Always size positions based on volatility -- use wider stops and smaller sizes for volatile assets, and Traverse's risk calculator factors this in automatically.",
     category: "risk-management",
     tags: ["risk", "volatility", "difference", "price movement", "position sizing", "ATR", "standard deviation"],
     relatedIds: ["rm3-atr-position-sizing", "rm-position-sizing", "mt-risk-calculator"],
@@ -4776,7 +4776,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
     answer: "The free plan includes access to all core journaling and analytics features: the <strong>Trade Log</strong>, <strong>Journal</strong>, <strong>Dashboard</strong>, <strong>Calendar</strong>, <strong>Rule Tracker</strong>, <strong>Daily Check-In</strong>, <strong>Breathing Exercise</strong>, and <strong>Achievements</strong>. Market tools like the Watchlist, Heatmap, and basic screeners are also available. Premium apps such as the Monte Carlo Simulator, Backtester, Options Flow, and advanced AI Coach features require an upgraded plan. You can see which apps are available to you by visiting <code>Apps</code> in the sidebar -- locked apps show a plan badge indicating which tier unlocks them.",
     category: "apps",
     tags: ["free plan", "included apps", "pricing", "tier", "premium", "locked apps", "core features"],
-    relatedIds: ["bi-free-vs-paid", "gs-what-is-stargate", "ap-achievements"],
+    relatedIds: ["bi-free-vs-paid", "gs-what-is-traverse", "ap-achievements"],
   },
   {
     id: "ap4-monte-carlo",
@@ -4836,7 +4836,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ap4-custom-reports",
-    question: "Can I create custom reports in Stargate?",
+    question: "Can I create custom reports in Traverse?",
     answer: "Yes. Go to <code>Analytics → Custom Reports</code> to build personalized performance reports. <strong>1)</strong> Choose your date range (this week, this month, custom range). <strong>2)</strong> Select which metrics to include (P&L, win rate, expectancy, profit factor, R-values, hold time, etc.). <strong>3)</strong> Add filters by market (crypto/stocks), tag, or trade direction. <strong>4)</strong> Choose your visualization preferences (tables, charts, or both). <strong>5)</strong> Save the report as a template for future use or export it as a PDF. Custom reports are ideal for weekly performance reviews, accountability check-ins with a mentor, or end-of-month strategy assessments.",
     category: "apps",
     tags: ["custom reports", "analytics", "PDF export", "templates", "performance review", "date range", "filters"],
@@ -4845,7 +4845,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "ap4-tax-reports",
     question: "How do I use the tax report feature for my trades?",
-    answer: "Navigate to <code>Apps → Tax Reports</code> and select the tax year. Stargate generates a summary of all closed trades with realized gains and losses, organized by <strong>short-term</strong> (held less than 1 year) and <strong>long-term</strong> (held 1 year or more). The report includes: total proceeds, total cost basis, net gain/loss, and a trade-by-trade breakdown compatible with Schedule D and Form 8949 formats. You can export as CSV or PDF for your accountant. Note that Stargate provides data to help with tax preparation but is <strong>not a substitute for professional tax advice</strong> -- always consult a tax professional for your specific situation, especially for crypto where regulations vary by jurisdiction.",
+    answer: "Navigate to <code>Apps → Tax Reports</code> and select the tax year. Traverse generates a summary of all closed trades with realized gains and losses, organized by <strong>short-term</strong> (held less than 1 year) and <strong>long-term</strong> (held 1 year or more). The report includes: total proceeds, total cost basis, net gain/loss, and a trade-by-trade breakdown compatible with Schedule D and Form 8949 formats. You can export as CSV or PDF for your accountant. Note that Traverse provides data to help with tax preparation but is <strong>not a substitute for professional tax advice</strong> -- always consult a tax professional for your specific situation, especially for crypto where regulations vary by jurisdiction.",
     category: "apps",
     tags: ["tax reports", "capital gains", "Schedule D", "Form 8949", "short-term", "long-term", "export"],
     relatedIds: ["ap-tax-reports", "tj-fees", "tj-edit-trade"],
@@ -4884,18 +4884,18 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "ap4-offline-mode",
-    question: "Do any Stargate apps work offline without internet?",
-    answer: "Stargate is primarily a <strong>cloud-based application</strong>, so most features require an internet connection to sync data and fetch market prices. However, the <strong>Breathing Exercise</strong> works fully offline once the page has loaded, and the <strong>Daily Check-In</strong> form can be filled out offline and will sync when your connection is restored. Previously viewed trades and journal entries are cached in your browser, so you can read (but not edit) recent data without a connection. For the best experience, ensure a stable internet connection especially when logging trades or accessing market data. A full offline mode with local data storage is on the roadmap for a future update.",
+    question: "Do any Traverse apps work offline without internet?",
+    answer: "Traverse is primarily a <strong>cloud-based application</strong>, so most features require an internet connection to sync data and fetch market prices. However, the <strong>Breathing Exercise</strong> works fully offline once the page has loaded, and the <strong>Daily Check-In</strong> form can be filled out offline and will sync when your connection is restored. Previously viewed trades and journal entries are cached in your browser, so you can read (but not edit) recent data without a connection. For the best experience, ensure a stable internet connection especially when logging trades or accessing market data. A full offline mode with local data storage is on the roadmap for a future update.",
     category: "apps",
     tags: ["offline", "no internet", "cache", "sync", "cloud-based", "connection required", "local storage"],
-    relatedIds: ["ap-breathing-exercise", "ap-daily-checkin", "gs-what-is-stargate"],
+    relatedIds: ["ap-breathing-exercise", "ap-daily-checkin", "gs-what-is-traverse"],
   },
 
   // GLOSSARY — TRADING TERM DEFINITIONS -- BATCH 4 (+15)
   {
     id: "gl-pnl",
     question: "What does P&L (Profit and Loss) mean?",
-    answer: "<strong>P&L (Profit and Loss)</strong> is the net amount of money you have made or lost on a trade or across your entire portfolio. If you bought a stock at $100 and sold it at $115, your P&L is +$15 per share (before fees). If you sold at $90, your P&L is -$10 per share. In Stargate, P&L is calculated automatically for every closed trade and displayed on your dashboard, equity curve, and calendar. Tracking P&L is the foundation of your trading journal -- it tells you whether your strategy is actually making money, not just whether you are picking winners.",
+    answer: "<strong>P&L (Profit and Loss)</strong> is the net amount of money you have made or lost on a trade or across your entire portfolio. If you bought a stock at $100 and sold it at $115, your P&L is +$15 per share (before fees). If you sold at $90, your P&L is -$10 per share. In Traverse, P&L is calculated automatically for every closed trade and displayed on your dashboard, equity curve, and calendar. Tracking P&L is the foundation of your trading journal -- it tells you whether your strategy is actually making money, not just whether you are picking winners.",
     category: "glossary",
     tags: ["P&L", "profit and loss", "net profit", "definition", "beginner", "trade result", "glossary"],
     relatedIds: ["an-equity-curve", "gs-first-trade", "tj-edit-trade"],
@@ -4903,7 +4903,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-pip",
     question: "What is a pip in trading?",
-    answer: "A <strong>pip</strong> (Percentage in Point) is the smallest standard unit of price movement in forex trading. For most currency pairs, one pip equals 0.0001 (the fourth decimal place). For example, if EUR/USD moves from 1.1050 to 1.1051, that is a 1-pip move. In yen pairs, a pip is 0.01 (the second decimal place). Pips help traders communicate price changes in a universal way regardless of which currency pair they are trading. When journaling forex trades in Stargate, recording your P&L in pips alongside dollars helps you evaluate trade quality independent of position size.",
+    answer: "A <strong>pip</strong> (Percentage in Point) is the smallest standard unit of price movement in forex trading. For most currency pairs, one pip equals 0.0001 (the fourth decimal place). For example, if EUR/USD moves from 1.1050 to 1.1051, that is a 1-pip move. In yen pairs, a pip is 0.01 (the second decimal place). Pips help traders communicate price changes in a universal way regardless of which currency pair they are trading. When journaling forex trades in Traverse, recording your P&L in pips alongside dollars helps you evaluate trade quality independent of position size.",
     category: "glossary",
     tags: ["pip", "forex", "price movement", "definition", "currency pair", "beginner", "glossary"],
     relatedIds: ["gs-supported-markets", "gs-first-trade", "an-r-value"],
@@ -4911,7 +4911,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-slippage",
     question: "What is slippage and why does it happen?",
-    answer: "<strong>Slippage</strong> is the difference between the price you expected to get on a trade and the price you actually received. For example, if you place a market buy order at $50.00 but get filled at $50.05, you experienced 5 cents of slippage. Slippage happens because markets move between the moment you click \"buy\" and the moment your order is executed, especially in fast-moving or low-liquidity markets. It can work in your favor (positive slippage) or against you (negative slippage). Tracking slippage in Stargate by recording both your intended and actual fill prices helps you identify which markets or times of day cause the most slippage, so you can adjust your approach.",
+    answer: "<strong>Slippage</strong> is the difference between the price you expected to get on a trade and the price you actually received. For example, if you place a market buy order at $50.00 but get filled at $50.05, you experienced 5 cents of slippage. Slippage happens because markets move between the moment you click \"buy\" and the moment your order is executed, especially in fast-moving or low-liquidity markets. It can work in your favor (positive slippage) or against you (negative slippage). Tracking slippage in Traverse by recording both your intended and actual fill prices helps you identify which markets or times of day cause the most slippage, so you can adjust your approach.",
     category: "glossary",
     tags: ["slippage", "fill price", "execution", "liquidity", "market order", "definition", "glossary"],
     relatedIds: ["tj-fees", "tj-edit-trade", "an-execution"],
@@ -4927,7 +4927,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-margin",
     question: "What is margin in trading?",
-    answer: "<strong>Margin</strong> is the amount of money you must deposit with your broker to open and maintain a leveraged position. Think of it as a security deposit: if you want to control $10,000 worth of stock but your broker requires 50% margin, you need to deposit $5,000 and the broker lends you the rest. If your trade moves against you enough that your account falls below the <strong>maintenance margin</strong> requirement, you receive a <strong>margin call</strong> and must deposit more funds or have positions forcibly closed. When journaling leveraged trades in Stargate, always record whether the trade used margin and how much -- this gives you accurate risk metrics.",
+    answer: "<strong>Margin</strong> is the amount of money you must deposit with your broker to open and maintain a leveraged position. Think of it as a security deposit: if you want to control $10,000 worth of stock but your broker requires 50% margin, you need to deposit $5,000 and the broker lends you the rest. If your trade moves against you enough that your account falls below the <strong>maintenance margin</strong> requirement, you receive a <strong>margin call</strong> and must deposit more funds or have positions forcibly closed. When journaling leveraged trades in Traverse, always record whether the trade used margin and how much -- this gives you accurate risk metrics.",
     category: "glossary",
     tags: ["margin", "leverage", "deposit", "margin call", "maintenance", "definition", "glossary"],
     relatedIds: ["gl-leverage", "rm4-too-much-leverage", "gs-first-trade"],
@@ -4935,7 +4935,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-leverage",
     question: "What is leverage and how does it work?",
-    answer: "<strong>Leverage</strong> allows you to control a larger position than your account balance would normally allow. If you use 10x leverage, a $1,000 deposit controls a $10,000 position. This amplifies both gains and losses by the same factor: a 1% move in the asset equals a 10% change in your equity. For example, with 10x leverage on a $10,000 BTC position, a 5% price increase earns you $500 (50% return on your $1,000), but a 5% drop loses you $500 (50% loss). Leverage is available in crypto futures, forex, and margin accounts. Always record your leverage ratio in Stargate when logging trades -- this is critical for accurate risk analysis.",
+    answer: "<strong>Leverage</strong> allows you to control a larger position than your account balance would normally allow. If you use 10x leverage, a $1,000 deposit controls a $10,000 position. This amplifies both gains and losses by the same factor: a 1% move in the asset equals a 10% change in your equity. For example, with 10x leverage on a $10,000 BTC position, a 5% price increase earns you $500 (50% return on your $1,000), but a 5% drop loses you $500 (50% loss). Leverage is available in crypto futures, forex, and margin accounts. Always record your leverage ratio in Traverse when logging trades -- this is critical for accurate risk analysis.",
     category: "glossary",
     tags: ["leverage", "amplification", "multiplier", "margin", "10x", "definition", "glossary"],
     relatedIds: ["gl-margin", "rm4-too-much-leverage", "rm3-leverage-management"],
@@ -4943,7 +4943,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-lot-size",
     question: "What is a lot size?",
-    answer: "A <strong>lot size</strong> is a standardized unit of measurement for trade quantity. In forex, a <strong>standard lot</strong> is 100,000 units of the base currency, a <strong>mini lot</strong> is 10,000 units, and a <strong>micro lot</strong> is 1,000 units. In stocks, a round lot is typically 100 shares. In crypto, lot sizes vary by exchange but are often expressed in the base asset (e.g., 0.001 BTC). Lot size directly affects your position size and risk per trade -- a standard lot in EUR/USD means each pip is worth about $10, while a micro lot makes each pip worth about $0.10. When logging trades in Stargate, enter the exact quantity traded so your P&L calculations are precise.",
+    answer: "A <strong>lot size</strong> is a standardized unit of measurement for trade quantity. In forex, a <strong>standard lot</strong> is 100,000 units of the base currency, a <strong>mini lot</strong> is 10,000 units, and a <strong>micro lot</strong> is 1,000 units. In stocks, a round lot is typically 100 shares. In crypto, lot sizes vary by exchange but are often expressed in the base asset (e.g., 0.001 BTC). Lot size directly affects your position size and risk per trade -- a standard lot in EUR/USD means each pip is worth about $10, while a micro lot makes each pip worth about $0.10. When logging trades in Traverse, enter the exact quantity traded so your P&L calculations are precise.",
     category: "glossary",
     tags: ["lot size", "standard lot", "mini lot", "micro lot", "position size", "definition", "glossary"],
     relatedIds: ["rm-position-sizing", "gs-first-trade", "gl-pip"],
@@ -4951,7 +4951,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-long-short",
     question: "What does going \"long\" and going \"short\" mean?",
-    answer: "Going <strong>long</strong> means buying an asset with the expectation that its price will rise. You profit when you sell it later at a higher price. Going <strong>short</strong> (or \"shorting\") means selling an asset you do not own (borrowed from your broker) with the expectation that the price will fall, so you can buy it back cheaper and pocket the difference. For example, if you short a stock at $100 and it drops to $80, you profit $20 per share. If it rises to $120, you lose $20 per share. In Stargate, every trade is logged as either long or short, and this direction determines how your P&L is calculated. Understanding this distinction is fundamental to reading your analytics correctly.",
+    answer: "Going <strong>long</strong> means buying an asset with the expectation that its price will rise. You profit when you sell it later at a higher price. Going <strong>short</strong> (or \"shorting\") means selling an asset you do not own (borrowed from your broker) with the expectation that the price will fall, so you can buy it back cheaper and pocket the difference. For example, if you short a stock at $100 and it drops to $80, you profit $20 per share. If it rises to $120, you lose $20 per share. In Traverse, every trade is logged as either long or short, and this direction determines how your P&L is calculated. Understanding this distinction is fundamental to reading your analytics correctly.",
     category: "glossary",
     tags: ["long", "short", "buy", "sell", "direction", "definition", "glossary"],
     relatedIds: ["gs-first-trade", "tj-edit-trade", "an-win-rate"],
@@ -4967,7 +4967,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-support-resistance",
     question: "What is support and resistance?",
-    answer: "<strong>Support</strong> is a price level where an asset tends to stop falling and bounce upward because buyers step in. <strong>Resistance</strong> is a price level where an asset tends to stop rising and reverse downward because sellers take over. Think of support as a floor and resistance as a ceiling. For example, if a stock has bounced off $50 three times in the past month, $50 is a strong support level. These levels form because traders remember past prices and make decisions based on them. When the price breaks through support or resistance, it often moves sharply -- these \"breakouts\" are common trade setups. Logging the key support and resistance levels in your Stargate trade notes helps you evaluate whether your entries and exits were at optimal prices.",
+    answer: "<strong>Support</strong> is a price level where an asset tends to stop falling and bounce upward because buyers step in. <strong>Resistance</strong> is a price level where an asset tends to stop rising and reverse downward because sellers take over. Think of support as a floor and resistance as a ceiling. For example, if a stock has bounced off $50 three times in the past month, $50 is a strong support level. These levels form because traders remember past prices and make decisions based on them. When the price breaks through support or resistance, it often moves sharply -- these \"breakouts\" are common trade setups. Logging the key support and resistance levels in your Traverse trade notes helps you evaluate whether your entries and exits were at optimal prices.",
     category: "glossary",
     tags: ["support", "resistance", "price level", "floor", "ceiling", "breakout", "glossary"],
     relatedIds: ["gs-first-trade", "tj-notes", "gl-candlestick"],
@@ -4983,7 +4983,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-macd",
     question: "What is MACD (Moving Average Convergence Divergence)?",
-    answer: "The <strong>MACD</strong> is a trend-following momentum indicator that shows the relationship between two moving averages of an asset's price. It consists of three components: the <strong>MACD line</strong> (12-period EMA minus 26-period EMA), the <strong>signal line</strong> (9-period EMA of the MACD line), and the <strong>histogram</strong> (difference between the two lines). When the MACD line crosses above the signal line, it generates a bullish signal; when it crosses below, a bearish signal. For example, a MACD crossover combined with a price breakout above resistance is a high-confidence entry signal for many traders. Recording the MACD state (bullish crossover, bearish divergence, etc.) in your Stargate trade notes helps you analyze which indicator conditions produce your best trades.",
+    answer: "The <strong>MACD</strong> is a trend-following momentum indicator that shows the relationship between two moving averages of an asset's price. It consists of three components: the <strong>MACD line</strong> (12-period EMA minus 26-period EMA), the <strong>signal line</strong> (9-period EMA of the MACD line), and the <strong>histogram</strong> (difference between the two lines). When the MACD line crosses above the signal line, it generates a bullish signal; when it crosses below, a bearish signal. For example, a MACD crossover combined with a price breakout above resistance is a high-confidence entry signal for many traders. Recording the MACD state (bullish crossover, bearish divergence, etc.) in your Traverse trade notes helps you analyze which indicator conditions produce your best trades.",
     category: "glossary",
     tags: ["MACD", "moving average", "convergence", "divergence", "crossover", "signal line", "glossary"],
     relatedIds: ["mt3-technical-indicators", "gl-rsi", "gl-candlestick"],
@@ -4991,7 +4991,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-volume",
     question: "What is volume in trading?",
-    answer: "<strong>Volume</strong> is the total number of shares, contracts, or coins traded during a specific time period. High volume means many participants are actively buying and selling, while low volume means few traders are involved. Volume is important because it confirms price moves: a breakout on high volume is more likely to sustain than one on low volume. For example, if a stock breaks above resistance on 3x its average daily volume, that is a strong signal of genuine demand. Conversely, a rally on declining volume may indicate the move is running out of steam. In Stargate, you can view volume data on charts and in the screener, and noting volume conditions in your trade journal helps you filter for high-quality setups.",
+    answer: "<strong>Volume</strong> is the total number of shares, contracts, or coins traded during a specific time period. High volume means many participants are actively buying and selling, while low volume means few traders are involved. Volume is important because it confirms price moves: a breakout on high volume is more likely to sustain than one on low volume. For example, if a stock breaks above resistance on 3x its average daily volume, that is a strong signal of genuine demand. Conversely, a rally on declining volume may indicate the move is running out of steam. In Traverse, you can view volume data on charts and in the screener, and noting volume conditions in your trade journal helps you filter for high-quality setups.",
     category: "glossary",
     tags: ["volume", "shares traded", "liquidity", "confirmation", "breakout", "definition", "glossary"],
     relatedIds: ["mt2-volume-profile", "gl-candlestick", "mt-screener"],
@@ -4999,7 +4999,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-market-cap",
     question: "What is market capitalization (market cap)?",
-    answer: "<strong>Market capitalization</strong> (market cap) is the total value of all outstanding shares or coins of an asset, calculated as <code>current price x total supply</code>. For example, if a stock trades at $50 and has 1 billion shares outstanding, its market cap is $50 billion. Assets are generally classified as <strong>large-cap</strong> (over $10B), <strong>mid-cap</strong> ($2B-$10B), and <strong>small-cap</strong> (under $2B). In crypto, the same tiers apply with different thresholds. Market cap matters for journaling because it indicates an asset's liquidity and risk profile -- small-cap assets are more volatile and prone to manipulation, while large-caps are more stable. Use the Stargate heatmap and screener to filter by market cap when looking for trade candidates.",
+    answer: "<strong>Market capitalization</strong> (market cap) is the total value of all outstanding shares or coins of an asset, calculated as <code>current price x total supply</code>. For example, if a stock trades at $50 and has 1 billion shares outstanding, its market cap is $50 billion. Assets are generally classified as <strong>large-cap</strong> (over $10B), <strong>mid-cap</strong> ($2B-$10B), and <strong>small-cap</strong> (under $2B). In crypto, the same tiers apply with different thresholds. Market cap matters for journaling because it indicates an asset's liquidity and risk profile -- small-cap assets are more volatile and prone to manipulation, while large-caps are more stable. Use the Traverse heatmap and screener to filter by market cap when looking for trade candidates.",
     category: "glossary",
     tags: ["market cap", "market capitalization", "large-cap", "small-cap", "valuation", "definition", "glossary"],
     relatedIds: ["mt-heatmaps", "mt-screener", "mt-stock-screener"],
@@ -5007,7 +5007,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gl-stop-limit-vs-stop-market",
     question: "What is the difference between a stop-limit order and a stop-market order?",
-    answer: "A <strong>stop-market order</strong> triggers a market order once the stop price is hit, guaranteeing execution but not a specific price -- you may experience slippage in fast markets. A <strong>stop-limit order</strong> triggers a limit order at a specified price once the stop is hit, guaranteeing your fill price but not execution -- if the market gaps past your limit, the order may not fill and you remain in the trade. For example, with a stop-market at $95, you will definitely exit but might fill at $94.50 in a crash. With a stop-limit at $95 (limit $94.80), you will only fill between $94.80 and $95, but if the price gaps to $93 you get no fill at all. Most traders prefer stop-market for protective stops because guaranteed execution is more important than a few cents of slippage. Log which order type you used in Stargate to track how slippage affects your results.",
+    answer: "A <strong>stop-market order</strong> triggers a market order once the stop price is hit, guaranteeing execution but not a specific price -- you may experience slippage in fast markets. A <strong>stop-limit order</strong> triggers a limit order at a specified price once the stop is hit, guaranteeing your fill price but not execution -- if the market gaps past your limit, the order may not fill and you remain in the trade. For example, with a stop-market at $95, you will definitely exit but might fill at $94.50 in a crash. With a stop-limit at $95 (limit $94.80), you will only fill between $94.80 and $95, but if the price gaps to $93 you get no fill at all. Most traders prefer stop-market for protective stops because guaranteed execution is more important than a few cents of slippage. Log which order type you used in Traverse to track how slippage affects your results.",
     category: "glossary",
     tags: ["stop-limit", "stop-market", "order type", "execution", "slippage", "gap", "glossary"],
     relatedIds: ["rm-stop-loss", "gl-slippage", "tj-edit-trade"],
@@ -5019,7 +5019,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "sup-human-support",
     question: "Can I talk to a real person for support?",
-    answer: "Yes! Stargate offers live human support. Click the <strong>Nova</strong> guide (the floating circle in the bottom-right corner), then select <strong>Live Support</strong>. During support hours (12:00 PM – 10:00 PM CET, every day), you can start a real-time conversation and get a personal reply. Outside of those hours, you can leave a message and we'll respond when we're back online. You can also email us at <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a>.",
+    answer: "Yes! Traverse offers live human support. Click the <strong>Nova</strong> guide (the floating circle in the bottom-right corner), then select <strong>Live Support</strong>. During support hours (12:00 PM – 10:00 PM CET, every day), you can start a real-time conversation and get a personal reply. Outside of those hours, you can leave a message and we'll respond when we're back online. You can also email us at <a href=\"mailto:support@traversejournal.com\">support@traversejournal.com</a>.",
     category: "getting-started",
     tags: ["support", "human", "live chat", "contact", "help", "person", "real", "talk"],
     relatedIds: ["sup-support-hours", "sup-email-support", "sup-nova-guide"],
@@ -5035,7 +5035,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "sup-email-support",
     question: "How do I contact support by email?",
-    answer: "You can email us any time at <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a>. We typically respond within 24 hours. For faster help during support hours (12:00 PM – 10:00 PM CET), use the Live Support chat in Nova's menu.",
+    answer: "You can email us any time at <a href=\"mailto:support@traversejournal.com\">support@traversejournal.com</a>. We typically respond within 24 hours. For faster help during support hours (12:00 PM – 10:00 PM CET), use the Live Support chat in Nova's menu.",
     category: "getting-started",
     tags: ["email", "contact", "support", "help", "reach out"],
     relatedIds: ["sup-human-support", "sup-support-hours"],
@@ -5043,7 +5043,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "sup-nova-guide",
     question: "What is Nova and how do I use it?",
-    answer: "Nova is your personal trading companion — the floating guide character in the bottom-right corner of the dashboard. Click Nova to open the menu where you can:<ul><li><strong>Log a Feeling</strong> — Quick emotion tracking</li><li><strong>Log a Trade</strong> — Jump straight to trade entry</li><li><strong>Quick Chat</strong> — Ask questions about Stargate features</li><li><strong>Live Support</strong> — Chat with a real person during support hours</li><li><strong>Replay Tours</strong> — Re-learn any page with guided walkthroughs</li></ul>Nova also guides you through onboarding when you first join and highlights new features on each page.",
+    answer: "Nova is your personal trading companion — the floating guide character in the bottom-right corner of the dashboard. Click Nova to open the menu where you can:<ul><li><strong>Log a Feeling</strong> — Quick emotion tracking</li><li><strong>Log a Trade</strong> — Jump straight to trade entry</li><li><strong>Quick Chat</strong> — Ask questions about Traverse features</li><li><strong>Live Support</strong> — Chat with a real person during support hours</li><li><strong>Replay Tours</strong> — Re-learn any page with guided walkthroughs</li></ul>Nova also guides you through onboarding when you first join and highlights new features on each page.",
     category: "getting-started",
     tags: ["nova", "guide", "floating", "widget", "companion", "assistant", "bottom right"],
     relatedIds: ["sup-human-support", "gs-onboarding", "gs-first-trade"],
@@ -5066,8 +5066,8 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   },
   {
     id: "gs-mobile-use",
-    question: "Can I use Stargate on my phone or tablet?",
-    answer: "Yes! Stargate is fully responsive and works in any mobile browser. Navigate to <strong>stargate-journal.vercel.app</strong> on your phone and log in. The interface automatically adjusts for smaller screens. For the best mobile experience, you can add Stargate to your home screen — in Safari, tap the Share button and select <strong>Add to Home Screen</strong>. On Android Chrome, tap the three-dot menu and select <strong>Add to Home Screen</strong>.",
+    question: "Can I use Traverse on my phone or tablet?",
+    answer: "Yes! Traverse is fully responsive and works in any mobile browser. Navigate to <strong>traversejournal.com</strong> on your phone and log in. The interface automatically adjusts for smaller screens. For the best mobile experience, you can add Traverse to your home screen — in Safari, tap the Share button and select <strong>Add to Home Screen</strong>. On Android Chrome, tap the three-dot menu and select <strong>Add to Home Screen</strong>.",
     category: "apps",
     tags: ["mobile", "phone", "tablet", "responsive", "pwa", "home screen", "ios", "android"],
     relatedIds: ["gs-create-account", "sup-human-support"],
@@ -5075,7 +5075,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs-data-export",
     question: "Can I export my trading data?",
-    answer: "Currently, your trading data is stored securely in Stargate's database. Data export functionality is on our roadmap. If you need your data urgently, contact support at <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a> and we can help you get your data.",
+    answer: "Currently, your trading data is stored securely in Traverse's database. Data export functionality is on our roadmap. If you need your data urgently, contact support at <a href=\"mailto:support@traversejournal.com\">support@traversejournal.com</a> and we can help you get your data.",
     category: "privacy-security",
     tags: ["export", "download", "data", "csv", "backup", "privacy"],
     relatedIds: ["sup-email-support", "sup-human-support"],
@@ -5083,7 +5083,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "gs-delete-account",
     question: "How do I delete my account and data?",
-    answer: "To delete your account and all associated data, please email <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a> with the subject line <strong>Account Deletion Request</strong>. Include the email address associated with your account. We will process your request and permanently delete all your data within 30 days, in compliance with GDPR.",
+    answer: "To delete your account and all associated data, please email <a href=\"mailto:support@traversejournal.com\">support@traversejournal.com</a> with the subject line <strong>Account Deletion Request</strong>. Include the email address associated with your account. We will process your request and permanently delete all your data within 30 days, in compliance with GDPR.",
     category: "privacy-security",
     tags: ["delete", "account", "data", "gdpr", "privacy", "remove", "close"],
     relatedIds: ["gs-data-export", "sup-email-support"],
@@ -5159,7 +5159,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
   {
     id: "tj-somatic-body-map",
     question: "What is the somatic body map?",
-    answer: "The somatic body map lets you <strong>track where you feel stress, tension, or excitement in your body</strong> before and during trades. Research in somatic psychology shows that physical sensations often precede conscious emotional awareness.<br><br><strong>How it helps:</strong><ul><li>Tight chest + clenched jaw before a trade? Your body is signaling anxiety — you may be oversized</li><li>Butterflies in your stomach? Could be excitement (FOMO) or legitimate anticipation</li><li>Tension in shoulders? Stress accumulation — might be time to step away</li></ul>Over time, Stargate correlates your body sensations with trade outcomes, revealing your personal <strong>somatic trading signals</strong>.",
+    answer: "The somatic body map lets you <strong>track where you feel stress, tension, or excitement in your body</strong> before and during trades. Research in somatic psychology shows that physical sensations often precede conscious emotional awareness.<br><br><strong>How it helps:</strong><ul><li>Tight chest + clenched jaw before a trade? Your body is signaling anxiety — you may be oversized</li><li>Butterflies in your stomach? Could be excitement (FOMO) or legitimate anticipation</li><li>Tension in shoulders? Stress accumulation — might be time to step away</li></ul>Over time, Traverse correlates your body sensations with trade outcomes, revealing your personal <strong>somatic trading signals</strong>.",
     category: "trading-journal",
     tags: ["somatic", "body", "map", "physical", "tension", "stress", "awareness", "sensation"],
     relatedIds: ["tj-emotions", "ap-daily-checkin", "tj-cognitive-distortions"],

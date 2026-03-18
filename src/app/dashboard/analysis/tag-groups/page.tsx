@@ -22,6 +22,7 @@ import {
   Cell,
 } from "recharts";
 import { Tag, Hash, Award, TrendingDown, Target } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function TagGroupsPage() {
   const supabase = createClient();
@@ -84,7 +85,7 @@ export default function TagGroupsPage() {
           <Tag size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Tag Groups</h1>
+          <h1 className="text-2xl font-bold text-foreground">Tag Groups <InfoTooltip text="Performance grouped by your custom tags — find which strategies and conditions work" /></h1>
           <p className="text-sm text-muted">
             {usingDemo ? "Sample data" : `${tagGroups.length} tags across ${filtered.length} trades`}
           </p>
@@ -118,7 +119,7 @@ export default function TagGroupsPage() {
 
       {chartData.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Top 10 Tags by P&L</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Top 10 Tags by P&L <InfoTooltip text="Your top 10 tags ranked by total profit/loss" size={12} /></h3>
           <ResponsiveContainer width="100%" height={Math.max(200, chartData.length * 36)}>
             <BarChart data={chartData} layout="vertical" margin={{ left: 80, right: 20, top: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} horizontal={false} />

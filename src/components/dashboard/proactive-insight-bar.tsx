@@ -43,12 +43,15 @@ export function ProactiveInsightBar({
 
   // Fetch today's check-in and streak data
   const fetchContextData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
     const today = new Date().toISOString().split("T")[0];
 
     // Daily check-in
     const { data: checkinData } = await supabase
       .from("daily_checkins")
       .select("traffic_light")
+      .eq("user_id", userId)
       .gte("created_at", `${today}T00:00:00`)
       .lte("created_at", `${today}T23:59:59`)
       .order("created_at", { ascending: false })

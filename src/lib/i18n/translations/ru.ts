@@ -20,7 +20,7 @@ const ru = {
     no: "Нет",
     confirm: "Подтвердить",
     logOut: "Выйти",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -64,18 +64,18 @@ const ru = {
     language: "Язык",
 
     // Guide speech (per step)
-    speech0: "Добро пожаловать в Stargate! Я Nova, ваш торговый партнёр. Давайте настроим всё.",
+    speech0: "Добро пожаловать в Traverse! Я Nova, ваш торговый партнёр. Давайте настроим всё.",
     speech1WithName: "Приятно познакомиться, {name}! Как давно вы торгуете?",
     speech1NoName: "Как мне вас называть?",
     speech2: "Как вы торгуете?",
     speech3: "Где вы исполняете свои сделки?",
     speech4: "Какими инструментами вы торгуете?",
-    speech5: "Чего вы хотите достичь со Stargate?",
+    speech5: "Чего вы хотите достичь с Traverse?",
     speech6: "Почти готово! Давайте настроим ваш опыт.",
     speech7: "Последний вопрос — как вы нас нашли?",
 
     // Intro cinematic
-    welcomeTitle: "Добро пожаловать в Stargate",
+    welcomeTitle: "Добро пожаловать в Traverse",
     tapToSkip: "нажмите, чтобы пропустить",
 
     // Step indicator + navigation
@@ -292,7 +292,7 @@ const ru = {
     welcome: {
       step0Title: "Готовы к запуску?",
       step0Content: "Идёмте со мной. Я Nova, и покажу вам всё, что нужно, чтобы стать прибыльным трейдером.",
-      step1Title: "Добро пожаловать в Stargate!",
+      step1Title: "Добро пожаловать в Traverse!",
       step1Content: "Привет! Я Nova, ваш торговый компаньон. Позвольте показать вам всё. Это займёт около 2 минут, и вы можете пропустить в любой момент.",
       step2Title: "Панель управления",
       step2Content: "Это ваша база. Ваши P&L, процент побед и кривая капитала обновляются в реальном времени при записи сделок.",

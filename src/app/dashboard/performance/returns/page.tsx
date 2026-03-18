@@ -14,6 +14,7 @@ import { calculateAdvancedStats } from "@/lib/calculations";
 import { StatBlock } from "@/components/ui/stat-block";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, ReferenceLine } from "recharts";
 import { BarChart as BarChartIcon, TrendingUp, TrendingDown, Activity, Target, Info } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function ReturnsDistributionPage() {
   const supabase = createClient();
@@ -76,7 +77,7 @@ export default function ReturnsDistributionPage() {
 
   if (!distData) return (
     <div className="max-w-[1600px] mx-auto space-y-6">
-      <div><h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BarChartIcon size={24} className="text-accent" />Returns Distribution</h1></div>
+      <div><h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BarChartIcon size={24} className="text-accent" />Returns Distribution <InfoTooltip text="Distribution of your trade returns — reveals if you cut winners short or let losers run" /></h1></div>
       <div className="glass rounded-2xl border border-border/50 p-8 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
         <p className="text-muted">Need closed trades to analyze return distribution.</p>
       </div>
@@ -95,7 +96,7 @@ export default function ReturnsDistributionPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       {usingDemo && <DemoBanner />}
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BarChartIcon size={24} className="text-accent" />Returns Distribution</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BarChartIcon size={24} className="text-accent" />Returns Distribution <InfoTooltip text="Distribution of your trade returns — reveals if you cut winners short or let losers run" /></h1>
         <p className="text-sm text-muted mt-0.5">Distribution of all your trade P&L values</p>
       </div>
 

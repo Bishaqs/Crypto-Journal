@@ -1257,13 +1257,14 @@ body {
 
 /* Scanline animation for Protocol grid */
 @keyframes scanline-move {
-  0% {
-    top: 0;
-  }
+  0% { top: 0; }
+  100% { top: 100%; }
+}
 
-  100% {
-    top: 100%;
-  }
+/* Holographic scan for new trade log */
+@keyframes scan {
+  0% { top: -20%; }
+  100% { top: 120%; }
 }
 
 /* Nav scrolled state — pill navbar frosted glass */

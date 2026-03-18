@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['recharts', 'framer-motion', 'lucide-react'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'stargate-journal.vercel.app' }],
+        destination: 'https://traversejournal.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

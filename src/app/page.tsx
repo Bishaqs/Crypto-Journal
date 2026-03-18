@@ -1,648 +1,618 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { StargateLogo } from "@/components/stargate-logo";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { TraverseLogo } from "@/components/traverse-logo";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { ThemeShowcase } from "@/components/landing/theme-showcase";
-import { RealisticBlackHole } from "@/components/realistic-black-hole";
-import { useTheme, THEMES } from "@/lib/theme-context";
-import {
-  CheckCircle2,
-  ArrowRight,
-} from "lucide-react";
+import { useTheme } from "@/lib/theme-context";
 
-const psoBlocks = [
-  {
-    problem: "You know you revenge trade. You just can\u2019t see it happening in real time.",
-    solution: "Stargate flags when you enter multiple trades after a loss, detects oversizing, and shows you the pattern before you blow your week.",
-    outcome: "You stop the bleed before it starts.",
-  },
-  {
-    problem: "You have rules. You just don\u2019t follow them when it matters.",
-    solution: "Every trade gets a process score. Did you follow your entry criteria? Your position sizing? Your stop loss? Stargate tracks it so you can\u2019t lie to yourself.",
-    outcome: "Your win rate goes up because you finally trade your own system.",
-  },
-  {
-    problem: "You journal for three days, then stop. Every time.",
-    solution: "Logging a trade takes 30 seconds. Pick your emotion, rate your process, done. Stargate does the analysis. You just show up.",
-    outcome: "You actually stick with it because it\u2019s not another chore.",
-  },
-];
-
-const protocolTrades = [
-  { t: "09:41:22", pair: "BTC-PERP", side: "LONG" as const, size: "2.5", emotion: "Confident", process: "9/10", pnl: "+14.2%" },
-  { t: "10:15:04", pair: "ETH-PERP", side: "SHORT" as const, size: "15.0", emotion: "Revenge", process: "3/10", pnl: "-2.1%" },
-  { t: "11:30:45", pair: "SOL-PERP", side: "LONG" as const, size: "150", emotion: "FOMO", process: "5/10", pnl: "+8.4%" },
-  { t: "14:22:10", pair: "AVAX-PERP", side: "LONG" as const, size: "450", emotion: "Confident", process: "8/10", pnl: "+22.5%" },
-  { t: "15:45:33", pair: "BTC-PERP", side: "SHORT" as const, size: "1.2", emotion: "Anxious", process: "6/10", pnl: "+5.1%" },
-];
-
-const THEME_TO_COLOR: Record<
-  string,
-  "purple" | "orange" | "blue" | "green" | "neutral"
-> = {
-  nebula: "purple",
-  vulcan: "orange",
-  triton: "blue",
-  cipher: "green",
-  solara: "neutral",
-  obsidian: "neutral",
-};
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function LandingPage() {
-  const { theme, setTheme } = useTheme();
-  const bhColor = THEME_TO_COLOR[theme] ?? "purple";
-  const [navScrolled, setNavScrolled] = useState(false);
+  const { setTheme } = useTheme();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Lock landing page to purple (Space Purple) theme
   useEffect(() => {
     setTheme("obsidian");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setTheme]);
 
-  // Scroll detection for navbar
-  useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 80);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  useGSAP(() => {
+    // Reveal animations for hero text
+    gsap.from(".hero-text-line", {
+      y: 60,
+      opacity: 0,
+      duration: 1.2,
+      stagger: 0.15,
+      ease: "power3.out",
+      delay: 0.2,
+    });
+
+    gsap.from(".hero-cta", {
+      y: 30,
+      opacity: 0,
+      duration: 1,
+      ease: "power3.out",
+      delay: 0.6,
+    });
+
+    // Parallax on the video background
+    gsap.to(".hero-video", {
+      yPercent: 30,
+      ease: "none",
+      scrollTrigger: {
+        trigger: ".hero-section",
+        start: "top top",
+        end: "bottom top",
+        scrub: true,
+      },
+    });
+
+    // Social proof bar fade in
+    gsap.from(".social-proof-item", {
+      y: 20,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: ".social-proof-bar",
+        start: "top 90%",
+      },
+    });
+    
+    // Philosophy section parallax text
+    gsap.from(".philosophy-text", {
+      y: 100,
+      opacity: 0,
+      duration: 1.5,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: ".philosophy-section",
+        start: "top 75%",
+      },
+    });
+
+    // Features alternating reveal
+    const featureBlocks = gsap.utils.toArray<HTMLElement>(".feature-block");
+    featureBlocks.forEach((block, i) => {
+      gsap.from(block, {
+        x: i % 2 === 0 ? -50 : 50,
+        opacity: 0,
+        duration: 1.2,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: block,
+          start: "top 80%",
+        },
+      });
+    });
+
+    // Protocol table tilt effect
+    gsap.from(".protocol-table-container", {
+      rotateX: 15,
+      y: 100,
+      opacity: 0,
+      duration: 1.5,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: ".protocol-section",
+        start: "top 75%",
+      },
+    });
+
+    // Add magnetic hover interactions to buttons
+    const magneticBtns = document.querySelectorAll(".magnetic-btn");
+    magneticBtns.forEach((btn) => {
+      // Use cubic-bezier as requested in DESIGN SYSTEM 1
+      const enter = () => gsap.to(btn, { scale: 1.03, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
+      const leave = () => gsap.to(btn, { scale: 1, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
+      const down = () => gsap.to(btn, { scale: 0.98, duration: 0.2, ease: "power2.out" });
+      const up = () => gsap.to(btn, { scale: 1.03, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
+      
+      btn.addEventListener("mouseenter", enter);
+      btn.addEventListener("mouseleave", leave);
+      btn.addEventListener("mousedown", down);
+      btn.addEventListener("mouseup", up);
+      
+      // Cleanup happens via useGSAP
+    });
+
+  }, { scope: containerRef });
 
   return (
-    <div className="dark min-h-screen bg-background overflow-hidden">
-      {/* ─── Navbar — Floating Pill ─── */}
-      <nav
-        className={`fixed left-1/2 top-6 z-50 flex w-[92%] max-w-5xl -translate-x-1/2 items-center justify-between rounded-full px-6 py-3.5 transition-all duration-300 ease-out border border-transparent text-foreground ${
-          navScrolled ? "nav-scrolled" : "bg-transparent"
-        }`}
-      >
-        <div className="flex items-center gap-2.5">
-          <StargateLogo size={28} />
-          <span className="nav-logo-text text-lg font-bold tracking-tight bg-gradient-to-r from-accent via-accent/80 to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
-            Stargate
-          </span>
-        </div>
-        <div className="hidden md:flex items-center gap-8">
-          <a
-            href="#features"
-            className="text-sm font-medium opacity-70 hover:opacity-100 transition-opacity"
-          >
-            Features
-          </a>
-          <a
-            href="#protocol"
-            className="text-sm font-medium opacity-70 hover:opacity-100 transition-opacity"
-          >
-            Protocol
-          </a>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="text-sm font-medium opacity-70 hover:opacity-100 transition-opacity hidden sm:block"
-          >
+    <div ref={containerRef} className="bg-[#0a0a0c] text-[#f4f4f5] font-sans selection:bg-[#67e8f9]/30 selection:text-[#67e8f9] overflow-x-hidden">
+      
+      {/* --- NAVBAR --- */}
+      <nav className="fixed top-0 left-0 right-0 z-50 py-6 px-4 md:px-12 flex items-center justify-between mix-blend-difference pointer-events-none">
+        <Link href="/" className="flex items-center gap-3 group pointer-events-auto">
+          <div className="hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(103,232,249,0.5)] transition-all duration-300">
+            <TraverseLogo size={32} />
+          </div>
+          <span className="font-mono text-sm tracking-widest uppercase opacity-90 group-hover:opacity-100 transition-opacity">Traverse</span>
+        </Link>
+        <div className="flex items-center gap-6 pointer-events-auto">
+          <Link href="/login" className="hidden md:block text-sm font-medium hover:text-[#67e8f9] transition-colors duration-300">
             Sign In
           </Link>
-          <Link
-            href="/login"
-            className="nav-cta px-4 py-2 text-sm rounded-full bg-accent text-white font-semibold hover:bg-accent-hover transition-colors"
-          >
-            Start free
+          <Link href="/login" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-bold flex items-center gap-2 hover:bg-[#67e8f9] transition-colors duration-300">
+            Early Access
           </Link>
         </div>
       </nav>
 
-      {/* ─── Hero — Black hole RIGHT, text LEFT-bottom ─── */}
-      <section className="relative min-h-screen flex items-end pb-24 px-6 md:px-16 overflow-hidden">
-        {/* Black hole — offset right */}
-        <div className="absolute inset-0 overflow-hidden">
-          <img
-            src="/themes/nebula-bg.webp"
-            alt=""
-            fetchPriority="high"
-            decoding="async"
-            style={{
-              position: 'absolute', inset: 0,
-              width: '100%', height: '100%',
-              objectFit: 'cover', objectPosition: 'center',
-              zIndex: 0,
-              animation: 'nebula-image-breathe 18s ease-in-out infinite',
-              willChange: 'filter'
-            }}
-          />
-        </div>
-
-        {/* Gradient overlays for text readability */}
-        <div
-          className="absolute inset-0 z-[1]"
-          style={{
-            background:
-              "linear-gradient(to top, var(--background), rgba(8,12,20,0.6), transparent)",
-          }}
-        />
-        <div
-          className="absolute inset-0 z-[1]"
-          style={{
-            background:
-              "linear-gradient(to right, var(--background), rgba(8,12,20,0.4), transparent)",
-          }}
-        />
-
-        {/* Hero content — bottom-left */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-start gap-6 pb-12">
-          <h1 className="flex flex-col gap-2">
-            <span className="text-lg md:text-2xl font-bold uppercase tracking-widest text-foreground/70">
-              See exactly which emotions cost you money.
-            </span>
-            <span className="text-5xl md:text-6xl leading-tight text-accent tracking-tighter font-bold pr-4">
-              Then stop repeating them.
-            </span>
-          </h1>
-          <p
-            className="max-w-lg text-lg text-foreground/50 mt-4 leading-relaxed"
-            style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-          >
-            Log any trade in 30 seconds. Stargate tracks your emotional state
-            alongside every entry and shows you the behavioral patterns that are
-            bleeding your account.
-          </p>
-          <div className="mt-8 flex gap-4 flex-wrap">
-            <Link
-              href="/login"
-              className="px-10 py-5 text-lg font-medium rounded-full bg-accent text-white relative overflow-hidden hover:scale-105 transition-transform"
-              style={{
-                boxShadow: `0 0 40px rgba(var(--accent-rgb), 0.4)`,
-              }}
-            >
-              Start journaling free
-            </Link>
-            <a
-              href="#features"
-              className="px-10 py-5 text-lg font-medium rounded-full text-foreground/70 hover:bg-foreground/10 transition-colors"
-            >
-              See how it works
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Social Proof Bar ─── */}
-      <ScrollReveal>
-        <section className="glass border-y border-border/50 py-8 relative z-10">
-          <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center gap-8 md:gap-16 text-center">
-            <div>
-              <p className="text-2xl font-bold text-foreground">P&L + Psychology</p>
-              <p className="text-xs text-muted mt-0.5">connected in every trade</p>
-            </div>
-            <div className="h-8 w-px bg-border hidden md:block" />
-            <div>
-              <p className="text-2xl font-bold text-foreground">30 sec</p>
-              <p className="text-xs text-muted mt-0.5">to log a trade</p>
-            </div>
-            <div className="h-8 w-px bg-border hidden md:block" />
-            <div>
-              <p className="text-2xl font-bold text-foreground">Data-driven</p>
-              <p className="text-xs text-muted mt-0.5">pattern detection</p>
-            </div>
-            <div className="h-8 w-px bg-border hidden md:block" />
-            <div>
-              <p className="text-2xl font-bold text-accent">Automatic</p>
-              <p className="text-xs text-muted mt-0.5">
-                patterns detected for you
-              </p>
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* ─── Theme Showcase ─── */}
-      <ScrollReveal>
-        <section className="py-20 relative z-10">
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground heading-glow">
-                Your command center, your style
-              </h2>
-              <p className="text-muted mt-3 max-w-lg mx-auto">
-                Five unique themes — click to preview and set your default.
-              </p>
-            </div>
-            <ThemeShowcase />
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-
-      {/* ─── Philosophy — Contrast Word Reveal ─── */}
-      <ScrollReveal>
-        <section className="relative py-32 md:py-40 px-6 md:px-16 overflow-hidden min-h-[70vh] flex items-center">
-          {/* Subtle background overlay */}
-          <div
-            className="absolute inset-0 z-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse at 30% 50%, rgba(var(--accent-rgb), 0.04) 0%, transparent 60%)",
-            }}
-          />
-          <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col gap-12">
-            <h2 className="text-xl md:text-3xl text-muted tracking-tight leading-relaxed max-w-2xl">
-              Most traders: check P&L obsessively, revenge trade after a loss, size up when emotional, skip their own rules, journal for two days then quit.
-            </h2>
-            <h2 className="text-4xl md:text-6xl lg:text-[5.5rem] tracking-tight leading-[1.1] font-bold max-w-5xl text-foreground/90">
-              Stargate connects your{" "}
-              <span className="text-accent">emotional state</span> to your{" "}
-              <span className="text-accent">P&L</span> so you see the{" "}
-              <span className="text-accent">pattern,</span> not just the loss.
-            </h2>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-
-      {/* ─── Features — 3 Problem-Solution-Outcome Blocks ─── */}
-      <section
-        id="features"
-        className="py-24 md:py-32 relative z-10"
-      >
-        <div className="max-w-5xl mx-auto px-6">
-          <ScrollReveal>
-            <div className="mb-16">
-              <h2
-                className="text-4xl md:text-5xl font-bold tracking-tight text-foreground"
+      {/* --- HERO SECTION --- */}
+      <main>
+        <section className="hero-section relative w-full min-h-[100dvh] flex flex-col justify-end pb-24 md:pb-32 px-4 md:px-24">
+          {/* Video Background */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <div className="hero-video absolute inset-[-10%] w-[120%] h-[120%]">
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className="w-full h-full object-cover scale-105" 
+                poster="/themes/nebula-bg.webp" 
+                onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).playbackRate = 0.6; }}
               >
-                Three problems. Three solutions.
-              </h2>
+                <source src="/hero-blackhole.mp4" type="video/mp4" />
+              </video>
             </div>
-          </ScrollReveal>
-
-          <div className="flex flex-col gap-6">
-            {psoBlocks.map((block, i) => (
-              <ScrollReveal key={i} delay={i * 100}>
-                <div
-                  className="rounded-[2rem] border border-white/10 p-8 md:p-10"
-                  style={{ background: "rgba(10,10,20,0.95)", color: "#e0eaf4" }}
-                >
-                  <p className="text-purple-400 text-sm font-semibold uppercase tracking-wider mb-3">
-                    The problem
-                  </p>
-                  <p className="text-xl md:text-2xl font-bold text-white/90 mb-6">
-                    {block.problem}
-                  </p>
-                  <p className="text-white/50 leading-relaxed mb-6">
-                    {block.solution}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <ArrowRight size={16} className="text-accent" />
-                    <p className="text-accent font-semibold">
-                      {block.outcome}
-                    </p>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
+            {/* Gradients for readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/40 via-transparent to-[#0a0a0c] mix-blend-multiply"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/60 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-tr from-[#0a0a0c] via-[#0a0a0c]/80 to-transparent"></div>
           </div>
-        </div>
-      </section>
 
-      {/* ─── Psychology ─── */}
-      <ScrollReveal>
-        <section className="py-20 max-w-6xl mx-auto px-6 relative z-10">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground mb-4 heading-glow">
-                You already know what you&apos;re doing wrong.
-              </h2>
-              <p className="text-muted leading-relaxed">
-                You&apos;ve said it out loud. &ldquo;I knew I shouldn&apos;t have taken
-                that trade.&rdquo; The problem isn&apos;t knowledge. It&apos;s that you
-                can&apos;t see the pattern while you&apos;re inside it.
-              </p>
-              <p className="text-muted leading-relaxed mt-3">
-                Stargate shows you the data so your brain can&apos;t ignore it
-                anymore.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                {
-                  label: "Track emotions",
-                  desc: "Tag every trade with how you felt. Confident, anxious, revenge, FOMO. Takes one tap.",
-                },
-                {
-                  label: "Rate your process",
-                  desc: "Did you follow your rules? Yes or no. No essays. Just honesty.",
-                },
-                {
-                  label: "Spot patterns",
-                  desc: "Stargate shows you: \u2018You lose 73% of trades taken when anxious.\u2019 Hard to argue with a number.",
-                },
-                {
-                  label: "Break the cycle",
-                  desc: "Next time you feel anxious and reach for the buy button, you\u2019ll remember that number.",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="glass rounded-2xl border border-border/50 p-5 hover:border-accent/20 hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.08)] transition-all duration-300"
-                  style={{ boxShadow: "var(--shadow-card)" }}
-                >
-                  <CheckCircle2 size={16} className="text-accent mb-2" />
-                  <p className="text-sm font-semibold text-foreground">
-                    {item.label}
-                  </p>
-                  <p className="text-xs text-muted mt-1">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-
-      {/* ─── Protocol — Trade Log ─── */}
-      <section id="protocol" className="py-24 md:py-32 overflow-hidden relative">
-        <div className="max-w-7xl mx-auto px-6 md:px-16 mb-20 text-center relative z-10">
-          <ScrollReveal>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
-              Your trade log
-            </h2>
-            <p
-              className="text-muted text-lg max-w-2xl mx-auto"
-              style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-            >
-              Every trade logged with your entry reason, emotional state, and
-              process score. One glance tells you if you traded your plan or
-              traded your feelings.
-            </p>
-          </ScrollReveal>
-        </div>
-        <ScrollReveal>
-          <div
-            className="max-w-6xl mx-auto px-6 relative z-10"
-            style={{ perspective: "1000px" }}
-          >
-            <div
-              className="relative w-full rounded-2xl border p-8 backdrop-blur-md"
-              style={{
-                borderColor: "rgba(var(--accent-rgb), 0.2)",
-                background: "rgba(10,10,20,0.8)",
-                boxShadow: `0 0 80px rgba(var(--accent-rgb), 0.1)`,
-                transform: "rotateX(15deg)",
-                transformStyle: "preserve-3d",
-              }}
-            >
-              {/* Scanline */}
-              <div
-                className="absolute top-0 left-0 w-full h-[2px] z-20 pointer-events-none"
-                style={{
-                  background: `rgba(var(--accent-rgb), 0.5)`,
-                  boxShadow: `0 0 20px 2px rgba(var(--accent-rgb), 0.8)`,
-                  animation: "scanline-move 3s linear infinite",
-                }}
-              />
-              {/* Headers */}
-              <div
-                className="grid grid-cols-7 gap-4 mb-6 border-b border-white/10 pb-4 text-xs uppercase tracking-[0.2em] text-accent font-bold"
-                style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-              >
-                <div>Timestamp</div>
-                <div>Asset</div>
-                <div>Direction</div>
-                <div>Size</div>
-                <div>Emotion</div>
-                <div>Process</div>
-                <div className="text-right">PnL</div>
-              </div>
-              {/* Rows */}
-              <div className="flex flex-col gap-3">
-                {protocolTrades.map((tr) => (
-                  <div
-                    key={tr.t}
-                    className="protocol-row grid grid-cols-7 gap-4 items-center p-4 rounded-lg bg-white/5 border border-white/5 text-sm relative overflow-hidden group"
-                    style={{
-                      fontFamily: "var(--font-geist-mono), monospace",
-                    }}
-                  >
-                    <div
-                      className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"
-                      style={{
-                        background: `linear-gradient(to right, transparent, rgba(var(--accent-rgb), 0.05), transparent)`,
-                      }}
-                    />
-                    <div className="text-white/50 rounded px-2 py-1 w-fit">
-                      {tr.t}
-                    </div>
-                    <div className="text-white font-bold">{tr.pair}</div>
-                    <div>
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          tr.side === "LONG"
-                            ? "text-purple-300 border border-purple-300/20"
-                            : "text-purple-500 border border-purple-500/20"
-                        }`}
-                        style={{
-                          background:
-                            tr.side === "LONG"
-                              ? "rgba(139,92,246,0.15)"
-                              : "rgba(139,92,246,0.08)",
-                        }}
-                      >
-                        {tr.side}
-                      </span>
-                    </div>
-                    <div className="text-white/70">{tr.size}</div>
-                    <div className="text-purple-300/80">{tr.emotion}</div>
-                    <div className="text-white/60">{tr.process}</div>
-                    <div
-                      className={`text-right font-bold ${
-                        tr.pnl.startsWith("+")
-                          ? "text-purple-300"
-                          : "text-purple-500/70"
-                      }`}
-                    >
-                      {tr.pnl}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {/* Footer */}
-              <div
-                className="mt-8 flex justify-between items-center border-t border-white/10 pt-4 text-xs text-white/30"
-                style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                  Live sync
-                </div>
-                <div>All data encrypted</div>
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-        {/* Ambient glow */}
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-4xl pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at center, rgba(var(--accent-rgb), 0.05) 0%, transparent 70%)`,
-          }}
-        />
-      </section>
-
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-
-      {/* ─── GetStarted CTA — Gemini style ─── */}
-      <ScrollReveal>
-        <section
-          className="py-32 px-6 md:px-16 relative overflow-hidden flex flex-col items-center justify-center text-center"
-        >
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
-            style={{
-              background: `rgba(var(--accent-rgb), 0.2)`,
-              filter: "blur(120px)",
-            }}
-          />
-          <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center gap-8">
-            <span
-              className="text-sm uppercase font-bold tracking-[0.2em] px-4 py-2 rounded-full"
-              style={{
-                color: "var(--accent)",
-                border: "1px solid rgba(var(--accent-rgb), 0.3)",
-                background: "rgba(var(--accent-rgb), 0.1)",
-                fontFamily: "var(--font-geist-mono), monospace",
-              }}
-            >
-              Early Access
-            </span>
-            <h2
-              className="text-5xl md:text-7xl font-bold tracking-tighter text-foreground"
-            >
-              Free while we build this with you.
-            </h2>
-            <p
-              className="text-xl max-w-2xl mt-4 mb-8 text-foreground/70"
-            >
-              We&apos;re looking for serious traders to shape the product. You
-              get full access to everything. We get your honest feedback. No
-              credit card. No catch.
-            </p>
-            <Link
-              href="/login"
-              className="px-12 py-6 text-xl rounded-full bg-accent text-white font-medium relative overflow-hidden hover:scale-105 transition-transform"
-              style={{
-                boxShadow: `0 0 40px rgba(var(--accent-rgb), 0.4)`,
-              }}
-            >
-              Get free access
-            </Link>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* ─── Footer — Gemini style ─── */}
-      <footer className="rounded-t-[4rem] px-8 md:px-16 pt-24 pb-8 overflow-hidden relative border-t border-border/50">
-        <div
-          className="absolute inset-0 z-0"
-          style={{ background: "rgba(var(--accent-rgb), 0.03)" }}
-        />
-        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-border/30 pb-16">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-2.5 mb-4">
-              <StargateLogo size={28} />
-              <span className="text-2xl font-bold tracking-tight text-foreground">
-                STARGATE
+          {/* Hero Content (Left-aligned asymmetric) */}
+          <div className="relative z-10 max-w-[85ch] flex flex-col items-start gap-8">
+            <div className="hero-text-line rounded-full px-3 py-1 bg-white/5 border border-white/10 backdrop-blur-md">
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#67e8f9]">
+                Trading Psychology Engine
               </span>
             </div>
-            <p
-              className="text-muted max-w-sm text-sm leading-relaxed"
-              style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-            >
-              The trading journal that connects your psychology to your P&L.
+            
+            <h1 className="text-5xl sm:text-6xl md:text-[5.5rem] lg:text-[6.5rem] leading-[0.9] tracking-tighter font-medium text-balance">
+              <div className="hero-text-line overflow-hidden">
+                <span className="block">See exactly which</span>
+              </div>
+              <div className="hero-text-line overflow-hidden text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
+                <span className="block">emotions cost you money.</span>
+              </div>
+              <div className="hero-text-line overflow-hidden">
+                <span className="block font-drama italic text-white/80">Then stop repeating them.</span>
+              </div>
+            </h1>
+
+            <p className="hero-text-line text-lg md:text-xl text-white/70 leading-relaxed max-w-[50ch] font-light">
+              Log any trade in 30 seconds. Traverse tracks your emotional state alongside every entry and shows you the behavioral patterns that are bleeding your account.
+            </p>
+
+            <div className="hero-cta flex flex-col sm:flex-row items-start sm:items-center gap-6 mt-4">
+              <Link 
+                href="/login" 
+                className="magnetic-btn group relative overflow-hidden rounded-full bg-[#f4f4f5] text-[#0a0a0c] pl-8 pr-4 py-3 font-medium flex items-center gap-6 transition-all"
+              >
+                <div className="absolute inset-0 bg-[#67e8f9] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-full"></div>
+                <span className="relative z-10">Start journaling free</span>
+                <div className="relative z-10 bg-[#0a0a0c]/10 rounded-full w-10 h-10 flex items-center justify-center group-hover:bg-[#0a0a0c]/20 transition-colors">
+                  <ArrowRight size={18} />
+                </div>
+              </Link>
+              <a 
+                href="#features" 
+                className="magnetic-btn flex items-center gap-3 text-white/70 hover:text-white transition-colors py-4 group"
+              >
+                <span className="text-sm font-medium border-b border-white/20 pb-0.5 group-hover:border-white/60 transition-colors">See how it works</span>
+                <ChevronDown size={16} className="opacity-50 group-hover:opacity-100 group-hover:translate-y-1 transition-all" />
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SOCIAL PROOF BAR --- */}
+        <section className="social-proof-bar relative z-20 border-y border-white/5 bg-[#080c14] py-8 md:py-12 overflow-hidden">
+          <div className="flex flex-wrap md:flex-nowrap justify-between items-center gap-8 md:gap-4 px-4 md:px-24">
+            {[
+              { label: "P&L + Psychology", desc: "connected in every trade" },
+              { label: "30 sec", desc: "to log a trade" },
+              { label: "Data-driven", desc: "pattern detection" },
+              { label: "Automatic", desc: "patterns detected for you" }
+            ].map((item, i) => (
+              <div key={i} className="social-proof-item flex flex-col gap-1.5 w-[45%] md:w-auto">
+                <span className="font-mono text-[#67e8f9] text-lg md:text-xl font-medium tracking-tight">{item.label}</span>
+                <span className="text-[10px] md:text-xs text-white/50 uppercase tracking-widest">{item.desc}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* --- THEME SHOWCASE --- */}
+        <section className="py-24 md:py-40 px-4 md:px-24">
+          <ScrollReveal delay={100}>
+            <div className="flex flex-col gap-16">
+              <div className="flex flex-col gap-4 text-left max-w-2xl">
+                <h2 className="text-4xl md:text-5xl font-medium tracking-tight">Your command center, your style</h2>
+                <p className="text-white/50 text-xl font-light">Five unique themes — click to preview and set your default.</p>
+              </div>
+              <ThemeShowcase />
+            </div>
+          </ScrollReveal>
+        </section>
+
+        {/* --- PHILOSOPHY --- */}
+        <section className="philosophy-section py-24 md:py-40 px-4 md:px-24 flex justify-center border-y border-white/5 relative min-h-[80vh] items-center">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(103,232,249,0.03)_0%,transparent_70%)] pointer-events-none"></div>
+          <div className="max-w-[70ch] text-center flex flex-col gap-12 philosophy-text">
+            <p className="text-xl md:text-3xl font-light leading-snug text-white/50 text-balance">
+              Most traders: check P&L obsessively, revenge trade after a loss, size up when emotional, skip their own rules, journal for two days then quit.
+            </p>
+            <div className="h-px w-24 bg-gradient-to-r from-transparent via-[#67e8f9]/50 to-transparent mx-auto"></div>
+            <p className="text-2xl md:text-4xl lg:text-5xl font-medium leading-[1.15] tracking-tight text-white/90 text-balance">
+              Traverse connects your <span className="text-[#67e8f9] font-drama italic">emotional state</span> to your <span className="text-[#67e8f9] font-drama italic">P&L</span> so you see the <span className="text-[#67e8f9] font-drama italic">pattern</span>, not just the loss.
             </p>
           </div>
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-widest text-muted/40 mb-6">
-              Product
-            </h4>
-            <ul className="space-y-4 text-foreground/70">
-              <li>
-                <a
-                  href="#features"
-                  className="hover:text-accent transition-colors"
-                >
-                  Journal
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#protocol"
-                  className="hover:text-accent transition-colors"
-                >
-                  Analytics
-                </a>
-              </li>
-              <li>
-                <span className="text-muted/40">Simulator</span>
-              </li>
-            </ul>
+        </section>
+
+        {/* --- FEATURES (Asymmetric Layout) --- */}
+        <section id="features" className="py-32 md:py-48 px-4 md:px-24 flex flex-col gap-32 md:gap-40 overflow-hidden">
+          
+          {/* Block 1 */}
+          <article className="feature-block flex flex-col md:flex-row gap-12 md:gap-16 items-center">
+            <div className="w-full md:w-5/12 flex flex-col gap-8 order-2 md:order-1">
+              <div className="rounded-full px-3 py-1 bg-[#67e8f9]/10 text-[#67e8f9] border border-[#67e8f9]/20 self-start">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Pattern Recognition</span>
+              </div>
+              <h3 className="text-4xl md:text-5xl leading-[1.1] font-medium tracking-tighter text-balance">
+                You know you revenge trade. You just can't see it happening in real time.
+              </h3>
+              <p className="text-lg md:text-xl text-white/60 leading-relaxed max-w-[65ch]">
+                Traverse flags when you enter multiple trades after a loss, detects oversizing, and shows you the pattern before you blow your week.
+              </p>
+              <div className="pt-6 border-t border-white/10 mt-2">
+                <p className="font-mono text-sm text-[#67e8f9]">Outcome: <span className="text-white">You stop the bleed before it starts.</span></p>
+              </div>
+            </div>
+            
+            <div className="w-full md:w-7/12 order-1 md:order-2">
+              <div className="w-full aspect-[4/3] rounded-[2rem] ring-1 ring-white/5 p-1.5 bg-[#0a0a0c] shadow-[0_0_80px_-20px_rgba(103,232,249,0.15)] relative overflow-hidden group">
+                {/* Double bezel inner core */}
+                <div className="w-full h-full rounded-[1.5rem] bg-[#0c121e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/5 relative overflow-hidden flex items-center justify-center p-8">
+                  <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#67e8f9] via-transparent to-transparent group-hover:opacity-40 transition-opacity duration-1000"></div>
+                  
+                  {/* Abstract UI representation */}
+                  <div className="relative z-10 w-full max-w-sm flex flex-col gap-4">
+                    <div className="w-full h-12 rounded-xl bg-white/5 border border-white/10 flex items-center px-4 shadow-sm">
+                      <div className="w-8 h-2 rounded-full bg-red-400"></div>
+                      <div className="ml-4 w-24 h-2 rounded-full bg-white/20"></div>
+                    </div>
+                    <div className="w-full h-24 rounded-xl border border-red-500/30 bg-red-500/10 flex items-center justify-between px-6 shadow-[0_4px_30px_rgba(239,68,68,0.15)] backdrop-blur-md">
+                      <div className="flex flex-col gap-2">
+                        <div className="text-[10px] font-mono text-red-400 uppercase tracking-[0.1em]">Warning</div>
+                        <div className="text-white text-sm font-medium">Revenge trade pattern detected</div>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 font-medium">!</div>
+                    </div>
+                    <div className="w-full h-12 rounded-xl bg-white/5 border border-white/10 flex items-center px-4 opacity-40 shadow-sm">
+                      <div className="w-12 h-2 rounded-full bg-emerald-400"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          {/* Block 2 (Flipped) */}
+          <article className="feature-block flex flex-col md:flex-row gap-12 md:gap-16 items-center">
+            <div className="w-full md:w-7/12">
+              <div className="w-full aspect-[4/3] rounded-[2rem] ring-1 ring-white/5 p-1.5 bg-[#0a0a0c] shadow-[0_0_80px_-20px_rgba(103,232,249,0.1)] relative overflow-hidden group">
+                <div className="w-full h-full rounded-[1.5rem] bg-[#0c121e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/5 relative overflow-hidden flex items-center justify-center p-8">
+                  <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-white via-transparent to-transparent group-hover:opacity-40 transition-opacity duration-1000"></div>
+                  
+                  {/* Abstract UI representation */}
+                  <div className="relative z-10 w-full max-w-sm flex flex-col gap-4 justify-center">
+                    {[10, 8, 4, 9, 2].map((score, idx) => (
+                      <div key={idx} className="w-full flex items-center gap-4">
+                        <div className="w-20 text-right font-mono text-[10px] uppercase tracking-[0.1em] text-white/40">Trade {idx+1}</div>
+                        <div className="flex-1 h-8 bg-[#0a0a0c] rounded border border-white/5 overflow-hidden flex items-center p-1">
+                          <div 
+                            className={`h-full rounded-sm transition-all duration-1000 ${score >= 8 ? 'bg-[#67e8f9] shadow-[0_0_10px_rgba(103,232,249,0.5)]' : score >= 5 ? 'bg-white/40' : 'bg-white/10'}`}
+                            style={{ width: `${score * 10}%` }}
+                          ></div>
+                        </div>
+                        <div className={`w-8 font-mono text-sm ${score >= 8 ? 'text-[#67e8f9]' : 'text-white/40'}`}>{score}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full md:w-5/12 flex flex-col gap-8">
+              <div className="rounded-full px-3 py-1 bg-white/5 text-white/70 border border-white/10 self-start">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Process Scoring</span>
+              </div>
+              <h3 className="text-4xl md:text-5xl leading-[1.1] font-medium tracking-tighter text-balance">
+                You have rules. You just don't follow them when it matters.
+              </h3>
+              <p className="text-lg md:text-xl text-white/60 leading-relaxed max-w-[65ch]">
+                Every trade gets a process score. Did you follow your entry criteria? Your position sizing? Your stop loss? Traverse tracks it so you can't lie to yourself.
+              </p>
+              <div className="pt-6 border-t border-white/10 mt-2">
+                <p className="font-mono text-sm text-[#67e8f9]">Outcome: <span className="text-white">Your win rate goes up because you finally trade your own system.</span></p>
+              </div>
+            </div>
+          </article>
+
+          {/* Block 3 */}
+          <article className="feature-block flex flex-col md:flex-row gap-12 md:gap-16 items-center">
+            <div className="w-full md:w-5/12 flex flex-col gap-8 order-2 md:order-1">
+              <div className="rounded-full px-3 py-1 bg-white/5 text-white/70 border border-white/10 self-start">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Frictionless</span>
+              </div>
+              <h3 className="text-4xl md:text-5xl leading-[1.1] font-medium tracking-tighter text-balance">
+                You journal for three days, then stop. Every time.
+              </h3>
+              <p className="text-lg md:text-xl text-white/60 leading-relaxed max-w-[65ch]">
+                Logging a trade takes 30 seconds. Pick your emotion, rate your process, done. Traverse does the analysis. You just show up.
+              </p>
+              <div className="pt-6 border-t border-white/10 mt-2">
+                <p className="font-mono text-sm text-[#67e8f9]">Outcome: <span className="text-white">You actually stick with it because it's not another chore.</span></p>
+              </div>
+            </div>
+            
+            <div className="w-full md:w-7/12 order-1 md:order-2">
+              <div className="w-full aspect-[4/3] rounded-[2rem] ring-1 ring-white/5 p-1.5 bg-[#0a0a0c] shadow-[0_0_80px_-20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
+                <div className="w-full h-full rounded-[1.5rem] bg-[#0c121e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/5 relative overflow-hidden flex flex-col items-center justify-center p-8">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#67e8f9]/20 blur-[100px] rounded-full group-hover:scale-150 transition-transform duration-1000"></div>
+                  
+                  {/* Abstract UI representation */}
+                  <div className="relative z-10 w-full max-w-sm bg-black/60 backdrop-blur-2xl border border-white/10 rounded-2xl p-8 shadow-2xl flex flex-col gap-8">
+                    <div className="flex flex-wrap gap-3">
+                      {["FOMO", "Anxious", "Confident", "Revenge"].map((em, i) => (
+                        <div key={i} className={`px-4 py-2 rounded-full text-xs font-mono tracking-wide ${i === 2 ? 'bg-[#67e8f9]/10 text-[#67e8f9] border border-[#67e8f9]/30 shadow-[0_0_15px_rgba(103,232,249,0.15)]' : 'bg-[#0a0a0c] text-white/40 border border-white/5'}`}>
+                          {em}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="h-12 w-full bg-[#67e8f9] text-[#0a0a0c] font-medium text-sm rounded-xl flex items-center justify-center group-hover:bg-white transition-colors duration-500 cursor-default shadow-[0_4px_20px_rgba(103,232,249,0.3)]">
+                      Log Trade (⌘ Enter)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        {/* --- PSYCHOLOGY SECTION (Masonry/Asymmetric Grid) --- */}
+        <section className="py-32 md:py-48 px-4 md:px-24 bg-[#05070a] border-y border-white/5">
+          <div className="max-w-7xl mx-auto flex flex-col gap-24">
+            <div className="flex flex-col md:flex-row gap-12 md:gap-24 justify-between items-end">
+              <div className="flex flex-col gap-8 max-w-2xl">
+                <h2 className="text-5xl md:text-6xl font-medium tracking-tighter text-balance leading-[0.95]">
+                  You already know what you're doing wrong.
+                </h2>
+                <p className="text-xl md:text-2xl text-white/50 leading-relaxed font-light">
+                  You've said it out loud. "I knew I shouldn't have taken that trade." The problem isn't knowledge. It's that you can't see the pattern while you're inside it. Traverse shows you the data so your brain can't ignore it anymore.
+                </p>
+              </div>
+            </div>
+
+            {/* Asymmetric Masonry-style Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+              <div className="md:col-span-7 rounded-[2rem] ring-1 ring-white/5 p-1.5 bg-[#0a0a0c]">
+                <div className="h-full min-h-[350px] rounded-[1.5rem] bg-[#0c121e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] p-10 flex flex-col justify-end relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#67e8f9]/10 blur-[100px] rounded-full group-hover:scale-125 transition-transform duration-[2000ms]"></div>
+                  <h4 className="text-3xl font-medium mb-4 relative z-10 tracking-tight">Track emotions</h4>
+                  <p className="text-lg text-white/50 relative z-10 max-w-[45ch] leading-relaxed">Logging a trade takes 30 seconds. Pick your emotion, rate your process, done.</p>
+                </div>
+              </div>
+              
+              <div className="md:col-span-5 rounded-[2rem] ring-1 ring-white/5 p-1.5 bg-[#0a0a0c]">
+                <div className="h-full min-h-[350px] rounded-[1.5rem] bg-[#0c121e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] p-10 flex flex-col justify-end group">
+                  <h4 className="text-3xl font-medium mb-4 tracking-tight group-hover:text-[#67e8f9] transition-colors duration-500">Rate your process</h4>
+                  <p className="text-lg text-white/50 leading-relaxed">Did you follow your entry criteria? Traverse tracks it.</p>
+                </div>
+              </div>
+
+              <div className="md:col-span-4 rounded-[2rem] ring-1 ring-white/5 p-1.5 bg-[#0a0a0c]">
+                <div className="h-full min-h-[350px] rounded-[1.5rem] bg-[#0c121e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] p-10 flex flex-col justify-end group">
+                  <h4 className="text-3xl font-medium mb-4 tracking-tight group-hover:text-[#67e8f9] transition-colors duration-500">Spot patterns</h4>
+                  <p className="text-lg text-white/50 leading-relaxed">Traverse flags when you enter multiple trades after a loss.</p>
+                </div>
+              </div>
+
+              <div className="md:col-span-8 rounded-[2rem] ring-1 ring-white/5 p-1.5 bg-[#0a0a0c]">
+                <div className="h-full min-h-[350px] rounded-[1.5rem] p-10 bg-gradient-to-tr from-[#0c121e] via-[#0c121e] to-[#121a2a] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col justify-end relative overflow-hidden group">
+                  <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#67e8f9]/[0.05] blur-[80px] rounded-full group-hover:bg-[#67e8f9]/[0.08] transition-colors duration-1000"></div>
+                  <h4 className="text-3xl font-medium mb-4 tracking-tight">Break the cycle</h4>
+                  <p className="text-lg text-white/50 text-balance leading-relaxed max-w-[50ch]">The data makes it impossible to hide from your own habits. Stop the bleed.</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-widest text-muted/40 mb-6">
-              Legal
-            </h4>
-            <ul className="space-y-4 text-foreground/70">
-              <li>
-                <Link
-                  href="/impressum"
-                  className="hover:text-accent transition-colors"
-                >
-                  Impressum
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/privacy"
-                  className="hover:text-accent transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="hover:text-accent transition-colors"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-            </ul>
+        </section>
+
+        {/* --- PROTOCOL (Trade Log Table) --- */}
+        <section className="protocol-section py-32 md:py-48 px-4 overflow-hidden relative border-y border-white/5 bg-[#080a0f] [perspective:1500px]">
+          
+          {/* Decorative Grid BG */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_0%,#000_80%,transparent_100%)] pointer-events-none"></div>
+
+          <div className="max-w-6xl mx-auto flex flex-col gap-16 relative z-10">
+            <div className="flex flex-col gap-8 items-center text-center max-w-2xl mx-auto">
+              <div className="rounded-full px-3 py-1 bg-white/5 text-white/50 border border-white/10">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em]">The Hub</span>
+              </div>
+              <h2 className="text-5xl md:text-6xl font-medium tracking-tighter leading-[0.9]">Your trade log</h2>
+              <p className="text-xl text-white/60 font-light leading-relaxed">
+                Every trade logged with your entry reason, emotional state, and process score. One glance tells you if you traded your plan or traded your feelings.
+              </p>
+            </div>
+
+            <div className="protocol-table-container w-full mx-auto relative [transform-style:preserve-3d]">
+              {/* Holographic Scanline */}
+              <div className="absolute inset-0 h-24 w-full bg-gradient-to-b from-transparent via-[#67e8f9]/10 to-transparent -translate-y-full opacity-60 z-20 pointer-events-none animate-[scan_6s_ease-in-out_infinite]" style={{ boxShadow: '0 0 30px rgba(103,232,249,0.15)' }}></div>
+              
+              
+              <div className="w-full rounded-[2.5rem] ring-1 ring-white/10 p-2 bg-[#05070a]/90 backdrop-blur-2xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8),0_0_80px_-20px_rgba(103,232,249,0.15)]">
+                <div className="w-full rounded-[2rem] bg-[#0c121e]/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/5 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left whitespace-nowrap lg:whitespace-normal">
+                      <thead>
+                        <tr className="border-b border-white/5 bg-white/[0.02]">
+                          <th className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#67e8f9] py-6 px-8 font-normal">Time</th>
+                          <th className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#67e8f9] py-6 px-8 font-normal">Asset</th>
+                          <th className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#67e8f9] py-6 px-8 font-normal">Side</th>
+                          <th className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#67e8f9] py-6 px-8 font-normal text-right">Size</th>
+                          <th className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#67e8f9] py-6 px-8 font-normal">Emotion</th>
+                          <th className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#67e8f9] py-6 px-8 font-normal text-center">Process</th>
+                          <th className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#67e8f9] py-6 px-8 font-normal text-right">P&L</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 font-mono text-sm text-white/80">
+                        <tr className="hover:bg-white/[0.02] transition-colors group">
+                          <td className="py-5 px-8 text-white/50">09:41:22</td>
+                          <td className="py-5 px-8 font-medium">BTC-PERP</td>
+                          <td className="py-5 px-8 text-emerald-400">LONG</td>
+                          <td className="py-5 px-8 text-right text-white/60">2.5</td>
+                          <td className="py-5 px-8"><span className="px-3 py-1.5 rounded bg-white/5 text-white/70 border border-white/5 inline-block text-xs">Confident</span></td>
+                          <td className="py-5 px-8 text-center text-[#67e8f9]">9/10</td>
+                          <td className="py-5 px-8 text-emerald-400 text-right font-medium group-hover:drop-shadow-[0_0_12px_rgba(52,211,153,0.5)] transition-all">+14.2%</td>
+                        </tr>
+                        <tr className="hover:bg-rose-500/[0.02] bg-rose-500/[0.01] transition-colors group">
+                          <td className="py-5 px-8 text-white/50">10:15:04</td>
+                          <td className="py-5 px-8 font-medium">ETH-PERP</td>
+                          <td className="py-5 px-8 text-rose-400">SHORT</td>
+                          <td className="py-5 px-8 text-right text-white/60">15.0</td>
+                          <td className="py-5 px-8"><span className="px-3 py-1.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 inline-block text-xs">Revenge</span></td>
+                          <td className="py-5 px-8 text-center text-rose-400">3/10</td>
+                          <td className="py-5 px-8 text-rose-400 text-right font-medium group-hover:drop-shadow-[0_0_12px_rgba(251,113,133,0.5)] transition-all">-2.1%</td>
+                        </tr>
+                        <tr className="hover:bg-white/[0.02] transition-colors group">
+                          <td className="py-5 px-8 text-white/50">11:30:45</td>
+                          <td className="py-5 px-8 font-medium">SOL-PERP</td>
+                          <td className="py-5 px-8 text-emerald-400">LONG</td>
+                          <td className="py-5 px-8 text-right text-white/60">150</td>
+                          <td className="py-5 px-8"><span className="px-3 py-1.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-block text-xs">FOMO</span></td>
+                          <td className="py-5 px-8 text-center text-amber-400">5/10</td>
+                          <td className="py-5 px-8 text-emerald-400 text-right font-medium group-hover:drop-shadow-[0_0_12px_rgba(52,211,153,0.5)] transition-all">+8.4%</td>
+                        </tr>
+                        <tr className="hover:bg-white/[0.02] transition-colors group">
+                          <td className="py-5 px-8 text-white/50">14:22:10</td>
+                          <td className="py-5 px-8 font-medium">AVAX-PERP</td>
+                          <td className="py-5 px-8 text-emerald-400">LONG</td>
+                          <td className="py-5 px-8 text-right text-white/60">450</td>
+                          <td className="py-5 px-8"><span className="px-3 py-1.5 rounded bg-white/5 text-white/70 border border-white/5 inline-block text-xs">Confident</span></td>
+                          <td className="py-5 px-8 text-center text-[#67e8f9]">8/10</td>
+                          <td className="py-5 px-8 text-emerald-400 text-right font-medium group-hover:drop-shadow-[0_0_12px_rgba(52,211,153,0.5)] transition-all">+22.5%</td>
+                        </tr>
+                        <tr className="hover:bg-white/[0.02] transition-colors group">
+                          <td className="py-5 px-8 text-white/50">15:45:33</td>
+                          <td className="py-5 px-8 font-medium">BTC-PERP</td>
+                          <td className="py-5 px-8 text-rose-400">SHORT</td>
+                          <td className="py-5 px-8 text-right text-white/60">1.2</td>
+                          <td className="py-5 px-8"><span className="px-3 py-1.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20 inline-block text-xs">Anxious</span></td>
+                          <td className="py-5 px-8 text-center text-white/60">6/10</td>
+                          <td className="py-5 px-8 text-emerald-400 text-right font-medium group-hover:drop-shadow-[0_0_12px_rgba(52,211,153,0.5)] transition-all">+5.1%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- CTA SECTION --- */}
+        <section className="py-32 md:py-48 px-4 md:px-24 flex flex-col items-center justify-center relative overflow-hidden bg-[#0c121e]">
+          <div className="absolute inset-0 z-0">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#67e8f9]/10 blur-[150px] rounded-full pointer-events-none"></div>
+          </div>
+          
+          <div className="relative z-10 max-w-4xl flex flex-col items-center text-center gap-10">
+            <div className="rounded-full px-4 py-1.5 bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] border border-white/10 backdrop-blur-md">
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-medium">Early Access</span>
+            </div>
+            
+            <h2 className="text-5xl md:text-7xl lg:text-[6rem] font-medium tracking-tighter leading-[0.9] text-balance">
+              Free while we build this with you.
+            </h2>
+            
+            <p className="text-xl md:text-2xl text-white/60 font-light max-w-[45ch] leading-relaxed">
+              We're looking for serious traders to shape the product. You get full access to everything. We get your honest feedback. No credit card. No catch.
+            </p>
+            
+            <Link 
+              href="/login" 
+              className="magnetic-btn group relative overflow-hidden rounded-full bg-[#f4f4f5] text-[#0a0a0c] pl-10 pr-5 py-4 font-semibold flex items-center gap-6 transition-all shadow-xl hover:shadow-[0_0_50px_rgba(103,232,249,0.2)] mt-8"
+            >
+              <div className="absolute inset-0 bg-[#67e8f9] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-full"></div>
+              <span className="relative z-10 text-lg">Get free access</span>
+              <div className="relative z-10 bg-[#0a0a0c]/10 rounded-full w-12 h-12 flex items-center justify-center group-hover:bg-[#0a0a0c]/20 transition-colors">
+                <ArrowRight size={22} />
+              </div>
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      {/* --- FOOTER --- */}
+      <footer className="py-16 md:py-24 px-4 md:px-24 bg-[#05070a] border-t border-white/5 rounded-t-[3rem] -mt-8 relative z-20">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between gap-16 lg:gap-8">
+          
+          <div className="flex flex-col gap-8 max-w-[320px]">
+             <div className="flex items-center gap-3">
+               <TraverseLogo size={28} />
+               <span className="font-mono text-sm tracking-widest uppercase text-white font-semibold">Traverse</span>
+             </div>
+             <p className="text-white/40 text-sm md:text-base leading-relaxed">
+               The trading journal that connects your psychology to your P&L.
+             </p>
+          </div>
+
+          <div className="flex flex-wrap gap-16 md:gap-24">
+            <nav className="flex flex-col gap-6">
+              <span className="text-white font-medium text-sm tracking-wide">Product</span>
+              <ul className="flex flex-col gap-4">
+                <li><Link href="/login" className="text-white/40 hover:text-white transition-colors text-sm">Journal</Link></li>
+                <li><Link href="/login" className="text-white/40 hover:text-white transition-colors text-sm">Analytics</Link></li>
+                <li><span className="text-white/20 text-sm cursor-not-allowed flex items-center gap-2">Simulator <span className="text-[10px] uppercase tracking-[0.1em] bg-white/5 px-2 py-0.5 rounded font-mono border border-white/5">Soon</span></span></li>
+              </ul>
+            </nav>
+            
+            <nav className="flex flex-col gap-6">
+              <span className="text-white font-medium text-sm tracking-wide">Legal</span>
+              <ul className="flex flex-col gap-4">
+                <li><Link href="/impressum" className="text-white/40 hover:text-white transition-colors text-sm">Impressum</Link></li>
+                <li><Link href="/privacy" className="text-white/40 hover:text-white transition-colors text-sm">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-white/40 hover:text-white transition-colors text-sm">Terms of Service</Link></li>
+              </ul>
+            </nav>
           </div>
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 bg-foreground/5 px-4 py-2 rounded-full border border-border/50">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500" />
-            </span>
-            <span
-              className="text-xs uppercase tracking-wider text-foreground/70"
-              style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-            >
-              Systems online
-            </span>
+
+        <div className="max-w-7xl mx-auto mt-24 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-white/30 text-xs md:text-sm">© 2026 Traverse. All rights reserved.</p>
+          <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
+            <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </div>
+            <span className="text-white/50 text-xs font-mono uppercase tracking-[0.1em]">Systems online</span>
           </div>
-          <p className="text-muted/50 text-sm">
-            &copy; {new Date().getFullYear()} Stargate. All rights reserved.
-          </p>
         </div>
       </footer>
+
     </div>
   );
 }

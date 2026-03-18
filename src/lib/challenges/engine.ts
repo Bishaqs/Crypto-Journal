@@ -159,6 +159,7 @@ export async function computeDailyMetrics(
   const { data: checkin } = await supabase
     .from("daily_checkins")
     .select("id")
+    .eq("user_id", userId)
     .eq("date", dateStr)
     .limit(1);
   metrics.checkin_completed_today = checkin && checkin.length > 0 ? 1 : 0;
@@ -235,6 +236,7 @@ export async function computeWeeklyMetrics(
   const { data: checkins } = await supabase
     .from("daily_checkins")
     .select("date")
+    .eq("user_id", userId)
     .gte("date", mondayStr)
     .lte("date", sundayStr);
   metrics.checkins_this_week = checkins?.length ?? 0;

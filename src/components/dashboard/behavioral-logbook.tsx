@@ -42,9 +42,12 @@ export function BehavioralLogbook() {
 
   const fetchEntries = useCallback(async () => {
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
     const { data } = await supabase
       .from("behavioral_logs")
       .select("*")
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(5);
     setEntries((data as BehavioralLog[]) ?? []);

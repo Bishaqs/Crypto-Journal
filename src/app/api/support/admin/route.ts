@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     ticket_id: parsed.ticketId,
     user_id: user.id,
     message: parsed.message,
-    display_name: "Stargate Support",
+    display_name: "Traverse Support",
     is_owner_reply: true,
   });
 

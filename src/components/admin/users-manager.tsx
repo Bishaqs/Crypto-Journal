@@ -246,7 +246,7 @@ export function AdminUsersManager({ initialUsers }: { initialUsers: AdminUser[] 
               <h3 className="text-lg font-semibold text-foreground">Ban Account?</h3>
             </div>
             <p className="text-sm text-muted leading-relaxed">
-              Ban <span className="text-foreground font-medium">{banState.user.email}</span> from accessing Stargate Journal?
+              Ban <span className="text-foreground font-medium">{banState.user.email}</span> from accessing Traverse Journal?
             </p>
             <div>
               <label className="text-xs font-medium text-muted mb-1 block">Reason (optional)</label>
@@ -288,7 +288,7 @@ export function AdminUsersManager({ initialUsers }: { initialUsers: AdminUser[] 
               <h3 className="text-lg font-semibold text-foreground">Confirm Ban</h3>
             </div>
             <p className="text-sm text-muted leading-relaxed">
-              This will immediately lock <span className="text-foreground font-medium">{banState.user.email}</span> out of Stargate Journal.
+              This will immediately lock <span className="text-foreground font-medium">{banState.user.email}</span> out of Traverse Journal.
               They will be signed out, see an &quot;Account Closed&quot; page, and receive an email notification.
             </p>
             {banState.reason && (

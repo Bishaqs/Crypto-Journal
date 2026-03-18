@@ -20,6 +20,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { BarChart, DollarSign, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function VolumePage() {
   const supabase = createClient();
@@ -97,7 +98,7 @@ export default function VolumePage() {
           <BarChart size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Volume</h1>
+          <h1 className="text-2xl font-bold text-foreground">Volume <InfoTooltip text="Analyze your trading volume patterns — are you sizing up on winners or losers?" /></h1>
           <p className="text-sm text-muted">
             {usingDemo ? "Sample data" : `Trading volume across ${filtered.length} trades`}
           </p>
@@ -125,7 +126,7 @@ export default function VolumePage() {
 
       {chartData.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Daily Volume (last 30 days)</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Daily Volume (last 30 days) <InfoTooltip text="Number of contracts/shares traded per day" size={12} /></h3>
           <ResponsiveContainer width="100%" height={250}>
             <RechartsBarChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
@@ -144,7 +145,7 @@ export default function VolumePage() {
       {symbolVolumes.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="px-5 py-4 border-b border-border/50">
-            <h3 className="text-sm font-semibold text-foreground">Volume by Symbol</h3>
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1">Volume by Symbol <InfoTooltip text="Total volume broken down by symbol" size={12} /></h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

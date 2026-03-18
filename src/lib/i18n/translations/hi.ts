@@ -20,7 +20,7 @@ const hi = {
     no: "नहीं",
     confirm: "पुष्टि करें",
     logOut: "लॉग आउट",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -64,18 +64,18 @@ const hi = {
     language: "भाषा",
 
     // Guide speech (per step)
-    speech0: "Stargate में आपका स्वागत है! मैं Nova हूँ, आपका ट्रेडिंग साथी। चलिए सेटअप करते हैं।",
+    speech0: "Traverse में आपका स्वागत है! मैं Nova हूँ, आपका ट्रेडिंग साथी। चलिए सेटअप करते हैं।",
     speech1WithName: "आपसे मिलकर खुशी हुई, {name}! आप कितने समय से ट्रेडिंग कर रहे हैं?",
     speech1NoName: "मैं आपको क्या बुलाऊं?",
     speech2: "आप कैसे ट्रेड करते हैं?",
     speech3: "आप अपने ट्रेड कहाँ करते हैं?",
     speech4: "आप कौन से इंस्ट्रूमेंट ट्रेड करते हैं?",
-    speech5: "आप Stargate से क्या हासिल करना चाहते हैं?",
+    speech5: "आप Traverse से क्या हासिल करना चाहते हैं?",
     speech6: "लगभग हो गया! चलिए आपके अनुभव को कस्टमाइज़ करते हैं।",
     speech7: "आखिरी सवाल — आपने हमें कैसे खोजा?",
 
     // Intro cinematic
-    welcomeTitle: "Stargate में आपका स्वागत है",
+    welcomeTitle: "Traverse में आपका स्वागत है",
     tapToSkip: "स्किप करने के लिए टैप करें",
 
     // Step indicator + navigation
@@ -292,7 +292,7 @@ const hi = {
     welcome: {
       step0Title: "उड़ान के लिए तैयार?",
       step0Content: "मेरे साथ आइए। मैं Nova हूँ, और मैं आपको वो सब दिखाऊंगी जो एक लाभदायक ट्रेडर बनने के लिए ज़रूरी है।",
-      step1Title: "Stargate में आपका स्वागत है!",
+      step1Title: "Traverse में आपका स्वागत है!",
       step1Content: "नमस्ते! मैं Nova हूँ, आपकी ट्रेडिंग साथी। आइए मैं आपको घुमाती हूँ। इसमें लगभग 2 मिनट लगेंगे, और आप कभी भी छोड़ सकते हैं।",
       step2Title: "डैशबोर्ड",
       step2Content: "यह आपका होम बेस है। आपका P&L, जीत दर, और इक्विटी कर्व ट्रेड रिकॉर्ड करते समय लाइव अपडेट होते हैं।",

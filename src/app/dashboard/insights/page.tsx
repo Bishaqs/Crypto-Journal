@@ -125,6 +125,9 @@ export default function InsightsPage() {
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+
     // Fetch trades (paginated, no 1000-row limit)
     const { data: tradeData, error } = await fetchAllTrades(supabase);
     if (error) {
@@ -144,9 +147,9 @@ export default function InsightsPage() {
 
     // Psychology data (behavioral logs, checkins, session logs)
     const [logsResult, checkinsResult, sessionResult] = await Promise.all([
-      supabase.from("behavioral_logs").select("*").order("created_at", { ascending: false }).limit(100),
-      supabase.from("daily_checkins").select("*").order("date", { ascending: false }).limit(30),
-      supabase.from("expert_session_logs").select("*").order("session_date", { ascending: false }).limit(50),
+      supabase.from("behavioral_logs").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
+      supabase.from("daily_checkins").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(30),
+      supabase.from("expert_session_logs").select("*").eq("user_id", userId).order("session_date", { ascending: false }).limit(50),
     ]);
     if (logsResult.data) setBehavioralLogs(logsResult.data as BehavioralLog[]);
     if (checkinsResult.data) setCheckins(checkinsResult.data as DailyCheckin[]);
@@ -669,7 +672,13 @@ export default function InsightsPage() {
             />
           )}
           {emotionDollarCost && (
-            <div id="tour-insights-emotion" className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div id="tour-insights-emotion" className="space-y-3">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <DollarSign size={16} className="text-accent" />
+              Dollar Cost of Emotions
+              <InfoTooltip text="Shows which emotions are making or costing you real money based on your trade results" />
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {emotionDollarCost.worstEmotion && emotionDollarCost.worstEmotion[1] < 0 && (
                 <div className="glass rounded-2xl border border-loss/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
                   <div className="flex items-center gap-2 mb-2">
@@ -697,6 +706,7 @@ export default function InsightsPage() {
                 </div>
               )}
             </div>
+            </div>
           )}
 
           {/* 2. Emotion Check-In */}
@@ -715,7 +725,7 @@ export default function InsightsPage() {
             <div id="tour-insights-discipline" className="bg-surface rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-glow)" }}>
               <div className="flex items-center gap-2 mb-4">
                 <Dna size={16} className="text-accent" />
-                <h3 className="text-sm font-semibold text-foreground">Your Trading DNA</h3>
+                <h3 className="text-sm font-semibold text-foreground">Your Trading DNA <InfoTooltip text="Your personal trading fingerprint — patterns unique to how you trade, based on your actual data" /></h3>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {[
@@ -740,6 +750,7 @@ export default function InsightsPage() {
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <TrendingUp size={16} className="text-accent" />
               Your Growth
+              <InfoTooltip text="Tracks your progression through 5 stages of trading psychology. Each stage has criteria based on your real data." />
             </h2>
             <div className="glass rounded-2xl border border-accent/20 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center gap-1 mb-4">

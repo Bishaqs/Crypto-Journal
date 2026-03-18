@@ -35,7 +35,7 @@ export function PricingPreview() {
             <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
             <div className="w-2.5 h-2.5 rounded-full bg-win/60" />
           </div>
-          <span className="text-[10px] text-muted/60 font-medium ml-1">Stargate Dashboard</span>
+          <span className="text-[10px] text-muted/60 font-medium ml-1">Traverse Dashboard</span>
         </div>
 
         {/* Scene viewport */}

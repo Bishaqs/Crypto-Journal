@@ -107,7 +107,7 @@ export function AdminBannedAccountsManager({ initialBannedUsers }: { initialBann
             </div>
             <p className="text-sm text-muted leading-relaxed">
               Are you sure you want to unban <span className="text-foreground font-medium">{unbanState.user.email}</span>?
-              They will be able to log in and access Stargate Journal again.
+              They will be able to log in and access Traverse Journal again.
             </p>
             <div className="flex justify-end gap-2 pt-2">
               <button

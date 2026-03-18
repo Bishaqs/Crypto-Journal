@@ -80,7 +80,7 @@ export function AdminInviteManager({ initialCodes }: { initialCodes: InviteCode[
   }
 
   function copyLink(code: string) {
-    const link = `https://stargate-journal.vercel.app/login?invite=${code}`;
+    const link = `https://traversejournal.com/login?invite=${code}`;
     navigator.clipboard.writeText(link);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
