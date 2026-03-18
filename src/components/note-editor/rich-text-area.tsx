@@ -17,20 +17,35 @@ export function RichTextArea({ value, onChange, placeholder, minHeight = "120px"
   const contentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
+  const lastEmittedRef = useRef<string>("");
   const [uploading, setUploading] = useState(false);
   const [focused, setFocused] = useState(false);
 
   // Initialize content once on mount
   useEffect(() => {
     if (!initialized.current && contentRef.current) {
-      contentRef.current.innerHTML = sanitizeHtml(value || "");
+      const html = sanitizeHtml(value || "");
+      contentRef.current.innerHTML = html;
+      lastEmittedRef.current = html;
       initialized.current = true;
     }
   }, []);
 
+  // Sync when value changes externally (e.g., AI voice result populating the field)
+  useEffect(() => {
+    if (!initialized.current || !contentRef.current) return;
+    const sanitized = sanitizeHtml(value || "");
+    if (sanitized !== lastEmittedRef.current) {
+      contentRef.current.innerHTML = sanitized;
+      lastEmittedRef.current = sanitized;
+    }
+  }, [value]);
+
   const handleInput = useCallback(() => {
     if (contentRef.current) {
-      onChange(contentRef.current.innerHTML);
+      const html = contentRef.current.innerHTML;
+      lastEmittedRef.current = html;
+      onChange(html);
     }
   }, [onChange]);
 

@@ -30,7 +30,7 @@ const BASE_SYSTEM_PROMPT = `You are a trading journal assistant. A trader has sp
 
 Return ONLY valid JSON with this exact structure:
 {
-  "title": "Short descriptive title (under 60 chars)",
+  "title": "Specific, actionable title (under 60 chars). Use the asset name, direction, or key theme. Examples: 'BTC Long — Descending Wedge Breakout', 'Morning Plan — March 18', 'Daily Review: 3 Wins, 1 Mistake'",
   "content": "HTML formatted journal entry with <h2> sections, <p> paragraphs, <ul>/<li> lists as appropriate",
   "template": "trade-entry" | "trade-review" | "daily-review" | "morning-plan" | "weekly-recap" | "monthly-recap" | "mistake" | "free",
   "emotion": "Calm" | "Anxious" | "Excited" | "Frustrated" | "FOMO" | "Revenge" | "Bored" | "Confident" | "Greedy" | "Fearful" | "Disciplined" | "Relieved" | "Hopeful" | "Impatient" | "Regretful" | "Overconfident" | "Confused" | "Indifferent" | null,
