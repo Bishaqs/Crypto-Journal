@@ -6,7 +6,7 @@ import { usePsychologyTier } from "@/lib/psychology-tier-context";
 import { EXPANDED_BIASES, EXPANDED_TRIGGERS, COGNITIVE_DISTORTIONS, DEFENSE_MECHANISMS } from "@/lib/validators";
 import type { FlowState, CognitiveDistortion } from "@/lib/types";
 
-type FieldDef =
+export type FieldDef =
   | { type: "textarea"; key: string; label: string; placeholder?: string }
   | { type: "text"; key: string; label: string; placeholder?: string; prefix?: string }
   | { type: "number"; key: string; label: string; placeholder?: string; prefix?: string }
@@ -16,7 +16,7 @@ type FieldDef =
   | { type: "setup-type"; key: string }
   | { type: "checklist"; key: string; label: string; items: string[] };
 
-const TEMPLATE_FIELDS: Record<string, FieldDef[]> = {
+export const TEMPLATE_FIELDS: Record<string, FieldDef[]> = {
   "trade-entry": [
     { type: "emotion", key: "emotion", label: "How are you feeling right now?" },
     { type: "confidence", key: "confidence" },
