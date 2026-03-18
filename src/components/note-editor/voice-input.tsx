@@ -60,7 +60,12 @@ function getVoicePrompts(templateId: string): string[] {
 function getSimplifiedFields(templateId: string) {
   const fields = TEMPLATE_FIELDS[templateId];
   if (!fields) return undefined;
-  return fields.map((f) => ({ key: f.key, label: "label" in f ? (f.label ?? f.key) : f.key, type: f.type }));
+  return fields.map((f) => ({
+    key: f.key,
+    label: "label" in f ? (f.label ?? f.key) : f.key,
+    type: f.type,
+    items: f.type === "checklist" ? (f as { items: string[] }).items : undefined,
+  }));
 }
 
 export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customTemplates }: VoiceInputProps) {

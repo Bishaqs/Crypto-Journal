@@ -7,19 +7,24 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
+const TemplateFieldSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  type: z.string(),
+  items: z.array(z.string()).optional(),
+});
+
 const RequestSchema = z.object({
   transcript: z.string().min(1, "Transcript is required").max(10000),
   provider: z.string().optional(),
   model: z.string().optional(),
   apiKey: z.string().max(256).optional(),
   templateId: z.string().max(100).optional(),
-  templateFields: z.array(z.object({
-    key: z.string(),
-    label: z.string(),
-    type: z.string(),
-  })).optional(),
+  templateFields: z.array(TemplateFieldSchema).optional(),
   customTemplateName: z.string().max(200).optional(),
 });
+
+type TemplateField = z.infer<typeof TemplateFieldSchema>;
 
 const BASE_SYSTEM_PROMPT = `You are a trading journal assistant. A trader has spoken or typed a journal entry as natural speech. Your job is to structure it into a well-organized journal entry.
 
@@ -27,53 +32,78 @@ Return ONLY valid JSON with this exact structure:
 {
   "title": "Short descriptive title (under 60 chars)",
   "content": "HTML formatted journal entry with <h2> sections, <p> paragraphs, <ul>/<li> lists as appropriate",
-  "template": "trade-review" | "daily-review" | "morning-plan" | "weekly-recap" | "monthly-recap" | "mistake" | "free",
+  "template": "trade-entry" | "trade-review" | "daily-review" | "morning-plan" | "weekly-recap" | "monthly-recap" | "mistake" | "free",
   "emotion": "Calm" | "Anxious" | "Excited" | "Frustrated" | "FOMO" | "Revenge" | "Bored" | "Confident" | "Greedy" | "Fearful" | "Disciplined" | "Relieved" | "Hopeful" | "Impatient" | "Regretful" | "Overconfident" | "Confused" | "Indifferent" | null,
   "tags": ["relevant", "tags"],
   "confidence": 1-10 or null
 }
 
 Rules:
-- Pick "template" based on what the trader is describing (a specific trade = "trade-review", planning the day = "morning-plan", reviewing the day = "daily-review", analyzing a mistake = "mistake", general thoughts = "free")
+- Pick "template" based on what the trader is describing (entering a trade = "trade-entry", reviewing a trade = "trade-review", planning the day = "morning-plan", reviewing the day = "daily-review", analyzing a mistake = "mistake", general thoughts = "free")
 - Extract emotion from what they describe feeling. If no emotion mentioned, set to null
 - Extract confidence level if they mention how confident they were (1-10 scale). If not mentioned, set to null
-- Tags should include: asset symbols (BTC, ETH, SPY), trade direction (long, short), timeframe, strategy names, and other relevant keywords
+- Tags should include: asset symbols (BTC, ETH, SPY, ADA), trade direction (long, short), timeframe, strategy names, and other relevant keywords
 - Format the content HTML with clear sections using <h2> headers. Organize their thoughts logically even if they spoke in a scattered way
 - Keep the trader's voice and perspective — don't add information they didn't provide
 - If the transcript is very short or unclear, still do your best to structure it`;
 
+function buildFieldDescription(field: TemplateField): string {
+  switch (field.type) {
+    case "emotion":
+      return `one of the valid emotion values listed above, or null if not mentioned`;
+    case "confidence":
+      return `number 1-10 based on how confident they sound, or null`;
+    case "process-score":
+      return `number 1-10 rating their process adherence, or null`;
+    case "setup-type":
+      return `the trading setup type they mentioned (e.g., "breakout", "pullback", "reversal"), or null`;
+    case "checklist":
+      if (field.items?.length) {
+        const items = field.items.map((item) => `"${item}": true/false`).join(", ");
+        return `JSON string: "{${items}}" — set true for items the trader mentioned or implied, false otherwise`;
+      }
+      return `JSON string mapping checklist items to true/false`;
+    case "number":
+      return `extract the number they mentioned for "${field.label}", or null`;
+    case "text":
+      return `extract what they said about "${field.label}", or null`;
+    case "textarea":
+    default:
+      return `extract what they said about "${field.label}" — keep their words, even if brief`;
+  }
+}
+
 function buildSystemPrompt(
   templateId?: string,
-  templateFields?: { key: string; label: string; type: string }[],
+  templateFields?: TemplateField[],
   customTemplateName?: string,
 ): string {
   if (!templateId) return BASE_SYSTEM_PROMPT;
 
-  // Template with structured fields
+  // Template with structured fields — build an explicit JSON example
   if (templateFields && templateFields.length > 0) {
-    const fieldList = templateFields
-      .map((f) => `- ${f.key} (${f.type}): ${f.label}`)
-      .join("\n");
+    const structuredExample = templateFields
+      .map((f) => `    "${f.key}": "${buildFieldDescription(f)}"`)
+      .join(",\n");
 
     return `${BASE_SYSTEM_PROMPT}
 
-IMPORTANT: The trader selected the "${templateId}" template before recording. Use "${templateId}" as the "template" value — do not guess.
+IMPORTANT: The trader selected the "${templateId}" template. Use "${templateId}" as the "template" value — do NOT guess a different template.
 
-Map the transcript to these template fields and include a "structured_data" object in your JSON response:
+You MUST include a "structured_data" object in your JSON response with these EXACT key names.
+Do NOT rename, camelCase, or abbreviate the keys. Use them EXACTLY as shown:
 
-Template fields:
-${fieldList}
+"structured_data": {
+${structuredExample}
+}
 
-The "structured_data" object should map each field key to the extracted value from the transcript:
-- For textarea/text fields: use the relevant transcript segment as a string
-- For number fields: extract the number, or null if not mentioned
-- For emotion fields: use one of the valid emotion values listed above, or null
-- For checklist fields: return a JSON string of an object mapping each checklist item to true/false based on what the trader mentioned
-- For confidence/process-score fields: extract the number (1-10), or null
-- For setup-type fields: extract the setup type mentioned, or null
-- If a field's value isn't mentioned in the transcript, set it to null
-
-Example structured_data: { "went_well": "I stuck to my stop loss and didn't add to a losing position", "went_wrong": "I entered too early before confirmation", "lessons": "Wait for the candle close before entering" }`;
+Rules for structured_data:
+- EVERY key listed above MUST appear in structured_data, even if the value is null
+- For text/textarea fields: extract the relevant portion of what they said, keeping their own words. Even if they only briefly mentioned something, extract it — do NOT leave it null unless they truly said nothing about it
+- For checklist fields: return a JSON STRING (not a nested object). Example: "{\\"item1\\": true, \\"item2\\": false}"
+- For emotion fields: use one of the valid emotion values listed above
+- For number fields (confidence, process-score): extract as a number, or null if not mentioned
+- The "content" field should STILL contain the full HTML-formatted journal entry as before`;
   }
 
   // Custom template (no structured fields)
@@ -83,10 +113,57 @@ Example structured_data: { "went_well": "I stuck to my stop loss and didn't add 
 IMPORTANT: The trader selected their custom template "${customTemplateName}". Structure the transcript as HTML content appropriate for this template. Use "free" as the "template" value since this is a custom template.`;
   }
 
-  // Known template ID but no fields provided — just use the template
+  // Known template ID but no fields provided
   return `${BASE_SYSTEM_PROMPT}
 
 IMPORTANT: The trader selected the "${templateId}" template. Use "${templateId}" as the "template" value — do not guess.`;
+}
+
+/**
+ * Normalize AI-returned structured_data keys to match the expected template field keys.
+ * Handles common AI mistakes: camelCase, hyphens, missing underscores, different casing.
+ */
+function normalizeStructuredData(
+  raw: Record<string, unknown>,
+  expectedFields: TemplateField[],
+): Record<string, string | number | null> {
+  const result: Record<string, string | number | null> = {};
+
+  // Build a lookup map: various normalized forms → expected key
+  const keyMap = new Map<string, string>();
+  for (const field of expectedFields) {
+    const key = field.key;
+    keyMap.set(key, key);                                                  // exact
+    keyMap.set(key.toLowerCase(), key);                                    // lowercase
+    keyMap.set(key.replace(/_/g, ""), key);                                // strip underscores
+    keyMap.set(key.replace(/_/g, "-"), key);                               // underscores→hyphens
+    keyMap.set(key.replace(/_/g, " "), key);                               // underscores→spaces
+    const camel = key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+    keyMap.set(camel, key);                                                // camelCase
+    keyMap.set(camel.toLowerCase(), key);                                  // camelcase lowercase
+    // Also map the label (lowercased, stripped) for resilience
+    const labelKey = field.label.toLowerCase().replace(/[^a-z0-9]/g, "");
+    keyMap.set(labelKey, key);
+  }
+
+  for (const [rawKey, rawValue] of Object.entries(raw)) {
+    const matchKey = keyMap.get(rawKey)
+      ?? keyMap.get(rawKey.toLowerCase())
+      ?? keyMap.get(rawKey.replace(/[-_ ]/g, "").toLowerCase());
+
+    if (matchKey && rawValue !== undefined) {
+      if (typeof rawValue === "string" || typeof rawValue === "number") {
+        result[matchKey] = rawValue;
+      } else if (rawValue === null) {
+        result[matchKey] = null;
+      } else {
+        // Objects/arrays → JSON string (for checklists, etc.)
+        result[matchKey] = JSON.stringify(rawValue);
+      }
+    }
+  }
+
+  return result;
 }
 
 export async function POST(req: NextRequest) {
@@ -149,6 +226,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Normalize structured_data keys to match expected template field keys
+    let structuredData: Record<string, string | number | null> | null = null;
+    if (typeof result.structured_data === "object" && result.structured_data !== null && templateFields?.length) {
+      structuredData = normalizeStructuredData(result.structured_data, templateFields);
+    } else if (typeof result.structured_data === "object" && result.structured_data !== null) {
+      structuredData = result.structured_data;
+    }
+
     return NextResponse.json({
       title: String(result.title).slice(0, 200),
       content: String(result.content),
@@ -156,9 +241,7 @@ export async function POST(req: NextRequest) {
       emotion: result.emotion ?? null,
       tags: Array.isArray(result.tags) ? result.tags.map(String) : [],
       confidence: typeof result.confidence === "number" ? Math.min(10, Math.max(1, result.confidence)) : null,
-      structured_data: typeof result.structured_data === "object" && result.structured_data !== null
-        ? result.structured_data
-        : null,
+      structured_data: structuredData,
     });
   } catch (err) {
     if (err instanceof SyntaxError) {
