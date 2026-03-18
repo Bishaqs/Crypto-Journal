@@ -39,6 +39,13 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
   const recognitionRef = useRef<any>(null);
   const reviewTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [consented, setConsented] = useState<boolean | null>(() => {
+    if (typeof window === "undefined") return null;
+    const stored = localStorage.getItem("stargate-voice-consent");
+    if (stored === "true") return true;
+    if (stored === "false") return false;
+    return null;
+  });
 
   // Check microphone permission on mount
   useEffect(() => {
@@ -196,6 +203,62 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
     setTranscript("");
     setError(null);
   }, []);
+
+  // Consent prompt — shown once, remembered in localStorage
+  if (consented === null) {
+    return (
+      <div className="border border-border/50 rounded-xl overflow-hidden px-4 py-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <Mic size={16} className="text-accent shrink-0" />
+          <p className="text-sm text-foreground/80">
+            Would you like to enable <span className="font-medium text-foreground">Voice &amp; AI journaling</span>?
+          </p>
+        </div>
+        <p className="text-xs text-muted leading-relaxed">
+          Speak your journal entries and let AI structure them for you.
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.setItem("stargate-voice-consent", "true");
+              setConsented(true);
+            }}
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-accent text-background text-sm font-medium hover:bg-accent-hover transition-all"
+          >
+            Enable
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.setItem("stargate-voice-consent", "false");
+              setConsented(false);
+            }}
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-border text-muted text-sm hover:text-foreground hover:bg-surface-hover transition-all"
+          >
+            No thanks
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Declined — show small hint to re-enable
+  if (consented === false) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          localStorage.setItem("stargate-voice-consent", "true");
+          setConsented(true);
+        }}
+        className="flex items-center gap-2 text-xs text-muted hover:text-foreground transition-colors"
+      >
+        <Mic size={14} />
+        <span>Enable Voice Input</span>
+      </button>
+    );
+  }
 
   if (collapsed) {
     return (
