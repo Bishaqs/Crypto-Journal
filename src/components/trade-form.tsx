@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
@@ -45,6 +45,7 @@ export function TradeForm({
   initialWhatIf?: boolean;
 }) {
   const supabase = createClient();
+  const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [isWhatIf, setIsWhatIf] = useState(initialWhatIf || !!editPhantom);
@@ -114,13 +115,14 @@ export function TradeForm({
     fetchTags();
   }, [supabase]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.FormEvent<HTMLFormElement>) {
+    e?.preventDefault();
+    if (!formRef.current) return;
     setErrors({});
     setSaving(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formData = new FormData(formRef.current);
       const combinedTags = [
         ...tags,
         ...(narrative === "other" && customNarrative.trim()
@@ -367,7 +369,7 @@ export function TradeForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* What-if checkbox — only show when not editing an existing trade */}
           {!editTrade && (
             <div className="space-y-2">
@@ -819,6 +821,11 @@ export function TradeForm({
               {errors._form}
             </p>
           )}
+          {Object.keys(errors).length > 0 && !errors._form && (
+            <p className="text-sm text-loss bg-loss/10 px-3 py-2 rounded-lg">
+              Please fix the errors highlighted above
+            </p>
+          )}
 
           <div className="flex items-center gap-3">
             {editTrade && onDelete && (
@@ -832,7 +839,8 @@ export function TradeForm({
               </button>
             )}
             <button
-              type="submit"
+              type="button"
+              onClick={() => handleSubmit()}
               disabled={saving}
               className={`flex-1 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
                 isWhatIf
@@ -866,7 +874,7 @@ export function TradeForm({
   if (typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[200] p-4">
       <div className="glass border border-border/50 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {formContent}
       </div>
