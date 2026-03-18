@@ -27,14 +27,50 @@ function getSpeechRecognition(): any {
   return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
 }
 
+type MicPermission = "unknown" | "granted" | "prompt" | "denied";
+
 export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSupported] = useState(() => getSpeechRecognition() !== null);
+  const [micPermission, setMicPermission] = useState<MicPermission>("unknown");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
+  const reviewTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [collapsed, setCollapsed] = useState(false);
+
+  // Check microphone permission on mount
+  useEffect(() => {
+    let onChange: (() => void) | null = null;
+    let permStatus: PermissionStatus | null = null;
+
+    async function checkPermission() {
+      try {
+        permStatus = await navigator.permissions.query({ name: "microphone" as PermissionName });
+        setMicPermission(permStatus.state as MicPermission);
+        onChange = () => setMicPermission(permStatus!.state as MicPermission);
+        permStatus.addEventListener("change", onChange);
+      } catch {
+        // Safari / unsupported — getUserMedia handles the prompt at record time
+        setMicPermission("unknown");
+      }
+    }
+
+    checkPermission();
+    return () => {
+      if (permStatus && onChange) permStatus.removeEventListener("change", onChange);
+    };
+  }, []);
+
+  // Auto-focus transcript textarea when entering review state
+  useEffect(() => {
+    if (state === "review" && reviewTextareaRef.current) {
+      reviewTextareaRef.current.focus();
+      const len = reviewTextareaRef.current.value.length;
+      reviewTextareaRef.current.setSelectionRange(len, len);
+    }
+  }, [state]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -43,10 +79,29 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
     };
   }, []);
 
-  const startRecording = useCallback(() => {
+  const startRecording = useCallback(async () => {
     setError(null);
     const SpeechRecognitionClass = getSpeechRecognition();
     if (!SpeechRecognitionClass) return;
+
+    // Request microphone permission explicitly via getUserMedia
+    // This reliably triggers the browser's permission dialog
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop immediately — SpeechRecognition manages its own audio stream
+      stream.getTracks().forEach((track) => track.stop());
+      setMicPermission("granted");
+    } catch (err) {
+      setMicPermission("denied");
+      if (err instanceof DOMException && err.name === "NotAllowedError") {
+        setError(
+          "Microphone access was denied. Click the lock/info icon in your browser\u2019s address bar, find \u201CMicrophone\u201D, set it to \u201CAllow\u201D, then reload the page."
+        );
+      } else {
+        setError("Could not access microphone. Please check your device settings.");
+      }
+      return;
+    }
 
     const recognition = new SpeechRecognitionClass();
     recognition.continuous = true;
@@ -65,7 +120,10 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (event: any) => {
       if (event.error === "not-allowed") {
-        setError("Microphone access denied. Please allow mic access in your browser settings.");
+        setMicPermission("denied");
+        setError(
+          "Microphone access was denied. Click the lock/info icon in your browser\u2019s address bar, find \u201CMicrophone\u201D, set it to \u201CAllow\u201D, then reload the page."
+        );
       } else if (event.error !== "aborted") {
         setError(`Speech recognition error: ${event.error}`);
       }
@@ -165,14 +223,33 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
           </div>
 
           {isSupported ? (
-            <button
-              type="button"
-              onClick={startRecording}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-accent/20 bg-accent/5 text-accent text-sm font-medium hover:bg-accent/10 transition-all"
-            >
-              <Mic size={18} />
-              Speak your journal entry
-            </button>
+            micPermission === "denied" ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                  <MicOff size={16} className="text-amber-400 shrink-0" />
+                  <p className="text-xs text-amber-300/80 leading-relaxed">
+                    Microphone access is blocked. Click the lock icon in your address bar, find
+                    &quot;Microphone&quot;, and set it to &quot;Allow&quot;. Then reload this page.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={startRecording}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-border/30 text-muted text-xs hover:text-foreground hover:bg-surface-hover transition-all"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={startRecording}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-accent/20 bg-accent/5 text-accent text-sm font-medium hover:bg-accent/10 transition-all"
+              >
+                <Mic size={18} />
+                Speak your journal entry
+              </button>
+            )
           ) : (
             <div className="space-y-2">
               <p className="text-xs text-muted/60 italic">Speech recognition not supported in this browser. Type your thoughts instead:</p>
@@ -242,9 +319,13 @@ export function VoiceInput({ onResult, onRawTranscript }: VoiceInputProps) {
               Start over
             </button>
           </div>
-          <p className="text-sm text-foreground/80 bg-background/50 rounded-lg px-3 py-2 leading-relaxed max-h-[120px] overflow-y-auto">
-            {transcript || <span className="text-muted italic">No speech detected. Try again or type below.</span>}
-          </p>
+          <textarea
+            ref={reviewTextareaRef}
+            value={transcript}
+            onChange={(e) => setTranscript(e.target.value)}
+            placeholder="No speech detected. Try again or type here..."
+            className="w-full text-sm text-foreground/80 bg-background/50 rounded-lg px-3 py-2 leading-relaxed max-h-[120px] min-h-[60px] resize-y overflow-y-auto border border-border/30 focus:outline-none focus:border-accent/50 transition-colors"
+          />
           {transcript.trim() && (
             <div className="flex gap-2">
               <button
