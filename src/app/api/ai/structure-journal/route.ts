@@ -240,7 +240,7 @@ export async function POST(req: NextRequest) {
       template: String(result.template),
       emotion: result.emotion ?? null,
       tags: Array.isArray(result.tags) ? result.tags.map(String) : [],
-      confidence: typeof result.confidence === "number" ? Math.min(10, Math.max(1, result.confidence)) : null,
+      confidence: typeof result.confidence === "number" ? Math.round(Math.min(10, Math.max(1, result.confidence))) : null,
       structured_data: structuredData,
     });
   } catch (err) {
