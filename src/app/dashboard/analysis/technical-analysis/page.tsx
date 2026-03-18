@@ -17,6 +17,7 @@ import {
   ResponsiveContainer, CartesianGrid, LineChart, Line,
 } from "recharts";
 import { Crosshair, TrendingUp, Hash, Gauge, Trophy, BarChart3 } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface SetupStats {
   setup: string;
@@ -120,7 +121,7 @@ export default function TechnicalAnalysisPage() {
       {usingDemo && <DemoBanner />}
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-          <Crosshair size={24} className="text-accent" />Technical Analysis
+          <Crosshair size={24} className="text-accent" />Technical Analysis <InfoTooltip text="See which setups work best for you and which ones to stop using" />
         </h1>
         <p className="text-sm text-muted mt-0.5">Performance breakdown by setup type and trading strategy</p>
       </div>
@@ -138,7 +139,7 @@ export default function TechnicalAnalysisPage() {
         {/* PnL by setup */}
         {taggedSetups.length > 0 && (
           <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-            <h3 className="text-sm font-semibold text-foreground mb-4">PnL by Setup Type</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">PnL by Setup Type <InfoTooltip text="Total profit/loss for each setup type you trade" size={12} /></h3>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={taggedSetups} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
@@ -156,7 +157,7 @@ export default function TechnicalAnalysisPage() {
         {/* Setup frequency pie */}
         {taggedSetups.length > 0 && (
           <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Setup Frequency</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Setup Frequency <InfoTooltip text="How often you use each setup — are you overusing losing setups?" size={12} /></h3>
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie data={taggedSetups} dataKey="count" nameKey="setup" cx="50%" cy="50%" outerRadius={100} innerRadius={50} paddingAngle={2}
@@ -173,7 +174,7 @@ export default function TechnicalAnalysisPage() {
       {/* Win rate by setup */}
       {taggedSetups.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Win Rate by Setup Type</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Win Rate by Setup Type <InfoTooltip text="Percentage of winning trades per setup" size={12} /></h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={taggedSetups}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
@@ -191,7 +192,7 @@ export default function TechnicalAnalysisPage() {
       {/* Setup trend over time */}
       {setupTrend.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Setup Performance Trend (rolling 5-trade)</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Setup Performance Trend (rolling 5-trade) <InfoTooltip text="Rolling 5-trade performance trend for each setup" size={12} /></h3>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={setupTrend}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />

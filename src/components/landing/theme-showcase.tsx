@@ -133,13 +133,18 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
   if (theme.id === "cipher") {
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
+        {/* Terminal grid background */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: "linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }} />
         {/* Dense binary rain columns */}
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
             className="absolute font-mono animate-[matrix-rain_4s_linear_infinite]"
             style={{
-              color: i === 3 || i === 12 ? "#ffffff" : `rgba(34, 197, 94, ${0.3 + (i % 5) * 0.12})`,
+              color: i === 3 || i === 12 ? "#ffffff" : `rgba(34, 197, 94, ${0.35 + (i % 5) * 0.12})`,
               textShadow: i === 3 || i === 12 ? "0 0 4px #4ade80" : `0 0 2px rgba(34, 197, 94, 0.3)`,
               fontSize: "8px",
               lineHeight: "9px",
@@ -171,8 +176,14 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
         <div className="absolute inset-x-0 bottom-0 h-1/3" style={{
           background: "radial-gradient(ellipse at 50% 100%, rgba(249,115,22,0.3) 0%, rgba(239,68,68,0.12) 40%, transparent 70%)",
         }} />
+        {/* Animated lava flow at bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-[2px]" style={{
+          background: "linear-gradient(90deg, transparent, rgba(249,115,22,0.6), rgba(239,68,68,0.4), rgba(249,115,22,0.6), transparent)",
+          backgroundSize: "200% 100%",
+          animation: "shimmer 3s ease-in-out infinite",
+        }} />
         {/* Ember particles */}
-        {[...Array(18)].map((_, i) => (
+        {[...Array(24)].map((_, i) => (
           <div
             key={i}
             className="absolute rounded-full animate-[ember-rise_5s_ease-out_infinite]"
@@ -195,10 +206,19 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
   if (theme.id === "triton") {
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
-        {/* Deep abyss gradient */}
+        {/* Deeper abyss gradient */}
         <div className="absolute inset-0" style={{
-          background: "linear-gradient(180deg, #051020 0%, #030a18 50%, #020817 100%)",
+          background: "linear-gradient(180deg, #040e1c 0%, #020810 50%, #010509 100%)",
         }} />
+        {/* Subtle wave lines */}
+        {[...Array(3)].map((_, i) => (
+          <div key={`wave-${i}`} className="absolute w-[200%] h-px" style={{
+            top: `${30 + i * 20}%`,
+            left: "-50%",
+            background: `linear-gradient(90deg, transparent, rgba(14,165,233,${0.06 + i * 0.02}), transparent)`,
+            animation: `shimmer ${8 + i * 2}s ease-in-out infinite`,
+          }} />
+        ))}
         {/* Light ray from above */}
         <div className="absolute top-0 left-1/3 w-[60px] h-[80%]" style={{
           background: "linear-gradient(180deg, rgba(125,211,252,0.06) 0%, transparent 70%)",
@@ -261,6 +281,11 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
         <div className="absolute inset-0" style={{ background: "#0a0a0c" }} />
+        {/* Faint trading chart grid */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: "linear-gradient(rgba(103,232,249,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(103,232,249,0.02) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }} />
         {candles.map((c, i) => (
           <div
             key={i}
@@ -320,10 +345,17 @@ function ThemeBackground({ theme }: { theme: ThemeOption }) {
       ))}
       {/* Mini black hole centered */}
       <RealisticBlackHole size="small" opacity={0.6} />
-      {/* Subtle purple nebula glow */}
-      <div className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full" style={{
-        background: "radial-gradient(circle, rgba(139,92,246,0.04), transparent 70%)",
+      {/* Pulsing purple nebula cloud */}
+      <div className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full animate-pulse" style={{
+        background: "radial-gradient(circle, rgba(139,92,246,0.06), transparent 70%)",
         filter: "blur(20px)",
+        animationDuration: "4s",
+      }} />
+      <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full animate-pulse" style={{
+        background: "radial-gradient(circle, rgba(167,139,250,0.04), transparent 70%)",
+        filter: "blur(15px)",
+        animationDuration: "6s",
+        animationDelay: "2s",
       }} />
     </div>
   );

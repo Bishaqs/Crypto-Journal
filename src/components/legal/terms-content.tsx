@@ -6,7 +6,7 @@ export function TermsContent() {
           1. Beta Program
         </h2>
         <p>
-          Stargate is currently in{" "}
+          Traverse is currently in{" "}
           <strong className="text-foreground">beta testing</strong>. The service
           is provided &quot;as-is&quot; for evaluation purposes. Features may
           change, break, or be removed without notice. While we take reasonable
@@ -21,7 +21,7 @@ export function TermsContent() {
           2. Not Financial Advice
         </h2>
         <p className="mb-3">
-          Stargate is a trade journaling and analytics tool.{" "}
+          Traverse is a trade journaling and analytics tool.{" "}
           <strong className="text-foreground">
             Nothing in this application constitutes financial, investment, tax,
             or trading advice.
@@ -39,7 +39,7 @@ export function TermsContent() {
             investment decisions.
           </li>
           <li>
-            Stargate is{" "}
+            Traverse is{" "}
             <strong className="text-foreground">
               not registered with BaFin, the SEC, or any financial regulatory
               authority
@@ -61,7 +61,7 @@ export function TermsContent() {
         <p>
           You must be at least{" "}
           <strong className="text-foreground">18 years old</strong> to use
-          Stargate. By creating an account, you confirm that you are 18 years
+          Traverse. By creating an account, you confirm that you are 18 years
           of age or older and have the legal capacity to enter into a binding
           agreement (<em>Geschaeftsfaehigkeit</em> pursuant to &sect;&sect; 104
           ff. BGB).
@@ -77,7 +77,7 @@ export function TermsContent() {
             You are responsible for creating API keys with{" "}
             <strong className="text-foreground">read-only permissions</strong>.
             Do not grant trade or withdrawal permissions to API keys used with
-            Stargate.
+            Traverse.
           </li>
           <li>
             API keys are encrypted at rest using AES-256-CBC encryption.
@@ -86,10 +86,10 @@ export function TermsContent() {
           </li>
           <li>
             You may revoke your API keys at any time through your exchange
-            account. We recommend revoking keys if you stop using Stargate.
+            account. We recommend revoking keys if you stop using Traverse.
           </li>
           <li>
-            Stargate will never execute trades, place orders, or initiate
+            Traverse will never execute trades, place orders, or initiate
             withdrawals on your behalf.
           </li>
         </ul>
@@ -102,7 +102,7 @@ export function TermsContent() {
         <ul className="list-disc pl-5 space-y-2">
           <li>
             You retain ownership of all trade data, journal entries, and notes
-            you create in Stargate.
+            you create in Traverse.
           </li>
           <li>
             You can export your data at any time via the Export feature in
@@ -153,7 +153,7 @@ export function TermsContent() {
           7. Tax Reports Disclaimer
         </h2>
         <p className="mb-3">
-          Stargate may generate tax-related data exports. These are{" "}
+          Traverse may generate tax-related data exports. These are{" "}
           <strong className="text-foreground">
             automated data preparation tools, not tax advice
           </strong>
@@ -173,7 +173,7 @@ export function TermsContent() {
             qualified CPA or tax professional before filing.
           </li>
           <li>
-            Stargate makes no representations regarding the accuracy or
+            Traverse makes no representations regarding the accuracy or
             completeness of any tax data export. You are solely responsible for
             your tax obligations.
           </li>
@@ -215,7 +215,7 @@ export function TermsContent() {
         </p>
         <p>
           Users are solely responsible for compliance with their local laws
-          regarding cryptocurrency and financial instrument trading. Stargate
+          regarding cryptocurrency and financial instrument trading. Traverse
           makes no representation that the service is appropriate or available
           for use in any particular jurisdiction.
         </p>
@@ -226,7 +226,7 @@ export function TermsContent() {
           10. Limitation of Liability
         </h2>
         <p className="mb-3">
-          Stargate&apos;s liability for damages is limited as follows, in
+          Traverse&apos;s liability for damages is limited as follows, in
           accordance with German civil law (
           <em>Buergerliches Gesetzbuch &mdash; BGB</em>):
         </p>
@@ -284,10 +284,10 @@ export function TermsContent() {
             To exercise your right of withdrawal, send a clear, unambiguous
             declaration (e.g., by email) to{" "}
             <a
-              href="mailto:support@stargate.trade"
+              href="mailto:support@traversejournal.com"
               className="text-accent hover:underline"
             >
-              support@stargate.trade
+              support@traversejournal.com
             </a>
             . You may use the model withdrawal form below, but it is not
             mandatory.
@@ -305,13 +305,13 @@ export function TermsContent() {
             Model Withdrawal Form
           </h3>
           <p className="text-xs leading-relaxed">
-            To: Benjamin Schwab, support@stargate.trade
+            To: Benjamin Schwab, support@traversejournal.com
             <br />
             <br />
             I hereby give notice that I withdraw from my contract for the
             provision of the following service:
             <br />
-            &mdash; Stargate [Pro/Max] subscription
+            &mdash; Traverse [Pro/Max] subscription
             <br />
             &mdash; Ordered on: [date]
             <br />
@@ -356,10 +356,10 @@ export function TermsContent() {
           <br />
           Our contact email:{" "}
           <a
-            href="mailto:support@stargate.trade"
+            href="mailto:support@traversejournal.com"
             className="text-accent hover:underline"
           >
-            support@stargate.trade
+            support@traversejournal.com
           </a>
         </p>
       </section>
@@ -387,7 +387,7 @@ export function TermsContent() {
         </h2>
         <p>
           We may update these terms as the product evolves. Continued use of
-          Stargate after changes constitutes acceptance of the updated terms.
+          Traverse after changes constitutes acceptance of the updated terms.
           Material changes will be communicated via email or in-app
           notification at least 30 days in advance. If you do not agree with
           the updated terms, you may terminate your account before the changes
@@ -402,10 +402,10 @@ export function TermsContent() {
         <p>
           For questions about these terms, contact{" "}
           <a
-            href="mailto:support@stargate.trade"
+            href="mailto:support@traversejournal.com"
             className="text-accent hover:underline"
           >
-            support@stargate.trade
+            support@traversejournal.com
           </a>
           .
         </p>

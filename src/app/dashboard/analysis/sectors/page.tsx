@@ -22,6 +22,7 @@ import {
   Cell,
 } from "recharts";
 import { Layers, Award, TrendingDown, Hash } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function SectorsPage() {
   const supabase = createClient();
@@ -83,7 +84,7 @@ export default function SectorsPage() {
           <Layers size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Sectors</h1>
+          <h1 className="text-2xl font-bold text-foreground">Sectors <InfoTooltip text="Breaks down performance by market sector so you can see where you trade best" /></h1>
           <p className="text-sm text-muted">
             {usingDemo ? "Sample data" : `${sectorGroups.length} sectors across ${filtered.length} trades`}
           </p>
@@ -113,7 +114,7 @@ export default function SectorsPage() {
 
       {chartData.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">P&L by Sector</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">P&L by Sector <InfoTooltip text="Total profit/loss grouped by sector. Focus on sectors where you have an edge." size={12} /></h3>
           <ResponsiveContainer width="100%" height={Math.max(200, chartData.length * 36)}>
             <BarChart data={chartData} layout="vertical" margin={{ left: 100, right: 20, top: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} horizontal={false} />

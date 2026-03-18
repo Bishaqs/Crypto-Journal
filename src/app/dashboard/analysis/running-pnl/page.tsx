@@ -26,6 +26,7 @@ import {
   Cell,
 } from "recharts";
 import { Activity, TrendingUp, ArrowDown, Percent } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function RunningPnlPage() {
   const supabase = createClient();
@@ -91,7 +92,7 @@ export default function RunningPnlPage() {
           <Activity size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Running PnL Analysis</h1>
+          <h1 className="text-2xl font-bold text-foreground">Running PnL Analysis <InfoTooltip text="Your cumulative profit and loss over time — the shape of this curve reveals your edge" /></h1>
           <p className="text-sm text-muted">
             {usingDemo ? "Sample data" : `Cumulative P&L across ${filtered.length} trades`}
           </p>
@@ -115,7 +116,7 @@ export default function RunningPnlPage() {
       {dailyPnl.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Daily P&L</h3>
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1">Daily P&L <InfoTooltip text="Net profit or loss for each trading day" size={12} /></h3>
             <div className="flex gap-3 text-xs text-muted">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-win" /> {dailyPnl.filter(d => d.pnl >= 0).length} green</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-loss" /> {dailyPnl.filter(d => d.pnl < 0).length} red</span>

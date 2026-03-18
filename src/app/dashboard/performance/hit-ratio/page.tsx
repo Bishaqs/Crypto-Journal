@@ -14,6 +14,7 @@ import { calculateStats, calculateAdvancedStats } from "@/lib/calculations";
 import { StatBlock } from "@/components/ui/stat-block";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, ReferenceLine } from "recharts";
 import { Gauge, TrendingUp, TrendingDown, Flame, Zap, Hash } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function HitRatioPage() {
   const supabase = createClient();
@@ -67,7 +68,7 @@ export default function HitRatioPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       {usingDemo && <DemoBanner />}
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><Gauge size={24} className="text-accent" />Hit Ratio</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><Gauge size={24} className="text-accent" />Hit Ratio <InfoTooltip text="Your win rate over time — a 40% win rate can still be profitable with good risk/reward" /></h1>
         <p className="text-sm text-muted mt-0.5">Your win rate percentage across all closed trades</p>
       </div>
 
@@ -97,7 +98,7 @@ export default function HitRatioPage() {
       <div className="grid md:grid-cols-2 gap-4">
         {rollingWinRate.length > 0 && (
           <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Rolling Win Rate (10-trade)</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Rolling Win Rate (10-trade) <InfoTooltip text="10-trade rolling average of your win percentage" size={12} /></h3>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={rollingWinRate}>
                 <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
@@ -112,7 +113,7 @@ export default function HitRatioPage() {
         )}
         {dayOfWeekData.length > 0 && (
           <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Win Rate by Day of Week</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Win Rate by Day of Week <InfoTooltip text="Which days of the week you win most — useful for scheduling" size={12} /></h3>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={dayOfWeekData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />

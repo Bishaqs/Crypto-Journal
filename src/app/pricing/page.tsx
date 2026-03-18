@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { StargateLogo } from "@/components/stargate-logo";
+import { TraverseLogo } from "@/components/traverse-logo";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { PricingPreview } from "@/components/pricing/pricing-preview";
 import { CandleBackground } from "@/components/candle-background";
@@ -20,9 +20,9 @@ export default function PricingPage() {
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-5">
         <Link href="/" className="flex items-center gap-2.5">
-          <StargateLogo size={28} />
+          <TraverseLogo size={28} />
           <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-accent via-[#48CAE4] to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
-            Stargate
+            Traverse
           </span>
         </Link>
         <Link
@@ -94,8 +94,8 @@ export default function PricingPage() {
         <div className="mt-16 text-center">
           <p className="text-sm text-muted">
             Questions? Email us at{" "}
-            <a href="mailto:support@stargate.trade" className="text-accent hover:text-accent-hover transition-colors">
-              support@stargate.trade
+            <a href="mailto:support@traversejournal.com" className="text-accent hover:text-accent-hover transition-colors">
+              support@traversejournal.com
             </a>
           </p>
         </div>

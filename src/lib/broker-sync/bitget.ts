@@ -357,9 +357,12 @@ export async function fetchBitgetOpenPositions(
           pnl: null,
           open_timestamp: !isNaN(ctime) && ctime > 0 ? new Date(ctime).toISOString() : new Date().toISOString(),
           close_timestamp: null,
-          // all-position has no positionId field — generate stable composite ID
-          // Unique per symbol+side (hedge mode allows one long + one short per symbol)
-          broker_order_id: `open:${pos.symbol}:${holdSide}`,
+          // Use real positionId when available — matches history-position's broker_order_id
+          // so the sync engine can match open→closed without ID mismatch.
+          // Fallback to composite format for old API responses without positionId.
+          broker_order_id: pos.positionId && pos.positionId.length > 0
+            ? pos.positionId
+            : `open:${pos.symbol}:${holdSide}`,
           broker_name: "Bitget",
           trade_source: "cex",
           tags: ["bitget-api-sync", "from-open-position"],

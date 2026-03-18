@@ -20,7 +20,7 @@ const ja = {
     no: "いいえ",
     confirm: "確認",
     logOut: "ログアウト",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -64,18 +64,18 @@ const ja = {
     language: "言語",
 
     // Guide speech (per step)
-    speech0: "Stargateへようこそ！私はNova、あなたのトレーディングパートナーです。セットアップしましょう。",
+    speech0: "Traverseへようこそ！私はNova、あなたのトレーディングパートナーです。セットアップしましょう。",
     speech1WithName: "はじめまして、{name}さん！トレード歴はどのくらいですか？",
     speech1NoName: "お名前は何ですか？",
     speech2: "どのようにトレードしていますか？",
     speech3: "どこでトレードを実行していますか？",
     speech4: "どの銘柄をトレードしていますか？",
-    speech5: "Stargateで何を達成したいですか？",
+    speech5: "Traverseで何を達成したいですか？",
     speech6: "もう少しです！体験をカスタマイズしましょう。",
     speech7: "最後の質問 — どうやって私たちを見つけましたか？",
 
     // Intro cinematic
-    welcomeTitle: "Stargateへようこそ",
+    welcomeTitle: "Traverseへようこそ",
     tapToSkip: "タップでスキップ",
 
     // Step indicator + navigation
@@ -292,7 +292,7 @@ const ja = {
     welcome: {
       step0Title: "発射準備完了？",
       step0Content: "ついてきてください。私はNovaです。利益を出すトレーダーになるために必要なことをすべてお見せします。",
-      step1Title: "Stargateへようこそ！",
+      step1Title: "Traverseへようこそ！",
       step1Content: "こんにちは！私はNova、あなたのトレーディングパートナーです。ご案内しますね。約2分かかります。いつでもスキップできます。",
       step2Title: "ダッシュボード",
       step2Content: "ここがホームベースです。P&L、勝率、エクイティカーブはトレードを記録するとリアルタイムで更新されます。",

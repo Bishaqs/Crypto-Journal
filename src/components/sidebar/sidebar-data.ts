@@ -89,6 +89,7 @@ export interface RailCategory {
   showInBeginner?: boolean;
   showInAdvanced?: boolean;
   showAssetToggle?: boolean;
+  requiredLevel?: number;
 }
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -297,8 +298,9 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     directNav: true,
     items: [coreItems[4]], // Analytics
     showInBeginner: true,
+    requiredLevel: 5,
   },
-  // === Drawer tabs (Advanced/Expert only) ===
+  // === Drawer tabs — level-gated for beginners ===
   {
     key: "intelligence",
     label: "Intelligence",
@@ -307,6 +309,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     beginnerItems: intelligenceBeginnerItems,
     showInBeginner: true,
     showInAdvanced: true,
+    requiredLevel: 10,
   },
   {
     key: "market",
@@ -317,6 +320,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     showInBeginner: false,
     showInAdvanced: false,
     showAssetToggle: true,
+    requiredLevel: 25,
   },
   {
     key: "compete",
@@ -325,6 +329,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     items: [coreItems[7], coreItems[8], coreItems[9]],
     showInBeginner: true,
     showInAdvanced: true,
+    requiredLevel: 15,
   },
 ];
 

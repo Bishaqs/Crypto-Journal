@@ -46,7 +46,7 @@ export default function BannedPage() {
             Account Closed
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: "#94a3b8" }}>
-            Your Stargate Journal account has been closed by an administrator.
+            Your Traverse Journal account has been closed by an administrator.
             You no longer have access to the platform.
           </p>
         </div>
@@ -61,11 +61,11 @@ export default function BannedPage() {
           <p className="text-sm" style={{ color: "#94a3b8" }}>
             If you believe this was a mistake, please contact us at{" "}
             <a
-              href="mailto:support@stargate.trade"
+              href="mailto:support@traversejournal.com"
               className="underline underline-offset-2"
               style={{ color: "#818cf8" }}
             >
-              support@stargate.trade
+              support@traversejournal.com
             </a>
           </p>
         </div>

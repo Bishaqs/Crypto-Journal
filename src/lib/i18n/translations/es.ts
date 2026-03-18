@@ -20,7 +20,7 @@ const es = {
     no: "No",
     confirm: "Confirmar",
     logOut: "Cerrar sesión",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -64,18 +64,18 @@ const es = {
     language: "Idioma",
 
     // Guide speech (per step)
-    speech0: "¡Bienvenido a Stargate! Soy Nova, tu compañero de trading. Vamos a configurarte.",
+    speech0: "¡Bienvenido a Traverse! Soy Nova, tu compañero de trading. Vamos a configurarte.",
     speech1WithName: "¡Encantado de conocerte, {name}! ¿Cuánto tiempo llevas haciendo trading?",
     speech1NoName: "¿Cómo debo llamarte?",
     speech2: "¿Cómo haces trading?",
     speech3: "¿Dónde ejecutas tus operaciones?",
     speech4: "¿Qué instrumentos operas?",
-    speech5: "¿Qué quieres lograr con Stargate?",
+    speech5: "¿Qué quieres lograr con Traverse?",
     speech6: "¡Casi listo! Vamos a personalizar tu experiencia.",
     speech7: "Última pregunta — ¿cómo nos encontraste?",
 
     // Intro cinematic
-    welcomeTitle: "Bienvenido a Stargate",
+    welcomeTitle: "Bienvenido a Traverse",
     tapToSkip: "toca para saltar",
 
     // Step indicator + navigation
@@ -292,7 +292,7 @@ const es = {
     welcome: {
       step0Title: "¿Listo para despegar?",
       step0Content: "Ven conmigo. Soy Nova y te mostraré todo lo que necesitas para ser un trader rentable.",
-      step1Title: "¡Bienvenido a Stargate!",
+      step1Title: "¡Bienvenido a Traverse!",
       step1Content: "¡Hola! Soy Nova, tu compañero de trading. Déjame mostrarte todo. Esto toma unos 2 minutos, y puedes saltar en cualquier momento.",
       step2Title: "Dashboard",
       step2Content: "Esta es tu base. Tu P&L, tasa de acierto y curva de equidad se actualizan en vivo al registrar operaciones.",

@@ -25,7 +25,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Stargate",
+  title: "Traverse",
   description: "Track your crypto trades, analyze performance, and improve your strategy.",
 };
 

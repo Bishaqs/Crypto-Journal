@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { GuideOnboarding } from "./stargate-guide/guide-onboarding";
+import { GuideOnboarding } from "./traverse-guide/guide-onboarding";
 
 type GateStep = "loading" | "onboarding" | "transitioning" | "done";
 

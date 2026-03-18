@@ -20,7 +20,7 @@ const ko = {
     no: "아니오",
     confirm: "확인",
     logOut: "로그아웃",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -64,18 +64,18 @@ const ko = {
     language: "언어",
 
     // Guide speech (per step)
-    speech0: "Stargate에 오신 것을 환영합니다! 저는 Nova, 당신의 트레이딩 파트너입니다. 설정을 시작합시다.",
+    speech0: "Traverse에 오신 것을 환영합니다! 저는 Nova, 당신의 트레이딩 파트너입니다. 설정을 시작합시다.",
     speech1WithName: "만나서 반갑습니다, {name}님! 트레이딩을 한 지 얼마나 되셨나요?",
     speech1NoName: "뭐라고 불러드릴까요?",
     speech2: "어떻게 트레이딩하시나요?",
     speech3: "어디서 트레이드를 실행하시나요?",
     speech4: "어떤 종목을 트레이딩하시나요?",
-    speech5: "Stargate로 무엇을 달성하고 싶으신가요?",
+    speech5: "Traverse로 무엇을 달성하고 싶으신가요?",
     speech6: "거의 다 됐습니다! 경험을 맞춤화해 봅시다.",
     speech7: "마지막 질문 — 저희를 어떻게 알게 되셨나요?",
 
     // Intro cinematic
-    welcomeTitle: "Stargate에 오신 것을 환영합니다",
+    welcomeTitle: "Traverse에 오신 것을 환영합니다",
     tapToSkip: "탭하여 건너뛰기",
 
     // Step indicator + navigation
@@ -292,7 +292,7 @@ const ko = {
     welcome: {
       step0Title: "발사 준비 되셨나요?",
       step0Content: "따라오세요. 저는 Nova입니다. 수익을 내는 트레이더가 되기 위해 필요한 모든 것을 보여드리겠습니다.",
-      step1Title: "Stargate에 오신 것을 환영합니다!",
+      step1Title: "Traverse에 오신 것을 환영합니다!",
       step1Content: "안녕하세요! 저는 Nova, 당신의 트레이딩 파트너입니다. 안내해 드릴게요. 약 2분 정도 걸리며, 언제든 건너뛸 수 있습니다.",
       step2Title: "대시보드",
       step2Content: "여기가 본부입니다. P&L, 승률, 자산 곡선이 트레이드를 기록할 때 실시간으로 업데이트됩니다.",

@@ -63,9 +63,12 @@ export function DailyCheckin({ embedded = false }: { embedded?: boolean } = {}) 
   const today = new Date().toISOString().split("T")[0];
 
   const checkExisting = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
     const { data } = await supabase
       .from("daily_checkins")
       .select("id")
+      .eq("user_id", userId)
       .eq("date", today)
       .limit(1);
 

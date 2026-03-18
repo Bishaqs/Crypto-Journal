@@ -54,7 +54,7 @@ export const APPS_REGISTRY: AppEntry[] = [
 
   // === Links ===
   { id: "shared-trades", label: "Shared Trades", href: "/dashboard/apps/shared-trades", icon: Share2, category: "links", exists: true },
-  { id: "blog-guides", label: "Blog & Guides", href: "https://blog.stargate-journal.com", icon: BookOpen, category: "links", isExternal: true, exists: true },
+  { id: "blog-guides", label: "Blog & Guides", href: "https://blog.traversejournal.com", icon: BookOpen, category: "links", isExternal: true, exists: true },
   { id: "import-export", label: "Import & Export", href: "/dashboard/settings", icon: ArrowUpDown, category: "links", exists: true },
   { id: "stock-screener", label: "Stock Screener", href: "/dashboard/apps/stock-screener", icon: BarChart3, category: "links", exists: true },
   { id: "help-center", label: "Help Center", href: "/dashboard/help", icon: HelpCircle, category: "links", exists: true },

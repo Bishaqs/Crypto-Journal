@@ -372,7 +372,7 @@ function SettingsContent() {
   }
 
   const referralUrl = referralCode
-    ? `https://stargate-journal.vercel.app/login?ref=${referralCode}`
+    ? `https://traversejournal.com/login?ref=${referralCode}`
     : "";
 
   function copyReferralLink() {
@@ -1164,7 +1164,7 @@ function SettingsContent() {
               <button
                 onClick={() => {
                   if (!referralUrl) return;
-                  window.open(`https://twitter.com/intent/tweet?text=Check+out+Stargate+crypto+trading+journal!&url=${encodeURIComponent(referralUrl)}`, "_blank");
+                  window.open(`https://twitter.com/intent/tweet?text=Check+out+Traverse+crypto+trading+journal!&url=${encodeURIComponent(referralUrl)}`, "_blank");
                 }}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-surface-hover border border-border text-sm text-foreground hover:border-accent/30 transition-all"
               >
@@ -1251,7 +1251,7 @@ function SettingsContent() {
               desc: "All journal notes, behavioral logs, and daily reflections.",
               action: () => {
                 const notes = JSON.parse(localStorage.getItem("stargate-notes") || "[]");
-                downloadFile("stargate-journal.json", JSON.stringify(notes, null, 2), "application/json");
+                downloadFile("traverse-journal.json", JSON.stringify(notes, null, 2), "application/json");
               },
             },
             {

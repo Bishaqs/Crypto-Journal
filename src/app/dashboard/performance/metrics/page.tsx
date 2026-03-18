@@ -20,6 +20,7 @@ import {
   Activity, TrendingUp, TrendingDown, Scale, Gauge, Flame, Zap,
   Clock, BarChart3, ArrowUpDown,
 } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function MetricsPage() {
   const supabase = createClient();
@@ -89,7 +90,7 @@ export default function MetricsPage() {
       {usingDemo && <DemoBanner />}
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-          <Activity size={24} className="text-accent" />Trading Metrics
+          <Activity size={24} className="text-accent" />Trading Metrics <InfoTooltip text="All your key performance indicators in one place — hover any metric for details" />
         </h1>
         <p className="text-sm text-muted mt-0.5">All key performance indicators in one place</p>
       </div>
@@ -137,7 +138,7 @@ export default function MetricsPage() {
       {/* Equity curve */}
       {equityData.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Equity Curve</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Equity Curve <InfoTooltip text="Your account balance over time. A smooth upward curve means consistent edge." size={12} /></h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={equityData}>
               <defs>
@@ -160,7 +161,7 @@ export default function MetricsPage() {
       {/* Drawdown chart */}
       {drawdownData.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Drawdown Over Time</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Drawdown Over Time <InfoTooltip text="How far your account drops from its peak. Smaller, shorter drawdowns = better risk management." size={12} /></h3>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={drawdownData}>
               <defs>

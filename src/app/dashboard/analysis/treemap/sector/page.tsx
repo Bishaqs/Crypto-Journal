@@ -10,6 +10,7 @@ import { useAccount } from "@/lib/account-context";
 import { groupTradesByField } from "@/lib/trade-grouping";
 import { TreemapChart } from "@/components/dashboard/treemap-chart";
 import { TreePine, Hash, Award, TrendingDown } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function TreemapSectorPage() {
   const supabase = createClient();
@@ -57,7 +58,7 @@ export default function TreemapSectorPage() {
           <TreePine size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Treemap — Sector</h1>
+          <h1 className="text-2xl font-bold text-foreground">Treemap — Sector <InfoTooltip text="Visual map of P&L by sector — bigger blocks mean more impact on your account" /></h1>
           <p className="text-sm text-muted">
             {usingDemo ? "Sample data" : `${sectorGroups.length} sectors across ${filtered.length} trades`}
           </p>

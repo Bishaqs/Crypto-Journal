@@ -10,6 +10,7 @@ import { useAccount } from "@/lib/account-context";
 import { groupTradesBySymbol } from "@/lib/trade-grouping";
 import { TreemapChart } from "@/components/dashboard/treemap-chart";
 import { TreePine, Hash, Award, TrendingDown } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function TreemapSymbolPage() {
   const supabase = createClient();
@@ -54,7 +55,7 @@ export default function TreemapSymbolPage() {
           <TreePine size={20} className="text-accent" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Treemap — Symbol</h1>
+          <h1 className="text-2xl font-bold text-foreground">Treemap — Symbol <InfoTooltip text="Visual map of P&L by symbol — quickly spot your biggest winners and losers" /></h1>
           <p className="text-sm text-muted">
             {usingDemo ? "Sample data" : `${symbolGroups.length} symbols across ${filtered.length} trades`}
           </p>

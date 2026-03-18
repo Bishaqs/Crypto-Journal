@@ -1,4 +1,4 @@
-// Cosmetic system types for the Stargate reward system
+// Cosmetic system types for the Traverse reward system
 
 export type CosmeticType =
   | "avatar_frame"

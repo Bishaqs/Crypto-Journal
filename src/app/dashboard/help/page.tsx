@@ -25,7 +25,7 @@ const SUGGESTED_QUESTIONS = [
   "How does Nova work?",
   "What is expectancy and why does it matter?",
   "How do I import trades from my exchange?",
-  "Can I use Stargate on my phone?",
+  "Can I use Traverse on my phone?",
 ];
 
 const HTML_CLASSES = "[&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:mb-3 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:bg-surface-hover [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-accent [&_code]:text-xs [&_a]:text-accent [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mt-2 [&_ul]:mb-3 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mt-2 [&_ol]:mb-3 [&_ol]:space-y-1 [&_li]:text-sm";
@@ -146,7 +146,7 @@ export default function HelpPage() {
     } else {
       assistantMsg = {
         role: "assistant",
-        content: "<p>I couldn't find an answer to that question. Try different keywords or browse the topics below.</p><p>You can also email <a href=\"mailto:support@stargate.trade\">support@stargate.trade</a> for help.</p>",
+        content: "<p>I couldn't find an answer to that question. Try different keywords or browse the topics below.</p><p>You can also email <a href=\"mailto:support@traversejournal.com\">support@traversejournal.com</a> for help.</p>",
       };
     }
 
@@ -240,7 +240,7 @@ export default function HelpPage() {
                 Ask me anything
               </h3>
               <p className="text-sm text-muted max-w-md mb-6">
-                Type a question about Stargate and I&apos;ll find the best answer for you.
+                Type a question about Traverse and I&apos;ll find the best answer for you.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
                 {SUGGESTED_QUESTIONS.map((q) => (
@@ -276,7 +276,7 @@ export default function HelpPage() {
               type="text"
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Ask a question about Stargate..."
+              placeholder="Ask a question about Traverse..."
               className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted/40 focus:outline-none focus:border-accent/50 transition-all"
             />
             <button
@@ -423,7 +423,7 @@ export default function HelpPage() {
               Try different keywords or browse by category
             </p>
             <a
-              href="mailto:support@stargate.trade"
+              href="mailto:support@traversejournal.com"
               className="text-sm text-accent hover:text-accent-hover transition-colors font-medium"
             >
               Contact support &rarr;
@@ -436,10 +436,10 @@ export default function HelpPage() {
       <div className="text-center text-xs text-muted/40 pb-4">
         Can&apos;t find what you&apos;re looking for?{" "}
         <a
-          href="mailto:support@stargate.trade"
+          href="mailto:support@traversejournal.com"
           className="text-accent/60 hover:text-accent transition-colors"
         >
-          Email support@stargate.trade
+          Email support@traversejournal.com
         </a>
       </div>
     </div>

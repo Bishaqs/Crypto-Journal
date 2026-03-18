@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Impressum — Stargate",
+  title: "Impressum — Traverse",
 };
 
 export default function ImpressumPage() {
@@ -36,10 +36,10 @@ export default function ImpressumPage() {
             <p>
               Address available upon request. Please contact{" "}
               <a
-                href="mailto:support@stargate.trade"
+                href="mailto:support@traversejournal.com"
                 className="text-accent hover:underline"
               >
-                support@stargate.trade
+                support@traversejournal.com
               </a>
             </p>
           </section>
@@ -52,10 +52,10 @@ export default function ImpressumPage() {
               <li>
                 <strong className="text-foreground">Email:</strong>{" "}
                 <a
-                  href="mailto:support@stargate.trade"
+                  href="mailto:support@traversejournal.com"
                   className="text-accent hover:underline"
                 >
-                  support@stargate.trade
+                  support@traversejournal.com
                 </a>
               </li>
               <li>
@@ -63,10 +63,10 @@ export default function ImpressumPage() {
                 <strong className="text-foreground">Phone:</strong>{" "}
                 Available upon request via{" "}
                 <a
-                  href="mailto:support@stargate.trade"
+                  href="mailto:support@traversejournal.com"
                   className="text-accent hover:underline"
                 >
-                  support@stargate.trade
+                  support@traversejournal.com
                 </a>
               </li>
             </ul>

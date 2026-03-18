@@ -14,6 +14,7 @@ export type SyncDiagnostics = {
   dedup_skipped: number;
   cross_sync_merged: number;
   cross_sync_close_only: number;
+  stale_open_matched: number;
   insert_attempted: number;
   insert_succeeded: number;
   insert_failed: number;
@@ -50,7 +51,7 @@ export async function syncBitget(
     phase_a_unmatched_closes: 0, phase_a_all_fill_ids: 0, phase_a_api_errors: [],
     legacy_cleanup_skipped: true,
     dedup_existing_ids: 0, dedup_new_trades: 0, dedup_skipped: 0,
-    cross_sync_merged: 0, cross_sync_close_only: 0,
+    cross_sync_merged: 0, cross_sync_close_only: 0, stale_open_matched: 0,
     insert_attempted: 0, insert_succeeded: 0, insert_failed: 0, insert_errors: [],
   };
 
@@ -185,10 +186,87 @@ export async function syncBitget(
   }
 
   diag.dedup_existing_ids = existingIds.size;
-  const newTrades = allTrades.filter((t) => !existingIds.has(t.broker_order_id));
+  let newTrades = allTrades.filter((t) => !existingIds.has(t.broker_order_id));
   const skipped = allTrades.length - newTrades.length;
   diag.dedup_new_trades = newTrades.length;
   diag.dedup_skipped = skipped;
+
+  // ── Step 3b: Cross-ID stale-open matching ──
+  // Handles the case where open positions were stored with synthetic "open:SYMBOL:SIDE"
+  // broker_order_ids but their closed version uses the real Bitget positionId.
+  let staleOpenMatched = 0;
+
+  if (!dryRun && Date.now() < deadline - 2000) {
+    const closedNewTrades = newTrades.filter((t) => t.exit_price !== null);
+
+    if (closedNewTrades.length > 0) {
+      // Derive synthetic keys for each closed trade
+      const syntheticKeys = [...new Set(closedNewTrades.map((t) => `open:${t.symbol}:${t.position}`))];
+
+      // Batch query: find open rows with these synthetic broker_order_ids
+      const staleOpenRows = new Map<string, { id: string; broker_order_id: string }>();
+      for (let i = 0; i < syntheticKeys.length; i += 500) {
+        const batch = syntheticKeys.slice(i, i + 500);
+        const { data } = await supabase
+          .from("trades")
+          .select("id, broker_order_id")
+          .eq("user_id", userId)
+          .eq("broker_name", "Bitget")
+          .is("exit_price", null)
+          .in("broker_order_id", batch);
+
+        if (data) {
+          for (const row of data) {
+            if (row.broker_order_id) {
+              staleOpenRows.set(row.broker_order_id, { id: row.id, broker_order_id: row.broker_order_id });
+            }
+          }
+        }
+      }
+
+      if (staleOpenRows.size > 0) {
+        console.log(`[sync:bitget] Found ${staleOpenRows.size} stale open:SYMBOL:SIDE rows to match with closed trades`);
+        const matchedIndices = new Set<number>();
+
+        for (let idx = 0; idx < newTrades.length; idx++) {
+          if (Date.now() >= deadline - 1500) break;
+          const trade = newTrades[idx];
+          if (trade.exit_price === null) continue;
+
+          const syntheticKey = `open:${trade.symbol}:${trade.position}`;
+          const staleRow = staleOpenRows.get(syntheticKey);
+          if (!staleRow) continue;
+
+          // Update the existing row with close data + real positionId
+          const { error } = await supabase
+            .from("trades")
+            .update({
+              exit_price: trade.exit_price,
+              close_timestamp: trade.close_timestamp,
+              pnl: trade.pnl,
+              fees: trade.fees,
+              tags: trade.tags,
+              broker_order_id: trade.broker_order_id,
+            })
+            .eq("id", staleRow.id)
+            .is("exit_price", null);
+
+          if (!error) {
+            staleOpenMatched++;
+            matchedIndices.add(idx);
+            staleOpenRows.delete(syntheticKey);
+          }
+        }
+
+        if (matchedIndices.size > 0) {
+          newTrades = newTrades.filter((_, idx) => !matchedIndices.has(idx));
+          console.log(`[sync:bitget] Matched ${staleOpenMatched} stale open trades with closed positions (journal links preserved)`);
+        }
+      }
+    }
+  }
+
+  diag.stale_open_matched = staleOpenMatched;
 
   // ── Step 4: Update existing open trades that are now closed ──
   // Only update trades that are actually still open in DB (not already closed)
@@ -299,8 +377,8 @@ export async function syncBitget(
 
   diag.insert_succeeded = imported;
   diag.insert_failed = failed;
-  diag.cross_sync_merged = merged;
-  console.log(`[sync:bitget] Done: ${imported} imported, ${merged} updated, ${skipped} skipped, ${failed} failed.`);
+  diag.cross_sync_merged = merged + staleOpenMatched;
+  console.log(`[sync:bitget] Done: ${imported} imported, ${merged} updated, ${staleOpenMatched} stale-open matched, ${skipped} skipped, ${failed} failed.`);
 
   // Track cursor based on actual progress, not optimistic API-fetch max.
   // This prevents the cursor from jumping past positions that weren't actually persisted.

@@ -38,7 +38,7 @@ export const welcomeTour: Tour = {
     {
       id: "welcome-splash",
       icon: "🚀",
-      title: "Welcome to Stargate!",
+      title: "Welcome to Traverse!",
       titleKey: "tours.welcome.step1Title",
       content: "Hey! I'm Nova, your trading companion. Let me show you around. This takes about a minute, and you can skip anytime.",
       contentKey: "tours.welcome.step1Content",

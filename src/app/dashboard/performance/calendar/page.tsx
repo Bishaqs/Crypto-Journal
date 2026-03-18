@@ -15,6 +15,7 @@ import { StatBlock } from "@/components/ui/stat-block";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { CalendarCheck, TrendingUp, TrendingDown, Sun, Hash } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function CalendarGroupedPage() {
   const supabase = createClient();
@@ -63,7 +64,7 @@ export default function CalendarGroupedPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       {usingDemo && <DemoBanner />}
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><CalendarCheck size={24} className="text-accent" />Calendar Grouped</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><CalendarCheck size={24} className="text-accent" />Calendar Grouped <InfoTooltip text="See your daily P&L on a calendar — spot patterns in your best and worst days" /></h1>
         <p className="text-sm text-muted mt-0.5">Daily P&L displayed as a calendar heatmap</p>
       </div>
 
@@ -84,7 +85,7 @@ export default function CalendarGroupedPage() {
       {/* Daily P&L bar chart */}
       {recentDays.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Daily P&L (Last 30 Days)</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Daily P&L (Last 30 Days) <InfoTooltip text="Green = profitable day, red = losing day. Look for day-of-week patterns." size={12} /></h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={recentDays}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />

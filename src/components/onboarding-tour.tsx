@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { TourProvider, useTour } from "@/lib/tour-context";
 import { isTourComplete } from "@/lib/onboarding";
-import { useGuide } from "./stargate-guide/guide-context";
+import { useGuide } from "./traverse-guide/guide-context";
 
 function TourStateManager() {
   const { state: tourState, startTour } = useTour();

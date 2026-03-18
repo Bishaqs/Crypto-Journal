@@ -2,7 +2,7 @@ import Link from "next/link";
 import { TermsContent } from "@/components/legal/terms-content";
 
 export const metadata = {
-  title: "Terms of Service — Stargate",
+  title: "Terms of Service — Traverse",
 };
 
 export default function TermsPage() {

@@ -26,10 +26,10 @@ export function PrivacyContent() {
           <li>
             <strong className="text-foreground">Email:</strong>{" "}
             <a
-              href="mailto:support@stargate.trade"
+              href="mailto:support@traversejournal.com"
               className="text-accent hover:underline"
             >
-              support@stargate.trade
+              support@traversejournal.com
             </a>
           </li>
           <li>
@@ -49,10 +49,10 @@ export function PrivacyContent() {
           in automated data processing (cf. &sect; 38 BDSG). For all
           data-protection inquiries, please contact us at{" "}
           <a
-            href="mailto:support@stargate.trade"
+            href="mailto:support@traversejournal.com"
             className="text-accent hover:underline"
           >
-            support@stargate.trade
+            support@traversejournal.com
           </a>
           .
         </p>
@@ -295,10 +295,10 @@ export function PrivacyContent() {
           Details regarding specific transfer safeguards are available upon
           request at{" "}
           <a
-            href="mailto:support@stargate.trade"
+            href="mailto:support@traversejournal.com"
             className="text-accent hover:underline"
           >
-            support@stargate.trade
+            support@traversejournal.com
           </a>
           .
         </p>
@@ -344,10 +344,10 @@ export function PrivacyContent() {
           You have the following rights regarding your personal data. To
           exercise any of these rights, contact us at{" "}
           <a
-            href="mailto:support@stargate.trade"
+            href="mailto:support@traversejournal.com"
             className="text-accent hover:underline"
           >
-            support@stargate.trade
+            support@traversejournal.com
           </a>{" "}
           or use the in-app controls described below.
         </p>
@@ -529,10 +529,10 @@ export function PrivacyContent() {
           For all privacy-related inquiries, data subject requests, or
           complaints, contact us at{" "}
           <a
-            href="mailto:support@stargate.trade"
+            href="mailto:support@traversejournal.com"
             className="text-accent hover:underline"
           >
-            support@stargate.trade
+            support@traversejournal.com
           </a>
           .
         </p>

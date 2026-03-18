@@ -13,6 +13,7 @@ import { getChartColors } from "@/lib/chart-colors";
 import { StatBlock } from "@/components/ui/stat-block";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, ReferenceLine } from "recharts";
 import { BarChart2, DollarSign, TrendingUp, TrendingDown, Layers } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function PositionSizingPage() {
   const supabase = createClient();
@@ -80,7 +81,7 @@ export default function PositionSizingPage() {
 
   if (!sizing) return (
     <div className="max-w-[1600px] mx-auto space-y-6">
-      <div><h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BarChart2 size={24} className="text-accent" />Position Sizing</h1></div>
+      <div><h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BarChart2 size={24} className="text-accent" />Position Sizing <InfoTooltip text="How your position size affects performance — are you sizing correctly?" /></h1></div>
       <div className="glass rounded-2xl border border-border/50 p-8 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
         <p className="text-muted">Need closed trades with quantity and entry price to analyze position sizing.</p>
       </div>
@@ -93,7 +94,7 @@ export default function PositionSizingPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       {usingDemo && <DemoBanner />}
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BarChart2 size={24} className="text-accent" />Position Sizing</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BarChart2 size={24} className="text-accent" />Position Sizing <InfoTooltip text="How your position size affects performance — are you sizing correctly?" /></h1>
         <p className="text-sm text-muted mt-0.5">How your position size (quantity x entry price) relates to trade outcomes</p>
       </div>
 
@@ -108,7 +109,7 @@ export default function PositionSizingPage() {
       <div className="grid md:grid-cols-2 gap-4">
         {/* P&L by trade (sorted by size) */}
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">P&L Per Trade</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">P&L Per Trade <InfoTooltip text="Profit/loss for each individual trade, sorted by size" size={12} /></h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={sizing.trades}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
@@ -125,7 +126,7 @@ export default function PositionSizingPage() {
 
         {/* P&L by size quartile */}
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">P&L by Size Quartile</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">P&L by Size Quartile <InfoTooltip text="Performance grouped by position size. Shows if bigger bets pay off." size={12} /></h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={sizing.quartileData}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />

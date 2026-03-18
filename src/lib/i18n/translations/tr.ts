@@ -20,7 +20,7 @@ const tr = {
     no: "Hayır",
     confirm: "Onayla",
     logOut: "Çıkış Yap",
-    version: "Stargate v0.1",
+    version: "Traverse v0.1",
   },
 
   onboarding: {
@@ -64,18 +64,18 @@ const tr = {
     language: "Dil",
 
     // Guide speech (per step)
-    speech0: "Stargate'e hoş geldin! Ben Nova, senin trading partnerinin. Hadi seni ayarlayalım.",
+    speech0: "Traverse'e hoş geldin! Ben Nova, senin trading partnerinin. Hadi seni ayarlayalım.",
     speech1WithName: "Tanıştığımıza memnun oldum, {name}! Ne zamandır trading yapıyorsun?",
     speech1NoName: "Sana ne diye hitap edeyim?",
     speech2: "Nasıl trading yapıyorsun?",
     speech3: "İşlemlerini nerede gerçekleştiriyorsun?",
     speech4: "Hangi enstrümanları trade ediyorsun?",
-    speech5: "Stargate ile ne başarmak istiyorsun?",
+    speech5: "Traverse ile ne başarmak istiyorsun?",
     speech6: "Neredeyse bitti! Deneyimini kişiselleştirelim.",
     speech7: "Son soru — bizi nasıl buldun?",
 
     // Intro cinematic
-    welcomeTitle: "Stargate'e Hoş Geldin",
+    welcomeTitle: "Traverse'e Hoş Geldin",
     tapToSkip: "atlamak için dokun",
 
     // Step indicator + navigation
@@ -292,7 +292,7 @@ const tr = {
     welcome: {
       step0Title: "Kalkışa hazır mısın?",
       step0Content: "Benimle gel. Ben Nova, kârlı bir trader olmak için ihtiyacın olan her şeyi göstereceğim.",
-      step1Title: "Stargate'e Hoş Geldin!",
+      step1Title: "Traverse'e Hoş Geldin!",
       step1Content: "Merhaba! Ben Nova, senin trading partnerinin. Seni gezdireyim. Bu yaklaşık 2 dakika sürer, istediğin zaman atlayabilirsin.",
       step2Title: "Kontrol Paneli",
       step2Content: "Burası ana üssün. P&L'ın, kazanma oranın ve öz sermaye eğrin işlem kaydettikçe canlı güncellenir.",

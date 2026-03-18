@@ -14,6 +14,7 @@ import { calculateStats } from "@/lib/calculations";
 import { StatBlock } from "@/components/ui/stat-block";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import { Scale, TrendingUp, TrendingDown, Target, Hash } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 export default function ProfitFactorPage() {
   const supabase = createClient();
@@ -66,7 +67,7 @@ export default function ProfitFactorPage() {
     <div className="max-w-[1600px] mx-auto space-y-6">
       {usingDemo && <DemoBanner />}
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><Scale size={24} className="text-accent" />Profit Factor</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><Scale size={24} className="text-accent" />Profit Factor <InfoTooltip text="Gross profits divided by gross losses — above 1.5 means solid performance" /></h1>
         <p className="text-sm text-muted mt-0.5">Gross profit divided by gross loss — how many dollars you make per dollar lost</p>
       </div>
 
@@ -95,7 +96,7 @@ export default function ProfitFactorPage() {
       {/* Rolling chart */}
       {rollingPF.length > 0 && (
         <div className="glass rounded-2xl border border-border/50 p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Rolling Profit Factor</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-1">Rolling Profit Factor <InfoTooltip text="Rolling profit factor over time. Dips below 1.0 mean losses outweigh gains." size={12} /></h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={rollingPF}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />

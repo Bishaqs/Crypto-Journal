@@ -72,6 +72,9 @@ export default function RecapsPage() {
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+
     // Fetch trades
     const { data: tradeData, error: tradeErr } = await fetchAllTrades(supabase);
     if (tradeErr) console.error("Trade fetch error:", tradeErr);
@@ -87,6 +90,7 @@ export default function RecapsPage() {
     const { data: checkinData } = await supabase
       .from("daily_checkins")
       .select("*")
+      .eq("user_id", userId)
       .order("date", { ascending: true });
     setCheckins((checkinData as DailyCheckin[]) ?? []);
 

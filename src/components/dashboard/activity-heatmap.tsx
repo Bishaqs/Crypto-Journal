@@ -70,6 +70,8 @@ export function ActivityHeatmap() {
 
   useEffect(() => {
     async function fetchActivityData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
       const startStr = formatDate(startDate);
       const endStr = formatDate(endDate);
 
@@ -88,6 +90,7 @@ export function ActivityHeatmap() {
           supabase
             .from("daily_checkins")
             .select("date")
+            .eq("user_id", userId)
             .gte("date", startStr)
             .lte("date", endStr),
           supabase
@@ -99,6 +102,7 @@ export function ActivityHeatmap() {
           supabase
             .from("behavioral_logs")
             .select("created_at")
+            .eq("user_id", userId)
             .gte("created_at", `${startStr}T00:00:00`)
             .lte("created_at", `${endStr}T23:59:59`),
         ]);
