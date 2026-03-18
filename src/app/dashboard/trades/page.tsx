@@ -569,7 +569,20 @@ export default function TradesPage() {
                         <tr>
                           <td colSpan={visibleColumns.length + 2} className="p-0">
                             <div className="px-4 py-4 bg-background/50 border-b border-border/50 space-y-3">
+                              {/* P&L + Core Metrics */}
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                {(() => {
+                                  const pnl = trade.pnl ?? calculateTradePnl(trade);
+                                  const isOpen = pnl === null;
+                                  return (
+                                    <div>
+                                      <span className="text-muted/60 uppercase tracking-wider text-[10px]">P&L</span>
+                                      <p className={`font-semibold mt-0.5 ${isOpen ? "text-muted" : pnl > 0 ? "text-win" : pnl < 0 ? "text-loss" : "text-foreground"}`}>
+                                        {isOpen ? "Open" : `${pnl > 0 ? "+" : ""}$${pnl.toFixed(2)}`}
+                                      </p>
+                                    </div>
+                                  );
+                                })()}
                                 <div>
                                   <span className="text-muted/60 uppercase tracking-wider text-[10px]">Quantity</span>
                                   <p className="text-foreground font-medium mt-0.5">{trade.quantity}</p>
@@ -578,14 +591,48 @@ export default function TradesPage() {
                                   <span className="text-muted/60 uppercase tracking-wider text-[10px]">Fees</span>
                                   <p className="text-foreground font-medium mt-0.5">${trade.fees.toFixed(2)}</p>
                                 </div>
-                                <div>
-                                  <span className="text-muted/60 uppercase tracking-wider text-[10px]">Confidence</span>
-                                  <p className="text-foreground font-medium mt-0.5">{trade.confidence !== null ? `${trade.confidence}/10` : "\u2014"}</p>
-                                </div>
+                                {trade.emotion ? (
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Emotion</span>
+                                    <p className="text-foreground font-medium mt-0.5 capitalize">{trade.emotion}</p>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Confidence</span>
+                                    <p className="text-foreground font-medium mt-0.5">{trade.confidence !== null ? `${trade.confidence}/10` : "\u2014"}</p>
+                                  </div>
+                                )}
+                              </div>
+                              {/* Psychology + Planning */}
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                {trade.emotion && (
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Confidence</span>
+                                    <p className="text-foreground font-medium mt-0.5">{trade.confidence !== null ? `${trade.confidence}/10` : "\u2014"}</p>
+                                  </div>
+                                )}
                                 <div>
                                   <span className="text-muted/60 uppercase tracking-wider text-[10px]">Setup</span>
                                   <p className="text-foreground font-medium mt-0.5">{trade.setup_type ?? "\u2014"}</p>
                                 </div>
+                                {trade.process_score !== null && (
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Process</span>
+                                    <p className="text-foreground font-medium mt-0.5">{trade.process_score}/10</p>
+                                  </div>
+                                )}
+                                {trade.stop_loss !== null && (
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Stop Loss</span>
+                                    <p className="text-loss font-medium mt-0.5">${trade.stop_loss}</p>
+                                  </div>
+                                )}
+                                {trade.profit_target !== null && (
+                                  <div>
+                                    <span className="text-muted/60 uppercase tracking-wider text-[10px]">Target</span>
+                                    <p className="text-win font-medium mt-0.5">${trade.profit_target}</p>
+                                  </div>
+                                )}
                               </div>
                               {trade.trade_source === "dex" && (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">

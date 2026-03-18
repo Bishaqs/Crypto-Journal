@@ -95,6 +95,30 @@ export function TradeForm({
   // Track if we have an exit price to show post-trade fields
   const [hasExit, setHasExit] = useState(!!editTrade?.exit_price);
 
+  // P&L state: auto-calculated or manual override
+  const [manualPnl, setManualPnl] = useState<string>(editTrade?.pnl != null ? editTrade.pnl.toString() : "");
+  const [pnlIsManual, setPnlIsManual] = useState(false);
+  const [autoPnl, setAutoPnl] = useState<number | null>(null);
+
+  function recalculatePnl() {
+    if (!formRef.current) return;
+    const fd = new FormData(formRef.current);
+    const entry = parseFloat(fd.get("entry_price") as string);
+    const exit = parseFloat(fd.get("exit_price") as string);
+    const qty = parseFloat(fd.get("quantity") as string);
+    const fees = parseFloat(fd.get("fees") as string) || 0;
+    const pos = fd.get("position") as string;
+    if (!isNaN(entry) && !isNaN(exit) && !isNaN(qty) && entry > 0 && exit > 0 && qty > 0) {
+      const direction = pos === "long" ? 1 : -1;
+      const calculated = (exit - entry) * direction * qty - fees;
+      setAutoPnl(calculated);
+      if (!pnlIsManual) setManualPnl(calculated.toFixed(2));
+    } else {
+      setAutoPnl(null);
+      if (!pnlIsManual) setManualPnl("");
+    }
+  }
+
   // Fetch tag suggestions from existing trades + custom presets
   useEffect(() => {
     async function fetchTags() {
@@ -245,7 +269,10 @@ export function TradeForm({
       const data: TradeFormData = result.data;
 
       let pnl: number | null = null;
-      if (data.exit_price && data.close_timestamp) {
+      if (manualPnl.trim() !== "") {
+        const parsed = parseFloat(manualPnl);
+        if (!isNaN(parsed)) pnl = parsed;
+      } else if (data.exit_price) {
         const tempTrade = {
           ...data,
           exit_price: data.exit_price,
@@ -285,6 +312,7 @@ export function TradeForm({
         price_mfe: data.price_mfe ?? null,
         mfe_timestamp: data.mfe_timestamp ?? null,
         mae_timestamp: data.mae_timestamp ?? null,
+        playbook_id: data.playbook_id ?? null,
       };
 
       let dbError;
@@ -320,7 +348,6 @@ export function TradeForm({
         !editTrade &&
         onTradeCompleted &&
         payload.exit_price !== null &&
-        payload.close_timestamp !== null &&
         !payload.emotion &&
         payload.process_score === null
       ) {
@@ -535,6 +562,7 @@ export function TradeForm({
               <select
                 name="position"
                 defaultValue={editTrade?.position ?? editPhantom?.position ?? "long"}
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               >
                 <option value="long">Long</option>
@@ -553,6 +581,7 @@ export function TradeForm({
                 step="any"
                 defaultValue={editTrade?.entry_price ?? editPhantom?.entry_price ?? ""}
                 placeholder="0.00"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
               {errors.entry_price && (
@@ -569,7 +598,7 @@ export function TradeForm({
                 step="any"
                 defaultValue={editTrade?.exit_price ?? ""}
                 placeholder="0.00"
-                onChange={(e) => setHasExit(!!e.target.value)}
+                onChange={(e) => { setHasExit(!!e.target.value); recalculatePnl(); }}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
             </div>
@@ -620,6 +649,7 @@ export function TradeForm({
                 step="any"
                 defaultValue={editTrade?.quantity ?? ""}
                 placeholder="0.00"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
               {errors.quantity && (
@@ -634,8 +664,47 @@ export function TradeForm({
                 step="any"
                 defaultValue={editTrade?.fees ?? 0}
                 placeholder="0.00"
+                onChange={() => recalculatePnl()}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
               />
+            </div>
+          </div>
+
+          {/* P&L */}
+          <div>
+            <label className="block text-xs text-muted mb-1">
+              P&L
+              {autoPnl !== null && !pnlIsManual && (
+                <span className="text-muted/60 ml-1">(auto)</span>
+              )}
+              {pnlIsManual && (
+                <span className="text-accent/60 ml-1">(manual)</span>
+              )}
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="any"
+                value={manualPnl}
+                onChange={(e) => { setManualPnl(e.target.value); setPnlIsManual(true); }}
+                placeholder={autoPnl != null ? autoPnl.toFixed(2) : "Auto-calculated from prices"}
+                className={`w-full px-3 py-2 rounded-lg bg-background border text-sm focus:outline-none focus:border-accent ${
+                  manualPnl && parseFloat(manualPnl) > 0
+                    ? "border-win/30 text-win"
+                    : manualPnl && parseFloat(manualPnl) < 0
+                      ? "border-loss/30 text-loss"
+                      : "border-border text-foreground"
+                }`}
+              />
+              {pnlIsManual && (
+                <button
+                  type="button"
+                  onClick={() => { setPnlIsManual(false); setManualPnl(autoPnl != null ? autoPnl.toFixed(2) : ""); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-accent hover:text-accent-hover"
+                >
+                  Reset
+                </button>
+              )}
             </div>
           </div>
 
