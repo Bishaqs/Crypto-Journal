@@ -35,7 +35,7 @@ async function verifyOwner(supabase: Awaited<ReturnType<typeof createClient>>) {
   return isOwner ? user : null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const user = await verifyOwner(supabase);
   if (!user) {
@@ -49,6 +49,25 @@ export async function GET() {
     return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
   }
 
+  // If ticketId is provided, return messages for that ticket (bypasses RLS)
+  const ticketId = req.nextUrl.searchParams.get("ticketId");
+  if (ticketId) {
+    const { data, error } = await admin
+      .from("support_messages")
+      .select("id, ticket_id, user_id, message, display_name, is_owner_reply, created_at")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true })
+      .limit(100);
+
+    if (error) {
+      console.error("[admin/support] messages fetch failed:", error.message);
+      return NextResponse.json({ error: "Failed to load messages" }, { status: 500 });
+    }
+
+    return NextResponse.json({ messages: data ?? [] });
+  }
+
+  // Default: return all tickets
   const { data, error } = await admin
     .from("support_tickets")
     .select("id, user_id, subject, status, display_name, created_at, resolved_at")
