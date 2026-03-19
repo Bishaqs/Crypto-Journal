@@ -232,13 +232,23 @@ export default function LoginPage() {
       return;
     }
     setError(null);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) {
-      setError(error.message);
-    } else {
-      setResetSent(true);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          redirectTo: `${window.location.origin}/reset-password`,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to send reset email");
+      } else {
+        setResetSent(true);
+      }
+    } catch {
+      setError("Failed to send reset email. Please try again.");
     }
   }
 

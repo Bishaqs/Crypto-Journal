@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { sendWelcomeEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -69,6 +70,13 @@ export async function POST(request: Request) {
 
     if (subError) {
       console.error("[signup] subscription upsert failed:", subError.message);
+    }
+
+    // Send welcome email (non-blocking)
+    if (user.email) {
+      sendWelcomeEmail(user.email, user.user_metadata?.full_name).catch(
+        (err) => console.error("[signup] welcome email failed:", err)
+      );
     }
 
     return NextResponse.json({ success: true });
