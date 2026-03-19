@@ -46,6 +46,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(14),
   },
   {
@@ -73,6 +74,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(13),
   },
   {
@@ -100,6 +102,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(11),
   },
   {
@@ -127,6 +130,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(10),
   },
   {
@@ -154,6 +158,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(9),
   },
   {
@@ -181,6 +186,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(7),
   },
   {
@@ -208,6 +214,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(6),
   },
   {
@@ -235,6 +242,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(5),
   },
   {
@@ -262,6 +270,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(3),
   },
   {
@@ -289,6 +298,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(2),
   },
   {
@@ -316,6 +326,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(1),
   },
   {
@@ -343,6 +354,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(0),
   },
   // DEX trades
@@ -371,6 +383,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(4),
   },
   {
@@ -398,6 +411,7 @@ export const DEMO_TRADES: Trade[] = [
     broker_name: null,
     broker_order_id: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(3),
   },
 ];
@@ -429,6 +443,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     pnl: (235.80 - 228.50) * 50,
     price_mae: 226.80, price_mfe: 237.50, mfe_timestamp: hoursAfter(daysAgo(10), 4), mae_timestamp: hoursAfter(daysAgo(10), 1),
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(10),
   },
   {
@@ -457,6 +472,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     pnl: (328.50 - 342.20) * 25,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(8),
   },
   {
@@ -485,6 +501,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     pnl: (920.50 - 875.00) * 10,
     price_mae: 868.00, price_mfe: 928.30, mfe_timestamp: hoursAfter(daysAgo(6), 6), mae_timestamp: hoursAfter(daysAgo(6), 2),
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(6),
   },
   {
@@ -513,6 +530,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     pnl: (28.30 - 12.50) * 5 * 100 - 1.30,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(5),
   },
   {
@@ -541,6 +559,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     pnl: (255.10 - 248.30) * 30,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(4),
   },
   {
@@ -569,6 +588,7 @@ export const DEMO_STOCK_TRADES: StockTrade[] = [
     pnl: null,
     price_mae: null, price_mfe: null, mfe_timestamp: null, mae_timestamp: null,
     playbook_id: null,
+    idea_source: null,
     created_at: daysAgo(1),
   },
 ];

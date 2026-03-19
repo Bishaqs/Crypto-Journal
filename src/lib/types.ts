@@ -46,6 +46,8 @@ export type Trade = {
   broker_order_id: string | null;
   // Playbook link
   playbook_id: string | null;
+  // Psychology: idea source tracking
+  idea_source: string | null;
   created_at: string;
 };
 
@@ -264,6 +266,106 @@ export type AnchoringPattern = {
   tradeCount: number;
 };
 
+// ─── Psychology Correlation Results ──────────────────────────────────────────
+
+export type IdeaSource = "own_analysis" | "social_media" | "influencer" | "news" | "friend" | "chat_group" | "other";
+
+export type CorrelationResult = {
+  dimension: string;
+  value: string;
+  tradeCount: number;
+  winRate: number;
+  avgPnl: number;
+  totalPnl: number;
+};
+
+export type ConfidenceCalibration = {
+  confidence: number;
+  actualWinRate: number;
+  tradeCount: number;
+  gap: number; // actual - expected (positive = underconfident, negative = overconfident)
+};
+
+export type PostLossMetrics = {
+  avgMinutesBetweenLossAndNext: number;
+  revengeTradeCount: number;
+  revengeTradeWinRate: number;
+  revengeTradeAvgPnl: number;
+  normalTradeWinRate: number;
+  normalTradeAvgPnl: number;
+};
+
+export type StreakImpact = {
+  streakLength: number; // positive = wins, negative = losses
+  nextTradeWinRate: number;
+  nextTradeCount: number;
+  avgSizingChange: number; // % change in position size vs average
+};
+
+export type DispositionRatio = {
+  pgr: number; // proportion of gains realized
+  plr: number; // proportion of losses realized
+  ratio: number; // pgr / plr (>1 = disposition effect present)
+  interpretation: "strong_disposition" | "mild_disposition" | "balanced" | "reverse_disposition";
+};
+
+export type TradingSystemClassification = {
+  system1Count: number; // impulsive
+  system2Count: number; // deliberate
+  system1WinRate: number;
+  system2WinRate: number;
+  system1AvgPnl: number;
+  system2AvgPnl: number;
+};
+
+export type DouglasConsistency = {
+  score: number; // 0-100
+  processVariance: number;
+  sizingConsistency: number;
+  setupAdherence: number;
+  weakestDimension: string;
+  strongestDimension: string;
+};
+
+export type SQN = {
+  sqn: number;
+  rating: "Poor" | "Below Average" | "Average" | "Good" | "Excellent" | "Superb" | "Holy Grail";
+  sampleSize: number;
+};
+
+export type ShadowEruption = {
+  date: string;
+  triggerTrade: { symbol: string; pnl: number } | null;
+  severity: "moderate" | "severe";
+  tradesInEruption: number;
+  pnlImpact: number;
+};
+
+export type RepetitionCompulsion = {
+  symbol: string;
+  direction: "long" | "short";
+  occurrences: number;
+  totalLoss: number;
+  avgProcessScore: number;
+};
+
+// ─── Psychology Correlation Aggregates ───────────────────────────────────────
+
+export type PsychologyCorrelations = {
+  emotionCorrelations: CorrelationResult[];
+  timeCorrelations: CorrelationResult[];
+  confidenceCalibration: ConfidenceCalibration[];
+  postLossMetrics: PostLossMetrics | null;
+  streakImpact: StreakImpact[];
+  ideaSourceCorrelations: CorrelationResult[];
+  dispositionRatio: DispositionRatio | null;
+  systemClassification: TradingSystemClassification | null;
+  douglasConsistency: DouglasConsistency | null;
+  sqn: SQN | null;
+  shadowEruptions: ShadowEruption[];
+  repetitionCompulsions: RepetitionCompulsion[];
+};
+
 // Stats derived from trades — these are calculated, not stored
 export type DashboardStats = {
   totalTrades: number;
@@ -433,6 +535,8 @@ export type StockTrade = {
   mae_timestamp: string | null;
   // Playbook link
   playbook_id: string | null;
+  // Psychology: idea source tracking
+  idea_source: string | null;
   created_at: string;
 };
 
@@ -608,6 +712,8 @@ export type CommodityTrade = {
   mae_timestamp: string | null;
   // Playbook link
   playbook_id: string | null;
+  // Psychology: idea source tracking
+  idea_source: string | null;
   created_at: string;
 };
 
@@ -704,6 +810,8 @@ export type ForexTrade = {
   mae_timestamp: string | null;
   // Playbook link
   playbook_id: string | null;
+  // Psychology: idea source tracking
+  idea_source: string | null;
   created_at: string;
 };
 

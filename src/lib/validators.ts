@@ -247,6 +247,21 @@ export const SELF_CONCEPT_IDENTITIES = [
   { id: "student", label: "Student", description: "I'm always learning, always improving" },
 ] as const;
 
+// Idea source tracking (Cognitive Defense Framework)
+export const IDEA_SOURCES = [
+  { id: "own_analysis", label: "My Own Analysis" },
+  { id: "social_media", label: "Social Media (Twitter/X, Reddit)" },
+  { id: "influencer", label: "Influencer / Guru" },
+  { id: "news", label: "News / Headlines" },
+  { id: "friend", label: "Friend / Chat" },
+  { id: "chat_group", label: "Discord / Telegram Group" },
+  { id: "other", label: "Other" },
+] as const;
+
+export const IDEA_SOURCE_VALUES = [
+  "own_analysis", "social_media", "influencer", "news", "friend", "chat_group", "other",
+] as const;
+
 export const CHAIN_VALUES = [
   "ethereum", "solana", "base", "arbitrum", "bsc", "polygon", "avalanche",
 ] as const;
@@ -288,6 +303,7 @@ export const tradeSchema = z.object({
   mfe_timestamp: z.string().optional(),
   mae_timestamp: z.string().optional(),
   playbook_id: z.string().uuid().optional(),
+  idea_source: z.enum(IDEA_SOURCE_VALUES).optional(),
 });
 
 export type TradeFormData = z.infer<typeof tradeSchema>;
@@ -330,6 +346,7 @@ export const stockTradeSchema = z.object({
   mfe_timestamp: z.string().optional(),
   mae_timestamp: z.string().optional(),
   playbook_id: z.string().uuid().optional(),
+  idea_source: z.enum(IDEA_SOURCE_VALUES).optional(),
 });
 
 export type StockTradeFormData = z.infer<typeof stockTradeSchema>;
@@ -395,6 +412,7 @@ export const commodityTradeSchema = z.object({
   mfe_timestamp: z.string().optional(),
   mae_timestamp: z.string().optional(),
   playbook_id: z.string().uuid().optional(),
+  idea_source: z.enum(IDEA_SOURCE_VALUES).optional(),
 });
 
 export type CommodityTradeFormData = z.infer<typeof commodityTradeSchema>;
@@ -449,6 +467,7 @@ export const forexTradeSchema = z.object({
   mfe_timestamp: z.string().optional(),
   mae_timestamp: z.string().optional(),
   playbook_id: z.string().uuid().optional(),
+  idea_source: z.enum(IDEA_SOURCE_VALUES).optional(),
 });
 
 export type ForexTradeFormData = z.infer<typeof forexTradeSchema>;

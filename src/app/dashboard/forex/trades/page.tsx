@@ -38,7 +38,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Confident", confidence: 8, setup_type: "Trend Follow",
     process_score: 9, checklist: null, review: null,
     notes: "Clean trend continuation.", tags: ["trend", "major"],
-    stop_loss: 1.0810, profit_target: 1.0950, pnl: 693, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-20T08:00:00Z",
+    stop_loss: 1.0810, profit_target: 1.0950, pnl: 693, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-20T08:00:00Z",
   },
   {
     id: "fx-2", user_id: "u1", pair: "GBP/USD", base_currency: "GBP", quote_currency: "USD",
@@ -51,7 +51,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Breakout",
     process_score: 8, checklist: null, review: null,
     notes: "GBP weakness on data.", tags: ["news", "major"],
-    stop_loss: null, profit_target: null, pnl: 1186, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-19T13:00:00Z",
+    stop_loss: null, profit_target: null, pnl: 1186, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-19T13:00:00Z",
   },
   {
     id: "fx-3", user_id: "u1", pair: "USD/JPY", base_currency: "USD", quote_currency: "JPY",
@@ -64,7 +64,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Anxious", confidence: 5, setup_type: "Reversal",
     process_score: 4, checklist: null, review: null,
     notes: "Tried to catch falling knife.", tags: ["reversal"],
-    stop_loss: null, profit_target: null, pnl: -207, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-18T01:00:00Z",
+    stop_loss: null, profit_target: null, pnl: -207, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-18T01:00:00Z",
   },
   {
     id: "fx-4", user_id: "u1", pair: "EUR/GBP", base_currency: "EUR", quote_currency: "GBP",
@@ -77,7 +77,7 @@ const MOCK_FOREX_TRADES: ForexTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Range",
     process_score: 7, checklist: null, review: null,
     notes: "Range trade. Clean entry.", tags: ["range", "minor"],
-    stop_loss: null, profit_target: null, pnl: 492, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-19T08:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 492, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-19T08:30:00Z",
   },
 ];
 
