@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText, ShieldBan, Tag, Headphones, HelpCircle, Activity, BarChart3, Zap } from "lucide-react";
+import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText, ShieldBan, Tag, Headphones, HelpCircle, Activity, BarChart3, Zap, Mail } from "lucide-react";
 import { AdminInviteManager } from "@/components/admin/invite-codes-manager";
 import { EnhancedUsersTable, type EnrichedUser } from "@/components/admin/enhanced-users-table";
 import { AdminFeedbackManager, type FeedbackItem } from "@/components/admin/feedback-manager";
@@ -7,6 +7,7 @@ import { AdminBannedAccountsManager } from "@/components/admin/banned-accounts-m
 import { AdminDiscountManager } from "@/components/admin/discount-codes-manager";
 import { AdminSupportTicketsManager, type SupportTicketAdmin } from "@/components/admin/support-tickets-manager";
 import { AdminSubmittedQuestionsManager, type SubmittedQuestion } from "@/components/admin/submitted-questions-manager";
+import { AdminWaitlistManager, type WaitlistSignup } from "@/components/admin/waitlist-manager";
 import { OnlineUsersCard } from "@/components/admin/online-users-card";
 import { AnalyticsOverview } from "@/components/admin/analytics-overview";
 
@@ -67,6 +68,7 @@ export default async function AdminPage() {
     achievementsResult,
     tradeCountsResult,
     totalTradesResult,
+    waitlistResult,
   ] = await Promise.all([
     // Existing: subscriptions (now including last_seen)
     admin
@@ -131,6 +133,12 @@ export default async function AdminPage() {
     admin
       .from("trades")
       .select("id", { count: "exact", head: true }),
+
+    // NEW: waitlist signups
+    admin
+      .from("waitlist_signups")
+      .select("id, email, position, discount_code, email_confirmed, ip_address, referral_source, created_at")
+      .order("position", { ascending: true }),
   ]);
 
   // Handle errors
@@ -144,8 +152,10 @@ export default async function AdminPage() {
   if (streaksResult.error) { console.error("[admin] user streaks:", streaksResult.error.message); }
   if (achievementsResult.error) { console.error("[admin] achievements:", achievementsResult.error.message); }
   if (tradeCountsResult.error) { console.error("[admin] trade counts:", tradeCountsResult.error.message); }
+  if (waitlistResult.error) { console.error("[admin] waitlist:", waitlistResult.error.message); }
 
   const subs = subsResult.data ?? [];
+  const waitlistSignups: WaitlistSignup[] = waitlistResult.data ?? [];
   const inviteCodes: InviteCode[] = codesResult.data ?? [];
   const discountCodes: DiscountCode[] = discountResult.data ?? [];
 
@@ -405,6 +415,17 @@ export default async function AdminPage() {
           </h2>
         </div>
         <AdminSubmittedQuestionsManager initialQuestions={submittedQuestions} />
+      </section>
+
+      {/* Waitlist signups */}
+      <section className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="px-5 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Mail size={18} className="text-accent" />
+            Waitlist ({waitlistSignups.length}/100)
+          </h2>
+        </div>
+        <AdminWaitlistManager initialSignups={waitlistSignups} />
       </section>
 
       {/* Banned accounts */}
