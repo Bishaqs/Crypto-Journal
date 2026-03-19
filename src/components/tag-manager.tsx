@@ -10,7 +10,7 @@ import {
   removeCustomTagPreset,
   isSystemTag,
 } from "@/lib/tag-manager";
-import { getTagColor, setTagColor, TAG_PALETTE } from "@/lib/tag-colors";
+import { getTagColor, setTagColor, TAG_PALETTE, loadTagColorsFromDB, saveTagSettingsToDB } from "@/lib/tag-colors";
 
 type TagCount = { tag: string; count: number };
 
@@ -35,8 +35,14 @@ export function TagManager({
   // Force re-render when colors change
   const [colorVersion, setColorVersion] = useState(0);
 
+  const supabase = createClient();
+
   useEffect(() => {
-    setPresets(getCustomTagPresets());
+    // Hydrate localStorage from DB on mount, then read presets
+    loadTagColorsFromDB(supabase).then(() => {
+      setPresets(getCustomTagPresets());
+      setColorVersion((v) => v + 1);
+    });
   }, []);
 
   // Collect all unique tags with usage counts
@@ -69,12 +75,16 @@ export function TagManager({
     }
     setPresets(updated);
     setNewPreset("");
+    // Persist to DB
+    saveTagSettingsToDB(supabase);
   }
 
   function handleRemovePreset(tag: string) {
     const updated = removeCustomTagPreset(tag);
     setPresets(updated);
     setConfirmRemovePreset(null);
+    // Persist to DB
+    saveTagSettingsToDB(supabase);
   }
 
   async function handleDeleteTag(tag: string) {
@@ -125,6 +135,8 @@ export function TagManager({
     setTagColor(tag, colorIndex);
     setColorVersion((v) => v + 1);
     setColorPickerTag(null);
+    // Persist to DB
+    saveTagSettingsToDB(supabase);
   }
 
   function ColorDots({ selectedTag, onPick }: { selectedTag: string; onPick: (idx: number) => void }) {

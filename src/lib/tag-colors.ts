@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 export const TAG_PALETTE = [
   { bg: "rgba(239, 68, 68, 0.12)", text: "#f87171", border: "rgba(239, 68, 68, 0.25)" },
   { bg: "rgba(249, 115, 22, 0.12)", text: "#fb923c", border: "rgba(249, 115, 22, 0.25)" },
@@ -12,6 +14,7 @@ export const TAG_PALETTE = [
 ];
 
 const TAG_COLOR_KEY = "stargate-tag-colors";
+const TAG_PRESETS_KEY = "stargate-custom-tags";
 
 function hashString(str: string): number {
   let hash = 5381;
@@ -46,7 +49,7 @@ export function getTagColor(tag: string): { bg: string; text: string; border: st
   return TAG_PALETTE[index];
 }
 
-/** Assign a custom color to a tag */
+/** Assign a custom color to a tag (localStorage only — call saveTagColorToDB separately for persistence) */
 export function setTagColor(tag: string, colorIndex: number): void {
   const map = getTagColorMap();
   map[tag] = colorIndex;
@@ -64,4 +67,67 @@ export function removeTagColor(tag: string): void {
 export function getTagColorIndex(tag: string): number {
   const map = getTagColorMap();
   return map[tag] ?? -1;
+}
+
+// ─── Database persistence ────────────────────────────────────────────────────
+
+/** Load tag colors from user_preferences DB and hydrate localStorage. DB wins on conflict. */
+export async function loadTagColorsFromDB(supabase: SupabaseClient): Promise<void> {
+  try {
+    const { data } = await supabase
+      .from("user_preferences")
+      .select("preferences")
+      .single();
+
+    const dbColors: Record<string, number> = data?.preferences?.tag_colors ?? {};
+    const dbPresets: string[] = data?.preferences?.tag_presets ?? [];
+
+    // Merge: DB is source of truth, localStorage is cache
+    if (Object.keys(dbColors).length > 0) {
+      const localMap = getTagColorMap();
+      // DB values overwrite local values
+      const merged = { ...localMap, ...dbColors };
+      saveTagColorMap(merged);
+    }
+
+    if (dbPresets.length > 0) {
+      localStorage.setItem(TAG_PRESETS_KEY, JSON.stringify(dbPresets));
+    }
+  } catch {
+    // Table may not exist yet or no row — localStorage values remain
+  }
+}
+
+/** Save the full tag color map + presets to user_preferences DB */
+export async function saveTagSettingsToDB(supabase: SupabaseClient): Promise<void> {
+  try {
+    const colorMap = getTagColorMap();
+    let presets: string[] = [];
+    try {
+      const saved = localStorage.getItem(TAG_PRESETS_KEY);
+      presets = saved ? JSON.parse(saved) : [];
+    } catch { /* ignore */ }
+
+    // Read existing preferences to merge (don't overwrite other prefs like psychology_tier)
+    const { data: existing } = await supabase
+      .from("user_preferences")
+      .select("preferences")
+      .single();
+
+    const existingPrefs = existing?.preferences ?? {};
+    const mergedPrefs = {
+      ...existingPrefs,
+      tag_colors: colorMap,
+      tag_presets: presets,
+    };
+
+    await supabase
+      .from("user_preferences")
+      .upsert({
+        preferences: mergedPrefs,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+  } catch {
+    // Silently fail — localStorage still works as fallback
+  }
 }

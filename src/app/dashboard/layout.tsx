@@ -33,6 +33,7 @@ const GuideSupport = dynamic(() => import("@/components/traverse-guide/guide-sup
 const Heartbeat = dynamic(() => import("@/components/heartbeat").then(m => ({ default: m.Heartbeat })));
 const FlashNewsBanner = dynamic(() => import("@/components/news/flash-news-banner").then(m => ({ default: m.FlashNewsBanner })));
 const HelpCenterPanel = dynamic(() => import("@/components/help-center/help-center-panel").then(m => ({ default: m.HelpCenterPanel })));
+const TagColorHydrator = dynamic(() => import("@/components/tag-color-hydrator").then(m => ({ default: m.TagColorHydrator })));
 // PhantomQuickAdd removed — What If is now a toggle inside TradeForm
 
 export default async function DashboardLayout({
@@ -95,6 +96,7 @@ export default async function DashboardLayout({
             <GuideProvider>
             <HelpCenterProvider>
             <FlashNewsProvider>
+              <TagColorHydrator />
               <OnboardingGate userId={user?.id} isReturningUser={isReturningUser} />
               <OnboardingTour>
                 <div className="flex h-screen overflow-hidden relative">
