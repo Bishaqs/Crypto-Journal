@@ -6,6 +6,7 @@ import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
 import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 import { calculateAllCorrelations } from "@/lib/psychology-correlations";
+import { buildSummaryContext } from "@/lib/trading-summaries";
 
 export const dynamic = "force-dynamic";
 
@@ -173,6 +174,24 @@ export async function POST(req: NextRequest) {
   }
   if (psychologyContext) {
     systemPrompt += psychologyContext;
+  }
+  // Load hierarchical trading summaries (daily/weekly/monthly/yearly)
+  try {
+    const { data: summaries } = await supabase
+      .from("trading_summaries")
+      .select("period_type, period_start, stats, narrative")
+      .eq("user_id", user.id)
+      .order("period_start", { ascending: false })
+      .limit(50);
+
+    if (summaries && summaries.length > 0) {
+      const summaryCtx = buildSummaryContext(summaries as { period_type: string; period_start: string; stats: any; narrative: string | null }[]);
+      if (summaryCtx) {
+        systemPrompt += summaryCtx;
+      }
+    }
+  } catch {
+    // Non-critical
   }
   if (conversationSummary) {
     systemPrompt += conversationSummary;
