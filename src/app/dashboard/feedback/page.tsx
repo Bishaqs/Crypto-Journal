@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   MessageSquareText,
   Send,
@@ -12,6 +13,8 @@ import {
   ChevronUp,
   Trash2,
   Star,
+  Vote,
+  Loader2,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useSubscriptionContext } from "@/lib/subscription-context";
@@ -58,7 +61,187 @@ function timeAgo(iso: string) {
 }
 
 export default function FeedbackPage() {
+  return (
+    <Suspense fallback={<div className="text-xs text-muted/60 py-8 text-center">Loading...</div>}>
+      <FeedbackPageContent />
+    </Suspense>
+  );
+}
+
+/* ========== Feature Voting Tab ========== */
+
+type VoteProposal = {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  vote_count: number;
+  hasVoted: boolean;
+};
+
+const VOTE_CATEGORIES = ["all", "psychology", "analytics", "automation", "social", "general"] as const;
+const VOTE_CATEGORY_LABELS: Record<string, string> = {
+  all: "All", analytics: "Analytics", psychology: "Psychology",
+  automation: "Automation", social: "Social", general: "General",
+};
+
+function FeatureVotingTab() {
+  const [proposals, setProposals] = useState<VoteProposal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [votingId, setVotingId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  // Suggest form
+  const [showSuggest, setShowSuggest] = useState(false);
+  const [suggestTitle, setSuggestTitle] = useState("");
+  const [suggestDesc, setSuggestDesc] = useState("");
+  const [suggestCategory, setSuggestCategory] = useState("general");
+  const [suggestStatus, setSuggestStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [suggestError, setSuggestError] = useState("");
+
+  const fetchProposals = useCallback(async () => {
+    try {
+      // Use a special "auth" mode — the dashboard user is already logged in
+      const res = await fetch("/api/waitlist/vote?dashboard=1");
+      const data = await res.json();
+      if (res.ok) {
+        setProposals(data.proposals ?? []);
+        setError(null);
+      } else {
+        setError(data.error || "Failed to load proposals");
+      }
+    } catch {
+      setError("Failed to load proposals");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchProposals(); }, [fetchProposals]);
+
+  async function handleVote(proposalId: string, action: "vote" | "unvote") {
+    if (votingId) return;
+    setVotingId(proposalId);
+    // Optimistic update
+    setProposals((prev) =>
+      prev.map((p) =>
+        p.id === proposalId
+          ? { ...p, hasVoted: action === "vote", vote_count: p.vote_count + (action === "vote" ? 1 : -1) }
+          : p
+      )
+    );
+    try {
+      const res = await fetch("/api/waitlist/vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposalId, action, dashboard: true }),
+      });
+      const data = await res.json();
+      if (!data.success) fetchProposals();
+    } catch { fetchProposals(); }
+    finally { setVotingId(null); }
+  }
+
+  async function handleSuggest(e: React.FormEvent) {
+    e.preventDefault();
+    if (suggestStatus === "loading") return;
+    setSuggestStatus("loading");
+    setSuggestError("");
+    try {
+      const res = await fetch("/api/waitlist/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: suggestTitle.trim(), description: suggestDesc.trim() || undefined, category: suggestCategory, dashboard: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuggestStatus("success");
+        setSuggestTitle(""); setSuggestDesc(""); setSuggestCategory("general");
+        setTimeout(() => setSuggestStatus("idle"), 3000);
+      } else { setSuggestStatus("error"); setSuggestError(data.error || "Failed"); }
+    } catch { setSuggestStatus("error"); setSuggestError("Network error"); }
+  }
+
+  const filtered = activeCategory === "all" ? proposals : proposals.filter((p) => p.category === activeCategory);
+
+  if (loading) return <div className="text-xs text-muted/60 py-8 text-center">Loading proposals...</div>;
+  if (error) return <div className="text-sm text-muted py-8 text-center">{error}</div>;
+
+  return (
+    <div className="space-y-6">
+      {/* Category filter */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {VOTE_CATEGORIES.map((cat) => (
+          <button key={cat} onClick={() => setActiveCategory(cat)}
+            className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              activeCategory === cat ? "bg-accent/15 text-accent border border-accent/30" : "bg-surface border border-border text-muted hover:text-foreground"
+            }`}>{VOTE_CATEGORY_LABELS[cat]}</button>
+        ))}
+      </div>
+
+      {/* Proposals */}
+      <div className="space-y-3">
+        {filtered.map((p) => (
+          <div key={p.id} className="flex items-start gap-4 bg-surface border border-border rounded-2xl p-5 hover:border-border/80 transition-all" style={{ boxShadow: "var(--shadow-card)" }}>
+            <button onClick={() => handleVote(p.id, p.hasVoted ? "unvote" : "vote")} disabled={votingId === p.id}
+              className={`flex flex-col items-center gap-0.5 min-w-[48px] transition-colors ${p.hasVoted ? "text-accent" : "text-muted hover:text-accent"}`}>
+              <ChevronUp size={20} />
+              <span className="text-sm font-mono font-medium">{p.vote_count}</span>
+            </button>
+            <div className="flex-1 min-w-0">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted">{VOTE_CATEGORY_LABELS[p.category] ?? p.category}</span>
+              <h3 className="text-sm font-medium text-foreground mt-1 mb-1">{p.title}</h3>
+              {p.description && <p className="text-xs text-muted leading-relaxed">{p.description}</p>}
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && <div className="text-sm text-muted py-8 text-center">No proposals in this category.</div>}
+      </div>
+
+      {/* Suggest */}
+      <div className="pt-4 border-t border-border/50">
+        {!showSuggest ? (
+          <button onClick={() => setShowSuggest(true)} className="text-sm font-medium text-accent hover:text-accent-hover transition-colors">
+            Propose a feature
+          </button>
+        ) : (
+          <form onSubmit={handleSuggest} className="space-y-3">
+            <h3 className="text-sm font-medium text-foreground">Propose a Feature</h3>
+            <input type="text" value={suggestTitle} onChange={(e) => setSuggestTitle(e.target.value)} placeholder="Feature title" required maxLength={100}
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent/50" />
+            <textarea value={suggestDesc} onChange={(e) => setSuggestDesc(e.target.value)} placeholder="Detailed description" maxLength={500} rows={3}
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent/50 resize-none" />
+            <select value={suggestCategory} onChange={(e) => setSuggestCategory(e.target.value)}
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent/50 appearance-none">
+              <option value="general">General</option><option value="analytics">Analytics</option>
+              <option value="psychology">Psychology</option><option value="automation">Automation</option>
+              <option value="social">Social</option>
+            </select>
+            <div className="flex items-center gap-3">
+              <button type="submit" disabled={suggestStatus === "loading" || !suggestTitle.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-accent text-background hover:bg-accent-hover transition-colors disabled:opacity-40">
+                <Send size={13} />{suggestStatus === "loading" ? "Submitting..." : "Submit Proposal"}
+              </button>
+              <button type="button" onClick={() => setShowSuggest(false)} className="text-xs text-muted hover:text-foreground transition-colors">Cancel</button>
+            </div>
+            {suggestStatus === "success" && <p className="text-xs text-win">Proposal submitted! It will appear after review.</p>}
+            {suggestStatus === "error" && <p className="text-xs text-loss">{suggestError}</p>}
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ========== Main Content with Tabs ========== */
+
+function FeedbackPageContent() {
   const { isOwner } = useSubscriptionContext();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const activeTab = (searchParams.get("tab") as "feedback" | "voting") || "feedback";
 
   // Submit form state
   const [category, setCategory] = useState("general");
@@ -237,11 +420,38 @@ export default function FeedbackPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             Feedback
-            <InfoTooltip text="Share your thoughts, report bugs, or request features. See what others are saying too." articleId="tj-journal" />
+            <InfoTooltip text="Share your thoughts, report bugs, or request features. Vote on what we build next." articleId="tj-journal" />
           </h1>
-          <p className="text-sm text-muted">Community feedback board</p>
+          <p className="text-sm text-muted">Community feedback & feature roadmap</p>
         </div>
       </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2">
+        {[
+          { id: "feedback" as const, label: "Feedback", icon: MessageSquareText },
+          { id: "voting" as const, label: "Feature Voting", icon: Vote },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => router.push(`${pathname}?tab=${tab.id}`, { scroll: false })}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+              activeTab === tab.id
+                ? "bg-accent/15 text-accent border border-accent/30"
+                : "text-muted hover:text-foreground hover:bg-surface border border-transparent"
+            }`}
+          >
+            <tab.icon size={14} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      {activeTab === "voting" ? (
+        <FeatureVotingTab />
+      ) : (
+      <>
 
       {/* Toggle submit form */}
       <button
@@ -485,6 +695,8 @@ export default function FeedbackPage() {
             );
           })}
         </div>
+      )}
+      </>
       )}
     </div>
   );
