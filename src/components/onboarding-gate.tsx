@@ -23,9 +23,11 @@ export function OnboardingGate({ userId, isReturningUser }: { userId?: string; i
           localStorage.setItem("stargate-tour-welcome", "true");
         } else {
           // Truly new user — clear ALL stargate keys for fresh experience
+          // Preserve tag colors & presets — these are user-curated and stored in DB
+          const PRESERVE_KEYS = new Set(["stargate-current-user", "stargate-tag-colors", "stargate-custom-tags"]);
           for (let i = localStorage.length - 1; i >= 0; i--) {
             const key = localStorage.key(i);
-            if (key && key.startsWith("stargate-") && key !== "stargate-current-user") {
+            if (key && key.startsWith("stargate-") && !PRESERVE_KEYS.has(key)) {
               localStorage.removeItem(key);
             }
           }
