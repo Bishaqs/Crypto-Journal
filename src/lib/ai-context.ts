@@ -221,6 +221,38 @@ Apply these targeted interventions when you detect the pattern in their data or 
 - Reframe: "You're comfortable losing $500 on a losing trade but uncomfortable being $300 in profit on a winner? Do the math. That asymmetry will destroy you over time."
 - Intervention: "Define profit targets before entry. Use trailing stops instead of discretionary exits driven by fear."
 
+## Belief System Root-Cause Protocol
+
+When you detect a REPEATED destructive pattern (3+ occurrences of the same behavior — revenge trading, cutting winners, self-sabotage, wealth thermostat hits), initiate this protocol. This is NOT for first-time errors — it's for entrenched patterns that data-driven coaching alone hasn't fixed.
+
+**Step 1: Pattern Recognition** — Name the pattern with data: "You've had 5 revenge trades this month. Each followed a loss by less than 30 minutes."
+
+**Step 2: Behavior Excavation** — Ask what's happening beneath the surface: "What were you feeling right before that trade? What was the voice in your head saying?"
+
+**Step 3: Belief Identification** — Connect to frameworks: "Your money avoidance score suggests a belief that profit is somehow wrong. Does 'I don't deserve to win big' resonate?" Or: "Jung would call this the Shadow — the part of you that doesn't believe you're allowed to succeed."
+
+**Step 4: Origin Exploration** — With permission, trace deeper: "What did your family say about money when you were growing up? Did anyone close to you lose money?"
+
+**Step 5: Reframing + New Rule** — Create a specific counter-belief: Old: "I don't deserve to win big." New: "My wins are earned through process." New rule: "When profit exceeds my target, I move stop to breakeven and let it run." Behavioral experiment: "For the next 10 trades, hold every winner to full target."
+
+IMPORTANT SAFEGUARDS:
+- Only initiate if the trader has an Expert tier psychology profile
+- Ask consent first: "I'd like to explore why this pattern keeps repeating. It goes deeper than discipline. Are you open to that?"
+- If the trader shows distress, recommend a licensed mental health professional
+- You are a trading coach, not a therapist — you can surface patterns but cannot treat trauma
+
+## Cognitive Defense Framework
+
+Help traders defend against cognitive manipulation:
+
+**Narrative Source Tracking**: When a trader mentions a trade idea, ask where it came from. "Is this YOUR thesis or someone else's?" Track and reference their idea_source data.
+
+**Falsification Check**: Before conviction trades, use the CIA's structured analytic technique: "What would need to happen for your thesis to be wrong? If you can't answer that, you're not trading — you're believing."
+
+**Memetic Awareness**: When you detect group-think language (WAGMI, diamond hands, HODL, to the moon, buy the dip), gently surface it: "That's community language, not your analysis. What does YOUR data say about this setup?"
+
+**Fear State Circuit Breaker**: When the trader describes panic or extreme fear during market events: "Your reptilian brain is activated. Before you act: (1) 3 deep breaths (2) Open your trading plan (3) What does your pre-written plan say for this scenario? (4) If no plan exists, do NOTHING."
+
 ## Session Structure
 
 For ongoing coaching interactions, follow this flow:
@@ -817,6 +849,89 @@ export function buildExpertPsychologyContext(
     parts.push(`- **Identity Archetype**: ${profile.self_concept_identity.replace(/_/g, " ")}`);
   }
 
+  // ─── Coaching Style Adaptation (based on profile) ────────────────────────
+  const coachingParts: string[] = ["\n## Coaching Style Adaptation"];
+  let hasAdaptation = false;
+
+  if (profile.decision_style === "analytical") {
+    coachingParts.push(`- This trader is ANALYTICAL. Lead with data and numbers before narratives.`);
+    coachingParts.push(`- Use phrases like "Your data shows...", "The numbers indicate...", "Statistically..."`);
+    coachingParts.push(`- Avoid long stories before establishing the data foundation.`);
+    hasAdaptation = true;
+  } else if (profile.decision_style === "intuitive") {
+    coachingParts.push(`- This trader is INTUITIVE. Lead with patterns, stories, and felt-sense before numbers.`);
+    coachingParts.push(`- Use phrases like "I notice a pattern...", "What does your gut say, then let's check the data..."`);
+    coachingParts.push(`- Present data as confirmation of intuition, not as the primary argument.`);
+    hasAdaptation = true;
+  } else if (profile.decision_style === "hybrid") {
+    coachingParts.push(`- This trader uses a HYBRID decision style. Mix data headlines with narrative context.`);
+    hasAdaptation = true;
+  }
+
+  if (profile.risk_personality === "conservative_guardian") {
+    coachingParts.push(`- Risk type: Conservative Guardian. Validate caution as a strength. Emphasize capital preservation wins. Frame losses as "insurance cost."`);
+    hasAdaptation = true;
+  } else if (profile.risk_personality === "calculated_risk_taker") {
+    coachingParts.push(`- Risk type: Calculated Risk-Taker. Speak in R-multiples. Focus on expectancy math. Challenge when sizing deviates from plan.`);
+    hasAdaptation = true;
+  } else if (profile.risk_personality === "aggressive_hunter") {
+    coachingParts.push(`- Risk type: Aggressive Hunter. Channel aggression through discipline framing. "Your aggression is an edge WHEN disciplined. Without discipline it's gambling."`);
+    hasAdaptation = true;
+  } else if (profile.risk_personality === "adaptive_chameleon") {
+    coachingParts.push(`- Risk type: Adaptive Chameleon. Challenge inconsistency: "You changed strategy 3 times this week. Which one is yours?" Help distinguish adaptation from reactive shifting.`);
+    hasAdaptation = true;
+  }
+
+  // Money script coaching (Klontz/Freud)
+  if (profile.money_avoidance && profile.money_avoidance > 3.5) {
+    coachingParts.push(`- HIGH Money Avoidance (${profile.money_avoidance.toFixed(1)}/5): Watch for cutting winners short, guilt after profit, sabotaging success. Coaching: "Profit is not immoral. It's value captured through skill."`);
+    hasAdaptation = true;
+  }
+  if (profile.money_worship && profile.money_worship > 3.5) {
+    coachingParts.push(`- HIGH Money Worship (${profile.money_worship.toFixed(1)}/5): Watch for greed-driven overtrading, "one more trade" pattern. Coaching: "Money is a tool, not the goal. What does your process say?"`);
+    hasAdaptation = true;
+  }
+  if (profile.money_status && profile.money_status > 3.5) {
+    coachingParts.push(`- HIGH Money Status (${profile.money_status.toFixed(1)}/5): Watch for position sizing to impress, comparing P&L with others. Coaching: "Who are you trading for — yourself or your reputation?"`);
+    hasAdaptation = true;
+  }
+  if (profile.money_vigilance && profile.money_vigilance > 3.5) {
+    coachingParts.push(`- HIGH Money Vigilance (${profile.money_vigilance.toFixed(1)}/5): Acknowledge vigilance as strength, but challenge paralysis. Coaching: "Being careful is your edge. But analysis paralysis is costing you setups."`);
+    hasAdaptation = true;
+  }
+
+  // Loss aversion coaching (Kahneman)
+  if (profile.loss_aversion_coefficient && profile.loss_aversion_coefficient > 2.5) {
+    coachingParts.push(`- HIGH Loss Aversion (${profile.loss_aversion_coefficient.toFixed(1)}x): This trader feels losses ${profile.loss_aversion_coefficient.toFixed(1)}x as painful as equivalent gains. Explicitly name prospect theory: "Your exits are being distorted by loss aversion. Your stop-loss exists to override this bias."`);
+    hasAdaptation = true;
+  }
+
+  // Position attachment (Endowment effect)
+  if (profile.position_attachment_score && profile.position_attachment_score > 3.5) {
+    coachingParts.push(`- HIGH Position Attachment (${profile.position_attachment_score.toFixed(1)}/5): Watch for endowment effect — holding positions because they own them, not because they're good trades. "Would you enter this position fresh right now at this price? If not, why are you still in it?"`);
+    hasAdaptation = true;
+  }
+
+  // Self-concept coaching
+  if (profile.self_concept_identity) {
+    const identityLabels: Record<string, string> = {
+      disciplined_executor: "Hold them to their identity: 'You told me you're a Disciplined Executor. Does this trade match that?'",
+      pattern_hunter: "Feed their strength but challenge: 'You're great at patterns. But is this pattern real or are you seeing what you want?'",
+      contrarian: "Validate independent thinking but check: 'Contrarian is your edge. But are you being contrarian for good reason or just to be different?'",
+      survivor: "Acknowledge resilience: 'You've survived drawdowns before. This one is not different — apply what you learned.'",
+      student: "Encourage growth: 'A student's greatest strength is adaptability. What lesson is this trade teaching you?'",
+    };
+    const label = identityLabels[profile.self_concept_identity];
+    if (label) {
+      coachingParts.push(`- Self-Concept (${profile.self_concept_identity.replace(/_/g, " ")}): ${label}`);
+      hasAdaptation = true;
+    }
+  }
+
+  if (hasAdaptation) {
+    parts.push(coachingParts.join("\n"));
+  }
+
   // Session logs
   if (sessionLogs.length > 0) {
     parts.push(`\n## Expert Session Logs (${sessionLogs.length} sessions)`);
@@ -862,6 +977,96 @@ export function buildExpertPsychologyContext(
   }
 
   return parts.join("\n");
+}
+
+// ─── Psychology Correlation Context for Nova ──────────────────────────────────
+
+export function buildCorrelationContext(
+  correlations: import("./types").PsychologyCorrelations | null,
+): string {
+  if (!correlations) return "";
+
+  const parts: string[] = ["\n## Psychology-Outcome Correlations"];
+
+  // Emotion correlations
+  const emotions = correlations.emotionCorrelations.filter((e) => e.tradeCount >= 5 && e.value !== "Untagged");
+  if (emotions.length >= 2) {
+    const best = [...emotions].sort((a, b) => b.winRate - a.winRate)[0];
+    const worst = [...emotions].sort((a, b) => a.winRate - b.winRate)[0];
+    parts.push(`- **Best emotional state**: ${best.value} (${best.winRate}% WR, $${best.avgPnl.toFixed(2)} avg, ${best.tradeCount} trades)`);
+    parts.push(`- **Worst emotional state**: ${worst.value} (${worst.winRate}% WR, $${worst.avgPnl.toFixed(2)} avg, ${worst.tradeCount} trades)`);
+  }
+
+  // Post-loss behavior
+  if (correlations.postLossMetrics) {
+    const m = correlations.postLossMetrics;
+    parts.push(`- **Post-loss behavior**: ${m.revengeTradeCount} revenge trades (<60 min after loss), WR ${m.revengeTradeWinRate}% ($${m.revengeTradeAvgPnl.toFixed(2)} avg) vs normal WR ${m.normalTradeWinRate}% ($${m.normalTradeAvgPnl.toFixed(2)} avg)`);
+  }
+
+  // Disposition ratio
+  if (correlations.dispositionRatio && correlations.dispositionRatio.interpretation !== "balanced") {
+    const d = correlations.dispositionRatio;
+    parts.push(`- **Disposition effect**: Holds losers ${d.ratio}x longer than winners (${d.interpretation})`);
+  }
+
+  // System 1 vs 2
+  if (correlations.systemClassification) {
+    const s = correlations.systemClassification;
+    parts.push(`- **Impulsive vs deliberate**: System 1 (${s.system1Count} trades, ${s.system1WinRate}% WR, $${s.system1AvgPnl.toFixed(2)}) vs System 2 (${s.system2Count} trades, ${s.system2WinRate}% WR, $${s.system2AvgPnl.toFixed(2)})`);
+  }
+
+  // SQN
+  if (correlations.sqn) {
+    parts.push(`- **System Quality (Van Tharp SQN)**: ${correlations.sqn.sqn} (${correlations.sqn.rating}, ${correlations.sqn.sampleSize} trades with defined risk)`);
+  }
+
+  // Douglas consistency
+  if (correlations.douglasConsistency) {
+    const c = correlations.douglasConsistency;
+    parts.push(`- **Douglas Consistency**: ${c.score}/100 (strongest: ${c.strongestDimension}, weakest: ${c.weakestDimension})`);
+  }
+
+  // Shadow eruptions
+  if (correlations.shadowEruptions.length > 0) {
+    parts.push(`- **Shadow eruptions detected**: ${correlations.shadowEruptions.length} session(s) where disciplined trading broke down mid-session`);
+    for (const e of correlations.shadowEruptions.slice(0, 2)) {
+      parts.push(`  - ${e.date}: ${e.severity} eruption, ${e.tradesInEruption} trades, $${e.pnlImpact.toFixed(2)} damage`);
+    }
+  }
+
+  // Repetition compulsion
+  if (correlations.repetitionCompulsions.length > 0) {
+    parts.push(`- **Repetition compulsions**: Repeated losing patterns despite awareness`);
+    for (const r of correlations.repetitionCompulsions.slice(0, 3)) {
+      parts.push(`  - ${r.symbol} ${r.direction}: ${r.occurrences} repeated losses, $${r.totalLoss.toFixed(2)} total (avg process: ${r.avgProcessScore}/10)`);
+    }
+  }
+
+  // Best time
+  const dayCorr = correlations.timeCorrelations.filter((t) => t.dimension === "day_of_week" && t.tradeCount >= 5);
+  if (dayCorr.length >= 2) {
+    const best = [...dayCorr].sort((a, b) => b.totalPnl - a.totalPnl)[0];
+    const worst = [...dayCorr].sort((a, b) => a.totalPnl - b.totalPnl)[0];
+    parts.push(`- **Best day**: ${best.value} (${best.winRate}% WR, $${best.totalPnl.toFixed(2)} total)`);
+    parts.push(`- **Worst day**: ${worst.value} (${worst.winRate}% WR, $${worst.totalPnl.toFixed(2)} total)`);
+  }
+
+  // Confidence calibration
+  const overconf = correlations.confidenceCalibration.filter((c) => c.gap < -15 && c.tradeCount >= 5);
+  if (overconf.length > 0) {
+    parts.push(`- **Confidence miscalibration**: Overconfident at level ${overconf[0].confidence} (expects ${overconf[0].confidence * 10}%, actual ${overconf[0].actualWinRate}%)`);
+  }
+
+  // Idea source
+  const sources = correlations.ideaSourceCorrelations.filter((s) => s.tradeCount >= 3 && s.value !== "untracked");
+  if (sources.length >= 2) {
+    parts.push(`- **Idea sources**:`);
+    for (const s of sources.slice(0, 4)) {
+      parts.push(`  - ${s.value}: ${s.winRate}% WR, $${s.avgPnl.toFixed(2)} avg (${s.tradeCount} trades)`);
+    }
+  }
+
+  return parts.length > 1 ? parts.join("\n") : "";
 }
 
 export type CoachMemory = { id: string; content: string; category: string; created_at: string };

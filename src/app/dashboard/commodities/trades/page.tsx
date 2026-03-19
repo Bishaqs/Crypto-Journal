@@ -40,7 +40,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Confident", confidence: 8, setup_type: "Trend Follow",
     process_score: 9, checklist: null, review: null,
     notes: "Gold breaking above resistance.", tags: ["momentum", "metals"],
-    stop_loss: 2325.00, profit_target: 2375.00, pnl: 5528, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-20T09:00:00Z",
+    stop_loss: 2325.00, profit_target: 2375.00, pnl: 5528, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-20T09:00:00Z",
   },
   {
     id: "ct-2", user_id: "u1", symbol: "CL", commodity_name: "Crude Oil (WTI)",
@@ -55,7 +55,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Calm", confidence: 7, setup_type: "Breakout",
     process_score: 8, checklist: null, review: null,
     notes: "Short crude on inventory build.", tags: ["energy", "news"],
-    stop_loss: null, profit_target: null, pnl: 6732, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-19T08:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 6732, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-19T08:30:00Z",
   },
   {
     id: "ct-3", user_id: "u1", symbol: "ZW", commodity_name: "Wheat",
@@ -70,7 +70,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Anxious", confidence: 5, setup_type: "Reversal",
     process_score: 4, checklist: null, review: null,
     notes: "Wheat reversal, stopped out.", tags: ["grains"],
-    stop_loss: null, profit_target: null, pnl: -381, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-18T10:00:00Z",
+    stop_loss: null, profit_target: null, pnl: -381, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-18T10:00:00Z",
   },
   {
     id: "ct-4", user_id: "u1", symbol: "NG", commodity_name: "Natural Gas",
@@ -85,7 +85,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Excited", confidence: 7, setup_type: "News",
     process_score: 7, checklist: null, review: null,
     notes: "Cold weather forecast driving nat gas.", tags: ["energy", "weather"],
-    stop_loss: null, profit_target: null, pnl: 13475, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-17T09:30:00Z",
+    stop_loss: null, profit_target: null, pnl: 13475, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-17T09:30:00Z",
   },
   {
     id: "ct-5", user_id: "u1", symbol: "ZC", commodity_name: "Corn",
@@ -100,7 +100,7 @@ const MOCK_COMMODITY_TRADES: CommodityTrade[] = [
     emotion: "Confident", confidence: 7, setup_type: "Breakdown",
     process_score: null, checklist: null, review: null,
     notes: "Short corn on weak demand.", tags: ["grains", "swing"],
-    stop_loss: null, profit_target: null, pnl: null, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-21T10:00:00Z",
+    stop_loss: null, profit_target: null, pnl: null, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-21T10:00:00Z",
   },
 ];
 

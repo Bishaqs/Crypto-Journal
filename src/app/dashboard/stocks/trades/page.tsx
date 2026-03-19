@@ -61,6 +61,7 @@ interface StockTrade {
   mfe_timestamp: string | null;
   mae_timestamp: string | null;
   playbook_id: string | null;
+  idea_source: string | null;
   created_at: string;
 }
 
@@ -79,7 +80,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Confident", confidence: 8,
     setup_type: "Breakout", process_score: 9, checklist: null, review: null,
     notes: "Clean breakout above 178 resistance. Volume confirmed the move.",
-    tags: ["momentum"], stop_loss: 175.00, profit_target: 188.00, pnl: 334.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-20T10:30:00Z",
+    tags: ["momentum"], stop_loss: 175.00, profit_target: 188.00, pnl: 334.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-20T10:30:00Z",
   },
   {
     id: "st-2", user_id: "u1", symbol: "TSLA", company_name: "Tesla Inc.",
@@ -91,7 +92,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: "TSLA", emotion: "Excited", confidence: 7,
     setup_type: "Earnings Play", process_score: 7, checklist: null, review: null,
     notes: "Weekly calls on TSLA pre-earnings momentum.",
-    tags: ["options", "earnings"], stop_loss: null, profit_target: null, pnl: 2593.50, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-19T09:35:00Z",
+    tags: ["options", "earnings"], stop_loss: null, profit_target: null, pnl: 2593.50, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-19T09:35:00Z",
   },
   {
     id: "st-3", user_id: "u1", symbol: "NVDA", company_name: "NVIDIA Corp.",
@@ -103,7 +104,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Anxious", confidence: 5,
     setup_type: "Gap Fill", process_score: 4, checklist: null, review: null,
     notes: "Pre-market gap down play. Got stopped out right before the reversal.",
-    tags: ["gap"], stop_loss: null, profit_target: null, pnl: -128.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-18T07:15:00Z",
+    tags: ["gap"], stop_loss: null, profit_target: null, pnl: -128.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-18T07:15:00Z",
   },
   {
     id: "st-4", user_id: "u1", symbol: "JPM", company_name: "JPMorgan Chase",
@@ -116,7 +117,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     setup_type: "Support Bounce", process_score: 8, checklist: null,
     review: { what_went_well: "Perfect entry at 50 DMA", lesson: "Financials respond well to support levels" },
     notes: "Bounce off 50 DMA with strong volume.",
-    tags: ["support"], stop_loss: null, profit_target: null, pnl: 140.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-18T10:00:00Z",
+    tags: ["support"], stop_loss: null, profit_target: null, pnl: 140.00, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-18T10:00:00Z",
   },
   {
     id: "st-5", user_id: "u1", symbol: "AMZN", company_name: "Amazon.com",
@@ -128,7 +129,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: null, emotion: "Confident", confidence: 7,
     setup_type: "Breakdown", process_score: 8, checklist: null, review: null,
     notes: "After-hours short on weak guidance.",
-    tags: ["short", "after-hours"], stop_loss: null, profit_target: null, pnl: 81.50, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-17T16:05:00Z",
+    tags: ["short", "after-hours"], stop_loss: null, profit_target: null, pnl: 81.50, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-17T16:05:00Z",
   },
   {
     id: "st-6", user_id: "u1", symbol: "MSFT", company_name: "Microsoft Corp.",
@@ -140,7 +141,7 @@ const MOCK_STOCK_TRADES: StockTrade[] = [
     underlying_symbol: "MSFT", emotion: "FOMO", confidence: 4,
     setup_type: "Speculative", process_score: 3, checklist: null, review: null,
     notes: "Chased put entry on MSFT weakness. Bad timing, MSFT reversed hard.",
-    tags: ["options"], stop_loss: null, profit_target: null, pnl: -653.25, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, created_at: "2026-02-17T10:15:00Z",
+    tags: ["options"], stop_loss: null, profit_target: null, pnl: -653.25, price_mae: null, price_mfe: null, mae_timestamp: null, mfe_timestamp: null, playbook_id: null, idea_source: null, created_at: "2026-02-17T10:15:00Z",
   },
 ];
 
