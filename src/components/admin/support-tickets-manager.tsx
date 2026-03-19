@@ -262,9 +262,8 @@ export function AdminSupportTicketsManager({
                     )}
                   </div>
 
-                  {/* Reply input */}
-                  {t.status === "open" && (
-                    <div className="flex items-center gap-2 pt-2 border-t border-border/20">
+                  {/* Reply input — always visible so admin can reply regardless of status */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-border/20">
                       <input
                         type="text"
                         value={reply}
@@ -286,7 +285,6 @@ export function AdminSupportTicketsManager({
                         <Send size={12} />
                       </button>
                     </div>
-                  )}
 
                   {/* Status actions */}
                   <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/20">
