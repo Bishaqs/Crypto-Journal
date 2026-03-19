@@ -1,13 +1,14 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText, ShieldBan, Tag, Headphones, HelpCircle } from "lucide-react";
+import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText, ShieldBan, Tag, Headphones, HelpCircle, Activity, BarChart3, Zap } from "lucide-react";
 import { AdminInviteManager } from "@/components/admin/invite-codes-manager";
-import { AdminUsersManager } from "@/components/admin/users-manager";
+import { EnhancedUsersTable, type EnrichedUser } from "@/components/admin/enhanced-users-table";
 import { AdminFeedbackManager, type FeedbackItem } from "@/components/admin/feedback-manager";
 import { AdminBannedAccountsManager } from "@/components/admin/banned-accounts-manager";
 import { AdminDiscountManager } from "@/components/admin/discount-codes-manager";
 import { AdminSupportTicketsManager, type SupportTicketAdmin } from "@/components/admin/support-tickets-manager";
 import { AdminSubmittedQuestionsManager, type SubmittedQuestion } from "@/components/admin/submitted-questions-manager";
 import { OnlineUsersCard } from "@/components/admin/online-users-card";
+import { AnalyticsOverview } from "@/components/admin/analytics-overview";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ type UserSub = {
   banned_reason: string | null;
   created_at: string;
   updated_at: string | null;
+  last_seen: string | null;
 };
 
 type InviteCode = {
@@ -52,92 +54,152 @@ export default async function AdminPage() {
   const admin = createAdminClient();
   const errors: string[] = [];
 
-  // Fetch all subscriptions (including ban fields)
-  const { data: subs, error: subsErr } = await admin
-    .from("user_subscriptions")
-    .select("user_id, tier, is_owner, is_trial, is_banned, banned_at, banned_reason, created_at, updated_at")
-    .order("created_at", { ascending: false });
-  if (subsErr) {
-    console.error("[admin] subscriptions query failed:", subsErr.message);
-    errors.push("Failed to load subscriptions");
-  }
+  // Fetch core data + enrichment data in parallel
+  const [
+    subsResult,
+    codesResult,
+    discountResult,
+    feedbackResult,
+    supportResult,
+    questionsResult,
+    levelsResult,
+    streaksResult,
+    achievementsResult,
+    tradeCountsResult,
+    totalTradesResult,
+  ] = await Promise.all([
+    // Existing: subscriptions (now including last_seen)
+    admin
+      .from("user_subscriptions")
+      .select("user_id, tier, is_owner, is_trial, is_banned, banned_at, banned_reason, created_at, updated_at, last_seen")
+      .order("created_at", { ascending: false }),
 
-  // Fetch invite codes
-  const { data: codes, error: codesErr } = await admin
-    .from("invite_codes")
-    .select("id, code, grants_tier, description, current_uses, max_uses, is_active, created_at")
-    .order("created_at", { ascending: false });
-  if (codesErr) {
-    console.error("[admin] invite codes query failed:", codesErr.message);
-    errors.push("Failed to load invite codes");
-  }
+    // Existing: invite codes
+    admin
+      .from("invite_codes")
+      .select("id, code, grants_tier, description, current_uses, max_uses, is_active, created_at")
+      .order("created_at", { ascending: false }),
 
-  // Fetch discount codes
-  const { data: discountCodesRaw, error: discountErr } = await admin
-    .from("discount_codes")
-    .select("id, code, discount_type, discount_value, applicable_tiers, applicable_billing, description, current_uses, max_uses, is_active, created_at")
-    .order("created_at", { ascending: false });
-  if (discountErr) {
-    console.error("[admin] discount codes query failed:", discountErr.message);
-    errors.push("Failed to load discount codes");
-  }
+    // Existing: discount codes
+    admin
+      .from("discount_codes")
+      .select("id, code, discount_type, discount_value, applicable_tiers, applicable_billing, description, current_uses, max_uses, is_active, created_at")
+      .order("created_at", { ascending: false }),
 
-  // Fetch auth users (for email mapping)
-  let authUsers: { id: string; email?: string }[] = [];
+    // Existing: feedback
+    admin
+      .from("feedback")
+      .select("id, user_id, category, message, is_read, created_at")
+      .order("created_at", { ascending: false })
+      .limit(200),
+
+    // Existing: support tickets
+    admin
+      .from("support_tickets")
+      .select("id, user_id, subject, status, display_name, created_at, resolved_at")
+      .order("created_at", { ascending: false })
+      .limit(100),
+
+    // Existing: submitted questions
+    admin
+      .from("submitted_questions")
+      .select("id, user_id, question, status, display_name, created_at, reviewed_at")
+      .order("created_at", { ascending: false })
+      .limit(200),
+
+    // NEW: user levels
+    admin
+      .from("user_levels")
+      .select("user_id, current_level, total_xp"),
+
+    // NEW: user streaks
+    admin
+      .from("user_streaks")
+      .select("user_id, current_streak"),
+
+    // NEW: achievement counts (all rows, we'll group in JS)
+    admin
+      .from("user_achievements")
+      .select("user_id"),
+
+    // NEW: trade counts (all rows, we'll group in JS)
+    admin
+      .from("trades")
+      .select("user_id"),
+
+    // NEW: total trades count
+    admin
+      .from("trades")
+      .select("id", { count: "exact", head: true }),
+  ]);
+
+  // Handle errors
+  if (subsResult.error) { console.error("[admin] subscriptions:", subsResult.error.message); errors.push("Failed to load subscriptions"); }
+  if (codesResult.error) { console.error("[admin] invite codes:", codesResult.error.message); errors.push("Failed to load invite codes"); }
+  if (discountResult.error) { console.error("[admin] discount codes:", discountResult.error.message); errors.push("Failed to load discount codes"); }
+  if (feedbackResult.error) { console.error("[admin] feedback:", feedbackResult.error.message); errors.push("Failed to load feedback"); }
+  if (supportResult.error) { console.error("[admin] support tickets:", supportResult.error.message); errors.push("Failed to load support tickets"); }
+  if (questionsResult.error) { console.error("[admin] submitted questions:", questionsResult.error.message); errors.push("Failed to load submitted questions"); }
+  if (levelsResult.error) { console.error("[admin] user levels:", levelsResult.error.message); }
+  if (streaksResult.error) { console.error("[admin] user streaks:", streaksResult.error.message); }
+  if (achievementsResult.error) { console.error("[admin] achievements:", achievementsResult.error.message); }
+  if (tradeCountsResult.error) { console.error("[admin] trade counts:", tradeCountsResult.error.message); }
+
+  const subs = subsResult.data ?? [];
+  const inviteCodes: InviteCode[] = codesResult.data ?? [];
+  const discountCodes: DiscountCode[] = discountResult.data ?? [];
+
+  // Fetch auth users
+  let authUsers: { id: string; email?: string; created_at?: string }[] = [];
   try {
     const { data: authData } = await admin.auth.admin.listUsers({ perPage: 500 });
-    authUsers = authData?.users ?? [];
+    authUsers = (authData?.users ?? []) as { id: string; email?: string; created_at?: string }[];
   } catch (err) {
     console.error("[admin] auth users query failed:", err);
     errors.push("Failed to load auth users");
   }
 
-  // Fetch feedback
-  const { data: feedbackRaw, error: feedbackErr } = await admin
-    .from("feedback")
-    .select("id, user_id, category, message, is_read, created_at")
-    .order("created_at", { ascending: false })
-    .limit(200);
-  if (feedbackErr) {
-    console.error("[admin] feedback query failed:", feedbackErr.message);
-    errors.push("Failed to load feedback");
+  // Build enrichment lookup maps
+  const subMap = new Map(subs.map((s) => [s.user_id, s as UserSub]));
+
+  const levelMap = new Map<string, { level: number; xp: number }>();
+  for (const row of levelsResult.data ?? []) {
+    levelMap.set(row.user_id, { level: row.current_level ?? 1, xp: row.total_xp ?? 0 });
   }
 
-  // Fetch support tickets
-  const { data: supportTicketsRaw, error: supportErr } = await admin
-    .from("support_tickets")
-    .select("id, user_id, subject, status, display_name, created_at, resolved_at")
-    .order("created_at", { ascending: false })
-    .limit(100);
-  if (supportErr) {
-    console.error("[admin] support tickets query failed:", supportErr.message);
-    errors.push("Failed to load support tickets");
+  const streakMap = new Map<string, number>();
+  for (const row of streaksResult.data ?? []) {
+    streakMap.set(row.user_id, row.current_streak ?? 0);
   }
 
-  // Fetch submitted questions
-  const { data: submittedQuestionsRaw, error: questionsErr } = await admin
-    .from("submitted_questions")
-    .select("id, user_id, question, status, display_name, created_at, reviewed_at")
-    .order("created_at", { ascending: false })
-    .limit(200);
-  if (questionsErr) {
-    console.error("[admin] submitted questions query failed:", questionsErr.message);
-    errors.push("Failed to load submitted questions");
+  const achievementCountMap = new Map<string, number>();
+  for (const row of achievementsResult.data ?? []) {
+    achievementCountMap.set(row.user_id, (achievementCountMap.get(row.user_id) ?? 0) + 1);
   }
 
-  // Build subscription lookup by user_id
-  const subMap = new Map((subs ?? []).map((s) => [s.user_id, s as UserSub]));
-  const inviteCodes: InviteCode[] = codes ?? [];
-  const discountCodes: DiscountCode[] = discountCodesRaw ?? [];
+  const tradeCountMap = new Map<string, number>();
+  for (const row of tradeCountsResult.data ?? []) {
+    tradeCountMap.set(row.user_id, (tradeCountMap.get(row.user_id) ?? 0) + 1);
+  }
 
-  // Merge: auth users are the primary source, left-join with subscriptions
+  // Merge: auth users as primary source, left-join everything
   const allUsers = authUsers
-    .map((u) => ({
-      id: u.id,
-      email: u.email ?? u.id.slice(0, 8) + "...",
-      sub: subMap.get(u.id) ?? null,
-      created_at: (u as { created_at?: string }).created_at ?? "",
-    }))
+    .map((u) => {
+      const sub = subMap.get(u.id) ?? null;
+      const lvl = levelMap.get(u.id);
+      return {
+        id: u.id,
+        email: u.email ?? u.id.slice(0, 8) + "...",
+        sub,
+        created_at: u.created_at ?? "",
+        level: lvl?.level ?? 1,
+        totalXp: lvl?.xp ?? 0,
+        currentStreak: streakMap.get(u.id) ?? 0,
+        achievementCount: achievementCountMap.get(u.id) ?? 0,
+        tradeCount: tradeCountMap.get(u.id) ?? 0,
+        lastSeen: sub?.last_seen ?? null,
+      };
+    })
     .sort((a, b) => (b.created_at > a.created_at ? 1 : -1));
 
   // Stats
@@ -151,10 +213,21 @@ export default async function AdminPage() {
   const activeInvites = inviteCodes.filter((c) => c.is_active).length;
   const bannedCount = allUsers.filter((u) => u.sub?.is_banned).length;
   const activeDiscounts = discountCodes.filter((c) => c.is_active).length;
+  const totalTrades = totalTradesResult.count ?? 0;
+
+  // New aggregate stats
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const dauToday = allUsers.filter((u) => u.lastSeen && u.lastSeen >= todayStart).length;
+  const wau = allUsers.filter((u) => u.lastSeen && u.lastSeen >= sevenDaysAgo).length;
+  const avgLevel = allUsers.length > 0
+    ? Math.round(allUsers.reduce((s, u) => s + u.level, 0) / allUsers.length * 10) / 10
+    : 0;
 
   // Map feedback user_id to email
   const emailMap = new Map(authUsers.map((u) => [u.id, u.email ?? u.id.slice(0, 8) + "..."]));
-  const feedbackItems: FeedbackItem[] = (feedbackRaw ?? []).map((f) => ({
+  const feedbackItems: FeedbackItem[] = (feedbackResult.data ?? []).map((f) => ({
     id: f.id,
     user_email: emailMap.get(f.user_id) ?? f.user_id.slice(0, 8) + "...",
     category: f.category as FeedbackItem["category"],
@@ -164,7 +237,7 @@ export default async function AdminPage() {
   }));
   const unreadFeedback = feedbackItems.filter((f) => !f.is_read).length;
 
-  const supportTickets: SupportTicketAdmin[] = (supportTicketsRaw ?? []).map((t) => ({
+  const supportTickets: SupportTicketAdmin[] = (supportResult.data ?? []).map((t) => ({
     id: t.id,
     user_id: t.user_id,
     subject: t.subject,
@@ -175,7 +248,7 @@ export default async function AdminPage() {
   }));
   const openTickets = supportTickets.filter((t) => t.status === "open").length;
 
-  const submittedQuestions: SubmittedQuestion[] = (submittedQuestionsRaw ?? []).map((q) => ({
+  const submittedQuestions: SubmittedQuestion[] = (questionsResult.data ?? []).map((q) => ({
     id: q.id,
     user_id: q.user_id,
     question: q.question,
@@ -186,7 +259,7 @@ export default async function AdminPage() {
   }));
   const pendingQuestions = submittedQuestions.filter((q) => q.status === "pending").length;
 
-  // Build banned users list for the widget
+  // Banned users list
   const bannedUsers = allUsers
     .filter((u) => u.sub?.is_banned)
     .map((u) => ({
@@ -195,6 +268,25 @@ export default async function AdminPage() {
       bannedAt: u.sub?.banned_at ?? null,
       reason: u.sub?.banned_reason ?? null,
     }));
+
+  // Build enriched users for the enhanced table
+  const enrichedUsers: EnrichedUser[] = allUsers.map((u) => ({
+    id: u.id,
+    email: u.email,
+    tier: u.sub?.tier ?? null,
+    isOwner: u.sub?.is_owner ?? false,
+    isTrial: u.sub?.is_trial ?? false,
+    isBanned: u.sub?.is_banned ?? false,
+    bannedReason: u.sub?.banned_reason ?? null,
+    createdAt: u.created_at,
+    updatedAt: u.sub?.updated_at ?? null,
+    level: u.level,
+    totalXp: u.totalXp,
+    currentStreak: u.currentStreak,
+    achievementCount: u.achievementCount,
+    tradeCount: u.tradeCount,
+    lastSeen: u.lastSeen,
+  }));
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -222,11 +314,15 @@ export default async function AdminPage() {
         </div>
       )}
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* Stats cards — original 10 + 4 new */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
         <StatCard icon={Users} label="Total Users" value={totalUsers} />
         <OnlineUsersCard />
+        <StatCard icon={Activity} label="DAU (Today)" value={dauToday} />
+        <StatCard icon={Activity} label="WAU (7d)" value={wau} />
         <StatCard icon={CreditCard} label="Free / Pro / Max" value={`${tierCounts.free} / ${tierCounts.pro} / ${tierCounts.max}`} />
+        <StatCard icon={BarChart3} label="Total Trades" value={totalTrades.toLocaleString()} />
+        <StatCard icon={Zap} label="Avg Level" value={avgLevel} />
         <StatCard icon={TrendingUp} label="Active Trials" value={trialCount} />
         <StatCard icon={Ticket} label="Invite Codes" value={activeInvites} />
         <StatCard icon={Tag} label="Discount Codes" value={activeDiscounts} />
@@ -236,7 +332,10 @@ export default async function AdminPage() {
         <StatCard icon={HelpCircle} label="Pending Questions" value={pendingQuestions} />
       </div>
 
-      {/* User list */}
+      {/* Analytics Overview — charts */}
+      <AnalyticsOverview />
+
+      {/* Enhanced User list */}
       <section className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="px-5 py-4 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -244,22 +343,10 @@ export default async function AdminPage() {
             All Users ({totalUsers})
           </h2>
         </div>
-        <AdminUsersManager
-          initialUsers={allUsers.map((u) => ({
-            id: u.id,
-            email: u.email,
-            tier: u.sub?.tier ?? null,
-            isOwner: u.sub?.is_owner ?? false,
-            isTrial: u.sub?.is_trial ?? false,
-            isBanned: u.sub?.is_banned ?? false,
-            bannedReason: u.sub?.banned_reason ?? null,
-            createdAt: u.created_at,
-            updatedAt: u.sub?.updated_at ?? null,
-          }))}
-        />
+        <EnhancedUsersTable initialUsers={enrichedUsers} />
       </section>
 
-      {/* Invite codes — interactive management */}
+      {/* Invite codes */}
       <section className="bg-surface rounded-2xl border border-border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="flex items-center gap-2 mb-4">
           <Ticket size={18} className="text-accent" />
