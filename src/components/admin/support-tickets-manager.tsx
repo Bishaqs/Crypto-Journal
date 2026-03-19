@@ -62,7 +62,7 @@ export function AdminSupportTicketsManager({
     setLoadingMessages(true);
     try {
       const res = await fetch(
-        `/api/support/messages?ticketId=${ticketId}`,
+        `/api/support/admin?ticketId=${ticketId}`,
       );
       if (res.ok) {
         const data = await res.json();
