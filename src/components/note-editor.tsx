@@ -26,6 +26,8 @@ import {
   Brain,
   ChevronDown,
   Sparkles,
+  Search,
+  Ghost,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
@@ -79,6 +81,18 @@ const TEMPLATES: Template[] = [
     label: "Mistake Analysis",
     icon: AlertTriangle,
     content: `<h2>What happened</h2><p><br></p><h2>What I felt</h2><p><br></p><h2>What the rule says</h2><p><br></p><h2>What I'll do differently</h2><p><br></p>`,
+  },
+  {
+    id: "root-cause",
+    label: "Root-Cause Exploration",
+    icon: Search,
+    content: "",
+  },
+  {
+    id: "shadow-dialogue",
+    label: "Shadow Dialogue",
+    icon: Ghost,
+    content: "",
   },
 ];
 

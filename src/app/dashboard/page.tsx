@@ -27,7 +27,8 @@ import { StreakWidget } from "@/components/dashboard/streak-widget";
 import { AISummaryWidget } from "@/components/dashboard/ai-summary-widget";
 import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
-import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Bitcoin } from "lucide-react";
+import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Bitcoin, Shield } from "lucide-react";
+import { PreTradeReadiness } from "@/components/pre-trade-readiness";
 import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CSVImportModal } from "@/components/csv-import-modal";
@@ -51,6 +52,7 @@ export default function DashboardPage() {
   const [showImport, setShowImport] = useState(false);
   const [postTradeData, setPostTradeData] = useState<{ id: string; symbol: string; pnl: number } | null>(null);
   const [deletingTrade, setDeletingTrade] = useState<Trade | null>(null);
+  const [showReadiness, setShowReadiness] = useState(false);
   const { filterTrades } = useDateRange();
   const { filterByAccount } = useAccount();
   const { viewMode, setViewModeTo } = useTheme();
@@ -235,6 +237,14 @@ export default function DashboardPage() {
           >
             <Download size={14} />
             {t("common.export")}
+          </button>
+          <button
+            onClick={() => setShowReadiness(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-cyan-500/30 text-cyan-400 text-xs font-medium hover:bg-cyan-500/10 transition-all"
+            title="Pre-Trade Readiness Check"
+          >
+            <Shield size={14} />
+            Ready?
           </button>
           <div id="tour-log-trade">
             <button
@@ -586,6 +596,11 @@ export default function DashboardPage() {
           onImported={fetchTrades}
         />
       )}
+
+      <PreTradeReadiness
+        open={showReadiness}
+        onClose={() => setShowReadiness(false)}
+      />
     </div>
   );
 }
