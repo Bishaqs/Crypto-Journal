@@ -26,6 +26,8 @@ export type AchievementDefinition = {
   tiers: { tier: AchievementTier; threshold: number; label: string }[] | null;
   /** How to compute progress (the engine maps this to a query) */
   metric: string;
+  /** Hide from UI if metric calculation isn't implemented yet */
+  hidden?: boolean;
 };
 
 export const CATEGORY_META: Record<
@@ -283,6 +285,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
       { tier: "gold", threshold: 90, label: "90 days within limit" },
     ],
     metric: "days_within_loss_limit",
+    hidden: true, // TODO: implement daily P&L limit tracking
   },
   {
     id: "process_master",
@@ -340,6 +343,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
       { tier: "legendary", threshold: 730, label: "730 days within limit (2 years)" },
     ],
     metric: "consecutive_days_within_loss_limit",
+    hidden: true, // TODO: implement consecutive loss limit tracking
   },
   {
     id: "max_drawdown_guardian",
@@ -354,6 +358,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
       { tier: "diamond", threshold: 12, label: "12 months under threshold" },
     ],
     metric: "months_under_drawdown_threshold",
+    hidden: true, // TODO: implement drawdown threshold tracking
   },
   {
     id: "checklist_master",
@@ -422,6 +427,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
       { tier: "gold", threshold: 50, label: "50 cool-down periods honored" },
     ],
     metric: "cooldowns_honored",
+    hidden: true, // TODO: implement post-loss cooldown detection
   },
   {
     id: "walk_away",

@@ -150,8 +150,11 @@ export function AchievementProvider({
       for (const unlock of newUnlocks) {
         try {
           await awardAchievementXP(supabase, userId, unlock.achievement_id, unlock.tier);
-        } catch {
-          // XP tables may not exist yet
+        } catch (err: unknown) {
+          const xpMsg = err instanceof Error ? err.message : String(err);
+          if (!xpMsg.includes("does not exist") && !xpMsg.includes("PGRST")) {
+            console.error("[AchievementProvider] XP award error:", xpMsg);
+          }
         }
       }
 
@@ -175,8 +178,12 @@ export function AchievementProvider({
           tier: badge.active_tier,
         });
       }
-    } catch {
-      // Tables might not exist yet — silently handle
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Only silence "table doesn't exist" errors — log everything else
+      if (!msg.includes("does not exist") && !msg.includes("PGRST")) {
+        console.error("[AchievementProvider] Error loading achievements:", msg);
+      }
     } finally {
       setLoading(false);
     }
