@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { calculateTradePnl } from "@/lib/calculations";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import {
@@ -62,11 +61,11 @@ export default function PlaybookPage() {
     const { data, error } = await fetchAllTrades(supabase);
     if (error) {
       console.error("Failed to fetch trades:", error.message);
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       return;
     }
     const dbTrades = (data as Trade[]) ?? [];
-    setTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
+    setTrades(dbTrades);
   }, [supabase]);
 
   useEffect(() => {

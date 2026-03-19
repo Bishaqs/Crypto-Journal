@@ -30,7 +30,18 @@ type LevelContextType = {
   /** If user just leveled up, this is the new level. null otherwise. */
   recentLevelUp: number | null;
   dismissLevelUp: () => void;
+  /** Category keys that were just unlocked via leveling up */
+  recentUnlocks: string[];
+  dismissUnlocks: () => void;
 };
+
+/** Required levels for sidebar categories — mirrors sidebar-data.ts RAIL_CATEGORIES */
+const CATEGORY_UNLOCK_LEVELS: { key: string; label: string; requiredLevel: number }[] = [
+  { key: "analytics", label: "Analytics", requiredLevel: 5 },
+  { key: "intelligence", label: "Intelligence", requiredLevel: 10 },
+  { key: "compete", label: "Compete", requiredLevel: 15 },
+  { key: "market", label: "Market", requiredLevel: 25 },
+];
 
 const LevelContext = createContext<LevelContextType>({
   level: 1,
@@ -44,6 +55,8 @@ const LevelContext = createContext<LevelContextType>({
   refresh: () => {},
   recentLevelUp: null,
   dismissLevelUp: () => {},
+  recentUnlocks: [],
+  dismissUnlocks: () => {},
 });
 
 export function LevelProvider({ children, userId: initialUserId }: { children: ReactNode; userId?: string }) {
@@ -51,6 +64,7 @@ export function LevelProvider({ children, userId: initialUserId }: { children: R
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(initialUserId ?? null);
   const [recentLevelUp, setRecentLevelUp] = useState<number | null>(null);
+  const [recentUnlocks, setRecentUnlocks] = useState<string[]>([]);
   const [previousLevel, setPreviousLevel] = useState<number | null>(null);
 
   const supabase = createClient();
@@ -79,9 +93,16 @@ export function LevelProvider({ children, userId: initialUserId }: { children: R
           level.xp_today = 0;
         }
 
-        // Detect level-up
+        // Detect level-up and feature unlocks
         if (previousLevel !== null && level.current_level > previousLevel) {
           setRecentLevelUp(level.current_level);
+          // Check if any sidebar categories were unlocked by this level-up
+          const newlyUnlocked = CATEGORY_UNLOCK_LEVELS
+            .filter(cat => previousLevel < cat.requiredLevel && level.current_level >= cat.requiredLevel)
+            .map(cat => cat.key);
+          if (newlyUnlocked.length > 0) {
+            setRecentUnlocks(newlyUnlocked);
+          }
         }
         setPreviousLevel(level.current_level);
         setUserLevel(level);
@@ -118,6 +139,8 @@ export function LevelProvider({ children, userId: initialUserId }: { children: R
         refresh,
         recentLevelUp,
         dismissLevelUp: () => setRecentLevelUp(null),
+        recentUnlocks,
+        dismissUnlocks: () => setRecentUnlocks([]),
       }}
     >
       {children}

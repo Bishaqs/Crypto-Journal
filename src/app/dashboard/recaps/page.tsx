@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade, DailyCheckin, MonthlyRecap } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import {
   generateMonthlyRecap,
@@ -80,7 +79,7 @@ export default function RecapsPage() {
     if (tradeErr) console.error("Trade fetch error:", tradeErr);
     const dbTrades = (tradeData as Trade[]) ?? [];
     if (dbTrades.length === 0) {
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

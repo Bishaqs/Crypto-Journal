@@ -16,7 +16,6 @@ import {
   AnchoringPattern,
   ExpertSessionLog,
 } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
@@ -132,14 +131,14 @@ export default function InsightsPage() {
     const { data: tradeData, error } = await fetchAllTrades(supabase);
     if (error) {
       console.error("Failed to fetch trades:", error.message);
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
       setLoading(false);
       return;
     }
     const dbTrades = (tradeData as Trade[]) ?? [];
     if (dbTrades.length === 0) {
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

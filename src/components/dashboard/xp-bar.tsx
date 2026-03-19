@@ -2,6 +2,8 @@
 
 import { useLevel } from "@/lib/xp";
 import { xpForLevel, MAX_LEVEL } from "@/lib/xp/types";
+import { RAIL_CATEGORIES } from "@/components/sidebar/sidebar-data";
+import { Lock, CheckCircle2 } from "lucide-react";
 
 /**
  * XP progress bar showing current level, XP, and progress to next level.
@@ -75,6 +77,36 @@ export function XPBar({ compact = false }: { compact?: boolean }) {
           style={{ width: `${xpProgress}%` }}
         />
       </div>
+
+      {/* Next unlock preview */}
+      <NextUnlockPreview level={level} totalXP={totalXP} />
+    </div>
+  );
+}
+
+function NextUnlockPreview({ level, totalXP }: { level: number; totalXP: number }) {
+  const nextUnlock = RAIL_CATEGORIES
+    .filter(cat => cat.requiredLevel != null && level < cat.requiredLevel)
+    .sort((a, b) => (a.requiredLevel ?? 0) - (b.requiredLevel ?? 0))[0];
+
+  if (!nextUnlock) {
+    return (
+      <div className="flex items-center gap-1.5 mt-2.5 text-[11px] text-accent/70">
+        <CheckCircle2 size={12} />
+        <span>All features unlocked</span>
+      </div>
+    );
+  }
+
+  const xpNeeded = xpForLevel(nextUnlock.requiredLevel!) - totalXP;
+
+  return (
+    <div className="flex items-center gap-1.5 mt-2.5 text-[11px] text-muted">
+      <Lock size={11} className="shrink-0" />
+      <span>
+        Next: <span className="text-foreground font-medium">{nextUnlock.label}</span> at Level {nextUnlock.requiredLevel}
+        <span className="text-muted/60"> ({xpNeeded.toLocaleString()} XP away)</span>
+      </span>
     </div>
   );
 }

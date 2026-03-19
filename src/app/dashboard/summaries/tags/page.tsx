@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
 import { useAccount } from "@/lib/account-context";
 import { groupTradesByTag } from "@/lib/trade-grouping";
@@ -39,7 +38,7 @@ export default function TagGroupsStatisticsPage() {
       .order("open_timestamp", { ascending: false });
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

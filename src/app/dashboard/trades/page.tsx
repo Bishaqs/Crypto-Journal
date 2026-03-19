@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/theme-context";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import {
   calculateTradePnl, formatDuration, getReturnPct,
@@ -362,7 +361,7 @@ export default function TradesPage() {
       .order("open_timestamp", { ascending: false });
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

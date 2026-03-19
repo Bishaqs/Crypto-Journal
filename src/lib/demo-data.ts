@@ -16,6 +16,10 @@ function hoursAfter(base: string, h: number) {
   return d.toISOString();
 }
 
+/**
+ * @deprecated No longer used as fallback data. New users see empty states instead.
+ * Kept for reference only. Do not import in new code.
+ */
 export const DEMO_TRADES: Trade[] = [
   {
     id: "demo-1",
