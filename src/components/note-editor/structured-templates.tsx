@@ -101,6 +101,27 @@ export const TEMPLATE_FIELDS: Record<string, FieldDef[]> = {
     { type: "textarea", key: "do_differently", label: "What I'll do differently", placeholder: "Concrete changes for next time..." },
     { type: "process-score", key: "process_score" },
   ],
+  // ─── Belief System Root-Cause Protocol (Expert tier) ─────────────────────
+  "root-cause": [
+    { type: "textarea", key: "pattern", label: "A pattern I keep repeating is...", placeholder: "e.g. I keep revenge trading after losses, I always cut winners short, I self-sabotage near profit goals..." },
+    { type: "emotion", key: "emotion", label: "When I do this, the dominant emotion is..." },
+    { type: "textarea", key: "inner_voice", label: "The voice in my head says...", placeholder: "What are the exact words? e.g. 'Take the money before it disappears', 'You don't deserve this', 'One more trade will fix it'..." },
+    { type: "textarea", key: "earliest_memory", label: "The earliest memory I have of this feeling is...", placeholder: "When was the first time you felt this way about money or risk? A childhood experience, a family story, a pivotal loss..." },
+    { type: "textarea", key: "family_money", label: "What did your family say about money?", placeholder: "Were there messages like 'money doesn't grow on trees', 'rich people are greedy', 'we can't afford that'? What was the emotional tone around money?" },
+    { type: "textarea", key: "belief_identified", label: "The belief I think is driving this pattern...", placeholder: "e.g. 'I don't deserve to win big', 'Money always leads to conflict', 'Success will be taken away from me'..." },
+    { type: "textarea", key: "new_belief", label: "If I could rewrite this belief, I would say...", placeholder: "e.g. 'My wins are earned through process. I deserve every dollar my edge produces.'" },
+    { type: "textarea", key: "new_rule", label: "A concrete rule to enforce the new belief...", placeholder: "e.g. 'When profit exceeds target, move stop to breakeven and let it run. No manual close.'" },
+  ],
+  // ─── Jungian Shadow Dialogue (Expert tier) ───────────────────────────────
+  "shadow-dialogue": [
+    { type: "textarea", key: "shadow_name", label: "The part of me that sabotages my trading is...", placeholder: "Give it a name or describe it. e.g. 'The Gambler', 'The Scared Kid', 'The Revenge Trader', 'The part that wants to prove everyone wrong'..." },
+    { type: "textarea", key: "shadow_wants", label: "What does this part want?", placeholder: "What is it trying to achieve? Protection? Excitement? Validation? Revenge? To be seen? To feel alive?" },
+    { type: "textarea", key: "shadow_fears", label: "What is it afraid of?", placeholder: "What fear drives this part? Being worthless? Being ordinary? Missing out? Being wrong? Being abandoned?" },
+    { type: "textarea", key: "shadow_needs", label: "What would it need to hear to step aside?", placeholder: "If you could speak to this part with compassion, what reassurance would calm it? e.g. 'You're safe. We have rules now. I won't let us blow up.'" },
+    { type: "textarea", key: "integration", label: "If I integrated this part, my trading would...", placeholder: "How would your trading change if this part was an ally instead of an enemy? What would you do differently?" },
+    { type: "textarea", key: "trigger_situations", label: "This part shows up most when...", placeholder: "After losses? Near profit goals? Late at night? When I see others winning? When I feel bored?" },
+    { type: "emotion", key: "emotion", label: "The emotion this part carries is..." },
+  ],
 };
 
 export const STRUCTURED_TEMPLATE_IDS = Object.keys(TEMPLATE_FIELDS);
