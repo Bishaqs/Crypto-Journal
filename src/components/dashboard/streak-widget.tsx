@@ -278,13 +278,15 @@ export function StreakWidget() {
             </div>
           )}
           <Flame
-            size={16}
+            size={streak.current_streak >= 30 ? 20 : 16}
             className={
-              streak.current_streak >= 30
-                ? "text-orange-400 animate-pulse"
-                : streak.current_streak > 0
-                  ? "text-orange-400"
-                  : "text-muted"
+              streak.current_streak >= 90
+                ? "text-red-400 animate-pulse drop-shadow-[0_0_6px_rgba(248,113,113,0.5)]"
+                : streak.current_streak >= 30
+                  ? "text-orange-400 animate-pulse drop-shadow-[0_0_4px_rgba(251,146,60,0.4)]"
+                  : streak.current_streak > 0
+                    ? "text-orange-400"
+                    : "text-muted"
             }
           />
         </div>
@@ -292,13 +294,21 @@ export function StreakWidget() {
 
       <div className="flex items-end gap-3 mb-3">
         <span
-          className={`text-3xl font-bold tracking-tight ${
-            streak.current_streak > 0 ? "text-foreground" : "text-muted"
+          className={`text-5xl font-black tracking-tight transition-all ${
+            streak.current_streak >= 90
+              ? "text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500"
+              : streak.current_streak >= 30
+                ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.3)]"
+                : streak.current_streak >= 7
+                  ? "text-orange-400 drop-shadow-[0_0_6px_rgba(251,146,60,0.2)]"
+                  : streak.current_streak > 0
+                    ? "text-foreground"
+                    : "text-muted"
           }`}
         >
           {streak.current_streak}
         </span>
-        <span className="text-sm text-muted pb-1">
+        <span className="text-sm text-muted pb-2">
           {streak.current_streak === 1 ? "day" : "days"}
         </span>
       </div>

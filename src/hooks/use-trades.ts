@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 
 export function useTrades() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -17,7 +16,7 @@ export function useTrades() {
     if (error) { console.error("[useTrades]", error.message); setLoading(false); return; }
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

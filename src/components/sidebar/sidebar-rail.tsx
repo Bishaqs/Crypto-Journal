@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, HelpCircle, Shield, MessageSquareText, ArrowUpDown } from "lucide-react";
+import { Settings, LogOut, HelpCircle, Shield, MessageSquareText, ArrowUpDown, Lock } from "lucide-react";
 import { TraverseLogo } from "../traverse-logo";
 import { LevelBadge } from "./level-badge";
 import { RAIL_CATEGORIES, getCategoryForPath } from "./sidebar-data";
@@ -26,6 +27,19 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
   const { t } = useI18n();
   const { state: helpState, openHelpCenter } = useHelpCenter();
   const { level } = useLevel();
+  const [lockedToast, setLockedToast] = useState<{ label: string; requiredLevel: number } | null>(null);
+
+  // Check if level gating should be bypassed (expert mode or mode override)
+  const hasOverride = typeof window !== "undefined" && localStorage.getItem("stargate-mode-override") === "true";
+  const bypassLevelGating = viewMode === "expert" || hasOverride;
+
+  // Auto-dismiss locked toast
+  useEffect(() => {
+    if (lockedToast) {
+      const t = setTimeout(() => setLockedToast(null), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [lockedToast]);
 
   return (
     <div
@@ -47,18 +61,23 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
       {/* Category icons */}
       <div className="flex-1 flex flex-col items-center gap-1 py-3">
         {RAIL_CATEGORIES.filter(cat => {
-          if (viewMode === "expert") return true;
-          if (cat.requiredLevel && level < cat.requiredLevel) return false;
-          if (viewMode === "beginner") return cat.showInBeginner !== false;
+          if (bypassLevelGating) return true;
+          // Show categories that are visible for the current view mode OR locked (to show locked state)
+          if (viewMode === "beginner") return cat.showInBeginner !== false || (cat.requiredLevel != null);
           if (viewMode === "advanced") return cat.showInAdvanced !== false;
           return true;
         }).map(cat => {
-          const isHighlighted = activeCategory === cat.key || (!activeCategory && currentCategory === cat.key);
+          const isLocked = !bypassLevelGating && cat.requiredLevel != null && level < cat.requiredLevel;
+          const isHighlighted = !isLocked && (activeCategory === cat.key || (!activeCategory && currentCategory === cat.key));
 
           return (
             <button
               key={cat.key}
               onClick={() => {
+                if (isLocked) {
+                  setLockedToast({ label: cat.label, requiredLevel: cat.requiredLevel! });
+                  return;
+                }
                 if (cat.directNav) {
                   onCloseDrawer();
                   onDirectNav(cat.items[0]?.href ?? "/dashboard");
@@ -66,17 +85,35 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
                   onCategoryClick(cat.key);
                 }
               }}
-              title={cat.label}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                isHighlighted
-                  ? "text-accent bg-accent/10 shadow-[0_0_12px_rgba(0,180,216,0.15)]"
-                  : "text-muted hover:text-foreground hover:bg-surface-hover"
+              title={isLocked ? `${cat.label} — Unlocks at Level ${cat.requiredLevel}` : cat.label}
+              className={`relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                isLocked
+                  ? "text-muted/30 cursor-not-allowed"
+                  : isHighlighted
+                    ? "text-accent bg-accent/10 shadow-[0_0_12px_rgba(0,180,216,0.15)]"
+                    : "text-muted hover:text-foreground hover:bg-surface-hover"
               }`}
             >
               <cat.icon size={20} />
+              {isLocked && (
+                <Lock size={10} className="absolute bottom-1 right-1 text-muted/40" />
+              )}
             </button>
           );
         })}
+
+        {/* Locked feature toast */}
+        {lockedToast && (
+          <div className="absolute left-[72px] top-1/2 -translate-y-1/2 z-50 bg-surface border border-border rounded-xl p-3 shadow-lg w-52 animate-in fade-in slide-in-from-left-2 duration-200">
+            <div className="flex items-center gap-2 mb-1">
+              <Lock size={14} className="text-accent shrink-0" />
+              <span className="text-xs font-semibold text-foreground">{lockedToast.label}</span>
+            </div>
+            <p className="text-[11px] text-muted">
+              Unlocks at Level {lockedToast.requiredLevel}. You&apos;re Level {level} — keep journaling!
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Bottom icons */}

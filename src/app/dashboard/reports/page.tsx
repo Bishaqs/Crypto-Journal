@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade, DailyCheckin } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import {
   generateWeeklyReport,
@@ -46,7 +45,7 @@ export default function ReportsPage() {
     const { data } = await fetchAllTrades(supabase);
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

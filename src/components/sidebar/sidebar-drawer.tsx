@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, Bitcoin, LineChart, Gem, ArrowLeftRight, Lock, X, MoreHorizontal } from "lucide-react";
+import { ChevronDown, Bitcoin, LineChart, Gem, ArrowLeftRight, Lock, X, MoreHorizontal, Sparkles } from "lucide-react";
 import {
   type NavItem,
   type NavSection,
@@ -19,6 +19,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import type { AssetContext } from "@/lib/addons";
 import type { ViewMode } from "@/lib/theme-context";
+import { useLevel } from "@/lib/xp/context";
 
 interface SidebarDrawerProps {
   categoryKey: string;
@@ -48,11 +49,18 @@ export function SidebarDrawer({
   const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const { t } = useI18n();
 
+  const { level } = useLevel();
+
   const foundCategory = RAIL_CATEGORIES.find(c => c.key === categoryKey);
   if (!foundCategory) return null;
 
   // Non-nullable reference for use in nested functions
   const category: RailCategory = foundCategory;
+
+  // Check if level gating should be bypassed
+  const hasOverride = typeof window !== "undefined" && localStorage.getItem("stargate-mode-override") === "true";
+  const bypassLevelGating = viewMode === "expert" || hasOverride;
+  const isLocked = !bypassLevelGating && category.requiredLevel != null && level < category.requiredLevel;
 
   const isBeginner = viewMode === "beginner";
   const isAdvanced = viewMode === "advanced";
@@ -340,15 +348,45 @@ export function SidebarDrawer({
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto py-3 px-2">
-          {resolvedItems.length > 0 && (
-            <div className="space-y-0.5">
-              {resolvedItems.map(item => (
-                <NavLink key={item.href} item={item} />
-              ))}
+          {isLocked ? (
+            <div className="flex flex-col items-center justify-center h-full text-center px-4 -mt-8">
+              <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+                <Lock size={24} className="text-accent" />
+              </div>
+              <h3 className="text-sm font-bold text-foreground mb-1">Locked Feature</h3>
+              <p className="text-xs text-muted mb-4">
+                {categoryLabel} unlocks at <span className="text-accent font-semibold">Level {category.requiredLevel}</span>
+              </p>
+              <div className="w-full max-w-[200px]">
+                <div className="flex justify-between text-[10px] text-muted mb-1">
+                  <span>Level {level}</span>
+                  <span>Level {category.requiredLevel}</span>
+                </div>
+                <div className="h-2 rounded-full bg-border overflow-hidden">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, (level / category.requiredLevel!) * 100)}%` }}
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-muted/60 mt-4 flex items-center gap-1">
+                <Sparkles size={12} />
+                Keep journaling to earn XP
+              </p>
             </div>
+          ) : (
+            <>
+              {resolvedItems.length > 0 && (
+                <div className="space-y-0.5">
+                  {resolvedItems.map(item => (
+                    <NavLink key={item.href} item={item} />
+                  ))}
+                </div>
+              )}
+              {category.sections?.map(section => renderSection(section))}
+              {renderOtherSection()}
+            </>
           )}
-          {category.sections?.map(section => renderSection(section))}
-          {renderOtherSection()}
         </nav>
       </motion.aside>
     </>

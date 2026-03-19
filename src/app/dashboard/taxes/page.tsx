@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import {
   calculateTaxReport,
   calculateTaxReportForJurisdiction,
@@ -133,7 +132,7 @@ export default function TaxesPage() {
       .select("*")
       .order("open_timestamp", { ascending: false });
     const dbTrades = (data as Trade[]) ?? [];
-    setTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
+    setTrades(dbTrades);
     setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { useDateRange } from "@/lib/date-range-context";
 import { useAccount } from "@/lib/account-context";
@@ -29,7 +28,7 @@ export default function ProfitFactorPage() {
   const fetchTrades = useCallback(async () => {
     const { data } = await fetchAllTrades(supabase);
     const dbTrades = (data as Trade[]) ?? [];
-    if (dbTrades.length === 0) { setTrades(DEMO_TRADES); setUsingDemo(true); } else { setTrades(dbTrades); }
+    if (dbTrades.length === 0) { setTrades([]); setUsingDemo(true); } else { setTrades(dbTrades); }
     setLoading(false);
   }, [supabase]);
 

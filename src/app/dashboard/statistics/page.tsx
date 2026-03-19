@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { DemoBanner } from "@/components/demo-banner";
 import { useDateRange } from "@/lib/date-range-context";
 import { useAccount } from "@/lib/account-context";
@@ -86,14 +85,14 @@ export default function StatisticsPage() {
       .order("open_timestamp", { ascending: false });
     if (error) {
       console.error("Failed to fetch trades:", error.message);
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
       setLoading(false);
       return;
     }
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
 import { useAccount } from "@/lib/account-context";
 import { useTheme } from "@/lib/theme-context";
@@ -120,7 +119,7 @@ export default function SimulationsPage() {
       .select("*")
       .order("open_timestamp", { ascending: false });
     const dbTrades = (data as Trade[]) ?? [];
-    setTrades(dbTrades.length === 0 ? DEMO_TRADES : dbTrades);
+    setTrades(dbTrades);
     setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

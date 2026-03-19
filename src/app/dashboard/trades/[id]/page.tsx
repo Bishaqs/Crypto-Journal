@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade, JournalNote, CHAINS } from "@/lib/types";
 import { getLinkedNotesForTrade } from "@/lib/journal-links";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { formatAndSanitizeMarkdown } from "@/lib/sanitize";
 import { useTheme } from "@/lib/theme-context";
 import {
@@ -163,11 +162,10 @@ export default function TradeDetailPage() {
       if (found) { setTrade(found); setLoading(false); return; }
     }
 
-    // Fallback to demo
-    setAllTrades(DEMO_TRADES);
-    setAllTradeIds(DEMO_TRADES.map((t) => t.id));
-    const demo = DEMO_TRADES.find((t) => t.id === tradeId);
-    setTrade(demo ?? null);
+    // Fallback to empty
+    setAllTrades([]);
+    setAllTradeIds([]);
+    setTrade(null);
     setLoading(false);
   }, [supabase, tradeId]);
 

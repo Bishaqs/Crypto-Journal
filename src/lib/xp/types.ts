@@ -21,7 +21,8 @@ export type XPSource =
   | "achievement_gold"
   | "achievement_diamond"
   | "achievement_legendary"
-  | "achievement_single";
+  | "achievement_single"
+  | "onboarding_bonus";
 
 export type XPEvent = {
   id: string;
@@ -58,6 +59,7 @@ export const XP_AMOUNTS: Record<XPSource, number> = {
   achievement_diamond: 500,
   achievement_legendary: 1000,
   achievement_single: 75,
+  onboarding_bonus: 0, // uses customAmount based on experience level
 };
 
 /** Sources that count toward the daily XP cap */

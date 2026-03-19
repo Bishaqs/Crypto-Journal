@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, JournalNote } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { formatAndSanitizeMarkdown } from "@/lib/sanitize";
 import {
@@ -233,7 +232,7 @@ export default function AIPage() {
       })
     );
     const allTrades = results.flat() as unknown as Trade[];
-    setTrades(allTrades.length === 0 ? DEMO_TRADES : allTrades);
+    setTrades(allTrades);
   }, [supabase]);
 
   const fetchNotes = useCallback(async () => {

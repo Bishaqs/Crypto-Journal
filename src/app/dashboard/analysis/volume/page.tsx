@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
-import { DEMO_TRADES } from "@/lib/demo-data";
 import { useDateRange } from "@/lib/date-range-context";
 import { useAccount } from "@/lib/account-context";
 import { groupTradesBySymbol } from "@/lib/trade-grouping";
@@ -36,7 +35,7 @@ export default function VolumePage() {
     const { data } = await fetchAllTrades(supabase);
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
-      setTrades(DEMO_TRADES);
+      setTrades([]);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

@@ -25,6 +25,7 @@ const DailyCheckin = dynamic(() => import("@/components/daily-checkin").then(m =
 const InviteRedeemer = dynamic(() => import("@/components/invite-redeemer").then(m => ({ default: m.InviteRedeemer })));
 const AchievementToast = dynamic(() => import("@/components/dashboard/achievement-toast").then(m => ({ default: m.AchievementToast })));
 const LevelUpToast = dynamic(() => import("@/components/dashboard/level-up-toast").then(m => ({ default: m.LevelUpToast })));
+const UnlockCelebration = dynamic(() => import("@/components/dashboard/unlock-celebration").then(m => ({ default: m.UnlockCelebration })));
 const CelebrationOverlay = dynamic(() => import("@/components/dashboard/celebration-overlay").then(m => ({ default: m.CelebrationOverlay })));
 const TraverseGuideCharacter = dynamic(() => import("@/components/traverse-guide/traverse-guide").then(m => ({ default: m.TraverseGuideCharacter })));
 const GuideMenu = dynamic(() => import("@/components/traverse-guide/guide-menu").then(m => ({ default: m.GuideMenu })));
@@ -112,6 +113,7 @@ export default async function DashboardLayout({
                   <InviteRedeemer />
                   <AchievementToast />
                   <LevelUpToast />
+                  <UnlockCelebration />
                   <CelebrationOverlay />
                   <TraverseGuideCharacter />
                   <GuideMenu />

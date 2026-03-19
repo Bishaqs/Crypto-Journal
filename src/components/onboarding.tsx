@@ -26,6 +26,9 @@ import {
 } from "lucide-react";
 import { useI18n, LOCALES } from "@/lib/i18n";
 import { TraverseLogo } from "./traverse-logo";
+import { createClient } from "@/lib/supabase/client";
+import { awardXP } from "@/lib/xp/engine";
+import { xpForLevel } from "@/lib/xp/types";
 
 type OnboardingData = {
   displayName: string;
@@ -192,7 +195,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
     }
   }
 
-  function saveData() {
+  async function saveData() {
     const saves: [string, string][] = [
       ["stargate-display-name", data.displayName.trim()],
       ["stargate-experience-level", data.experienceLevel],
@@ -218,11 +221,26 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
     if (["intermediate", "advanced", "professional"].includes(data.experienceLevel)) {
       localStorage.setItem("stargate-mode-override", "true");
     }
+
+    // Award starting XP based on experience level (intermediate gets Level 10)
+    if (data.experienceLevel === "intermediate") {
+      try {
+        const supabase = createClient();
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user) {
+          // Award enough XP to reach Level 10 (unlocks Analytics + Intelligence)
+          const targetXP = xpForLevel(10) + 1;
+          await awardXP(supabase, userData.user.id, "onboarding_bonus", "onboarding", targetXP);
+        }
+      } catch {
+        // Non-critical — user starts at Level 1 if XP award fails
+      }
+    }
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (isLast) {
-      saveData();
+      await saveData();
       localStorage.setItem("stargate-onboarded", "true");
       localStorage.setItem("stargate-onboarding-version", "3");
       onComplete();
@@ -739,8 +757,8 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
         {/* Skip */}
         {!isLast && step > 0 && (
           <button
-            onClick={() => {
-              saveData();
+            onClick={async () => {
+              await saveData();
               localStorage.setItem("stargate-onboarded", "true");
               localStorage.setItem("stargate-onboarding-version", "3");
               onComplete();
