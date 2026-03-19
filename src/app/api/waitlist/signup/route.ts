@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
 
   // Generate discount code
   const discountCode = `TRAVERSE50-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  const referralCode = `REF-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
   // Insert into discount_codes table
   const { error: discountErr } = await admin.from("discount_codes").insert({
@@ -93,10 +94,10 @@ export async function POST(req: NextRequest) {
     console.error("[waitlist/signup] discount code insert failed:", discountErr.message);
   }
 
-  // Update waitlist row with discount code
+  // Update waitlist row with discount + referral codes
   await admin
     .from("waitlist_signups")
-    .update({ discount_code: discountCode })
+    .update({ discount_code: discountCode, referral_code: referralCode })
     .eq("id", result.id);
 
   // Send confirmation email (non-blocking)
@@ -104,7 +105,8 @@ export async function POST(req: NextRequest) {
     parsed.email,
     result.position!,
     result.access_token!,
-    discountCode
+    discountCode,
+    referralCode
   ).catch((err) => console.error("[waitlist/signup] email failed:", err));
 
   return NextResponse.json({
