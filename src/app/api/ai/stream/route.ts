@@ -3,8 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
+import { calculateAllCorrelations } from "@/lib/psychology-correlations";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,54 @@ export async function POST(req: NextRequest) {
     // Non-critical — proceed without memories
   }
 
+  // Load psychology context server-side (behavioral logs, psychology profile, expert sessions, correlations)
+  let psychologyContext = "";
+  try {
+    const [
+      { data: behavioralLogs },
+      { data: checkins },
+      { data: profileRows },
+      { data: sessionLogs },
+      { data: userPrefs },
+    ] = await Promise.all([
+      supabase.from("behavioral_logs").select("emotion, intensity, trigger, physical_state, biases, traffic_light, note, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("daily_checkins").select("date, mood, energy, traffic_light").eq("user_id", user.id).order("date", { ascending: false }).limit(14),
+      supabase.from("psychology_profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1),
+      supabase.from("expert_session_logs").select("session_date, somatic_areas, somatic_intensity, flow_state, cognitive_distortions, defense_mechanisms, internal_dialogue").eq("user_id", user.id).order("session_date", { ascending: false }).limit(20),
+      supabase.from("user_preferences").select("psychology_tier").eq("user_id", user.id).limit(1),
+    ]);
+
+    const tier = userPrefs?.[0]?.psychology_tier || "simple";
+    const profile = profileRows?.[0] || null;
+
+    // Behavioral context
+    if (behavioralLogs && behavioralLogs.length > 0) {
+      psychologyContext += buildBehavioralContext(behavioralLogs, checkins || []);
+    }
+
+    // Expert psychology context (includes coaching style adaptation)
+    if (profile || (sessionLogs && sessionLogs.length > 0)) {
+      psychologyContext += "\n" + buildExpertPsychologyContext(
+        profile,
+        (sessionLogs || []).map((s) => ({
+          ...s,
+          somatic_areas: s.somatic_areas || [],
+          cognitive_distortions: s.cognitive_distortions || [],
+          defense_mechanisms: s.defense_mechanisms || [],
+        })),
+        tier,
+      );
+    }
+
+    // Correlation context (computed from trades sent by client)
+    if (trades.length > 0) {
+      const correlations = calculateAllCorrelations(trades as any[]);
+      psychologyContext += "\n" + buildCorrelationContext(correlations);
+    }
+  } catch {
+    // Non-critical — proceed without psychology context
+  }
+
   // Load server-side conversation history when conversationId is provided
   let serverHistory: { role: "user" | "assistant"; content: string }[] = [];
   let conversationSummary = "";
@@ -117,10 +166,13 @@ export async function POST(req: NextRequest) {
   // Use server history if available, otherwise fall back to client-sent history
   const effectiveHistory = serverHistory.length > 0 ? serverHistory : (history || []);
 
-  // Build system prompt with optional custom instructions and memories
+  // Build system prompt with optional custom instructions, memories, and psychology context
   let systemPrompt = AI_CHAT_SYSTEM_PROMPT;
   if (memoryContext) {
     systemPrompt += memoryContext;
+  }
+  if (psychologyContext) {
+    systemPrompt += psychologyContext;
   }
   if (conversationSummary) {
     systemPrompt += conversationSummary;

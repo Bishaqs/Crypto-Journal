@@ -3,8 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
+import { calculateAllCorrelations } from "@/lib/psychology-correlations";
 
 export const dynamic = "force-dynamic";
 
@@ -53,9 +54,56 @@ export async function POST(req: NextRequest) {
     ? `\n\n## Attached Images (${imageData.length})\n${imageData.map((img, i) => `- Image ${i + 1}: from journal entry "${img.noteTitle}" (${img.noteDate})`).join("\n")}\n`
     : "";
 
-  const systemPrompt = customInstructions
-    ? `${AI_CHAT_SYSTEM_PROMPT}\n\n## Trader's Personal Coaching Preferences\nThe trader has provided these instructions for how you should coach them. Follow them:\n${customInstructions}`
-    : AI_CHAT_SYSTEM_PROMPT;
+  // Load psychology context server-side
+  let psychologyContext = "";
+  try {
+    const [
+      { data: behavioralLogs },
+      { data: checkins },
+      { data: profileRows },
+      { data: sessionLogs },
+      { data: userPrefs },
+    ] = await Promise.all([
+      supabase.from("behavioral_logs").select("emotion, intensity, trigger, physical_state, biases, traffic_light, note, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("daily_checkins").select("date, mood, energy, traffic_light").eq("user_id", user.id).order("date", { ascending: false }).limit(14),
+      supabase.from("psychology_profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1),
+      supabase.from("expert_session_logs").select("session_date, somatic_areas, somatic_intensity, flow_state, cognitive_distortions, defense_mechanisms, internal_dialogue").eq("user_id", user.id).order("session_date", { ascending: false }).limit(20),
+      supabase.from("user_preferences").select("psychology_tier").eq("user_id", user.id).limit(1),
+    ]);
+
+    const tier = userPrefs?.[0]?.psychology_tier || "simple";
+    const profile = profileRows?.[0] || null;
+
+    if (behavioralLogs && behavioralLogs.length > 0) {
+      psychologyContext += buildBehavioralContext(behavioralLogs, checkins || []);
+    }
+    if (profile || (sessionLogs && sessionLogs.length > 0)) {
+      psychologyContext += "\n" + buildExpertPsychologyContext(
+        profile,
+        (sessionLogs || []).map((s) => ({
+          ...s,
+          somatic_areas: s.somatic_areas || [],
+          cognitive_distortions: s.cognitive_distortions || [],
+          defense_mechanisms: s.defense_mechanisms || [],
+        })),
+        tier,
+      );
+    }
+    if (trades.length > 0) {
+      const correlations = calculateAllCorrelations(trades as any[]);
+      psychologyContext += "\n" + buildCorrelationContext(correlations);
+    }
+  } catch {
+    // Non-critical
+  }
+
+  let systemPrompt = AI_CHAT_SYSTEM_PROMPT;
+  if (psychologyContext) {
+    systemPrompt += psychologyContext;
+  }
+  if (customInstructions) {
+    systemPrompt += `\n\n## Trader's Personal Coaching Preferences\nThe trader has provided these instructions for how you should coach them. Follow them:\n${customInstructions}`;
+  }
 
   const contextPrefix = `Here is my trading data:\n\n${tradeContext}${imageContext}\n\nMy question: `;
 
