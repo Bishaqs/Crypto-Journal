@@ -61,13 +61,14 @@ export default function AchievementsPage() {
     "achievements",
   );
 
+  const visibleAchievements = ACHIEVEMENTS.filter((a) => !a.hidden);
   const totalUnlocked = new Set(unlocked.map((u) => u.achievement_id)).size;
-  const totalAchievements = ACHIEVEMENTS.length;
+  const totalAchievements = visibleAchievements.length;
 
   const filtered =
     selectedCategory === "all"
-      ? ACHIEVEMENTS
-      : ACHIEVEMENTS.filter((a) => a.category === selectedCategory);
+      ? visibleAchievements
+      : visibleAchievements.filter((a) => a.category === selectedCategory);
 
   if (loading) {
     return (
@@ -181,7 +182,7 @@ export default function AchievementsPage() {
           <div className="grid grid-cols-5 gap-3 mb-6">
             {CATEGORIES.map((cat) => {
               const meta = CATEGORY_META[cat];
-              const catAchievements = ACHIEVEMENTS.filter(
+              const catAchievements = visibleAchievements.filter(
                 (a) => a.category === cat,
               );
               const catUnlocked = new Set(

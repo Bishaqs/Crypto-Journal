@@ -156,8 +156,11 @@ export function CosmeticProvider({ children, userId: initialUserId }: { children
         }
       }
       setEquipped(eq);
-    } catch {
-      // Tables may not exist yet
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("does not exist") && !msg.includes("PGRST")) {
+        console.error("[CosmeticProvider] Error loading cosmetics:", msg);
+      }
     } finally {
       setLoading(false);
     }
