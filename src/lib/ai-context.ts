@@ -596,7 +596,7 @@ export function buildTradeContext(
   const assetClasses = Object.keys(assetStats);
 
   // Determine context budget — progressive truncation for large journals
-  let recentTradeLimit = 50;
+  let recentTradeLimit = 25; // Reduced from 50 — hierarchical summaries provide historical depth
   let recentNoteLimit = 30;
   let noteContentLimit = 200;
 

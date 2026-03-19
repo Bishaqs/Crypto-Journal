@@ -6,6 +6,7 @@ import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
 import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 import { calculateAllCorrelations } from "@/lib/psychology-correlations";
+import { buildSummaryContext } from "@/lib/trading-summaries";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,24 @@ export async function POST(req: NextRequest) {
   let systemPrompt = AI_CHAT_SYSTEM_PROMPT;
   if (psychologyContext) {
     systemPrompt += psychologyContext;
+  }
+  // Load hierarchical trading summaries
+  try {
+    const { data: summaries } = await supabase
+      .from("trading_summaries")
+      .select("period_type, period_start, stats, narrative")
+      .eq("user_id", user.id)
+      .order("period_start", { ascending: false })
+      .limit(50);
+
+    if (summaries && summaries.length > 0) {
+      const summaryCtx = buildSummaryContext(summaries as { period_type: string; period_start: string; stats: any; narrative: string | null }[]);
+      if (summaryCtx) {
+        systemPrompt += summaryCtx;
+      }
+    }
+  } catch {
+    // Non-critical
   }
   if (customInstructions) {
     systemPrompt += `\n\n## Trader's Personal Coaching Preferences\nThe trader has provided these instructions for how you should coach them. Follow them:\n${customInstructions}`;
