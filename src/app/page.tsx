@@ -9,6 +9,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { TraverseLogo } from "@/components/traverse-logo";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { ThemeShowcase } from "@/components/landing/theme-showcase";
+import { WaitlistCTA } from "@/components/landing/waitlist-cta";
 import { useTheme } from "@/lib/theme-context";
 
 if (typeof window !== "undefined") {
@@ -141,9 +142,9 @@ export default function LandingPage() {
           <Link href="/login" className="hidden md:block text-sm font-medium hover:text-[#67e8f9] transition-colors duration-300">
             Sign In
           </Link>
-          <Link href="/login" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-bold flex items-center gap-2 hover:bg-[#67e8f9] transition-colors duration-300">
+          <a href="#waitlist" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-bold flex items-center gap-2 hover:bg-[#67e8f9] transition-colors duration-300">
             Early Access
-          </Link>
+          </a>
         </div>
       </nav>
 
@@ -196,16 +197,16 @@ export default function LandingPage() {
             </p>
 
             <div className="hero-cta flex flex-col sm:flex-row items-start sm:items-center gap-6 mt-4">
-              <Link 
-                href="/login" 
+              <a
+                href="#waitlist"
                 className="magnetic-btn group relative overflow-hidden rounded-full bg-[#f4f4f5] text-[#0a0a0c] pl-8 pr-4 py-3 font-medium flex items-center gap-6 transition-all"
               >
                 <div className="absolute inset-0 bg-[#67e8f9] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-full"></div>
-                <span className="relative z-10">Start journaling free</span>
+                <span className="relative z-10">Join the Waitlist</span>
                 <div className="relative z-10 bg-[#0a0a0c]/10 rounded-full w-10 h-10 flex items-center justify-center group-hover:bg-[#0a0a0c]/20 transition-colors">
                   <ArrowRight size={18} />
                 </div>
-              </Link>
+              </a>
               <a 
                 href="#features" 
                 className="magnetic-btn flex items-center gap-3 text-white/70 hover:text-white transition-colors py-4 group"
@@ -533,37 +534,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* --- CTA SECTION --- */}
-        <section className="py-32 md:py-48 px-4 md:px-24 flex flex-col items-center justify-center relative overflow-hidden bg-[#0c121e]">
-          <div className="absolute inset-0 z-0">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#67e8f9]/10 blur-[150px] rounded-full pointer-events-none"></div>
-          </div>
-          
-          <div className="relative z-10 max-w-4xl flex flex-col items-center text-center gap-10">
-            <div className="rounded-full px-4 py-1.5 bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] border border-white/10 backdrop-blur-md">
-              <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-medium">Early Access</span>
-            </div>
-            
-            <h2 className="text-5xl md:text-7xl lg:text-[6rem] font-medium tracking-tighter leading-[0.9] text-balance">
-              Free while we build this with you.
-            </h2>
-            
-            <p className="text-xl md:text-2xl text-white/60 font-light max-w-[45ch] leading-relaxed">
-              We're looking for serious traders to shape the product. You get full access to everything. We get your honest feedback. No credit card. No catch.
-            </p>
-            
-            <Link 
-              href="/login" 
-              className="magnetic-btn group relative overflow-hidden rounded-full bg-[#f4f4f5] text-[#0a0a0c] pl-10 pr-5 py-4 font-semibold flex items-center gap-6 transition-all shadow-xl hover:shadow-[0_0_50px_rgba(103,232,249,0.2)] mt-8"
-            >
-              <div className="absolute inset-0 bg-[#67e8f9] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-full"></div>
-              <span className="relative z-10 text-lg">Get free access</span>
-              <div className="relative z-10 bg-[#0a0a0c]/10 rounded-full w-12 h-12 flex items-center justify-center group-hover:bg-[#0a0a0c]/20 transition-colors">
-                <ArrowRight size={22} />
-              </div>
-            </Link>
-          </div>
-        </section>
+        {/* --- WAITLIST CTA SECTION --- */}
+        <WaitlistCTA />
       </main>
 
       {/* --- FOOTER --- */}
