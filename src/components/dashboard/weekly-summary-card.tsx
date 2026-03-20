@@ -92,7 +92,7 @@ export function WeeklySummaryCard({ trades }: { trades: Trade[] }) {
 
   // Check session storage for dismiss
   const storageKey = `stargate-weekly-dismissed-${report.weekStart}`;
-  if (typeof window !== "undefined" && sessionStorage.getItem(storageKey)) return null;
+  if (typeof window !== "undefined" && localStorage.getItem(storageKey)) return null;
 
   const pnlColor = report.totalPnl >= 0 ? "text-emerald-400" : "text-red-400";
   const PnlIcon = report.totalPnl >= 0 ? TrendingUp : TrendingDown;
@@ -166,7 +166,7 @@ export function WeeklySummaryCard({ trades }: { trades: Trade[] }) {
           <button
             onClick={() => {
               setDismissed(true);
-              if (typeof window !== "undefined") sessionStorage.setItem(storageKey, "1");
+              if (typeof window !== "undefined") localStorage.setItem(storageKey, "1");
             }}
             className="p-1.5 rounded-lg text-muted hover:text-foreground transition-colors"
           >
