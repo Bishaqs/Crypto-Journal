@@ -14,6 +14,7 @@ import { getCustomTagPresets, addCustomTagPreset } from "@/lib/tag-manager";
 import { getCustomSetupPresets, addCustomSetupPreset, removeCustomSetupPreset } from "@/lib/setup-type-manager";
 import { PlaybookSelector, playbookToChecklistItems } from "./playbook-selector";
 import type { Playbook } from "@/lib/schemas/playbook";
+import { ReadinessGate } from "./readiness-gate";
 
 const SESSION_LABELS: Record<string, string> = {
   london: "London",
@@ -560,7 +561,9 @@ export function ForexTradeForm({
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm p-4">
       <div className="glass border border-border/50 rounded-2xl w-full max-w-2xl my-8" style={{ boxShadow: "var(--shadow-card)" }}>
-        {formContent}
+        <ReadinessGate isEdit={!!editTrade}>
+          {formContent}
+        </ReadinessGate>
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ const GuideMenu = dynamic(() => import("@/components/traverse-guide/guide-menu")
 const GuideHelp = dynamic(() => import("@/components/traverse-guide/guide-help").then(m => ({ default: m.GuideHelp })));
 const GuideSupport = dynamic(() => import("@/components/traverse-guide/guide-support").then(m => ({ default: m.GuideSupport })));
 const Heartbeat = dynamic(() => import("@/components/heartbeat").then(m => ({ default: m.Heartbeat })));
+const PsychologyUpgradePrompt = dynamic(() => import("@/components/psychology-upgrade-prompt").then(m => ({ default: m.PsychologyUpgradePrompt })));
 const FlashNewsBanner = dynamic(() => import("@/components/news/flash-news-banner").then(m => ({ default: m.FlashNewsBanner })));
 const HelpCenterPanel = dynamic(() => import("@/components/help-center/help-center-panel").then(m => ({ default: m.HelpCenterPanel })));
 const TagColorHydrator = dynamic(() => import("@/components/tag-color-hydrator").then(m => ({ default: m.TagColorHydrator })));
@@ -113,6 +114,7 @@ export default async function DashboardLayout({
                   <InviteRedeemer />
                   <AchievementToast />
                   <LevelUpToast />
+                  <PsychologyUpgradePrompt />
                   <UnlockCelebration />
                   <CelebrationOverlay />
                   <TraverseGuideCharacter />

@@ -13,6 +13,7 @@ import { getCustomTagPresets, addCustomTagPreset, isUserTag } from "@/lib/tag-ma
 import { getCustomSetupPresets, addCustomSetupPreset, removeCustomSetupPreset } from "@/lib/setup-type-manager";
 import { PlaybookSelector, playbookToChecklistItems } from "./playbook-selector";
 import type { Playbook } from "@/lib/schemas/playbook";
+import { ReadinessGate } from "./readiness-gate";
 
 const MARKET_SESSIONS = [
   { value: "pre_market", label: "Pre-Market" },
@@ -762,7 +763,9 @@ export function StockTradeForm({
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="glass border border-border/50 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        {formContent}
+        <ReadinessGate isEdit={!!editTrade}>
+          {formContent}
+        </ReadinessGate>
       </div>
     </div>
   );

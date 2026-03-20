@@ -21,6 +21,7 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { ChatBubble, type Message } from "@/components/ai/chat-bubble";
 import { ConversationList, type Conversation } from "@/components/ai/conversation-list";
 import { MemoryPanel, type CoachMemory } from "@/components/ai/memory-panel";
+import { CoachingEnhancementHint } from "@/components/ai/coaching-enhancement-hint";
 
 const SUGGESTED_QUESTIONS = [
   "What patterns do you see in my losing trades?",
@@ -741,6 +742,8 @@ export default function AIPage() {
                   or anything about your trading data. The AI has access to your full trade history
                   across all asset classes, journal notes, emotions, process scores, and more.
                 </p>
+
+                <CoachingEnhancementHint />
 
                 {/* Suggested questions */}
                 <div id="tour-ai-suggestions" className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
