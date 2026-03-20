@@ -73,7 +73,7 @@ export default function EdgeProfilePage() {
   const emotionCorr = useMemo(() => calculateEmotionCorrelations(closed), [closed]);
   const timeCorr = useMemo(() => calculateTimeCorrelations(closed), [closed]);
   const confCal = useMemo(() => calculateConfidenceCalibration(closed), [closed]);
-  const stage = useMemo(() => calculatePsychDevelopmentStage(closed), [closed]);
+  const stage = useMemo(() => calculatePsychDevelopmentStage(closed, [], []), [closed]);
 
   // Best/worst by symbol
   const symbolStats = useMemo(() => {
