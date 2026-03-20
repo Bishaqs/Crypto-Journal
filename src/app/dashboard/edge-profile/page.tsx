@@ -27,8 +27,23 @@ import {
   AlertTriangle,
   Trophy,
   Minus,
+  Download,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
+import { useRef, useCallback } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  Cell,
+} from "recharts";
 
 export const dynamic = "force-dynamic";
 
@@ -128,6 +143,71 @@ export default function EdgeProfilePage() {
     if (days < 365) return `${Math.round(days / 30)} months`;
     return `${(days / 365).toFixed(1)} years`;
   }, [closed]);
+
+  // Improvement Arc: rolling averages
+  const improvementArc = useMemo(() => {
+    if (closed.length < 20) return [];
+    const sorted = [...closed].sort((a, b) => new Date(a.close_timestamp!).getTime() - new Date(b.close_timestamp!).getTime());
+    const data: { index: number; processAvg: number | null; winRateAvg: number }[] = [];
+    for (let i = 9; i < sorted.length; i++) {
+      // Rolling 10-trade process score
+      const processWindow = sorted.slice(Math.max(0, i - 9), i + 1).filter((t) => t.process_score != null);
+      const processAvg = processWindow.length >= 3
+        ? Math.round((processWindow.reduce((s, t) => s + (t.process_score ?? 0), 0) / processWindow.length) * 10) / 10
+        : null;
+      // Rolling 20-trade win rate
+      const wrStart = Math.max(0, i - 19);
+      const wrWindow = sorted.slice(wrStart, i + 1);
+      const wins = wrWindow.filter((t) => (t.pnl ?? 0) > 0).length;
+      const winRateAvg = Math.round((wins / wrWindow.length) * 1000) / 10;
+      data.push({ index: i + 1, processAvg, winRateAvg });
+    }
+    return data;
+  }, [closed]);
+
+  // Monthly risk evolution
+  const monthlyRisk = useMemo(() => {
+    if (closed.length < 10) return [];
+    const byMonth: Record<string, Trade[]> = {};
+    for (const t of closed) {
+      const month = t.close_timestamp!.slice(0, 7); // YYYY-MM
+      if (!byMonth[month]) byMonth[month] = [];
+      byMonth[month].push(t);
+    }
+    return Object.entries(byMonth)
+      .filter(([, trades]) => trades.length >= 3)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, trades]) => {
+        const pnls = trades.map((t) => t.pnl ?? 0);
+        const wins = pnls.filter((p) => p > 0).length;
+        const totalWins = pnls.filter((p) => p > 0).reduce((s, p) => s + p, 0);
+        const totalLosses = Math.abs(pnls.filter((p) => p < 0).reduce((s, p) => s + p, 0));
+        return {
+          month: month.slice(5) + "/" + month.slice(2, 4), // MM/YY
+          winRate: Math.round((wins / trades.length) * 100),
+          profitFactor: totalLosses > 0 ? Math.round((totalWins / totalLosses) * 100) / 100 : 0,
+          trades: trades.length,
+          pnl: Math.round(pnls.reduce((s, p) => s + p, 0)),
+        };
+      });
+  }, [closed]);
+
+  // Trader Card ref
+  const traderCardRef = useRef<HTMLDivElement>(null);
+
+  const downloadTraderCard = useCallback(async () => {
+    if (!traderCardRef.current) return;
+    try {
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(traderCardRef.current, { backgroundColor: "#0f172a", pixelRatio: 2 });
+      const link = document.createElement("a");
+      link.download = "traverse-trader-card.png";
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("[TraderCard] Export failed:", err);
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -347,6 +427,73 @@ export default function EdgeProfilePage() {
         </div>
       </div>
 
+      {/* Improvement Arc */}
+      {improvementArc.length > 0 && (
+        <div className="glass rounded-xl border border-border/50 p-5 space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Improvement Arc
+          </h2>
+          <p className="text-xs text-muted">Rolling averages across your trading history</p>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={improvementArc}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="index" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} tickLine={false} />
+                <YAxis yAxisId="process" domain={[0, 10]} tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} tickLine={false} />
+                <YAxis yAxisId="wr" orientation="right" domain={[0, 100]} tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} tickLine={false} />
+                <Tooltip contentStyle={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} />
+                <Line yAxisId="process" type="monotone" dataKey="processAvg" stroke="#00b4d8" strokeWidth={2} dot={false} name="Process Score (10-trade avg)" connectNulls />
+                <Line yAxisId="wr" type="monotone" dataKey="winRateAvg" stroke="#10b981" strokeWidth={2} dot={false} name="Win Rate % (20-trade avg)" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          {processTrend && (
+            <p className="text-xs text-muted">
+              Process score: <span className="font-medium text-foreground">{processTrend.overall}/10</span> overall →{" "}
+              <span className={`font-medium ${processTrend.trend === "improving" ? "text-emerald-400" : processTrend.trend === "declining" ? "text-red-400" : "text-muted"}`}>
+                {processTrend.recent}/10 recent
+              </span>
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Monthly Risk Evolution */}
+      {monthlyRisk.length >= 2 && (
+        <div className="glass rounded-xl border border-border/50 p-5 space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            Risk Evolution
+          </h2>
+          <p className="text-xs text-muted">Monthly performance progression</p>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyRisk}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} tickLine={false} />
+                <Tooltip contentStyle={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} />
+                <Bar dataKey="pnl" name="P&L" radius={[4, 4, 0, 0]}>
+                  {monthlyRisk.map((entry, i) => (
+                    <Cell key={i} fill={entry.pnl >= 0 ? "#10b981" : "#ef4444"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            {monthlyRisk.slice(-4).map((m) => (
+              <div key={m.month} className="text-center">
+                <span className="text-muted">{m.month}</span>
+                <p className={`font-medium ${m.pnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>${m.pnl}</p>
+                <p className="text-muted">{m.winRate}% WR, PF {m.profitFactor}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Risk Profile */}
       <div className="glass rounded-xl border border-border/50 p-5 space-y-3">
         <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -385,6 +532,68 @@ export default function EdgeProfilePage() {
           <div>
             <span className="text-muted">Total P&L</span>
             <p className={`font-medium ${stats.closedPnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>${stats.closedPnl.toFixed(0)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Trader Card */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Share2 className="w-5 h-5" />
+            Trader Card
+          </h2>
+          <button
+            onClick={downloadTraderCard}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-background text-xs font-semibold hover:bg-accent/90 transition-colors"
+          >
+            <Download size={14} />
+            Download PNG
+          </button>
+        </div>
+        <div
+          ref={traderCardRef}
+          className="rounded-2xl border border-accent/20 p-6 space-y-4"
+          style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", maxWidth: 480 }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-accent/10 p-2.5">
+              <Fingerprint className="text-cyan-400" size={24} />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-white">Traverse Journal</p>
+              <p className="text-xs text-cyan-400/80">Trading DNA Report</p>
+            </div>
+          </div>
+          <div className="border-t border-white/10 pt-4">
+            <p className="text-sm text-white/90 font-medium">{identitySentence}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-white/5 p-3 text-center">
+              <p className="text-2xl font-bold text-white">{stats.winRate.toFixed(1)}%</p>
+              <p className="text-[10px] text-white/50 uppercase">Win Rate</p>
+            </div>
+            <div className="rounded-xl bg-white/5 p-3 text-center">
+              <p className="text-2xl font-bold text-white">{stats.profitFactor.toFixed(2)}</p>
+              <p className="text-[10px] text-white/50 uppercase">Profit Factor</p>
+            </div>
+            <div className="rounded-xl bg-white/5 p-3 text-center">
+              <p className="text-2xl font-bold text-white">{stats.totalTrades}</p>
+              <p className="text-[10px] text-white/50 uppercase">Total Trades</p>
+            </div>
+            <div className="rounded-xl bg-white/5 p-3 text-center">
+              <p className={`text-2xl font-bold ${stats.closedPnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>${stats.closedPnl.toFixed(0)}</p>
+              <p className="text-[10px] text-white/50 uppercase">Total P&L</p>
+            </div>
+          </div>
+          {bestEmotion && (
+            <div className="text-xs text-white/60">
+              Best state: <span className="text-cyan-400 font-medium">{bestEmotion.value}</span> ({bestEmotion.winRate}% WR)
+              {bestDay && <> | Best day: <span className="text-cyan-400 font-medium">{bestDay.value}</span> ({bestDay.winRate}% WR)</>}
+            </div>
+          )}
+          <div className="text-[10px] text-white/30 text-center pt-2 border-t border-white/5">
+            traversejournal.com | {accountAge} of data
           </div>
         </div>
       </div>
