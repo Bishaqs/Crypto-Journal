@@ -29,6 +29,7 @@ import {
   Activity,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { NovaNarrative } from "@/components/nova-narrative";
 
 /* ─── helpers ──────────────────────────────────────────────────────── */
 
@@ -68,6 +69,7 @@ export default function RecapsPage() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [narrative, setNarrative] = useState<string | null>(null);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -112,6 +114,21 @@ export default function RecapsPage() {
     if (!selectedMonth) return null;
     return generateMonthlyRecap(trades, checkins, selectedMonth);
   }, [trades, checkins, selectedMonth]);
+
+  // Fetch narrative for selected month
+  useEffect(() => {
+    if (!selectedMonth || usingDemo) {
+      setNarrative(null);
+      return;
+    }
+    supabase
+      .from("trading_summaries")
+      .select("narrative")
+      .eq("period_type", "monthly")
+      .eq("period_start", `${selectedMonth}-01`)
+      .maybeSingle()
+      .then(({ data }: { data: { narrative: string | null } | null }) => setNarrative(data?.narrative ?? null));
+  }, [selectedMonth, usingDemo, supabase]);
 
   const monthIdx = months.indexOf(selectedMonth ?? "");
 
@@ -209,6 +226,11 @@ export default function RecapsPage() {
               </div>
             </div>
           </div>
+
+          {/* Nova's AI narrative */}
+          {!usingDemo && selectedMonth && (
+            <NovaNarrative periodType="monthly" periodStart={`${selectedMonth}-01`} narrative={narrative} />
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

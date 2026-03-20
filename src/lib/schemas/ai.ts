@@ -122,3 +122,10 @@ export const DashboardInsightSchema = z.object({
   model: z.string().optional(),
   apiKey: z.string().max(256).optional(),
 });
+
+// Narrative generation request body (used by /api/ai/generate-narrative)
+export const NarrativeGenerateSchema = z.object({
+  period_type: z.enum(["daily", "weekly", "monthly", "yearly"]),
+  period_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format"),
+  force: z.boolean().optional().default(false),
+});

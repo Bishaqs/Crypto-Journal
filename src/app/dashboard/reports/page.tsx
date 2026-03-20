@@ -29,6 +29,7 @@ import {
   Zap,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { NovaNarrative } from "@/components/nova-narrative";
 
 export default function ReportsPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -36,6 +37,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [usingDemo, setUsingDemo] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
+  const [narrative, setNarrative] = useState<string | null>(null);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -75,6 +77,21 @@ export default function ReportsPage() {
     if (!selectedWeek) return null;
     return generateWeeklyReport(trades, selectedWeek);
   }, [trades, selectedWeek]);
+
+  // Fetch narrative for selected week
+  useEffect(() => {
+    if (!selectedWeek || usingDemo) {
+      setNarrative(null);
+      return;
+    }
+    supabase
+      .from("trading_summaries")
+      .select("narrative")
+      .eq("period_type", "weekly")
+      .eq("period_start", selectedWeek)
+      .maybeSingle()
+      .then(({ data }: { data: { narrative: string | null } | null }) => setNarrative(data?.narrative ?? null));
+  }, [selectedWeek, usingDemo, supabase]);
 
   const weekIdx = weeks.indexOf(selectedWeek ?? "");
 
@@ -191,6 +208,11 @@ export default function ReportsPage() {
           </span>
         </div>
       </div>
+
+      {/* Nova's AI narrative */}
+      {!usingDemo && selectedWeek && (
+        <NovaNarrative periodType="weekly" periodStart={selectedWeek} narrative={narrative} />
+      )}
 
       {/* Report sections grid */}
       <div id="tour-reports-content" className="grid grid-cols-1 md:grid-cols-2 gap-6">
