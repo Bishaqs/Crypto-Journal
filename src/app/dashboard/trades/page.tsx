@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/theme-context";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import { Trade } from "@/lib/types";
 import { DemoBanner } from "@/components/demo-banner";
 import {
@@ -354,11 +355,16 @@ export default function TradesPage() {
     }
   }, [viewMode]);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   const fetchTrades = useCallback(async () => {
-    const { data } = await supabase
-      .from("trades")
-      .select("*")
-      .order("open_timestamp", { ascending: false });
+    const { data, error } = await fetchAllTrades(supabase);
+    if (error) {
+      console.error("[Trades] fetchTrades error:", error.message);
+      setFetchError("Failed to load trades. Please refresh the page.");
+      setLoading(false);
+      return;
+    }
     const dbTrades = (data as Trade[]) ?? [];
     if (dbTrades.length === 0) {
       setTrades([]);
@@ -418,6 +424,11 @@ export default function TradesPage() {
           {usingDemo ? "Sample data" : `${totalItems} of ${trades.length} trades`}
         </p>
       </div>
+      {fetchError && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+          {fetchError}
+        </div>
+      )}
       {usingDemo && <DemoBanner feature="trade log" />}
 
       {/* View Tabs + Search */}

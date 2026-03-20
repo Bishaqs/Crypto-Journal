@@ -126,8 +126,11 @@ export function ChallengeProvider({
           // Newly completed! Award XP and save
           try {
             await awardXP(supabase, userId, "challenge_completed", c.id, c.xpReward);
-          } catch {
-            // XP award may fail if tables don't exist
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            if (!msg.includes("does not exist") && !msg.includes("PGRST")) {
+              console.error("[ChallengeProvider] XP award error:", msg);
+            }
           }
           await saveChallengeCompletion(supabase, userId, c.id, today);
           setRecentCompletion(c.id);
@@ -142,8 +145,11 @@ export function ChallengeProvider({
 
       setDailyChallenges(dailyWithStatus);
       setWeeklyChallenges(weeklyWithStatus);
-    } catch {
-      // Tables may not exist yet
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("does not exist") && !msg.includes("PGRST")) {
+        console.error("[ChallengeProvider] unexpected error:", msg);
+      }
     } finally {
       setLoading(false);
     }

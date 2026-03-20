@@ -14,17 +14,13 @@ import {
   calculateAdvancedStats,
 } from "@/lib/calculations";
 import { useTheme, ViewMode } from "@/lib/theme-context";
+import dynamic from "next/dynamic";
 
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { TradesTable } from "@/components/dashboard/trades-table";
-import { EquityCurve } from "@/components/dashboard/equity-curve";
-import { PnlChart } from "@/components/dashboard/pnl-chart";
-import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
-import { ExpandableChart } from "@/components/dashboard/expandable-chart/expandable-chart";
 import { TradeForm } from "@/components/trade-form";
 import { TiltWarnings } from "@/components/dashboard/tilt-warnings";
 import { StreakWidget } from "@/components/dashboard/streak-widget";
-import { AISummaryWidget } from "@/components/dashboard/ai-summary-widget";
 import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
 import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Bitcoin, Shield } from "lucide-react";
@@ -36,10 +32,17 @@ import { GettingStartedCard } from "@/components/getting-started";
 import { WeeklySummaryCard } from "@/components/dashboard/weekly-summary-card";
 import { ProactiveInsightBar } from "@/components/dashboard/proactive-insight-bar";
 import { PostTradePrompt } from "@/components/post-trade-prompt";
-import { NewsWidget } from "@/components/news/news-widget";
 import { LowContrastWarning } from "@/components/low-contrast-warning";
 import { PsychologyProfileBanner } from "@/components/psychology-profile-banner";
 import { DeleteTradeConfirmation } from "@/components/delete-trade-confirmation";
+
+// Lazy-load heavy below-fold components (Recharts, AI, News)
+const EquityCurve = dynamic(() => import("@/components/dashboard/equity-curve").then(m => ({ default: m.EquityCurve })));
+const PnlChart = dynamic(() => import("@/components/dashboard/pnl-chart").then(m => ({ default: m.PnlChart })));
+const CalendarHeatmap = dynamic(() => import("@/components/dashboard/calendar-heatmap").then(m => ({ default: m.CalendarHeatmap })));
+const ExpandableChart = dynamic(() => import("@/components/dashboard/expandable-chart/expandable-chart").then(m => ({ default: m.ExpandableChart })));
+const AISummaryWidget = dynamic(() => import("@/components/dashboard/ai-summary-widget").then(m => ({ default: m.AISummaryWidget })));
+const NewsWidget = dynamic(() => import("@/components/news/news-widget").then(m => ({ default: m.NewsWidget })));
 import { useI18n } from "@/lib/i18n";
 import { useCosmetics } from "@/lib/cosmetics";
 import type { CosmeticRarity, UnlockCondition } from "@/lib/cosmetics/types";
@@ -54,6 +57,7 @@ export default function DashboardPage() {
   const [postTradeData, setPostTradeData] = useState<{ id: string; symbol: string; pnl: number } | null>(null);
   const [deletingTrade, setDeletingTrade] = useState<Trade | null>(null);
   const [showReadiness, setShowReadiness] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const { filterTrades } = useDateRange();
   const { filterByAccount } = useAccount();
   const { viewMode, setViewModeTo } = useTheme();
@@ -84,6 +88,7 @@ export default function DashboardPage() {
 
     if (error) {
       console.error("[Dashboard] fetchTrades error:", error.message);
+      setFetchError("Failed to load trades. Please refresh the page.");
       setLoading(false);
       return;
     }
@@ -162,6 +167,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
+
+      {fetchError && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+          {fetchError}
+        </div>
+      )}
 
       {/* Asset Identity Badge */}
       <div className="flex items-center justify-center py-1">

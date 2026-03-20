@@ -77,15 +77,37 @@ export function AchievementProvider({
     });
   }, [supabase, initialUserId]);
 
+  // Restore cached state instantly so children render without waiting
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      const cached = localStorage.getItem(`traverse-achievements-${userId}`);
+      if (cached) {
+        const { progress: cp, unlocked: cu, badge: cb } = JSON.parse(cached);
+        if (cp) setProgress(cp);
+        if (cu) setUnlocked(cu);
+        if (cb) setActiveBadgeState(cb);
+      }
+    } catch { /* ignore corrupt cache */ }
+  }, [userId]);
+
   const refresh = useCallback(async () => {
     if (!userId) return;
 
     try {
-      // Fetch existing unlocks
-      const { data: existingUnlocks } = await supabase
-        .from("user_achievements")
-        .select("achievement_id, tier, unlocked_at")
-        .eq("user_id", userId);
+      // Parallelize independent queries
+      const [{ data: existingUnlocks }, freshProgress, { data: badge }] = await Promise.all([
+        supabase
+          .from("user_achievements")
+          .select("achievement_id, tier, unlocked_at")
+          .eq("user_id", userId),
+        computeProgress(supabase, userId),
+        supabase
+          .from("user_badges")
+          .select("active_badge, active_tier")
+          .eq("user_id", userId)
+          .maybeSingle(),
+      ]);
 
       const currentUnlocks: UnlockedAchievement[] = (existingUnlocks ?? []).map(
         (u: { achievement_id: string; tier: string | null; unlocked_at: string }) => ({
@@ -94,9 +116,6 @@ export function AchievementProvider({
           unlocked_at: u.unlocked_at,
         })
       );
-
-      // Compute fresh progress
-      const freshProgress = await computeProgress(supabase, userId);
 
       // Check for new unlocks
       const newUnlocks = checkUnlocks(freshProgress, currentUnlocks);
@@ -130,7 +149,6 @@ export function AchievementProvider({
         freshProgress[completionistIdx].current_value = allMaxed ? 1 : 0;
         // Re-check completionist unlock
         if (allMaxed) {
-          const compKey = "completionist:single";
           const isAlreadyUnlocked = currentUnlocks.some(
             (u) => u.achievement_id === "completionist"
           );
@@ -165,19 +183,18 @@ export function AchievementProvider({
         setRecentUnlocks((prev) => [...prev, ...newUnlocks]);
       }
 
-      // Fetch active badge
-      const { data: badge } = await supabase
-        .from("user_badges")
-        .select("active_badge, active_tier")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const badgeState = badge?.active_badge
+        ? { achievement_id: badge.active_badge, tier: badge.active_tier }
+        : null;
+      if (badgeState) setActiveBadgeState(badgeState);
 
-      if (badge?.active_badge) {
-        setActiveBadgeState({
-          achievement_id: badge.active_badge,
-          tier: badge.active_tier,
-        });
-      }
+      // Cache for instant restore on next visit
+      try {
+        localStorage.setItem(
+          `traverse-achievements-${userId}`,
+          JSON.stringify({ progress: freshProgress, unlocked: allUnlocksAfter, badge: badgeState })
+        );
+      } catch { /* storage full — ignore */ }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       // Only silence "table doesn't exist" errors — log everything else
@@ -189,9 +206,11 @@ export function AchievementProvider({
     }
   }, [userId, supabase]);
 
-  // Initial load
+  // Defer initial computation to let dashboard render first
   useEffect(() => {
-    if (userId) refresh();
+    if (!userId) return;
+    const timer = setTimeout(() => refresh(), 1500);
+    return () => clearTimeout(timer);
   }, [userId, refresh]);
 
   const dismissUnlock = useCallback(
