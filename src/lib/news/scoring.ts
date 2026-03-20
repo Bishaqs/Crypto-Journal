@@ -1,6 +1,7 @@
 import type { NewsArticle, NewsPriority } from "./types";
 
 export const BREAKING_KEYWORDS = [
+  // Crisis / bear signals
   "crash", "crashes", "crashed",
   "hack", "hacked", "exploit", "exploited",
   "halt", "halted", "suspended",
@@ -17,15 +18,31 @@ export const BREAKING_KEYWORDS = [
   "war", "invasion", "strike", "attack",
   "assassination",
   "shutdown",
-  "SEC charges", "SEC sues",
   "delisted", "delisting",
   "insolvency", "insolvent", "bankrupt", "bankruptcy",
-  "rate cut", "rate hike",
-  "tariff", "tariffs",
   "nuclear",
   "pandemic",
   "martial law",
   "coup",
+  // Monetary policy
+  "rate cut", "rate hike", "rate decision",
+  "tariff", "tariffs",
+  "quantitative easing", "quantitative tightening",
+  // Institutional / whale activity
+  "MicroStrategy", "Saylor",
+  "BlackRock", "Fidelity", "Grayscale", "VanEck",
+  "sovereign wealth", "treasury purchase",
+  "major acquisition", "strategic reserve",
+  "billion dollar", "billion worth",
+  // ETF / regulatory
+  "ETF approved", "ETF filing", "ETF launch", "ETF rejection",
+  "SEC charges", "SEC sues", "SEC ruling", "SEC approval",
+  "CFTC", "BaFin", "EU regulation", "MiCA",
+  "crypto ban", "crypto regulation",
+  // Bull signals
+  "all-time high", "new ATH",
+  "halving", "bitcoin halving",
+  "mass adoption", "legal tender",
 ];
 
 export interface ScoringMeta {
@@ -41,7 +58,7 @@ export function scoreArticle(
   let score = 0;
 
   // Source-level signals
-  if (meta.importantVotes && meta.importantVotes >= 3) score += 40;
+  if (meta.importantVotes && meta.importantVotes >= 5) score += 40;
   if (meta.fromImportantFilter) score += 30;
   if (meta.fromPriorityDomain) score += 25;
 
@@ -65,7 +82,7 @@ export function scoreArticle(
   }
 
   const priority: NewsPriority =
-    score >= 60 ? "breaking" : score >= 35 ? "important" : "normal";
+    score >= 75 ? "breaking" : score >= 45 ? "important" : "normal";
 
   return { urgencyScore: Math.min(score, 100), priority };
 }
