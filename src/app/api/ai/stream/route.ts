@@ -3,10 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext, buildMarketContext, buildExperienceLevelContext, buildEdgeProfileContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
-import { calculateAllCorrelations } from "@/lib/psychology-correlations";
+import { calculateAllCorrelations, calculateEmotionCorrelations, calculateTimeCorrelations } from "@/lib/psychology-correlations";
+import { calculateAdvancedStats } from "@/lib/calculations";
 import { buildSummaryContext } from "@/lib/trading-summaries";
+import { fetchTopMarketNews } from "@/lib/news/fetch-flash-news";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { message, trades, notes, playbooks, context, history, customInstructions, provider: providerId, model: modelId, apiKey, conversationId } = parsed.data;
+  const { message, trades, notes, playbooks, context, history, customInstructions, provider: providerId, model: modelId, apiKey, conversationId, experienceLevel } = parsed.data;
 
   const provider = getProvider(providerId, apiKey);
   if (!provider.isConfigured(apiKey)) {
@@ -76,6 +78,8 @@ export async function POST(req: NextRequest) {
 
   // Load psychology context server-side (behavioral logs, psychology profile, expert sessions, correlations)
   let psychologyContext = "";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let profile: any = null;
   try {
     const [
       { data: behavioralLogs },
@@ -92,7 +96,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     const tier = userPrefs?.[0]?.psychology_tier || "simple";
-    const profile = profileRows?.[0] || null;
+    profile = profileRows?.[0] || null;
 
     // Behavioral context
     if (behavioralLogs && behavioralLogs.length > 0) {
@@ -199,6 +203,39 @@ export async function POST(req: NextRequest) {
   } catch {
     // Non-critical
   }
+  // Market context injection (flash news)
+  try {
+    const topNews = await fetchTopMarketNews(5);
+    if (topNews.length > 0) {
+      systemPrompt += buildMarketContext(topNews);
+    }
+  } catch {
+    // Non-critical — proceed without market context
+  }
+
+  // Experience level adaptation
+  if (experienceLevel) {
+    systemPrompt += buildExperienceLevelContext(experienceLevel);
+  }
+
+  // Edge profile context (for users with enough data)
+  if (trades.length >= 10) {
+    try {
+      const advStats = calculateAdvancedStats(trades as any[]);
+      const emotionCorr = calculateEmotionCorrelations(trades as any[]);
+      const timeCorr = calculateTimeCorrelations(trades as any[]);
+      const edgeCtx = buildEdgeProfileContext(
+        { winRate: advStats.winRate, profitFactor: advStats.profitFactor, expectancy: advStats.expectancy, maxDrawdown: advStats.maxDrawdown, totalTrades: advStats.totalTrades },
+        emotionCorr,
+        timeCorr,
+        profile,
+      );
+      if (edgeCtx) systemPrompt += edgeCtx;
+    } catch {
+      // Non-critical
+    }
+  }
+
   if (conversationSummary) {
     systemPrompt += conversationSummary;
   }

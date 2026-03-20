@@ -46,6 +46,7 @@ import {
   UserCircle,
   MessageSquareText,
   Newspaper,
+  Fingerprint,
   Ghost,
 } from "lucide-react";
 
@@ -161,6 +162,7 @@ const dateViewItems: NavItem[] = [
 const intelligenceItems: NavItem[] = [
   { href: "/dashboard/insights", label: "Insights", icon: Brain, tourId: "tour-insights" },
   { href: "/dashboard/ai", label: "Nova", icon: Sparkles, tourId: "tour-ai" },
+  { href: "/dashboard/edge-profile", label: "Edge Profile", icon: Fingerprint },
   { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
   { href: "/dashboard/recaps", label: "Monthly Recap", icon: CalendarCheck },
 ];
@@ -502,7 +504,7 @@ export function getCategoryForPath(pathname: string): string | null {
   if (tradesPrefixes.some(p => pathname.startsWith(p))) return "trades";
 
   // Intelligence
-  const intelligencePrefixes = ["/dashboard/psychology", "/dashboard/ai", "/dashboard/insights", "/dashboard/reports", "/dashboard/recaps"];
+  const intelligencePrefixes = ["/dashboard/psychology", "/dashboard/ai", "/dashboard/insights", "/dashboard/reports", "/dashboard/recaps", "/dashboard/edge-profile"];
   if (intelligencePrefixes.some(p => pathname.startsWith(p))) return "intelligence";
 
   // Analytics (includes Overview = old dashboards)
