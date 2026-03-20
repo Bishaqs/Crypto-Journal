@@ -141,7 +141,7 @@ export function NovaFab() {
   if (pathname === "/dashboard/ai" || hasConsent !== true) return null;
 
   return (
-    <div className="fixed bottom-24 right-6 z-40 flex flex-col items-end gap-2">
+    <div className="fixed bottom-6 left-6 z-40 flex flex-col items-start gap-2">
       {/* Speech bubble */}
       <AnimatePresence>
         {showBubble && nudge && (
@@ -181,7 +181,7 @@ export function NovaFab() {
             </div>
 
             {/* Caret pointing down */}
-            <div className="absolute -bottom-[6px] right-5 w-3 h-3 rotate-45 bg-surface border-r border-b border-border" />
+            <div className="absolute -bottom-[6px] left-5 w-3 h-3 rotate-45 bg-surface border-r border-b border-border" />
           </motion.div>
         )}
       </AnimatePresence>
