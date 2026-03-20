@@ -84,8 +84,8 @@ export async function POST(req: NextRequest) {
       { data: sessionLogs },
       { data: userPrefs },
     ] = await Promise.all([
-      supabase.from("behavioral_logs").select("emotion, intensity, trigger, physical_state, biases, traffic_light, note, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("daily_checkins").select("date, mood, energy, traffic_light").eq("user_id", user.id).order("date", { ascending: false }).limit(14),
+      supabase.from("behavioral_logs").select("emotion, intensity, trigger, physical_state, biases, traffic_light, note, phase, readiness_score, override, psychology_tier, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("daily_checkins").select("date, mood, energy, traffic_light, sleep_quality, cognitive_load").eq("user_id", user.id).order("date", { ascending: false }).limit(14),
       supabase.from("psychology_profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1),
       supabase.from("expert_session_logs").select("session_date, somatic_areas, somatic_intensity, flow_state, cognitive_distortions, defense_mechanisms, internal_dialogue").eq("user_id", user.id).order("session_date", { ascending: false }).limit(20),
       supabase.from("user_preferences").select("psychology_tier").eq("user_id", user.id).limit(1),
@@ -113,9 +113,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Correlation context (computed from trades sent by client)
+    // Correlation context (computed from trades + psychology data)
     if (trades.length > 0) {
-      const correlations = calculateAllCorrelations(trades as any[]);
+      const correlations = calculateAllCorrelations(
+        trades as any[],
+        (sessionLogs || []) as any[],
+        profile,
+        (checkins || []) as any[],
+        (behavioralLogs || []) as any[],
+      );
       psychologyContext += "\n" + buildCorrelationContext(correlations);
     }
   } catch {
