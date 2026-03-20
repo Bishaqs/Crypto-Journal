@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Rocket } from "lucide-react";
 import { TraverseLogo } from "@/components/traverse-logo";
 import { useGuide } from "./guide-context";
+import { useNovaNudge } from "./use-nova-nudge";
 import { useTour, getEffectiveLayout } from "@/lib/tour-context";
 import { useI18n } from "@/lib/i18n";
 import type { TourStep } from "@/lib/tour-context";
@@ -361,6 +362,8 @@ function GuideCharacterAnimated({
 
 export function TraverseGuideCharacter() {
   const { state, toggleMenu } = useGuide();
+  useNovaNudge();
+  const hasNudge = state.novaNudge !== null;
   const { state: tourState, currentStepDef, stepTarget, nextStep, prevStep, skipTour, advanceStep } = useTour();
   const guideRef = useRef<HTMLDivElement>(null);
   const [isFlying, setIsFlying] = useState(false);
@@ -769,6 +772,9 @@ export function TraverseGuideCharacter() {
             glow={glow}
             arrivalKey={arrivalKey}
           />
+          {hasNudge && !isTourMode && (
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-accent border-2 border-background animate-pulse" />
+          )}
         </motion.div>
       )}
 
