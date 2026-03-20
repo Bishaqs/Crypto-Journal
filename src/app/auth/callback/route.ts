@@ -53,6 +53,28 @@ export async function GET(request: Request) {
           bannedResponse.cookies.set("stargate-banned", "1", { path: "/", httpOnly: true });
           return bannedResponse;
         }
+
+        // Auto-grant Founding Member cosmetic if user's email is in waitlist
+        if (user.email) {
+          const { data: waitlistEntry } = await adminClient
+            .from("waitlist_signups")
+            .select("id")
+            .eq("email", user.email.toLowerCase())
+            .maybeSingle();
+
+          if (waitlistEntry) {
+            try {
+              await adminClient
+                .from("user_cosmetics")
+                .upsert(
+                  { user_id: user.id, cosmetic_id: "founding-member-frame", earned_at: new Date().toISOString() },
+                  { onConflict: "user_id,cosmetic_id", ignoreDuplicates: true },
+                );
+            } catch {
+              // Non-critical — cosmetic grant failure shouldn't block auth
+            }
+          }
+        }
       }
 
       return response;

@@ -1613,6 +1613,18 @@ body {
   animation: frame-eternal-breathe 4s ease-in-out infinite;
 }
 
+.frame-founding-member {
+  border: 2px solid rgba(251, 191, 36, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.5), 0 0 30px rgba(103, 232, 249, 0.2);
+  animation: frame-founding-glow 4s ease-in-out infinite;
+}
+
+@keyframes frame-founding-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.5), 0 0 30px rgba(103, 232, 249, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(251, 191, 36, 0.7), 0 0 50px rgba(103, 232, 249, 0.3); }
+}
+
 @keyframes frame-nova-pulse {
 
   0%,
