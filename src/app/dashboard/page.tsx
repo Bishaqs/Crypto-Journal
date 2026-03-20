@@ -243,11 +243,11 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setShowReadiness(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-cyan-500/30 text-cyan-400 text-xs font-medium hover:bg-cyan-500/10 transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 font-semibold text-sm hover:bg-cyan-500/20 hover:border-cyan-500/60 transition-all shadow-[0_0_12px_rgba(0,180,216,0.15)]"
             title="Pre-Trade Readiness Check"
           >
-            <Shield size={14} />
-            Ready?
+            <Shield size={16} />
+            Readiness Check
           </button>
           <div id="tour-log-trade">
             <button
