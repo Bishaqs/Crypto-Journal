@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trade, JournalNote } from "@/lib/types";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
@@ -22,6 +22,7 @@ import { ChatBubble, type Message } from "@/components/ai/chat-bubble";
 import { ConversationList, type Conversation } from "@/components/ai/conversation-list";
 import { MemoryPanel, type CoachMemory } from "@/components/ai/memory-panel";
 import { CoachingEnhancementHint } from "@/components/ai/coaching-enhancement-hint";
+import { generateSuggestedQuestions } from "@/lib/ai-suggested-questions";
 
 const SUGGESTED_QUESTIONS = [
   "What patterns do you see in my losing trades?",
@@ -139,6 +140,7 @@ export default function AIPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [experienceLevel, setExperienceLevel] = useState("");
   const [aiProvider, setAiProvider] = useState<string | undefined>();
   const [aiModel, setAiModel] = useState<string | undefined>();
   const [aiApiKey, setAiApiKey] = useState<string | undefined>();
@@ -205,6 +207,10 @@ export default function AIPage() {
     if (savedModel) setAiModel(savedModel);
     if (savedApiKey) setAiApiKey(savedApiKey);
     if (savedInstructions) setCustomInstructions(savedInstructions);
+
+    // Load experience level
+    const savedExpLevel = localStorage.getItem("stargate-experience-level");
+    if (savedExpLevel) setExperienceLevel(savedExpLevel);
 
     // Restore sidebar preference
     const sidebarPref = localStorage.getItem("stargate-ai-sidebar");
@@ -294,6 +300,12 @@ export default function AIPage() {
       fetchMemories(),
     ]).then(() => setLoading(false));
   }, [fetchTrades, fetchNotes, fetchPlaybooks, fetchConversations, fetchMemories]);
+
+  // ─── Personalized suggested questions ─────────────────────────────────────
+  const suggestedQuestions = useMemo(() => {
+    if (loading || trades.length === 0) return SUGGESTED_QUESTIONS;
+    return generateSuggestedQuestions(trades, notes, experienceLevel);
+  }, [trades, notes, experienceLevel, loading]);
 
   // ─── Auto-scroll ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -514,6 +526,7 @@ export default function AIPage() {
           model: aiModel,
           ...(aiApiKey ? { apiKey: aiApiKey } : {}),
           ...(convId ? { conversationId: convId } : {}),
+          ...(experienceLevel ? { experienceLevel } : {}),
         }),
       });
 
@@ -747,7 +760,7 @@ export default function AIPage() {
 
                 {/* Suggested questions */}
                 <div id="tour-ai-suggestions" className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
-                  {SUGGESTED_QUESTIONS.map((q) => (
+                  {suggestedQuestions.map((q) => (
                     <button
                       key={q}
                       onClick={() => sendMessage(q)}

@@ -71,6 +71,7 @@ export const AiChatSchema = z.object({
   model: z.string().optional(),
   apiKey: z.string().max(256).optional(),
   conversationId: z.string().uuid().optional(),
+  experienceLevel: z.enum(["beginner", "intermediate", "advanced", "professional"]).optional(),
 });
 
 // Trade summary request body (used by /api/ai/trade-summary)

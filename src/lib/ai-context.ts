@@ -1178,3 +1178,112 @@ These are facts you've noted from previous coaching sessions. Reference them nat
 
 ${lines.join("\n")}`;
 }
+
+// ─── Market Context (Flash News) ─────────────────────────────────────────────
+
+export function buildMarketContext(articles: { title: string; source: string; publishedAt: string; sentiment: string | null; priority: string }[]): string {
+  if (!articles || articles.length === 0) return "";
+
+  function relativeTime(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  }
+
+  const lines = articles.slice(0, 5).map((a) => {
+    const tag = a.priority === "breaking" ? "[BREAKING]" : "[IMPORTANT]";
+    const title = a.title.length > 80 ? a.title.slice(0, 77) + "..." : a.title;
+    const sent = a.sentiment ? `, ${a.sentiment}` : "";
+    return `- ${tag} "${title}" — ${a.source} (${relativeTime(a.publishedAt)}${sent})`;
+  });
+
+  return `\n\n## Current Market Context (last 24h)
+
+Use this to contextualize your coaching when the trader mentions current events, asks about market conditions, or when market news is directly relevant to their trading behavior. Do NOT lead with market commentary unless the trader asks or an event directly impacts their open positions.
+
+${lines.join("\n")}`;
+}
+
+// ─── Experience Level Adaptation ─────────────────────────────────────────────
+
+export function buildExperienceLevelContext(level: string): string {
+  const contexts: Record<string, string> = {
+    beginner: `\n\n## Trader Experience Level: BEGINNER
+This trader is new to trading. Adapt accordingly:
+- Explain trading concepts simply when you reference them (e.g., "your win rate — that's the percentage of trades that made money")
+- Define terms like "drawdown", "risk:reward", "process score" on first use
+- Guide step-by-step. Don't assume knowledge of charts, indicators, or order types
+- Celebrate small wins enthusiastically — building confidence is critical
+- Focus on ONE thing at a time. Don't overwhelm with 5 improvements
+- Emphasize journaling habits and basic risk management over complex analysis
+- When they make mistakes, frame them as learning: "Every beginner goes through this"
+- Proactively suggest logging their first trade if they haven't yet`,
+
+    intermediate: `\n\n## Trader Experience Level: INTERMEDIATE
+This trader has some experience. You can:
+- Use standard trading terminology without excessive explanation
+- Reference common indicators, chart patterns, and order types freely
+- Push harder on process discipline — they should know better by now
+- Challenge when they make beginner mistakes: "You know better than this"
+- Introduce more nuanced psychology concepts when relevant`,
+
+    advanced: `\n\n## Trader Experience Level: ADVANCED
+This is an experienced trader. Go deep:
+- Skip basic explanations — they know the terminology
+- Focus on edge cases, nuance, and advanced psychology
+- Challenge aggressively — they can handle tough love
+- Reference advanced concepts: R-multiples, expectancy, Sharpe ratio freely
+- Discuss system-level thinking and portfolio-level analysis`,
+
+    professional: `\n\n## Trader Experience Level: PROFESSIONAL
+This trader is a professional or near-professional. Maximum depth:
+- Assume mastery of all trading concepts
+- Focus on elite-level performance optimization
+- Discuss institutional-level risk management
+- Challenge beliefs at the deepest level
+- Reference academic research and advanced behavioral finance`,
+  };
+  return contexts[level] || "";
+}
+
+// ─── Edge Profile Context (for Nova) ─────────────────────────────────────────
+
+export function buildEdgeProfileContext(
+  stats: { winRate: number; profitFactor: number; expectancy: number; maxDrawdown: number; totalTrades: number },
+  emotionCorrelations: { value: string; winRate: number; tradeCount: number; avgPnl: number }[],
+  timeCorrelations: { dimension: string; value: string; winRate: number; totalPnl: number; tradeCount: number }[],
+  profile: { risk_personality: string | null; self_concept_identity: string | null } | null,
+): string {
+  const parts: string[] = ["\n\n## Trader's Edge Profile"];
+
+  // Identity
+  const riskLabel = profile?.risk_personality?.replace(/_/g, " ") || "unknown";
+  const identity = profile?.self_concept_identity?.replace(/_/g, " ") || "";
+  if (riskLabel !== "unknown") {
+    parts.push(`- **Archetype**: ${riskLabel}${identity ? ` / ${identity}` : ""}`);
+  }
+
+  // Overall stats
+  parts.push(`- **Overall**: ${stats.totalTrades} trades, ${stats.winRate}% WR, PF ${stats.profitFactor}, Exp ${stats.expectancy}R, Max DD $${Math.abs(stats.maxDrawdown).toFixed(0)}`);
+
+  // Best/worst emotions
+  const validEmotions = emotionCorrelations.filter((e) => e.tradeCount >= 5 && e.value !== "Untagged");
+  if (validEmotions.length >= 2) {
+    const best = [...validEmotions].sort((a, b) => b.winRate - a.winRate)[0];
+    const worst = [...validEmotions].sort((a, b) => a.winRate - b.winRate)[0];
+    parts.push(`- **Best emotion**: ${best.value} (${best.winRate}% WR) | **Worst**: ${worst.value} (${worst.winRate}% WR)`);
+  }
+
+  // Best/worst days
+  const days = timeCorrelations.filter((t) => t.dimension === "day_of_week" && t.tradeCount >= 5);
+  if (days.length >= 2) {
+    const bestDay = [...days].sort((a, b) => b.totalPnl - a.totalPnl)[0];
+    const worstDay = [...days].sort((a, b) => a.totalPnl - b.totalPnl)[0];
+    parts.push(`- **Best day**: ${bestDay.value} (${bestDay.winRate}% WR, $${bestDay.totalPnl.toFixed(0)}) | **Worst**: ${worstDay.value} (${worstDay.winRate}% WR, $${worstDay.totalPnl.toFixed(0)})`);
+  }
+
+  return parts.length > 1 ? parts.join("\n") : "";
+}
