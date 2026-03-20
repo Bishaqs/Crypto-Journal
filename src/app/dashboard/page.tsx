@@ -21,6 +21,7 @@ import { TradesTable } from "@/components/dashboard/trades-table";
 import { TradeForm } from "@/components/trade-form";
 import { TiltWarnings } from "@/components/dashboard/tilt-warnings";
 import { StreakWidget } from "@/components/dashboard/streak-widget";
+import { XPBar } from "@/components/dashboard/xp-bar";
 import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
 import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Bitcoin, Shield } from "lucide-react";
@@ -52,6 +53,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editTrade, setEditTrade] = useState<Trade | null>(null);
+  const [advMetricsOpen, setAdvMetricsOpen] = useState(false);
   const [usingDemo, setUsingDemo] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [postTradeData, setPostTradeData] = useState<{ id: string; symbol: string; pnl: number } | null>(null);
@@ -280,16 +282,21 @@ export default function DashboardPage() {
       </div>
       {viewMode !== "beginner" && <TiltWarnings signals={tiltSignals} />}
 
-      {/* Advanced mode stats — appears right below basic stats with smooth animation */}
-      <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-        viewMode === "expert" && adv ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
-      }`}>
-        {adv && (
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center gap-2">
-              <Activity size={14} className="text-accent" />
-              <span className="text-[10px] text-muted font-semibold uppercase tracking-widest">{t("dashboard.advancedMetrics")}</span>
-            </div>
+      {/* Advanced metrics — collapsible panel */}
+      {viewMode !== "beginner" && adv && (
+        <div>
+          <button
+            onClick={() => setAdvMetricsOpen((prev) => !prev)}
+            className="flex items-center gap-2 text-muted hover:text-foreground transition-colors py-1"
+          >
+            <Activity size={14} className="text-accent" />
+            <span className="text-[10px] font-semibold uppercase tracking-widest">{t("dashboard.advancedMetrics")}</span>
+            <svg className={`w-3 h-3 transition-transform ${advMetricsOpen ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            advMetricsOpen ? "max-h-[800px] opacity-100 mt-3" : "max-h-0 opacity-0"
+          }`}>
+            <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
                 <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Sharpe Ratio <InfoTooltip text="Risk-adjusted return metric. Measures excess return per unit of volatility. Above 1.0 = good, above 2.0 = excellent." size={11} articleId="an2-sharpe-ratio" /></p>
@@ -367,8 +374,9 @@ export default function DashboardPage() {
             })()}
 
           </div>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Beginner layout ────────────────────────── */}
       {viewMode === "beginner" && (
@@ -442,6 +450,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <div id="tour-streak"><StreakWidget /></div>
+              <XPBar />
             </div>
           </div>
         </>
@@ -530,6 +539,7 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-6">
               <div id="tour-streak"><StreakWidget /></div>
+              <XPBar />
               <ExpandableChart
                 id="tour-heatmap-mini"
                 title="Calendar"

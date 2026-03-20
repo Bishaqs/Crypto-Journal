@@ -1426,6 +1426,16 @@ export function Starfield() {
   const { theme } = useTheme();
   const reducedMotion = useReducedMotion();
 
+  // Default to clean background for new users who haven't explicitly chosen a theme
+  const [hasChosenTheme, setHasChosenTheme] = useState(true); // default true to avoid flash
+  useEffect(() => {
+    setHasChosenTheme(!!localStorage.getItem("stargate-theme"));
+  }, []);
+
+  if (!hasChosenTheme && theme === "obsidian") {
+    return <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: "#0a0a0c" }} />;
+  }
+
   // When OS "Reduce motion" is enabled, render only static backgrounds
   if (reducedMotion) {
     const bg: Record<string, string> = {
