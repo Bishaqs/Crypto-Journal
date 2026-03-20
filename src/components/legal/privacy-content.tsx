@@ -2,7 +2,7 @@ export function PrivacyContent() {
   return (
     <div className="space-y-8 text-sm leading-relaxed text-muted">
       <p className="text-xs text-muted">
-        Last updated: March 14, 2026
+        Last updated: March 20, 2026
       </p>
 
       {/* 1. Controller Identity — Art. 13(1)(a) */}
@@ -113,8 +113,9 @@ export function PrivacyContent() {
               </tr>
               <tr>
                 <td className="p-2">
-                  AI Coach (data sent to Anthropic / OpenAI / Google for
-                  analysis)
+                  AI Coach (data sent to Anthropic Claude / OpenAI / Google for
+                  analysis; persistent coaching memories created &mdash; see
+                  Section 9a)
                 </td>
                 <td className="p-2">
                   Art. 6(1)(a) &mdash; explicit consent
@@ -213,6 +214,17 @@ export function PrivacyContent() {
             <strong className="text-foreground">Server logs:</strong>{" "}
             Timestamps and request paths for debugging and security purposes.
             We do not use third-party analytics trackers.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              AI coaching memories:
+            </strong>{" "}
+            Patterns, commitments, progress milestones, and preferences that
+            the AI Coach (&ldquo;Nova&rdquo;) identifies from your coaching
+            conversations. These are stored in your Traverse Journal account
+            to provide continuity across coaching sessions. Nova is powered
+            by Anthropic Claude; the AI provider processes conversation
+            transcripts per-request and does not retain your data.
           </li>
         </ul>
       </section>
@@ -332,6 +344,14 @@ export function PrivacyContent() {
             </strong>{" "}
             Not retained by AI providers beyond the individual API request.
           </li>
+          <li>
+            <strong className="text-foreground">
+              AI coaching memories:
+            </strong>{" "}
+            Retained for as long as your account is active. You can view,
+            edit, or delete individual memories at any time via the Memory
+            Panel (Brain icon in the AI Coach).
+          </li>
         </ul>
       </section>
 
@@ -433,6 +453,59 @@ export function PrivacyContent() {
           decisions regarding your account, access, or any legal matter are
           made automatically.
         </p>
+      </section>
+
+      {/* 9a. AI Coach Memory System */}
+      <section>
+        <h2 className="text-lg font-semibold text-foreground mb-3">
+          9a. AI Coach Memory System
+        </h2>
+        <p className="mb-3">
+          The AI Coach (&ldquo;Nova&rdquo;) creates persistent
+          &ldquo;memories&rdquo; about your trading behaviour to provide
+          personalised coaching continuity across sessions. This section
+          explains what is stored, how, and by whom.
+        </p>
+        <ul className="list-disc pl-5 space-y-2">
+          <li>
+            <strong className="text-foreground">What is stored:</strong>{" "}
+            Behavioural patterns (e.g. &ldquo;tends to revenge-trade after
+            losses&rdquo;), commitments you make during coaching
+            (&ldquo;will use stop-losses on every trade&rdquo;), progress
+            milestones, and personal preferences relevant to coaching.
+          </li>
+          <li>
+            <strong className="text-foreground">How memories are created:</strong>{" "}
+            After a coaching conversation of sufficient length, the
+            conversation transcript is sent to Anthropic Claude (or the AI
+            provider you have configured) for a one-time extraction of key
+            facts. The AI provider processes the transcript per-request and
+            does not retain it. The extracted memories are then stored in
+            your Traverse Journal account database (hosted by Supabase).
+          </li>
+          <li>
+            <strong className="text-foreground">How memories are used:</strong>{" "}
+            Stored memories are included in future coaching sessions so that
+            Nova can reference past commitments, track your progress, and
+            provide contextually relevant advice without you having to repeat
+            yourself.
+          </li>
+          <li>
+            <strong className="text-foreground">Your control:</strong>{" "}
+            You can view all memories via the Memory Panel (Brain icon in the
+            AI Coach). You can edit any memory&apos;s text inline or delete
+            it entirely at any time. Deletion is immediate and the memory is
+            excluded from all future AI context.
+          </li>
+          <li>
+            <strong className="text-foreground">Legal basis:</strong>{" "}
+            Art. 6(1)(a) GDPR &mdash; explicit consent. Memory creation
+            requires the same AI data processing consent as the AI Coach
+            itself. Withdrawing AI consent stops all future memory creation.
+            Existing memories can be deleted individually or will be purged
+            upon account deletion.
+          </li>
+        </ul>
       </section>
 
       {/* 10. Cookies and Local Storage — ePrivacy / TTDSG */}

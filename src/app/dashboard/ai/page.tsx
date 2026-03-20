@@ -17,6 +17,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { ChatBubble, type Message } from "@/components/ai/chat-bubble";
 import { ConversationList, type Conversation } from "@/components/ai/conversation-list";
@@ -134,6 +135,10 @@ type PlaybookEntry = {
 };
 
 export default function AIPage() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q");
+  const sentInitialQuery = useRef(false);
+
   const [trades, setTrades] = useState<Trade[]>([]);
   const [notes, setNotes] = useState<JournalNote[]>([]);
   const [playbooks, setPlaybooks] = useState<PlaybookEntry[]>([]);
@@ -159,9 +164,23 @@ export default function AIPage() {
   // Memory state
   const [memories, setMemories] = useState<CoachMemory[]>([]);
   const [showMemoryPanel, setShowMemoryPanel] = useState(false);
+  const [memoryToast, setMemoryToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevConversationIdRef = useRef<string | null>(null);
+  const extractedConversationsRef = useRef<Set<string>>(new Set());
+
+  // Refs for beforeunload/visibilitychange (capture latest state without stale closures)
+  const messagesRef = useRef(messages);
+  const activeConvRef = useRef(activeConversationId);
+  const aiProviderRef = useRef(aiProvider);
+  const aiModelRef = useRef(aiModel);
+  const aiApiKeyRef = useRef(aiApiKey);
+  messagesRef.current = messages;
+  activeConvRef.current = activeConversationId;
+  aiProviderRef.current = aiProvider;
+  aiModelRef.current = aiModel;
+  aiApiKeyRef.current = aiApiKey;
   const supabase = createClient();
 
   // ─── Consent ──────────────────────────────────────────────────────────────
@@ -199,6 +218,46 @@ export default function AIPage() {
       localStorage.setItem("stargate-privacy-ai-consent", "true");
     }
   }
+
+  // ─── Extract memories on page unload / tab hide ──────────────────────────
+  useEffect(() => {
+    function extractOnUnload() {
+      const convId = activeConvRef.current;
+      const msgs = messagesRef.current;
+      if (!convId || msgs.length < 4 || extractedConversationsRef.current.has(convId)) return;
+
+      const chatMsgs = msgs
+        .filter((m) => m.role !== "error")
+        .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+      if (chatMsgs.length < 4) return;
+
+      extractedConversationsRef.current.add(convId);
+      const payload = JSON.stringify({
+        conversationId: convId,
+        messages: chatMsgs.slice(-30),
+        provider: aiProviderRef.current,
+        model: aiModelRef.current,
+        ...(aiApiKeyRef.current ? { apiKey: aiApiKeyRef.current } : {}),
+      });
+
+      // sendBeacon survives page close; fetch does not
+      navigator.sendBeacon(
+        "/api/ai/extract-memories",
+        new Blob([payload], { type: "application/json" })
+      );
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "hidden") extractOnUnload();
+    }
+
+    window.addEventListener("beforeunload", extractOnUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", extractOnUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   // ─── Load AI settings from localStorage ───────────────────────────────────
   useEffect(() => {
@@ -304,6 +363,16 @@ export default function AIPage() {
     ]).then(() => setLoading(false));
   }, [fetchTrades, fetchNotes, fetchPlaybooks, fetchConversations, fetchMemories]);
 
+  // ─── Auto-send from dashboard quick-chat (?q= query param) ───────────────
+  useEffect(() => {
+    if (initialQuery && !loading && aiConsent === true && !sentInitialQuery.current) {
+      sentInitialQuery.current = true;
+      sendMessage(initialQuery);
+      window.history.replaceState({}, "", "/dashboard/ai");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery, loading, aiConsent]);
+
   // ─── Personalized suggested questions ─────────────────────────────────────
   const suggestedQuestions = useMemo(() => {
     if (loading || trades.length === 0) return SUGGESTED_QUESTIONS;
@@ -365,7 +434,7 @@ export default function AIPage() {
 
   async function handleNewChat() {
     // Trigger memory extraction for the previous conversation if it had enough messages
-    if (activeConversationId && messages.length >= 6) {
+    if (activeConversationId && messages.length >= 4) {
       extractMemories(activeConversationId, messages);
     }
 
@@ -384,7 +453,7 @@ export default function AIPage() {
 
   async function handleSelectConversation(id: string) {
     // Trigger memory extraction for the previous conversation if it had enough messages
-    if (activeConversationId && activeConversationId !== id && messages.length >= 6) {
+    if (activeConversationId && activeConversationId !== id && messages.length >= 4) {
       extractMemories(activeConversationId, messages);
     }
     setActiveConversationId(id);
@@ -429,14 +498,33 @@ export default function AIPage() {
     }
   }
 
-  function extractMemories(conversationId: string, msgs: Message[]) {
+  async function handleEditMemory(id: string, content: string) {
+    try {
+      const res = await fetch(`/api/ai/memories/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      if (res.ok) {
+        setMemories((prev) => prev.map((m) => m.id === id ? { ...m, content } : m));
+      }
+    } catch {
+      // Silently fail
+    }
+  }
+
+  function extractMemories(conversationId: string, msgs: Message[], { silent = false }: { silent?: boolean } = {}) {
+    // Prevent duplicate extractions for the same conversation
+    if (extractedConversationsRef.current.has(conversationId)) return;
+
     const chatMsgs = msgs
       .filter((m) => m.role !== "error")
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
 
     if (chatMsgs.length < 4) return;
 
-    // Fire and forget
+    extractedConversationsRef.current.add(conversationId);
+
     fetch("/api/ai/extract-memories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -452,11 +540,23 @@ export default function AIPage() {
         if (res.ok) {
           const { memories: newMems } = await res.json();
           if (newMems && newMems.length > 0) {
-            setMemories((prev) => [...newMems, ...prev]);
+            fetchMemories();
+            if (!silent) {
+              setMemoryToast({ type: "success", message: `Nova remembered ${newMems.length} new pattern${newMems.length > 1 ? "s" : ""}` });
+              setTimeout(() => setMemoryToast(null), 3000);
+            }
           }
+        } else if (!silent) {
+          setMemoryToast({ type: "error", message: "Memory extraction failed" });
+          setTimeout(() => setMemoryToast(null), 3000);
         }
       })
-      .catch(() => { /* fire and forget */ });
+      .catch(() => {
+        if (!silent) {
+          setMemoryToast({ type: "error", message: "Memory extraction failed" });
+          setTimeout(() => setMemoryToast(null), 3000);
+        }
+      });
   }
 
   // ─── Save messages after streaming ────────────────────────────────────────
@@ -638,11 +738,18 @@ export default function AIPage() {
           <p>
             Nova analyzes your trade data to provide personalized behavioral coaching.
             To do this, your trade history, journal entries, and playbook rules are sent to
-            a third-party AI provider (Anthropic, OpenAI, or Google) for processing.
+            a third-party AI provider (Anthropic Claude, OpenAI, or Google) for processing.
           </p>
           <p>
             These providers <strong className="text-foreground">do not retain your data</strong> beyond
             the individual request. No data is used to train their models.
+          </p>
+          <p>
+            Additionally, Nova creates persistent <strong className="text-foreground">memories</strong> about
+            your trading patterns, commitments, and progress. These memories are stored in
+            your Traverse Journal account (not by the AI provider) and help Nova provide
+            continuity across coaching sessions. You can view, edit, or delete any memory
+            at any time via the Memory Panel.
           </p>
           <p className="text-[11px] text-muted/60">
             Legal basis: GDPR Art. 6(1)(a) — explicit consent. You can withdraw consent
@@ -670,6 +777,19 @@ export default function AIPage() {
   // ─── Main UI ──────────────────────────────────────────────────────────────
   return (
     <div className="max-w-[1600px] mx-auto flex flex-col h-[calc(100vh-48px)]">
+      {/* Memory extraction toast */}
+      {memoryToast && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[200] px-4 py-2 rounded-xl border text-xs font-medium shadow-lg transition-all animate-in fade-in slide-in-from-top-2 ${
+          memoryToast.type === "success"
+            ? "bg-surface border-accent/30 text-accent"
+            : "bg-surface border-loss/30 text-loss"
+        }`}>
+          <div className="flex items-center gap-2">
+            <Brain size={12} />
+            {memoryToast.message}
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between mb-3 shrink-0">
         <div className="flex items-center gap-3">
@@ -846,6 +966,7 @@ export default function AIPage() {
         <MemoryPanel
           memories={memories}
           onDelete={handleDeleteMemory}
+          onEdit={handleEditMemory}
           onClose={() => setShowMemoryPanel(false)}
         />
       )}

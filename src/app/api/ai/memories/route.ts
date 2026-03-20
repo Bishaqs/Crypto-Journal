@@ -12,7 +12,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("ai_memories")
-    .select("id, content, category, created_at")
+    .select("id, content, category, created_at, last_referenced_at")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .order("created_at", { ascending: false });

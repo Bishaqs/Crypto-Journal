@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Trade } from "@/lib/types";
 import { calculateTradePnl } from "@/lib/calculations";
-import { Brain, Sparkles } from "lucide-react";
+import { Brain, Sparkles, Send, ArrowRight } from "lucide-react";
 import { useAiEnhancedInsights, fetchAiInsight } from "@/lib/ai-insights";
+import Link from "next/link";
 
 type QuickInsight = {
   text: string;
@@ -172,10 +174,14 @@ function getBehavioralInsight(): QuickInsight | null {
 }
 
 export function AISummaryWidget({ trades }: { trades: Trade[] }) {
+  const router = useRouter();
   const closed = trades.filter((t) => t.close_timestamp !== null);
   const tradeInsights = generateQuickInsights(trades);
   const earlyInsights = tradeInsights.length === 0 ? generateEarlyInsights(trades) : [];
   const behavioralInsight = getBehavioralInsight();
+  const [memoryCount, setMemoryCount] = useState(0);
+  const [quickInput, setQuickInput] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const allInsights = tradeInsights.length > 0
     ? (behavioralInsight ? [...tradeInsights.slice(0, 2), behavioralInsight].slice(0, 3) : tradeInsights)
@@ -183,6 +189,21 @@ export function AISummaryWidget({ trades }: { trades: Trade[] }) {
 
   // Progress to pattern detection (3 closed trades needed)
   const progressTo3 = Math.min(closed.length, 3);
+
+  // Fetch memory count
+  useEffect(() => {
+    fetch("/api/ai/memories")
+      .then((res) => res.json())
+      .then((data) => setMemoryCount(data.memories?.length ?? 0))
+      .catch(() => {});
+  }, []);
+
+  function handleQuickChat(e: React.FormEvent) {
+    e.preventDefault();
+    const msg = quickInput.trim();
+    if (!msg) return;
+    router.push(`/dashboard/ai?q=${encodeURIComponent(msg)}`);
+  }
 
   // AI enhancement
   const [aiInsight, setAiInsight] = useState<string | null>(null);
@@ -217,7 +238,10 @@ export function AISummaryWidget({ trades }: { trades: Trade[] }) {
     >
       <div className="flex items-center gap-2 mb-2">
         <Brain size={14} className="text-accent" />
-        <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Quick Insights</h3>
+        <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Nova Insights</h3>
+        {memoryCount > 0 && (
+          <span className="text-[9px] bg-accent/10 text-accent px-1.5 py-0.5 rounded-full">{memoryCount} memories</span>
+        )}
       </div>
 
       {allInsights.length > 0 ? (
@@ -276,6 +300,32 @@ export function AISummaryWidget({ trades }: { trades: Trade[] }) {
           <p className="text-[11px] text-foreground/70 leading-snug">{aiInsight}</p>
         </div>
       )}
+
+      {/* Quick chat input */}
+      <div className="mt-3 pt-3 border-t border-border/30">
+        <form onSubmit={handleQuickChat} className="flex gap-2">
+          <input
+            ref={inputRef}
+            value={quickInput}
+            onChange={(e) => setQuickInput(e.target.value)}
+            placeholder="Ask Nova..."
+            className="flex-1 text-xs bg-surface-hover rounded-lg px-3 py-2 text-foreground placeholder:text-muted/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+          />
+          <button
+            type="submit"
+            className="p-2 rounded-lg text-muted hover:text-accent transition-colors"
+            disabled={!quickInput.trim()}
+          >
+            <Send size={12} />
+          </button>
+        </form>
+        <Link
+          href="/dashboard/ai"
+          className="flex items-center justify-center gap-1 mt-2 text-[10px] text-accent hover:text-accent-hover transition-colors"
+        >
+          Open Nova <ArrowRight size={10} />
+        </Link>
+      </div>
     </div>
   );
 }
