@@ -71,6 +71,13 @@ export async function POST(req: NextRequest) {
 
     if (memories && memories.length > 0) {
       memoryContext = buildMemoryContext(memories);
+      // Touch last_referenced_at for relevance tracking (non-blocking)
+      const memoryIds = memories.map((m: { id: string }) => m.id);
+      supabase
+        .from("ai_memories")
+        .update({ last_referenced_at: new Date().toISOString() })
+        .in("id", memoryIds)
+        .then(() => {});
     }
   } catch {
     // Non-critical — proceed without memories

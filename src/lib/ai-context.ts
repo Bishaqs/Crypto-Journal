@@ -1153,7 +1153,7 @@ export function buildCorrelationContext(
   return parts.length > 1 ? parts.join("\n") : "";
 }
 
-export type CoachMemory = { id: string; content: string; category: string; created_at: string };
+export type CoachMemory = { id: string; content: string; category: string; created_at: string; last_referenced_at?: string | null; relevance_score?: number };
 
 /** Build memory context to inject into the system prompt. */
 export function buildMemoryContext(memories: CoachMemory[]): string {
@@ -1167,7 +1167,15 @@ export function buildMemoryContext(memories: CoachMemory[]): string {
     general: "Note",
   };
 
-  const lines = memories.map((m) => {
+  // Sort by relevance: recently referenced first, then by creation date
+  const sorted = [...memories].sort((a, b) => {
+    const aRef = a.last_referenced_at ? new Date(a.last_referenced_at).getTime() : 0;
+    const bRef = b.last_referenced_at ? new Date(b.last_referenced_at).getTime() : 0;
+    if (aRef !== bRef) return bRef - aRef;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  const lines = sorted.map((m) => {
     const label = categoryLabels[m.category] || "Note";
     return `- [${label}] ${m.content}`;
   });
@@ -1175,6 +1183,8 @@ export function buildMemoryContext(memories: CoachMemory[]): string {
   return `\n\n## What You Remember About This Trader
 
 These are facts you've noted from previous coaching sessions. Reference them naturally when relevant — don't list them back to the trader unprompted. Weave them into your coaching. For example, if you remember they committed to a rule, check in on it. If you noted a pattern, watch for it in new data.
+
+When you reference one of these remembered facts in your response, add a small marker like "(from memory)" so the trader knows you're drawing on past context.
 
 ${lines.join("\n")}`;
 }

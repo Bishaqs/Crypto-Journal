@@ -16,7 +16,7 @@ Focus on:
 
 Return a JSON array of objects with "content" and "category" fields.
 Return [] if nothing is worth remembering.
-Maximum 3 memories per conversation. Be selective — only save genuinely useful coaching context.
+Maximum 5 memories per conversation. Be selective — only save genuinely useful coaching context.
 
 IMPORTANT: Return ONLY the JSON array, no markdown fencing, no explanation.`;
 
@@ -67,14 +67,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ memories: [] });
     }
 
-    // Validate and save memories (max 3)
+    // Validate and save memories (max 5)
     const validCategories = ["general", "pattern", "commitment", "progress", "preference"];
-    const toSave = extracted
+    const validated = extracted
       .filter((m: { content?: string; category?: string }) =>
         m.content && typeof m.content === "string" && m.content.length <= 500 &&
         m.category && validCategories.includes(m.category)
       )
-      .slice(0, 3);
+      .slice(0, 5);
+
+    if (validated.length === 0) {
+      return NextResponse.json({ memories: [] });
+    }
+
+    // Deduplicate against existing memories (word-overlap check)
+    const { data: existing } = await supabase
+      .from("ai_memories")
+      .select("content")
+      .eq("user_id", user.id)
+      .eq("is_active", true);
+
+    const toSave = validated.filter((m: { content: string }) => {
+      const newWords = new Set(m.content.toLowerCase().split(/\s+/));
+      return !(existing ?? []).some((e: { content: string }) => {
+        const existingWords = new Set(e.content.toLowerCase().split(/\s+/));
+        const overlap = [...newWords].filter((w) => existingWords.has(w)).length;
+        return overlap / Math.max(newWords.size, existingWords.size) > 0.8;
+      });
+    });
 
     if (toSave.length === 0) {
       return NextResponse.json({ memories: [] });
