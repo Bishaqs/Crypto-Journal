@@ -63,10 +63,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If logged in and on login page, redirect to dashboard
+  // If logged in and on login page, redirect to journal (core loop)
   if (user && pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/dashboard/journal";
     const resp = NextResponse.redirect(url);
     if (isOwner) resp.cookies.set("stargate-owner", "1", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" });
     return resp;
