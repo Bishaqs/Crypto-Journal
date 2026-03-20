@@ -15,6 +15,14 @@
     {
       "path": "/api/cron/generate-narratives",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/streak-check",
+      "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/cron/trial-check",
+      "schedule": "0 3 * * *"
     }
   ]
 }

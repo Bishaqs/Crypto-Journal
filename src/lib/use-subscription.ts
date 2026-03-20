@@ -33,7 +33,9 @@ export function clearSubscriptionCache() {
 }
 
 export function checkFeatureAccess(tier: SubscriptionTier, feature: string): boolean {
-  return true; // All features unlocked — re-enable tiers before launch
+  // Flip to true via NEXT_PUBLIC_FEATURE_GATING_ENABLED env var when ready to monetize
+  if (!process.env.NEXT_PUBLIC_FEATURE_GATING_ENABLED) return true;
+  return !!FEATURE_TIERS[feature]?.includes(tier);
 }
 
 export function useSubscription() {

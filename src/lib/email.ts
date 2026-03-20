@@ -4,6 +4,10 @@ import { WelcomeEmail } from "@/emails/welcome";
 import { PasswordReset } from "@/emails/password-reset";
 import { WeeklyDigest, type WeeklyDigestProps } from "@/emails/weekly-digest";
 import { BanNotification } from "@/emails/ban-notification";
+import { StreakRisk } from "@/emails/streak-risk";
+import { LevelUp } from "@/emails/level-up";
+import { AchievementUnlocked } from "@/emails/achievement-unlocked";
+import { TrialExpired } from "@/emails/trial-expired";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -95,5 +99,41 @@ export async function sendWeeklyDigest(
       unsubscribeUrl,
     }),
     tags: [{ name: "category", value: "digest" }],
+  });
+}
+
+export async function sendStreakRiskEmail(to: string, currentStreak: number) {
+  return send({
+    to,
+    subject: `Your ${currentStreak}-day streak is at risk!`,
+    react: StreakRisk({ currentStreak, dashboardLink: "https://traversejournal.com/dashboard" }),
+    tags: [{ name: "category", value: "retention" }],
+  });
+}
+
+export async function sendLevelUpEmail(to: string, newLevel: number, totalXp: number, unlockedFeature?: string) {
+  return send({
+    to,
+    subject: `Level ${newLevel} unlocked!`,
+    react: LevelUp({ newLevel, totalXp, unlockedFeature, dashboardLink: "https://traversejournal.com/dashboard" }),
+    tags: [{ name: "category", value: "retention" }],
+  });
+}
+
+export async function sendAchievementEmail(to: string, name: string, description: string, xpEarned: number) {
+  return send({
+    to,
+    subject: `Achievement Unlocked: ${name}`,
+    react: AchievementUnlocked({ achievementName: name, achievementDescription: description, xpEarned, dashboardLink: "https://traversejournal.com/dashboard/achievements" }),
+    tags: [{ name: "category", value: "retention" }],
+  });
+}
+
+export async function sendTrialExpiredEmail(to: string, trialTier: string) {
+  return send({
+    to,
+    subject: "Your free trial has ended — upgrade to keep your features",
+    react: TrialExpired({ trialTier, pricingLink: "https://traversejournal.com/pricing" }),
+    tags: [{ name: "category", value: "monetization" }],
   });
 }
