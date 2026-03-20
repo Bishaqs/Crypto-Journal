@@ -23,6 +23,8 @@ import { ConversationList, type Conversation } from "@/components/ai/conversatio
 import { MemoryPanel, type CoachMemory } from "@/components/ai/memory-panel";
 import { CoachingEnhancementHint } from "@/components/ai/coaching-enhancement-hint";
 import { generateSuggestedQuestions } from "@/lib/ai-suggested-questions";
+import { VoiceChatInput } from "@/components/ai/voice-chat-input";
+import { TtsToggle, useTts } from "@/components/ai/tts-toggle";
 
 const SUGGESTED_QUESTIONS = [
   "What patterns do you see in my losing trades?",
@@ -141,6 +143,7 @@ export default function AIPage() {
   const [sending, setSending] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [experienceLevel, setExperienceLevel] = useState("");
+  const tts = useTts();
   const [aiProvider, setAiProvider] = useState<string | undefined>();
   const [aiModel, setAiModel] = useState<string | undefined>();
   const [aiApiKey, setAiApiKey] = useState<string | undefined>();
@@ -488,6 +491,7 @@ export default function AIPage() {
     const msg = text ?? input.trim();
     if (!msg || sending) return;
 
+    tts.cancel(); // Stop any ongoing TTS
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: msg }]);
     setSending(true);
@@ -591,6 +595,11 @@ export default function AIPage() {
       if (convId && accumulated) {
         saveMessages(convId, msg, accumulated);
       }
+
+      // Read response aloud if TTS is enabled
+      if (accumulated) {
+        tts.speak(accumulated);
+      }
     } catch {
       const demoReply = DEMO_RESPONSES[msg] ?? DEMO_FALLBACK;
       setDemoMode(true);
@@ -689,6 +698,7 @@ export default function AIPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <TtsToggle enabled={tts.enabled} supported={tts.supported} speaking={tts.speaking} onToggle={tts.toggle} />
           <button
             onClick={() => setShowMemoryPanel(true)}
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
@@ -800,7 +810,7 @@ export default function AIPage() {
 
           {/* Input bar */}
           <div className="shrink-0 pb-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative">
               <input
                 type="text"
                 value={input}
@@ -815,6 +825,7 @@ export default function AIPage() {
                 disabled={sending}
                 className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all disabled:opacity-50"
               />
+              <VoiceChatInput onTranscript={(text) => sendMessage(text)} disabled={sending} />
               <button
                 onClick={() => sendMessage()}
                 disabled={sending || !input.trim()}
