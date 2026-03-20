@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "../styles/cosmetic-animations.css";
 
 /* Kill all CSS animations when OS-level "Reduce motion" is enabled or in-app toggle is on */
 @media (prefers-reduced-motion: reduce) {

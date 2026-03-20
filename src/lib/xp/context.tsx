@@ -111,8 +111,11 @@ export function LevelProvider({ children, userId: initialUserId }: { children: R
         setUserLevel(null);
         setPreviousLevel(1);
       }
-    } catch {
-      // Tables may not exist yet
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("does not exist") && !msg.includes("PGRST")) {
+        console.error("[LevelProvider] unexpected error:", msg);
+      }
     }
     setLoading(false);
   }, [userId, supabase, previousLevel]);

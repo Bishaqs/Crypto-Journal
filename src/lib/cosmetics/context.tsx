@@ -1,5 +1,6 @@
 "use client";
 
+import "@/styles/cosmetic-animations.css";
 import {
   createContext,
   useContext,
@@ -76,6 +77,7 @@ export function CosmeticProvider({ children, userId: initialUserId }: { children
   const [userId, setUserId] = useState<string | null>(initialUserId ?? null);
 
   const supabase = createClient();
+
 
   useEffect(() => {
     if (initialUserId) return;

@@ -34,8 +34,11 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) return;
       const data = await res.json();
       setConnections(data.connections ?? []);
-    } catch {
-      // Silent fail — connections stay empty (e.g. unauthenticated users)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("does not exist") && !msg.includes("PGRST") && !msg.includes("Failed to fetch")) {
+        console.error("[AccountProvider] unexpected error:", msg);
+      }
     } finally {
       setConnectionsLoading(false);
     }
