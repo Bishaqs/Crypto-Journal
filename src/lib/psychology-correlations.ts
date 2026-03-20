@@ -10,6 +10,7 @@ import type {
   Trade,
   ExpertSessionLog,
   PsychologyProfile,
+  BehavioralLog,
   CorrelationResult,
   ConfidenceCalibration,
   PostLossMetrics,
@@ -22,6 +23,13 @@ import type {
   RepetitionCompulsion,
   PsychologyCorrelations,
   DailyCheckin,
+  SomaticStressCorrelation,
+  MoneyScriptBehavior,
+  ReadinessCorrelation,
+  CheckinCorrelation,
+  SomaticHeatmapEntry,
+  SomaticArea,
+  SomaticIntensity,
 } from "./types";
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
@@ -575,13 +583,303 @@ export function detectRepetitionCompulsions(trades: Trade[]): RepetitionCompulsi
   return compulsions.sort((a, b) => a.totalLoss - b.totalLoss); // Most negative first
 }
 
+// ─── Somatic Stress → Outcome (Danziger) ─────────────────────────────────────
+
+function toDateStr(ts: string): string {
+  return ts.split("T")[0];
+}
+
+export function calculateSomaticStressCorrelation(
+  trades: Trade[],
+  sessionLogs: ExpertSessionLog[],
+): SomaticStressCorrelation | null {
+  if (sessionLogs.length === 0) return null;
+  const closed = closedTrades(trades);
+  if (closed.length < 5) return null;
+
+  const logByDate = new Map<string, ExpertSessionLog>();
+  for (const log of sessionLogs) {
+    logByDate.set(log.session_date, log);
+  }
+
+  const matchedByIntensity: Record<string, Trade[]> = {};
+  const matchedByArea: Record<string, Trade[]> = {};
+
+  for (const t of closed) {
+    const tradeDate = toDateStr(t.open_timestamp);
+    const log = logByDate.get(tradeDate);
+    if (!log) continue;
+
+    const intensity = log.somatic_intensity || "none";
+    if (intensity !== "none") {
+      if (!matchedByIntensity[intensity]) matchedByIntensity[intensity] = [];
+      matchedByIntensity[intensity].push(t);
+    }
+
+    for (const area of log.somatic_areas) {
+      if (area === "none") continue;
+      if (!matchedByArea[area]) matchedByArea[area] = [];
+      matchedByArea[area].push(t);
+    }
+  }
+
+  const byIntensity = Object.entries(matchedByIntensity)
+    .filter(([, g]) => g.length >= 2)
+    .map(([intensity, group]) => ({
+      intensity: intensity as SomaticIntensity,
+      tradeCount: group.length,
+      winRate: Math.round(winRate(group) * 1000) / 10,
+      avgPnl: Math.round(avgPnl(group) * 100) / 100,
+    }));
+
+  const byArea = Object.entries(matchedByArea)
+    .filter(([, g]) => g.length >= 2)
+    .map(([area, group]) => ({
+      area: area as SomaticArea,
+      tradeCount: group.length,
+      winRate: Math.round(winRate(group) * 1000) / 10,
+      avgPnl: Math.round(avgPnl(group) * 100) / 100,
+    }));
+
+  if (byIntensity.length === 0 && byArea.length === 0) return null;
+  return { byIntensity, byArea };
+}
+
+// ─── Money Script → Behavior (Klontz) ───────────────────────────────────────
+
+export function detectMoneyScriptBehaviors(
+  trades: Trade[],
+  profile: PsychologyProfile | null,
+): MoneyScriptBehavior[] {
+  if (!profile) return [];
+  const closed = closedTrades(trades);
+  if (closed.length < 15) return [];
+
+  const behaviors: MoneyScriptBehavior[] = [];
+  const avgSize = closed.reduce((s, t) => s + t.quantity * t.entry_price, 0) / closed.length;
+
+  // Money Avoidance: cutting winners early (MFE >> exit gain)
+  if ((profile.money_avoidance ?? 0) > 3.5) {
+    const winnersWithMfe = closed.filter(
+      (t) => (t.pnl ?? 0) > 0 && t.price_mfe != null && t.exit_price != null,
+    );
+    if (winnersWithMfe.length >= 5) {
+      let cutEarly = 0;
+      for (const t of winnersWithMfe) {
+        const exitGain = t.position === "long"
+          ? t.exit_price! - t.entry_price
+          : t.entry_price - t.exit_price!;
+        const mfeGain = t.position === "long"
+          ? t.price_mfe! - t.entry_price
+          : t.entry_price - t.price_mfe!;
+        if (mfeGain > 0 && exitGain > 0 && mfeGain > exitGain * 1.5) cutEarly++;
+      }
+      const pct = Math.round((cutEarly / winnersWithMfe.length) * 100);
+      if (pct >= 30) {
+        behaviors.push({
+          scriptType: "avoidance",
+          score: profile.money_avoidance!,
+          detectedPattern: `You cut ${pct}% of winners before they reached full potential`,
+          evidence: { metric: "Early exits (MFE > 1.5x actual gain)", value: pct, benchmark: 20 },
+        });
+      }
+    }
+  }
+
+  // Money Worship: oversizing
+  if ((profile.money_worship ?? 0) > 3.5) {
+    const largerThanAvg = closed.filter((t) => t.quantity * t.entry_price > avgSize * 1.5);
+    const pct = Math.round((largerThanAvg.length / closed.length) * 100);
+    if (pct >= 20) {
+      behaviors.push({
+        scriptType: "worship",
+        score: profile.money_worship!,
+        detectedPattern: `${pct}% of trades are oversized (>1.5x your average position)`,
+        evidence: { metric: "Oversized positions", value: pct, benchmark: 10 },
+      });
+    }
+  }
+
+  // Money Status: ego trades (low process + oversized)
+  if ((profile.money_status ?? 0) > 3.5) {
+    const egoTrades = closed.filter(
+      (t) => (t.process_score != null && t.process_score < 5) && t.quantity * t.entry_price > avgSize * 1.2,
+    );
+    const pct = Math.round((egoTrades.length / closed.length) * 100);
+    if (pct >= 10 && egoTrades.length >= 3) {
+      const egoWR = Math.round(winRate(egoTrades) * 1000) / 10;
+      behaviors.push({
+        scriptType: "status",
+        score: profile.money_status!,
+        detectedPattern: `${egoTrades.length} ego trades (low process, oversized) with ${egoWR}% win rate`,
+        evidence: { metric: "Ego trade win rate", value: egoWR, benchmark: Math.round(winRate(closed) * 1000) / 10 },
+      });
+    }
+  }
+
+  // Money Vigilance: undersizing
+  if ((profile.money_vigilance ?? 0) > 3.5) {
+    const tinyTrades = closed.filter((t) => t.quantity * t.entry_price < avgSize * 0.5);
+    const pct = Math.round((tinyTrades.length / closed.length) * 100);
+    if (pct >= 25) {
+      behaviors.push({
+        scriptType: "vigilance",
+        score: profile.money_vigilance!,
+        detectedPattern: `${pct}% of trades are undersized (<50% of your average). You may be leaving money on the table.`,
+        evidence: { metric: "Undersized positions", value: pct, benchmark: 15 },
+      });
+    }
+  }
+
+  return behaviors;
+}
+
+// ─── Readiness Score → Trade Outcome ─────────────────────────────────────────
+
+export function calculateReadinessCorrelation(
+  trades: Trade[],
+  behavioralLogs: BehavioralLog[],
+): ReadinessCorrelation[] {
+  const closed = closedTrades(trades);
+  if (closed.length < 5) return [];
+
+  const readinessLogs = behavioralLogs.filter(
+    (l) => l.phase === "pre_trade" && l.readiness_score != null,
+  );
+  if (readinessLogs.length < 3) return [];
+
+  const TWO_HOURS = 2 * 60 * 60 * 1000;
+  const byScore: Record<number, Trade[]> = {};
+
+  for (const log of readinessLogs) {
+    const logTime = new Date(log.created_at).getTime();
+    const nextTrade = closed.find((t) => {
+      const tradeTime = new Date(t.open_timestamp).getTime();
+      return tradeTime >= logTime && tradeTime - logTime <= TWO_HOURS;
+    });
+    if (nextTrade) {
+      const score = log.readiness_score!;
+      if (!byScore[score]) byScore[score] = [];
+      byScore[score].push(nextTrade);
+    }
+  }
+
+  const labels: Record<number, "red" | "yellow" | "green"> = { 1: "red", 2: "yellow", 3: "green" };
+
+  return Object.entries(byScore)
+    .filter(([, g]) => g.length >= 2)
+    .map(([score, group]) => ({
+      score: Number(score),
+      label: labels[Number(score)] || ("green" as const),
+      tradeCount: group.length,
+      winRate: Math.round(winRate(group) * 1000) / 10,
+      avgPnl: Math.round(avgPnl(group) * 100) / 100,
+      totalPnl: Math.round(totalPnl(group) * 100) / 100,
+    }))
+    .sort((a, b) => a.score - b.score);
+}
+
+// ─── Daily Check-in → Trade Outcome ──────────────────────────────────────────
+
+export function calculateCheckinCorrelation(
+  trades: Trade[],
+  checkins: DailyCheckin[],
+): CheckinCorrelation[] {
+  const closed = closedTrades(trades);
+  if (closed.length < 10 || checkins.length < 5) return [];
+
+  const checkinByDate = new Map<string, DailyCheckin>();
+  for (const c of checkins) checkinByDate.set(c.date, c);
+
+  type Matched = { trade: Trade; checkin: DailyCheckin };
+  const matched: Matched[] = [];
+  for (const t of closed) {
+    const checkin = checkinByDate.get(toDateStr(t.open_timestamp));
+    if (checkin) matched.push({ trade: t, checkin });
+  }
+  if (matched.length < 5) return [];
+
+  const results: CheckinCorrelation[] = [];
+
+  function bucketNumeric(
+    dimension: "mood" | "energy" | "sleep_quality" | "cognitive_load",
+    getValue: (c: DailyCheckin) => number | null,
+  ) {
+    const buckets: Record<string, Trade[]> = {};
+    for (const { trade, checkin } of matched) {
+      const val = getValue(checkin);
+      if (val == null) continue;
+      const bucket = val <= 2 ? "1-2 (Low)" : val <= 3 ? "3 (Mid)" : "4-5 (High)";
+      if (!buckets[bucket]) buckets[bucket] = [];
+      buckets[bucket].push(trade);
+    }
+    for (const [bucket, group] of Object.entries(buckets)) {
+      if (group.length < 3) continue;
+      results.push({
+        dimension,
+        bucket,
+        tradeCount: group.length,
+        winRate: Math.round(winRate(group) * 1000) / 10,
+        avgPnl: Math.round(avgPnl(group) * 100) / 100,
+        totalPnl: Math.round(totalPnl(group) * 100) / 100,
+      });
+    }
+  }
+
+  bucketNumeric("mood", (c) => c.mood);
+  bucketNumeric("energy", (c) => c.energy);
+  bucketNumeric("sleep_quality", (c) => c.sleep_quality);
+  bucketNumeric("cognitive_load", (c) => c.cognitive_load);
+
+  const byTraffic: Record<string, Trade[]> = {};
+  for (const { trade, checkin } of matched) {
+    if (!byTraffic[checkin.traffic_light]) byTraffic[checkin.traffic_light] = [];
+    byTraffic[checkin.traffic_light].push(trade);
+  }
+  for (const [light, group] of Object.entries(byTraffic)) {
+    if (group.length < 3) continue;
+    results.push({
+      dimension: "traffic_light" as const,
+      bucket: light,
+      tradeCount: group.length,
+      winRate: Math.round(winRate(group) * 1000) / 10,
+      avgPnl: Math.round(avgPnl(group) * 100) / 100,
+      totalPnl: Math.round(totalPnl(group) * 100) / 100,
+    });
+  }
+
+  return results;
+}
+
+// ─── Somatic Heatmap (derived) ───────────────────────────────────────────────
+
+export function buildSomaticHeatmap(
+  trades: Trade[],
+  sessionLogs: ExpertSessionLog[],
+): SomaticHeatmapEntry[] {
+  const corr = calculateSomaticStressCorrelation(trades, sessionLogs);
+  if (!corr) return [];
+  const overallWR = winRate(closedTrades(trades)) * 100;
+
+  return corr.byArea.map((entry) => ({
+    area: entry.area,
+    tradeCount: entry.tradeCount,
+    winRate: entry.winRate,
+    avgPnl: entry.avgPnl,
+    sentiment: entry.winRate > overallWR + 5 ? "positive" as const
+      : entry.winRate < overallWR - 5 ? "negative" as const
+      : "neutral" as const,
+  }));
+}
+
 // ─── Master Correlation Builder ──────────────────────────────────────────────
 
 export function calculateAllCorrelations(
   trades: Trade[],
-  _sessionLogs?: ExpertSessionLog[],
-  _profile?: PsychologyProfile | null,
-  _checkins?: DailyCheckin[],
+  sessionLogs: ExpertSessionLog[] = [],
+  profile: PsychologyProfile | null = null,
+  checkins: DailyCheckin[] = [],
+  behavioralLogs: BehavioralLog[] = [],
 ): PsychologyCorrelations {
   return {
     emotionCorrelations: calculateEmotionCorrelations(trades),
@@ -596,6 +894,11 @@ export function calculateAllCorrelations(
     sqn: calculateSQN(trades),
     shadowEruptions: detectShadowEruptions(trades),
     repetitionCompulsions: detectRepetitionCompulsions(trades),
+    somaticStressCorrelation: calculateSomaticStressCorrelation(trades, sessionLogs),
+    moneyScriptBehaviors: detectMoneyScriptBehaviors(trades, profile),
+    readinessCorrelation: calculateReadinessCorrelation(trades, behavioralLogs),
+    checkinCorrelation: calculateCheckinCorrelation(trades, checkins),
+    somaticHeatmap: buildSomaticHeatmap(trades, sessionLogs),
   };
 }
 
@@ -743,6 +1046,66 @@ export function generateHeadlineInsights(correlations: PsychologyCorrelations): 
         description: `When you rate confidence ${worst.confidence}/10, you expect ~${worst.confidence * 10}% wins but only achieve ${worst.actualWinRate}%. Your confidence is miscalibrated — use data to recalibrate.`,
         severity: "warning",
         framework: "Kahneman",
+      });
+    }
+  }
+
+  // Somatic stress insight
+  if (correlations.somaticStressCorrelation) {
+    const s = correlations.somaticStressCorrelation;
+    const strong = s.byIntensity.find((i) => i.intensity === "strong");
+    const light = s.byIntensity.find((i) => i.intensity === "light");
+    if (strong && light && strong.tradeCount >= 3) {
+      const diff = light.winRate - strong.winRate;
+      if (diff > 10) {
+        insights.push({
+          title: `High body stress costs you ${diff.toFixed(0)}% win rate`,
+          description: `Strong somatic stress: ${strong.winRate}% WR ($${strong.avgPnl.toFixed(0)} avg). Light stress: ${light.winRate}% WR ($${light.avgPnl.toFixed(0)} avg). Your body knows before your mind.`,
+          severity: diff > 20 ? "critical" : "warning",
+          framework: "Danziger",
+        });
+      }
+    }
+  }
+
+  // Money script insight
+  if (correlations.moneyScriptBehaviors.length > 0) {
+    const worst = correlations.moneyScriptBehaviors[0];
+    insights.push({
+      title: `Money ${worst.scriptType} pattern detected`,
+      description: worst.detectedPattern,
+      severity: "warning",
+      framework: "Klontz",
+    });
+  }
+
+  // Readiness insight
+  if (correlations.readinessCorrelation.length >= 2) {
+    const green = correlations.readinessCorrelation.find((r) => r.label === "green");
+    const red = correlations.readinessCorrelation.find((r) => r.label === "red");
+    if (green && red && green.tradeCount >= 3 && red.tradeCount >= 2) {
+      insights.push({
+        title: `Readiness check works: green ${green.winRate}% vs red ${red.winRate}% WR`,
+        description: `Trades after green readiness: $${green.avgPnl.toFixed(0)} avg. After red: $${red.avgPnl.toFixed(0)} avg. ${red.winRate < green.winRate - 10 ? "The readiness check is protecting you." : "Keep building data."}`,
+        severity: green.winRate > red.winRate + 15 ? "positive" : "neutral",
+        framework: "Danziger",
+      });
+    }
+  }
+
+  // Checkin mood insight
+  const highMood = correlations.checkinCorrelation.find((c) => c.dimension === "mood" && c.bucket === "4-5 (High)");
+  const lowMood = correlations.checkinCorrelation.find((c) => c.dimension === "mood" && c.bucket === "1-2 (Low)");
+  if (highMood && lowMood && highMood.tradeCount >= 3 && lowMood.tradeCount >= 3) {
+    const diff = highMood.winRate - lowMood.winRate;
+    if (Math.abs(diff) > 10) {
+      insights.push({
+        title: `High mood days: ${highMood.winRate}% WR vs low mood: ${lowMood.winRate}% WR`,
+        description: diff > 0
+          ? "Higher mood = better trades. Consider reducing activity on low-mood days."
+          : "You trade better on low-mood days. Perhaps caution improves your process.",
+        severity: diff > 15 ? "positive" : "neutral",
+        framework: "Danziger",
       });
     }
   }

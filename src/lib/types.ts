@@ -135,6 +135,11 @@ export type BehavioralLog = {
   narrative_attachment: number | null; // 1-5
   environment_context: Record<string, unknown>;
   psychology_tier: PsychologyTier;
+  // Pre-trade readiness fields (migration 046)
+  phase: "daily" | "pre_trade";
+  readiness_score: number | null; // 1=red, 2=yellow, 3=green
+  override: boolean;
+  override_outcome_pnl: number | null;
   created_at: string;
 };
 
@@ -351,6 +356,56 @@ export type RepetitionCompulsion = {
 
 // ─── Psychology Correlation Aggregates ───────────────────────────────────────
 
+// ─── Psychology-Outcome Correlation Types ────────────────────────────────────
+
+export type SomaticStressCorrelation = {
+  byIntensity: {
+    intensity: SomaticIntensity;
+    tradeCount: number;
+    winRate: number;
+    avgPnl: number;
+  }[];
+  byArea: {
+    area: SomaticArea;
+    tradeCount: number;
+    winRate: number;
+    avgPnl: number;
+  }[];
+};
+
+export type MoneyScriptBehavior = {
+  scriptType: "avoidance" | "worship" | "status" | "vigilance";
+  score: number;
+  detectedPattern: string;
+  evidence: { metric: string; value: number; benchmark: number };
+};
+
+export type ReadinessCorrelation = {
+  score: number;
+  label: "red" | "yellow" | "green";
+  tradeCount: number;
+  winRate: number;
+  avgPnl: number;
+  totalPnl: number;
+};
+
+export type CheckinCorrelation = {
+  dimension: "mood" | "energy" | "sleep_quality" | "cognitive_load" | "traffic_light";
+  bucket: string;
+  tradeCount: number;
+  winRate: number;
+  avgPnl: number;
+  totalPnl: number;
+};
+
+export type SomaticHeatmapEntry = {
+  area: SomaticArea;
+  tradeCount: number;
+  winRate: number;
+  avgPnl: number;
+  sentiment: "positive" | "neutral" | "negative";
+};
+
 export type PsychologyCorrelations = {
   emotionCorrelations: CorrelationResult[];
   timeCorrelations: CorrelationResult[];
@@ -364,6 +419,12 @@ export type PsychologyCorrelations = {
   sqn: SQN | null;
   shadowEruptions: ShadowEruption[];
   repetitionCompulsions: RepetitionCompulsion[];
+  // Psychology-outcome correlations
+  somaticStressCorrelation: SomaticStressCorrelation | null;
+  moneyScriptBehaviors: MoneyScriptBehavior[];
+  readinessCorrelation: ReadinessCorrelation[];
+  checkinCorrelation: CheckinCorrelation[];
+  somaticHeatmap: SomaticHeatmapEntry[];
 };
 
 // Stats derived from trades — these are calculated, not stored

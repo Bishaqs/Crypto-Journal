@@ -1101,6 +1101,55 @@ export function buildCorrelationContext(
     }
   }
 
+  // Somatic stress
+  if (correlations.somaticStressCorrelation) {
+    const s = correlations.somaticStressCorrelation;
+    if (s.byIntensity.length > 0) {
+      parts.push(`- **Somatic stress impact**:`);
+      for (const entry of s.byIntensity) {
+        parts.push(`  - ${entry.intensity}: ${entry.winRate}% WR, $${entry.avgPnl.toFixed(2)} avg (${entry.tradeCount} trades)`);
+      }
+    }
+    if (s.byArea.length > 0) {
+      parts.push(`  Body areas:`);
+      for (const entry of s.byArea) {
+        parts.push(`  - ${entry.area}: ${entry.winRate}% WR, $${entry.avgPnl.toFixed(2)} avg (${entry.tradeCount} trades)`);
+      }
+    }
+  }
+
+  // Money scripts
+  if (correlations.moneyScriptBehaviors.length > 0) {
+    parts.push(`- **Money script patterns detected**:`);
+    for (const b of correlations.moneyScriptBehaviors) {
+      parts.push(`  - ${b.scriptType} (score ${b.score}/5): ${b.detectedPattern}`);
+    }
+  }
+
+  // Readiness
+  if (correlations.readinessCorrelation.length > 0) {
+    parts.push(`- **Readiness check outcomes**:`);
+    for (const r of correlations.readinessCorrelation) {
+      parts.push(`  - ${r.label} readiness: ${r.winRate}% WR, $${r.avgPnl.toFixed(2)} avg (${r.tradeCount} trades)`);
+    }
+  }
+
+  // Daily checkin
+  const moodData = correlations.checkinCorrelation.filter((c) => c.dimension === "mood");
+  if (moodData.length >= 2) {
+    parts.push(`- **Mood → performance**:`);
+    for (const m of moodData) {
+      parts.push(`  - Mood ${m.bucket}: ${m.winRate}% WR, $${m.avgPnl.toFixed(2)} avg (${m.tradeCount} trades)`);
+    }
+  }
+  const sleepData = correlations.checkinCorrelation.filter((c) => c.dimension === "sleep_quality");
+  if (sleepData.length >= 2) {
+    parts.push(`- **Sleep quality → performance**:`);
+    for (const s of sleepData) {
+      parts.push(`  - Sleep ${s.bucket}: ${s.winRate}% WR, $${s.avgPnl.toFixed(2)} avg (${s.tradeCount} trades)`);
+    }
+  }
+
   return parts.length > 1 ? parts.join("\n") : "";
 }
 

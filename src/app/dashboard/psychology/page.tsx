@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
-import type { Trade, PsychologyCorrelations } from "@/lib/types";
+import type { Trade, PsychologyCorrelations, ExpertSessionLog, DailyCheckin, BehavioralLog, PsychologyProfile } from "@/lib/types";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
 import Link from "next/link";
@@ -69,13 +69,30 @@ export default function PsychologyPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
 
-      const { data: allTrades } = await fetchAllTrades(supabase);
-      const filtered = filterTrades(allTrades as Trade[]);
+      const [
+        { data: allTrades },
+        { data: sessionLogs },
+        { data: checkins },
+        { data: profileRows },
+        { data: behavioralLogs },
+      ] = await Promise.all([
+        fetchAllTrades(supabase),
+        supabase.from("expert_session_logs").select("*").eq("user_id", user.id).order("session_date", { ascending: false }),
+        supabase.from("daily_checkins").select("*").eq("user_id", user.id).order("date", { ascending: false }),
+        supabase.from("psychology_profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1),
+        supabase.from("behavioral_logs").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      ]);
 
+      const filtered = filterTrades(allTrades as Trade[]);
       setTrades(filtered);
 
-      // Calculate correlations
-      const corr = calculateAllCorrelations(filtered);
+      const corr = calculateAllCorrelations(
+        filtered,
+        (sessionLogs || []) as ExpertSessionLog[],
+        (profileRows?.[0] ?? null) as PsychologyProfile | null,
+        (checkins || []) as DailyCheckin[],
+        (behavioralLogs || []) as BehavioralLog[],
+      );
       setCorrelations(corr);
       setInsights(generateHeadlineInsights(corr));
       setLoading(false);
@@ -199,6 +216,155 @@ export default function PsychologyPage() {
             Pattern Detection
           </h2>
           <DetectionPanel trades={closedTrades} correlations={correlations} />
+        </section>
+      )}
+
+      {/* Somatic Stress → Trade Outcome */}
+      {correlations?.somaticStressCorrelation && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            Body Stress → Trade Outcome
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {correlations.somaticStressCorrelation.byIntensity.length > 0 && (
+              <div className="glass rounded-xl border border-border/50 p-4 space-y-3">
+                <h3 className="text-sm font-semibold opacity-80">By Stress Intensity</h3>
+                {correlations.somaticStressCorrelation.byIntensity.map((d) => (
+                  <div key={d.intensity} className="flex items-center justify-between text-sm">
+                    <span className="capitalize">{d.intensity}</span>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className={d.winRate >= 50 ? "text-green-400" : "text-red-400"}>{d.winRate}% WR</span>
+                      <span className={d.avgPnl >= 0 ? "text-green-400" : "text-red-400"}>${d.avgPnl.toFixed(0)}</span>
+                      <span className="opacity-50">{d.tradeCount} trades</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {correlations.somaticStressCorrelation.byArea.length > 0 && (
+              <div className="glass rounded-xl border border-border/50 p-4 space-y-3">
+                <h3 className="text-sm font-semibold opacity-80">By Body Area</h3>
+                {correlations.somaticStressCorrelation.byArea.map((d) => (
+                  <div key={d.area} className="flex items-center justify-between text-sm">
+                    <span className="capitalize">{d.area}</span>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className={d.winRate >= 50 ? "text-green-400" : "text-red-400"}>{d.winRate}% WR</span>
+                      <span className={d.avgPnl >= 0 ? "text-green-400" : "text-red-400"}>${d.avgPnl.toFixed(0)}</span>
+                      <span className="opacity-50">{d.tradeCount} trades</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Money Script Patterns */}
+      {correlations && correlations.moneyScriptBehaviors.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Brain className="w-5 h-5" />
+            Money Script Patterns
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {correlations.moneyScriptBehaviors.map((b) => (
+              <div key={b.scriptType} className="glass rounded-xl border border-amber-500/20 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold capitalize">{b.scriptType}</span>
+                  <span className="text-xs opacity-50">Score: {b.score.toFixed(1)}/5</span>
+                </div>
+                <p className="text-sm opacity-80">{b.detectedPattern}</p>
+                <div className="flex items-center gap-2 text-xs opacity-60">
+                  <span>{b.evidence.metric}: {b.evidence.value}%</span>
+                  <span>vs benchmark {b.evidence.benchmark}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Readiness Check → Trade Outcome */}
+      {correlations && correlations.readinessCorrelation.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Shield className="w-5 h-5" />
+            Readiness Check Accuracy
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {correlations.readinessCorrelation.map((r) => (
+              <div key={r.score} className={`glass rounded-xl border p-4 text-center space-y-1 ${
+                r.label === "green" ? "border-emerald-500/20" : r.label === "yellow" ? "border-amber-500/20" : "border-red-500/20"
+              }`}>
+                <div className={`text-2xl font-bold ${
+                  r.label === "green" ? "text-emerald-400" : r.label === "yellow" ? "text-amber-400" : "text-red-400"
+                }`}>
+                  {r.winRate}%
+                </div>
+                <p className="text-sm capitalize font-medium">{r.label} Readiness</p>
+                <p className="text-xs opacity-50">{r.tradeCount} trades, ${r.avgPnl.toFixed(0)} avg</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Daily Check-in → Trade Outcome */}
+      {correlations && correlations.checkinCorrelation.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            Daily Check-in → Trade Outcome
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(["mood", "energy", "sleep_quality", "cognitive_load", "traffic_light"] as const).map((dim) => {
+              const data = correlations.checkinCorrelation.filter((c) => c.dimension === dim);
+              if (data.length < 2) return null;
+              const label = dim === "sleep_quality" ? "Sleep Quality" : dim === "cognitive_load" ? "Cognitive Load" : dim === "traffic_light" ? "Traffic Light" : dim.charAt(0).toUpperCase() + dim.slice(1);
+              return (
+                <div key={dim} className="glass rounded-xl border border-border/50 p-4 space-y-3">
+                  <h3 className="text-sm font-semibold opacity-80">{label}</h3>
+                  {data.map((d) => (
+                    <div key={d.bucket} className="flex items-center justify-between text-sm">
+                      <span>{d.bucket}</span>
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className={d.winRate >= 50 ? "text-green-400" : "text-red-400"}>{d.winRate}% WR</span>
+                        <span className={d.avgPnl >= 0 ? "text-green-400" : "text-red-400"}>${d.avgPnl.toFixed(0)}</span>
+                        <span className="opacity-50">{d.tradeCount} trades</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Body Tension Heatmap */}
+      {correlations && correlations.somaticHeatmap.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Eye className="w-5 h-5" />
+            Body Tension Heatmap
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {correlations.somaticHeatmap.map((entry) => (
+              <div key={entry.area} className={`glass rounded-xl border p-4 text-center min-w-[120px] ${
+                entry.sentiment === "positive" ? "border-emerald-500/30" : entry.sentiment === "negative" ? "border-red-500/30" : "border-border/50"
+              }`}>
+                <div className={`text-lg font-bold ${
+                  entry.sentiment === "positive" ? "text-emerald-400" : entry.sentiment === "negative" ? "text-red-400" : "opacity-70"
+                }`}>
+                  {entry.winRate}%
+                </div>
+                <p className="text-sm capitalize font-medium mt-1">{entry.area}</p>
+                <p className="text-xs opacity-50">{entry.tradeCount} trades, ${entry.avgPnl.toFixed(0)} avg</p>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
