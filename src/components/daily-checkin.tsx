@@ -6,6 +6,8 @@ import { X, Sun, Coffee, Zap } from "lucide-react";
 import { isTourComplete } from "@/lib/onboarding";
 import { usePsychologyTier } from "@/lib/psychology-tier-context";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { getLocalDateString } from "@/lib/date-utils";
+import { EmotionCheckIn } from "@/components/emotion-checkin";
 
 const MOOD_LEVELS = [
   { value: 1, emoji: "😞", label: "Awful" },
@@ -58,69 +60,122 @@ export function DailyCheckin({ embedded = false }: { embedded?: boolean } = {}) 
   const [intention, setIntention] = useState("");
   const [saving, setSaving] = useState(false);
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
+  const [showSessionCheckin, setShowSessionCheckin] = useState(false);
   const supabase = createClient();
 
-  const today = new Date().toISOString().split("T")[0];
+  const getToday = useCallback(() => getLocalDateString(), []);
 
   const checkExisting = useCallback(async () => {
+    const today = getToday();
     const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id;
-    const { data } = await supabase
+    if (!user) return;
+
+    const { data, error } = await supabase
       .from("daily_checkins")
       .select("id")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .eq("date", today)
       .limit(1);
 
+    if (error) {
+      console.error("[DailyCheckin] Failed to check existing:", error.message);
+      return;
+    }
+
     if (data && data.length > 0) {
       setAlreadyCheckedIn(true);
+      // Show session check-in if not done this session
+      const sessionDone = sessionStorage.getItem("session-checkin-done");
+      if (!sessionDone) setShowSessionCheckin(true);
     } else {
-      // Show check-in prompt if no entry today
-      const dismissed = sessionStorage.getItem(`checkin-dismissed-${today}`);
+      const dismissed = localStorage.getItem(`checkin-dismissed-${today}`);
       if (!dismissed) setShow(true);
     }
-  }, [supabase, today]);
+  }, [supabase, getToday]);
 
   useEffect(() => {
     checkExisting();
   }, [checkExisting]);
 
+  // Re-check when tab becomes visible (handles overnight day boundary)
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible") checkExisting();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [checkExisting]);
+
+  // Clean up stale dismiss keys from previous days
+  useEffect(() => {
+    const today = getToday();
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("checkin-dismissed-") && k !== `checkin-dismissed-${today}`)
+        .forEach((k) => localStorage.removeItem(k));
+    } catch { /* localStorage may be unavailable */ }
+  }, [getToday]);
+
   async function handleSubmit() {
     if (!mood || !trafficLight) return;
     setSaving(true);
 
-    const payload: Record<string, unknown> = {
-      date: today,
-      mood,
-      energy,
-      focus: focus || null,
-      traffic_light: trafficLight,
-      gratitude: gratitude || null,
-      intention: intention || null,
-    };
-    if (isAdvanced) {
-      payload.sleep_quality = sleepQuality;
-      payload.cognitive_load = cognitiveLoad;
-    }
-    await supabase.from("daily_checkins").upsert(payload, { onConflict: "user_id,date" });
-
-    // Award XP for daily check-in
     try {
-      const { awardXP } = await import("@/lib/xp/engine");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await awardXP(supabase, user.id, "checkin");
+      const today = getToday();
+      const payload: Record<string, unknown> = {
+        date: today,
+        mood,
+        energy,
+        focus: focus || null,
+        traffic_light: trafficLight,
+        gratitude: gratitude || null,
+        intention: intention || null,
+      };
+      if (isAdvanced) {
+        payload.sleep_quality = sleepQuality;
+        payload.cognitive_load = cognitiveLoad;
       }
-    } catch { /* XP tables may not exist yet */ }
 
-    setSaving(false);
-    setShow(false);
-    setAlreadyCheckedIn(true);
+      const { error } = await supabase
+        .from("daily_checkins")
+        .upsert(payload, { onConflict: "user_id,date" });
+
+      if (error) {
+        console.error("[DailyCheckin] Failed to save:", error.message);
+      }
+
+      // Award XP for daily check-in
+      try {
+        const { awardXP } = await import("@/lib/xp/engine");
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await awardXP(supabase, user.id, "checkin");
+        }
+      } catch { /* XP tables may not exist yet */ }
+
+      localStorage.setItem(`checkin-dismissed-${today}`, "1");
+      // Mark session check-in as done too — user just did a full check-in
+      sessionStorage.setItem("session-checkin-done", "1");
+      setAlreadyCheckedIn(true);
+    } finally {
+      setSaving(false);
+      setShow(false);
+    }
   }
 
   function dismiss() {
-    sessionStorage.setItem(`checkin-dismissed-${today}`, "1");
+    localStorage.setItem(`checkin-dismissed-${getToday()}`, "1");
     setShow(false);
+  }
+
+  function dismissSessionCheckin() {
+    sessionStorage.setItem("session-checkin-done", "1");
+    setShowSessionCheckin(false);
+  }
+
+  function handleSessionCheckinComplete() {
+    sessionStorage.setItem("session-checkin-done", "1");
+    setShowSessionCheckin(false);
   }
 
   if (alreadyCheckedIn && embedded) {
@@ -131,6 +186,36 @@ export function DailyCheckin({ embedded = false }: { embedded?: boolean } = {}) 
           <div>
             <p className="text-sm font-semibold text-foreground">Checked in for today</p>
             <p className="text-xs text-muted">You&apos;re all set. Good trading!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Session check-in: shown on return visits after daily check-in is done
+  if (!embedded && alreadyCheckedIn && showSessionCheckin && isTourComplete("welcome")) {
+    return (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div
+          className="glass border border-border/50 rounded-2xl w-full max-w-sm max-h-[90vh] flex flex-col overflow-hidden"
+          style={{ boxShadow: "var(--shadow-glow)" }}
+        >
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <div>
+              <h2 className="text-base font-bold text-foreground">Quick Check-In</h2>
+              <p className="text-[11px] text-muted mt-0.5">How are you feeling right now?</p>
+            </div>
+            <button onClick={dismissSessionCheckin} className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface-hover transition-all">
+              <X size={18} />
+            </button>
+          </div>
+          <div className="p-4 overflow-y-auto flex-1 min-h-0">
+            <EmotionCheckIn
+              mode="auto"
+              context="standalone"
+              embedded
+              onComplete={handleSessionCheckinComplete}
+            />
           </div>
         </div>
       </div>

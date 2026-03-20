@@ -64,3 +64,17 @@ export function formatTime(
 ): string {
   return new Date(iso).toLocaleTimeString("en-US", { timeZone: tz, ...options });
 }
+
+/** Get the current local date as a YYYY-MM-DD string.
+ *  Defaults to the browser's detected timezone if none is provided. */
+export function getLocalDateString(tz?: string): string {
+  const timezone = tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const g = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${g("year")}-${g("month")}-${g("day")}`;
+}
