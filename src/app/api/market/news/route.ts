@@ -3,10 +3,57 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import type { NewsArticle, AssetCategory, Sentiment } from "@/lib/news/types";
 import { scoreArticle, type ScoringMeta } from "@/lib/news/scoring";
+import { fetchWhaleAlerts } from "@/lib/news/fetch-whale-alerts";
 
 export const dynamic = "force-dynamic";
 
 const COINDESK_NEWS = "https://data-api.coindesk.com/news/v1/article/list";
+
+// ---------------------------------------------------------------------------
+// Title-based deduplication
+// ---------------------------------------------------------------------------
+
+function titleWords(title: string): Set<string> {
+  return new Set(
+    title.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter((w) => w.length > 2),
+  );
+}
+
+function titleOverlap(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 || b.size === 0) return 0;
+  let common = 0;
+  for (const w of a) if (b.has(w)) common++;
+  return common / Math.min(a.size, b.size);
+}
+
+const SOURCE_PRIORITY: Record<string, number> = {
+  Reuters: 10, Bloomberg: 10, "Associated Press": 10,
+  "Wall Street Journal": 9, "Financial Times": 9, CNBC: 8,
+  "Whale Alert": 8, CoinDesk: 7, CoinTelegraph: 6,
+};
+
+function deduplicateArticles(articles: NewsArticle[]): NewsArticle[] {
+  const kept: NewsArticle[] = [];
+  const keptWords: Set<string>[] = [];
+
+  // Sort by source priority (highest first) so we keep the best version
+  const sorted = [...articles].sort((a, b) => {
+    const pa = SOURCE_PRIORITY[a.source] ?? 5;
+    const pb = SOURCE_PRIORITY[b.source] ?? 5;
+    return pb - pa;
+  });
+
+  for (const article of sorted) {
+    const words = titleWords(article.title);
+    const isDuplicate = keptWords.some((kw) => titleOverlap(words, kw) > 0.6);
+    if (!isDuplicate) {
+      kept.push(article);
+      keptWords.push(words);
+    }
+  }
+
+  return kept;
+}
 const CRYPTOPANIC_BASE = "https://cryptopanic.com/api/v1/posts/";
 const FINNHUB_BASE = "https://finnhub.io/api/v1";
 
@@ -130,16 +177,17 @@ function normalizeFinnhub(
 async function fetchCryptoNews(): Promise<NewsArticle[]> {
   const results: NewsArticle[] = [];
 
-  const [cdRes, cpRes] = await Promise.allSettled([
-    fetch(`${COINDESK_NEWS}?lang=EN&limit=30`, {
+  const [cdRes, cpRes, waRes] = await Promise.allSettled([
+    fetch(`${COINDESK_NEWS}?lang=EN&limit=10`, {
       next: { revalidate: 300 },
     }),
     process.env.CRYPTOPANIC_API_KEY
       ? fetch(
-          `${CRYPTOPANIC_BASE}?auth_token=${process.env.CRYPTOPANIC_API_KEY}&public=true&kind=news&filter=hot`,
+          `${CRYPTOPANIC_BASE}?auth_token=${process.env.CRYPTOPANIC_API_KEY}&public=true&kind=news&filter=important`,
           { next: { revalidate: 300 } },
         )
       : Promise.resolve(null),
+    fetchWhaleAlerts(),
   ]);
 
   if (cdRes.status === "fulfilled" && cdRes.value.ok) {
@@ -155,6 +203,11 @@ async function fetchCryptoNews(): Promise<NewsArticle[]> {
   ) {
     const json = await (cpRes.value as Response).json();
     if (json.results) results.push(...normalizeCryptoPanic(json.results));
+  }
+
+  // Whale Alert results come directly as NewsArticle[]
+  if (waRes.status === "fulfilled") {
+    results.push(...waRes.value);
   }
 
   return results;
@@ -233,13 +286,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Deduplicate by id
-    const seen = new Set<string>();
-    articles = articles.filter((a) => {
-      if (seen.has(a.id)) return false;
-      seen.add(a.id);
-      return true;
-    });
+    // Deduplicate by id + title similarity
+    articles = deduplicateArticles(articles);
 
     // Sort newest first
     articles.sort(

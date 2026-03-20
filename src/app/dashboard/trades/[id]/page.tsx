@@ -42,6 +42,7 @@ import { CollapsibleSection } from "@/components/trade-detail/collapsible-sectio
 import { ExecutionsTable } from "@/components/trade-detail/executions-table";
 import { MultiTimeframeExit } from "@/components/trade-detail/multi-timeframe-exit";
 import { NoteLinkPicker } from "@/components/trade-detail/note-link-picker";
+import { TradeMarketContext } from "@/components/market/trade-market-context";
 
 // ---------------------------------------------------------------------------
 // TradingView Mini Chart
@@ -471,6 +472,12 @@ export default function TradeDetailPage() {
         onCreateNote={() => router.push(`/dashboard/journal?new=true&link_trade=${trade.id}&asset=crypto`)}
         onLinkExisting={() => setShowNotePicker(true)}
         onRefresh={fetchLinkedNotes}
+      />
+
+      {/* Market Context at Time of Trade */}
+      <TradeMarketContext
+        entryDate={trade.open_timestamp ?? trade.created_at}
+        exitDate={trade.close_timestamp}
       />
 
       {/* Linked Journal Notes */}
