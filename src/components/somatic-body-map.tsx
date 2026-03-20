@@ -14,10 +14,10 @@ const INTENSITY_OPTIONS: { id: SomaticIntensity; label: string; color: string }[
 // Body region positions (relative to SVG viewBox 0 0 100 200)
 const REGION_POSITIONS: Record<string, { cx: number; cy: number; r: number }> = {
   jaw: { cx: 50, cy: 22, r: 8 },
-  shoulders: { cx: 50, cy: 52, r: 14 },
-  chest: { cx: 50, cy: 72, r: 12 },
-  stomach: { cx: 50, cy: 95, r: 11 },
-  hands: { cx: 50, cy: 130, r: 8 },
+  shoulders: { cx: 50, cy: 38, r: 14 },
+  chest: { cx: 50, cy: 65, r: 12 },
+  stomach: { cx: 50, cy: 90, r: 11 },
+  hands: { cx: 12, cy: 120, r: 8 },
 };
 
 export function SomaticBodyMap({
