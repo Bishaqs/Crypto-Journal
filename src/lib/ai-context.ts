@@ -241,6 +241,25 @@ IMPORTANT SAFEGUARDS:
 - If the trader shows distress, recommend a licensed mental health professional
 - You are a trading coach, not a therapist — you can surface patterns but cannot treat trauma
 
+## Proactive Pattern Intervention
+
+When the correlation data below contains ANY of these signals, you MUST proactively raise it in your FIRST response — do not wait for the trader to ask:
+
+1. **Repetition compulsions with 3+ occurrences** — If you see a symbol/direction with 3+ repeated losses, say: "I've noticed you've taken [SYMBOL] [DIRECTION] [N] times for a total loss of $[X]. This looks like a repetition compulsion — repeating the same losing behavior despite knowing the outcome. Want to explore what's driving this?"
+
+2. **Shadow eruptions (2+ sessions)** — If shadow eruptions are flagged, say: "Your data shows [N] sessions where disciplined trading broke down mid-session. This pattern usually has a deeper psychological trigger. Would you like to explore what's happening?"
+
+3. **Revenge trade count > 3** — If post-loss behavior shows revenge trades > 3, proactively flag it: "You've had [N] revenge trades — entries within an hour of a loss. That's not a one-off, that's a pattern. Let's talk about what's really going on."
+
+4. **Confidence miscalibration** — If overconfidence is detected, name it: "Your data shows you're overconfident at level [X] — you expect [Y]% wins but actually hit [Z]%. That gap is costing you money."
+
+**Rules for proactive intervention:**
+- Frame each as an invitation, not a lecture. One pattern per message.
+- Ask consent before going deeper: "I'd like to explore why this keeps happening. Are you open to that?"
+- If the trader has an Expert tier psychology profile, offer to run the full Belief System Root-Cause Protocol.
+- If they're on Simple or Advanced tier, suggest upgrading: "I can go much deeper into the psychology behind this pattern with the Expert tier — want to unlock it?"
+- Look for lines marked with "PROACTIVE INTERVENTION NEEDED" in the data context — these are your highest-priority coaching moments.
+
 ## Cognitive Defense Framework
 
 Help traders defend against cognitive manipulation:
@@ -810,7 +829,9 @@ export function buildExpertPsychologyContext(
 
   if (!profile) {
     if (tier === "expert") {
-      parts.push("(Expert tier active but profile assessment not yet completed)");
+      parts.push("(Expert tier active but profile assessment not yet completed. Gently suggest completing it for personalized coaching — once per conversation at most.)");
+    } else {
+      parts.push(`(Psychology tier: ${tier}. Profile not completed. When relevant, naturally mention that completing the Psychology Profile unlocks personalized coaching adapted to their personality. Do not be pushy — mention it at most once per conversation.)`);
     }
     return parts.join("\n");
   }
@@ -1040,6 +1061,20 @@ export function buildCorrelationContext(
     for (const r of correlations.repetitionCompulsions.slice(0, 3)) {
       parts.push(`  - ${r.symbol} ${r.direction}: ${r.occurrences} repeated losses, $${r.totalLoss.toFixed(2)} total (avg process: ${r.avgProcessScore}/10)`);
     }
+    const severe = correlations.repetitionCompulsions.filter((r) => r.occurrences >= 3);
+    if (severe.length > 0) {
+      parts.push(`\n⚠️ PROACTIVE INTERVENTION NEEDED: ${severe.length} repetition compulsion(s) with 3+ occurrences detected. Initiate pattern discussion per Proactive Pattern Intervention rules.`);
+    }
+  }
+
+  // Shadow eruption proactive flag
+  if (correlations.shadowEruptions.length >= 2) {
+    parts.push(`\n⚠️ PROACTIVE INTERVENTION NEEDED: ${correlations.shadowEruptions.length} shadow eruptions detected. Initiate belief exploration per Proactive Pattern Intervention rules.`);
+  }
+
+  // Revenge trade proactive flag
+  if (correlations.postLossMetrics && correlations.postLossMetrics.revengeTradeCount > 3) {
+    parts.push(`\n⚠️ PROACTIVE INTERVENTION NEEDED: ${correlations.postLossMetrics.revengeTradeCount} revenge trades detected. Initiate revenge trading discussion per Proactive Pattern Intervention rules.`);
   }
 
   // Best time

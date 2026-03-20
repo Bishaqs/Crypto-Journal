@@ -45,6 +45,13 @@ const STEPS: Step[] = [
     icon: Upload,
     action: "import",
   },
+  {
+    id: "psychology-profile",
+    title: "Complete your Psychology Profile",
+    description: "A 5-min assessment that unlocks personalized AI coaching from Nova.",
+    icon: Target,
+    href: "/dashboard/insights",
+  },
 ];
 
 interface GettingStartedProps {

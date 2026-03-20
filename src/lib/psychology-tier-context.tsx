@@ -25,6 +25,11 @@ function clampTier(requested: PsychologyTier, maxAllowed: PsychologyTier): Psych
   return reqIdx <= maxIdx ? requested : maxAllowed;
 }
 
+type UpgradeSuggestion = {
+  targetTier: PsychologyTier;
+  tradeCount: number;
+} | null;
+
 type PsychologyTierContextType = {
   tier: PsychologyTier;
   setTier: (tier: PsychologyTier) => Promise<void>;
@@ -36,6 +41,8 @@ type PsychologyTierContextType = {
   profile: PsychologyProfile | null;
   profileLoading: boolean;
   refreshProfile: () => Promise<void>;
+  upgradeSuggestion: UpgradeSuggestion;
+  dismissUpgrade: () => void;
 };
 
 const PsychologyTierContext = createContext<PsychologyTierContextType>({
@@ -49,6 +56,8 @@ const PsychologyTierContext = createContext<PsychologyTierContextType>({
   profile: null,
   profileLoading: false,
   refreshProfile: async () => {},
+  upgradeSuggestion: null,
+  dismissUpgrade: () => {},
 });
 
 export function PsychologyTierProvider({
@@ -64,6 +73,7 @@ export function PsychologyTierProvider({
   const [tier, setTierState] = useState<PsychologyTier>("simple");
   const [profile, setProfile] = useState<PsychologyProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [upgradeSuggestion, setUpgradeSuggestion] = useState<UpgradeSuggestion>(null);
 
   // Load tier preference on mount, clamped to subscription
   useEffect(() => {
@@ -127,6 +137,46 @@ export function PsychologyTierProvider({
       );
   }, [userId, maxAllowedTier]);
 
+  // Check if user qualifies for a tier upgrade
+  useEffect(() => {
+    if (!userId || (tier !== "simple" && tier !== "advanced")) return;
+
+    async function checkUpgrade() {
+      if (!userId) return;
+      const supabase = createClient();
+      const { count } = await supabase
+        .from("trades")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId);
+
+      const tradeCount = count ?? 0;
+
+      if (tier === "simple" && tradeCount >= 20 && TIER_ORDER.indexOf(maxAllowedTier) >= TIER_ORDER.indexOf("advanced")) {
+        const dismissed = localStorage.getItem("stargate-psych-upgrade-dismissed-advanced");
+        if (!dismissed) {
+          setUpgradeSuggestion({ targetTier: "advanced", tradeCount });
+        }
+      } else if (tier === "advanced" && tradeCount >= 50 && maxAllowedTier === "expert") {
+        const dismissed = localStorage.getItem("stargate-psych-upgrade-dismissed-expert");
+        if (!dismissed) {
+          setUpgradeSuggestion({ targetTier: "expert", tradeCount });
+        }
+      }
+    }
+
+    checkUpgrade();
+  }, [userId, tier, maxAllowedTier]);
+
+  function dismissUpgrade() {
+    if (upgradeSuggestion) {
+      localStorage.setItem(
+        `stargate-psych-upgrade-dismissed-${upgradeSuggestion.targetTier}`,
+        "true",
+      );
+      setUpgradeSuggestion(null);
+    }
+  }
+
   function isLocked(t: PsychologyTier): boolean {
     return TIER_ORDER.indexOf(t) > TIER_ORDER.indexOf(maxAllowedTier);
   }
@@ -152,6 +202,8 @@ export function PsychologyTierProvider({
         profile,
         profileLoading,
         refreshProfile,
+        upgradeSuggestion,
+        dismissUpgrade,
       }}
     >
       {children}

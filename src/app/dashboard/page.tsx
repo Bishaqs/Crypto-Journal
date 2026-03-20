@@ -38,6 +38,7 @@ import { ProactiveInsightBar } from "@/components/dashboard/proactive-insight-ba
 import { PostTradePrompt } from "@/components/post-trade-prompt";
 import { NewsWidget } from "@/components/news/news-widget";
 import { LowContrastWarning } from "@/components/low-contrast-warning";
+import { PsychologyProfileBanner } from "@/components/psychology-profile-banner";
 import { DeleteTradeConfirmation } from "@/components/delete-trade-confirmation";
 import { useI18n } from "@/lib/i18n";
 import { useCosmetics } from "@/lib/cosmetics";
@@ -204,6 +205,8 @@ export default function DashboardPage() {
           onImport={() => setShowImport(true)}
         />
       )}
+
+      <PsychologyProfileBanner />
 
       {/* Control bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

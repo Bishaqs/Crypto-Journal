@@ -6,6 +6,7 @@ import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
 import type { Trade, PsychologyCorrelations } from "@/lib/types";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
+import Link from "next/link";
 import { usePsychologyTier } from "@/lib/psychology-tier-context";
 import { PsychologyTierToggle } from "@/components/psychology-tier-toggle";
 import { useAccount } from "@/lib/account-context";
@@ -55,7 +56,7 @@ export default function PsychologyPage() {
   const [loading, setLoading] = useState(true);
   const [correlations, setCorrelations] = useState<PsychologyCorrelations | null>(null);
   const [insights, setInsights] = useState<PsychologyInsight[]>([]);
-  const { tier } = usePsychologyTier();
+  const { tier, profile } = usePsychologyTier();
   const { theme } = useTheme();
   const colors = getChartColors(theme);
   const { selectedAccount } = useAccount();
@@ -123,6 +124,21 @@ export default function PsychologyPage() {
         </div>
         <PsychologyTierToggle />
       </div>
+
+      {/* Profile encouragement */}
+      {!profile && (
+        <div className="glass rounded-xl border border-accent/20 p-5 text-center space-y-2">
+          <Brain className="mx-auto text-accent" size={24} />
+          <p className="text-sm font-medium text-foreground">Your Psychology Profile powers Nova&apos;s coaching</p>
+          <p className="text-xs text-muted">Complete it once and Nova automatically adapts her coaching style to your personality.</p>
+          <Link
+            href="/dashboard/insights"
+            className="inline-block mt-2 px-4 py-2 rounded-xl bg-accent text-background text-xs font-semibold hover:bg-accent/90 transition-colors"
+          >
+            Complete Profile
+          </Link>
+        </div>
+      )}
 
       {/* Headline Insights */}
       {insights.length > 0 && (
