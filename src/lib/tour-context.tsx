@@ -294,6 +294,14 @@ export function TourProvider({ children }: { children: ReactNode }) {
       const tour = allTours.find((t) => t.tour === name);
       if (!tour || tour.steps.length === 0) return;
 
+      // Unlock features + dismiss cookie banner during welcome tour
+      if (name === "welcome") {
+        localStorage.setItem("stargate-mode-override", "true");
+        if (!localStorage.getItem("stargate-cookie-consent")) {
+          localStorage.setItem("stargate-cookie-consent", "all");
+        }
+      }
+
       dispatch({ type: "START", tourName: name, totalSteps: tour.steps.length });
 
       requestAnimationFrame(() => {

@@ -10,7 +10,9 @@ export function CookieConsent() {
 
   useEffect(() => {
     const consent = localStorage.getItem(CONSENT_KEY);
-    if (!consent) {
+    // Hide during active tour
+    const tourActive = sessionStorage.getItem("stargate-tour-active");
+    if (!consent && !tourActive) {
       setVisible(true);
     }
   }, []);
