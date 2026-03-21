@@ -30,6 +30,7 @@ import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CSVImportModal } from "@/components/csv-import-modal";
 import { GettingStartedCard } from "@/components/getting-started";
+import { DEMO_TRADES } from "@/lib/demo-data";
 import { WeeklySummaryCard } from "@/components/dashboard/weekly-summary-card";
 import { ProactiveInsightBar } from "@/components/dashboard/proactive-insight-bar";
 import { PostTradePrompt } from "@/components/post-trade-prompt";
@@ -98,7 +99,9 @@ export default function DashboardPage() {
     const dbTrades = (data as Trade[]) ?? [];
 
     if (dbTrades.length === 0) {
-      setTrades([]);
+      // Show demo data during tour so users see real-looking stats
+      const tourActive = typeof sessionStorage !== "undefined" && sessionStorage.getItem("stargate-tour-active");
+      setTrades(tourActive ? DEMO_TRADES : []);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

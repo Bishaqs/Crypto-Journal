@@ -26,6 +26,9 @@ import {
 } from "lucide-react";
 import { useI18n, LOCALES } from "@/lib/i18n";
 import { TraverseLogo } from "@/components/traverse-logo";
+import { createClient } from "@/lib/supabase/client";
+import { awardXP } from "@/lib/xp/engine";
+import { xpForLevel } from "@/lib/xp/types";
 
 /* ── Types ───────────────────────────────────────── */
 type OnboardingData = {
@@ -363,7 +366,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
     }
   }
 
-  function saveData() {
+  async function saveData() {
     const saves: [string, string][] = [
       ["stargate-display-name", data.displayName.trim()],
       ["stargate-experience-level", data.experienceLevel],
@@ -390,6 +393,26 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
     // Override level-gating for experienced users
     if (["intermediate", "advanced", "professional"].includes(data.experienceLevel)) {
       localStorage.setItem("stargate-mode-override", "true");
+    }
+
+    // Award starting XP based on experience level
+    const xpLevelMap: Record<string, number> = {
+      intermediate: 10,  // Unlocks Analytics + Intelligence
+      advanced: 25,       // Unlocks everything
+      professional: 25,   // Unlocks everything
+    };
+    const targetLevel = xpLevelMap[data.experienceLevel];
+    if (targetLevel) {
+      try {
+        const supabase = createClient();
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user) {
+          const targetXP = xpForLevel(targetLevel) + 1;
+          await awardXP(supabase, userData.user.id, "onboarding_bonus", "onboarding", targetXP);
+        }
+      } catch {
+        // Non-critical — user starts at Level 1 if XP award fails
+      }
     }
   }
 
