@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Mic, MicOff, Sparkles, Type, Loader2, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
-import { TEMPLATE_FIELDS } from "@/components/note-editor/structured-templates";
+import { Mic, MicOff, Sparkles, Type, Loader2, RotateCcw, ChevronDown, ChevronUp, ImagePlus, X } from "lucide-react";
+import { TEMPLATE_FIELDS, getTierFields } from "@/components/note-editor/structured-templates";
 
 export interface VoiceResult {
   title: string;
@@ -12,6 +12,7 @@ export interface VoiceResult {
   tags?: string[];
   confidence?: number;
   structuredData?: Record<string, string | number | null>;
+  images?: File[];
 }
 
 interface VoiceInputProps {
@@ -19,6 +20,7 @@ interface VoiceInputProps {
   onRawTranscript?: (text: string) => void;
   currentTemplate?: string;
   customTemplates?: { id: string; name: string }[];
+  tier?: "simple" | "advanced" | "expert";
 }
 
 type RecordingState = "idle" | "recording" | "review" | "processing";
@@ -44,9 +46,9 @@ const TEMPLATE_CARD_INFO: Record<string, { label: string; desc: string }> = {
   mistake: { label: "Mistake Analysis", desc: "What happened & fix" },
 };
 
-function getVoicePrompts(templateId: string): string[] {
-  const fields = TEMPLATE_FIELDS[templateId];
-  if (!fields) return [];
+function getVoicePrompts(templateId: string, tier: "simple" | "advanced" | "expert" = "simple"): string[] {
+  const fields = getTierFields(templateId, tier);
+  if (!fields.length) return [];
   return fields.map((field) => {
     if (field.type === "emotion") return field.label ?? "How are you feeling?";
     if (field.type === "confidence") return "How confident are you? (1-10)";
@@ -57,9 +59,9 @@ function getVoicePrompts(templateId: string): string[] {
   });
 }
 
-function getSimplifiedFields(templateId: string) {
-  const fields = TEMPLATE_FIELDS[templateId];
-  if (!fields) return undefined;
+function getSimplifiedFields(templateId: string, tier: "simple" | "advanced" | "expert" = "simple") {
+  const fields = getTierFields(templateId, tier);
+  if (!fields.length) return undefined;
   return fields.map((f) => ({
     key: f.key,
     label: "label" in f ? (f.label ?? f.key) : f.key,
@@ -68,7 +70,10 @@ function getSimplifiedFields(templateId: string) {
   }));
 }
 
-export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customTemplates }: VoiceInputProps) {
+const MAX_IMAGES = 4;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
+export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customTemplates, tier = "simple" }: VoiceInputProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +82,9 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
   const reviewTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [images, setImages] = useState<File[]>([]);
   const [consented, setConsented] = useState<boolean | null>(() => {
     if (typeof window === "undefined") return null;
     const stored = localStorage.getItem("stargate-voice-consent");
@@ -218,13 +225,21 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
       const model = localStorage.getItem("stargate-ai-model") || undefined;
       const apiKey = localStorage.getItem("stargate-ai-api-key") || undefined;
 
-      // Build template-aware payload
+      // Build template-aware payload (tier-aware)
       const templateId = selectedTemplate && selectedTemplate !== "free" ? selectedTemplate : undefined;
-      const templateFields = templateId ? getSimplifiedFields(templateId) : undefined;
+      const templateFields = templateId ? getSimplifiedFields(templateId, tier) : undefined;
       // For custom templates, include the name
       const customTemplateName = templateId && !TEMPLATE_FIELDS[templateId]
         ? customTemplates?.find((t) => t.id === templateId)?.name
         : undefined;
+
+      // Convert images to base64 for AI vision
+      const imageDataUris: string[] = [];
+      for (const file of images) {
+        const buffer = await file.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        imageDataUris.push(`data:${file.type};base64,${base64}`);
+      }
 
       const res = await fetch("/api/ai/structure-journal", {
         method: "POST",
@@ -237,6 +252,7 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
           templateId,
           templateFields,
           customTemplateName,
+          ...(imageDataUris.length > 0 && { images: imageDataUris }),
         }),
       });
 
@@ -254,6 +270,7 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
         tags: data.tags,
         confidence: data.confidence,
         structuredData: data.structured_data ?? undefined,
+        images: images.length > 0 ? [...images] : undefined,
       };
       onResult(result);
       reset();
@@ -261,7 +278,7 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
       setError(err instanceof Error ? err.message : "Failed to process transcript");
       setState("review");
     }
-  }, [transcript, onResult, selectedTemplate, customTemplates]);
+  }, [transcript, onResult, selectedTemplate, customTemplates, tier, images]);
 
   const useAsPlainText = useCallback(() => {
     if (!transcript.trim()) return;
@@ -269,9 +286,10 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
       title: "",
       content: `<p>${transcript.trim().replace(/\n/g, "</p><p>")}</p>`,
       template: selectedTemplate || "free",
+      images: images.length > 0 ? [...images] : undefined,
     });
     reset();
-  }, [transcript, onResult, selectedTemplate]);
+  }, [transcript, onResult, selectedTemplate, images]);
 
   const reset = useCallback(() => {
     recognitionRef.current?.stop();
@@ -280,12 +298,22 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
     setTranscript("");
     setError(null);
     setShowAllPrompts(false);
+    setImages([]);
     // Reset template to parent's current template (or null if free-form)
     setSelectedTemplate(currentTemplate && currentTemplate !== "free" ? currentTemplate : null);
   }, [currentTemplate]);
 
-  // Guided prompts for the currently selected template
-  const voicePrompts = selectedTemplate && selectedTemplate !== "free" ? getVoicePrompts(selectedTemplate) : [];
+  // Guided prompts for the currently selected template (tier-aware)
+  const voicePrompts = selectedTemplate && selectedTemplate !== "free" ? getVoicePrompts(selectedTemplate, tier) : [];
+
+  const addImages = useCallback((files: FileList | File[]) => {
+    const newFiles = Array.from(files).filter((f) => {
+      if (!f.type.startsWith("image/")) return false;
+      if (f.size > MAX_IMAGE_SIZE) return false;
+      return true;
+    });
+    setImages((prev) => [...prev, ...newFiles].slice(0, MAX_IMAGES));
+  }, []);
   const customTemplateName = selectedTemplate && !TEMPLATE_FIELDS[selectedTemplate]
     ? customTemplates?.find((t) => t.id === selectedTemplate)?.name
     : null;
@@ -450,10 +478,18 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
               <span className="absolute inset-0 rounded-full bg-red-500/20 animate-ping" />
               <MicOff size={18} className="relative z-10" />
             </button>
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-red-400">Recording...</p>
               <p className="text-xs text-muted">Tap to stop</p>
             </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center justify-center w-9 h-9 rounded-full border border-border/40 text-muted hover:text-foreground hover:border-accent/30 transition-all"
+              title="Add chart screenshot"
+            >
+              <ImagePlus size={16} />
+            </button>
           </div>
           {transcript && (
             <p className="text-sm text-foreground/80 bg-background/50 rounded-lg px-3 py-2 leading-relaxed">
@@ -524,6 +560,37 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
             placeholder="No speech detected. Try again or type here..."
             className="w-full text-sm text-foreground/80 bg-background/50 rounded-lg px-3 py-2 leading-relaxed max-h-[120px] min-h-[60px] resize-y overflow-y-auto border border-border/30 focus:outline-none focus:border-accent/50 transition-colors"
           />
+
+          {/* Image attachments */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {images.map((file, i) => (
+              <div key={i} className="relative group">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`Attachment ${i + 1}`}
+                  className="w-14 h-14 rounded-lg object-cover border border-border/30"
+                />
+                <button
+                  type="button"
+                  onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))}
+                  className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-loss/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X size={10} />
+                </button>
+              </div>
+            ))}
+            {images.length < MAX_IMAGES && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-14 h-14 rounded-lg border border-dashed border-border/40 flex flex-col items-center justify-center gap-0.5 text-muted/50 hover:text-muted hover:border-border/60 transition-all"
+                title="Add chart screenshot"
+              >
+                <ImagePlus size={16} />
+                <span className="text-[8px]">Photo</span>
+              </button>
+            )}
+          </div>
 
           {/* Template picker — Path A: user recorded first, now picks a template */}
           {transcript.trim() && (
@@ -605,6 +672,19 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
           <p className="text-xs text-loss bg-loss/10 px-3 py-1.5 rounded-lg">{error}</p>
         </div>
       )}
+
+      {/* Hidden file input for image attachment */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files) addImages(e.target.files);
+          e.target.value = "";
+        }}
+      />
     </div>
   );
 }
