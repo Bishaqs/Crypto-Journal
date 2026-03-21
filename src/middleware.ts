@@ -63,6 +63,55 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Early access gate: check if user is allowed to access protected routes
+  // Owner always gets through. Others need to be on waitlist or manually approved.
+  if (user && !isOwner && (pathname.startsWith("/dashboard") || pathname.startsWith("/simulator"))) {
+    const hasAccess = request.cookies.get("stargate-early-access")?.value === "1";
+
+    if (!hasAccess) {
+      // Check DB: waitlist_signups OR early_access_emails
+      const email = user.email?.toLowerCase();
+      let verified = false;
+
+      if (email) {
+        const { data: waitlist } = await supabase
+          .from("waitlist_signups")
+          .select("id")
+          .eq("email", email)
+          .maybeSingle();
+
+        if (waitlist) {
+          verified = true;
+        } else {
+          const { data: earlyAccess } = await supabase
+            .from("early_access_emails")
+            .select("id")
+            .eq("email", email)
+            .maybeSingle();
+
+          if (earlyAccess) {
+            verified = true;
+          }
+        }
+      }
+
+      if (verified) {
+        // Set cookie to avoid DB queries on subsequent requests
+        supabaseResponse.cookies.set("stargate-early-access", "1", {
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+        });
+      } else {
+        // No early access — redirect to rejection page
+        const url = request.nextUrl.clone();
+        url.pathname = "/early-access";
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
   // If logged in and on login page, redirect to journal (core loop)
   if (user && pathname === "/login") {
     const url = request.nextUrl.clone();
@@ -96,5 +145,6 @@ export const config = {
     "/api/discount/:path*",
     "/api/connections/:path*",
     "/banned",
+    "/early-access",
   ],
 };

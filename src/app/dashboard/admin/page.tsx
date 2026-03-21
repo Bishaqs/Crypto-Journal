@@ -7,7 +7,7 @@ import { AdminBannedAccountsManager } from "@/components/admin/banned-accounts-m
 import { AdminDiscountManager } from "@/components/admin/discount-codes-manager";
 import { AdminSupportTicketsManager, type SupportTicketAdmin } from "@/components/admin/support-tickets-manager";
 import { AdminSubmittedQuestionsManager, type SubmittedQuestion } from "@/components/admin/submitted-questions-manager";
-import { AdminWaitlistManager, type WaitlistSignup } from "@/components/admin/waitlist-manager";
+import { AdminWaitlistManager, type WaitlistSignup, type EarlyAccessEmail } from "@/components/admin/waitlist-manager";
 import { OnlineUsersCard } from "@/components/admin/online-users-card";
 import { AnalyticsOverview } from "@/components/admin/analytics-overview";
 
@@ -69,6 +69,7 @@ export default async function AdminPage() {
     tradeCountsResult,
     totalTradesResult,
     waitlistResult,
+    earlyAccessResult,
   ] = await Promise.all([
     // Existing: subscriptions (now including last_seen)
     admin
@@ -139,6 +140,12 @@ export default async function AdminPage() {
       .from("waitlist_signups")
       .select("id, email, position, discount_code, email_confirmed, ip_address, referral_source, created_at")
       .order("position", { ascending: true }),
+
+    // NEW: early access emails (manually granted)
+    admin
+      .from("early_access_emails")
+      .select("id, email, granted_by, note, created_at")
+      .order("created_at", { ascending: false }),
   ]);
 
   // Handle errors
@@ -153,9 +160,11 @@ export default async function AdminPage() {
   if (achievementsResult.error) { console.error("[admin] achievements:", achievementsResult.error.message); }
   if (tradeCountsResult.error) { console.error("[admin] trade counts:", tradeCountsResult.error.message); }
   if (waitlistResult.error) { console.error("[admin] waitlist:", waitlistResult.error.message); }
+  if (earlyAccessResult.error) { console.error("[admin] early access:", earlyAccessResult.error.message); }
 
   const subs = subsResult.data ?? [];
   const waitlistSignups: WaitlistSignup[] = waitlistResult.data ?? [];
+  const earlyAccessEmails: EarlyAccessEmail[] = earlyAccessResult.data ?? [];
   const inviteCodes: InviteCode[] = codesResult.data ?? [];
   const discountCodes: DiscountCode[] = discountResult.data ?? [];
 
@@ -425,7 +434,7 @@ export default async function AdminPage() {
             Waitlist ({waitlistSignups.length}/100)
           </h2>
         </div>
-        <AdminWaitlistManager initialSignups={waitlistSignups} />
+        <AdminWaitlistManager initialSignups={waitlistSignups} initialEarlyAccess={earlyAccessEmails} />
       </section>
 
       {/* Banned accounts */}
