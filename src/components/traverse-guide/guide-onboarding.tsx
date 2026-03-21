@@ -390,10 +390,10 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
       professional: "expert",
     };
     localStorage.setItem("stargate-mode", modeMap[data.experienceLevel] || "advanced");
-    // Override level-gating for experienced users
-    if (["intermediate", "advanced", "professional"].includes(data.experienceLevel)) {
-      localStorage.setItem("stargate-mode-override", "true");
-    }
+    // Unlock all features for tour (beginners get re-locked after tour completes)
+    localStorage.setItem("stargate-mode-override", "true");
+    // Accept cookies so banner doesn't overlap the tour
+    localStorage.setItem("stargate-cookie-consent", "all");
 
     // Persist onboarding data to Supabase + award XP
     try {
@@ -431,9 +431,9 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
     }
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (isLast) {
-      saveData();
+      await saveData();
       localStorage.setItem("stargate-onboarded", "true");
       localStorage.setItem("stargate-onboarding-version", "3");
       localStorage.setItem("stargate-sidebar-mode", "advanced");
