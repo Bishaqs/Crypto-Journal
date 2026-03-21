@@ -43,7 +43,7 @@ Rules:
 - Pick "template" based on what the trader is describing (entering a trade = "trade-entry", reviewing a trade = "trade-review", planning the day = "morning-plan", reviewing the day = "daily-review", analyzing a mistake = "mistake", general thoughts = "free")
 - Extract emotion from what they describe feeling. If no emotion mentioned, set to null
 - Extract confidence level if they mention how confident they were (1-10 scale). If not mentioned, set to null
-- Tags should include: any asset symbols mentioned (use the EXACT symbol the trader said — never change or "correct" ticker symbols), trade direction (long, short), timeframe, strategy names, and other relevant keywords
+- Tags should include: asset/ticker symbols mentioned (fix obvious speech-recognition errors like "BGC"→"BTC", "ETF"→"ETH"), trade direction (long, short), timeframe, strategy names, and other relevant keywords
 - If the transcript is very short or unclear, still do your best to structure it
 
 Content Formatting:
@@ -51,7 +51,7 @@ Content Formatting:
 - Remove all filler words (um, uh, like, you know, so yeah, I mean, basically, right), false starts, repetitions, and self-corrections
 - Condense verbose or rambling sections to their essence. If they said the same thing 3 ways, keep the clearest version
 - Preserve all specific details exactly: numbers, prices, percentages, asset names, dates, strategy names, and concrete plans
-- NEVER change ticker symbols or abbreviations. If the trader said "BGC", write "BGC" — do not assume they meant "BTC" or any other symbol. The transcription is accurate
+- Fix obvious speech-recognition errors on ticker symbols (e.g., "BGC"→"BTC", "ETF"→"ETH"). Speech-to-text often mishears tickers — use the most likely real ticker. Only keep an unusual symbol if the trader explicitly names it (e.g., "a coin called XYZ")
 - If chart screenshots are attached, reference what you observe (trend, pattern, levels, indicators) in the content where relevant. Do not hallucinate details not visible in the chart
 - Keep the trader's first-person voice and perspective — don't make it sound corporate or robotic, and never add information they didn't provide
 - Scale formatting to length:
