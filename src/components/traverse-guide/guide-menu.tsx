@@ -6,17 +6,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
   TrendingUp,
-  MessageCircle,
+  Sparkles,
   Headphones,
   RotateCcw,
   X,
   Send,
   ArrowLeft,
+  Clock,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { EMOTION_CONFIG } from "@/components/psychology-inputs";
 import { isTourComplete, TOUR_KEY_PREFIX } from "@/lib/onboarding";
 import { useGuide } from "./guide-context";
+import { dismissNovaNudge, snoozeNovaNudges } from "./use-nova-nudge";
 import { useTour } from "@/lib/tour-context";
 import { useI18n } from "@/lib/i18n";
 
@@ -29,7 +31,7 @@ const TRAFFIC_LIGHTS = [
 ];
 
 export function GuideMenu() {
-  const { state, closeMenu, setMenuPanel } = useGuide();
+  const { state, closeMenu, setMenuPanel, setNovaNudge } = useGuide();
   const { startTour } = useTour();
   const router = useRouter();
   const pathname = usePathname();
@@ -197,18 +199,59 @@ export function GuideMenu() {
               </div>
             </button>
 
+            {/* Nova's Insight — shown when a nudge is active */}
+            {state.novaNudge && (
+              <div className="mx-1 mb-1 p-3 rounded-xl border border-accent/30 bg-accent/5">
+                <p className="text-xs text-foreground leading-snug mb-2">
+                  {state.novaNudge.message}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      closeMenu();
+                      router.push(state.novaNudge!.ctaLink);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-accent text-background text-[10px] font-semibold hover:bg-accent-hover transition-colors"
+                  >
+                    {state.novaNudge.cta}
+                  </button>
+                  <button
+                    onClick={() => {
+                      snoozeNovaNudges();
+                      setNovaNudge(null);
+                    }}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] text-muted hover:text-foreground transition-colors"
+                  >
+                    <Clock size={9} /> Later
+                  </button>
+                  <button
+                    onClick={() => {
+                      dismissNovaNudge(state.novaNudge!.id);
+                      setNovaNudge(null);
+                    }}
+                    className="ml-auto p-0.5 text-muted hover:text-foreground transition-colors"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              </div>
+            )}
+
             <button
-              onClick={() => setMenuPanel("chat")}
+              onClick={() => {
+                closeMenu();
+                router.push("/dashboard/ai");
+              }}
               className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left hover:bg-accent/10 transition-all group"
             >
               <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                <MessageCircle size={16} className="text-accent" />
+                <Sparkles size={16} className="text-accent" />
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground group-hover:text-accent transition-colors">
-                  Quick Chat
+                  Talk to Nova
                 </p>
-                <p className="text-[10px] text-muted">Ask me anything</p>
+                <p className="text-[10px] text-muted">AI coaching &amp; insights</p>
               </div>
             </button>
 

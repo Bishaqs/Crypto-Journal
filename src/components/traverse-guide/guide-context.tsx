@@ -7,6 +7,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
+import type { NovaNudge } from "@/lib/nova-triggers";
 
 export type GuideMode = "idle" | "onboarding" | "tour" | "help";
 
@@ -28,6 +29,7 @@ type GuideState = {
   position: GuidePosition;
   menuOpen: boolean;
   menuPanel: MenuPanel;
+  novaNudge: NovaNudge | null;
 };
 
 type GuideAction =
@@ -39,7 +41,8 @@ type GuideAction =
   | { type: "TOGGLE_MENU" }
   | { type: "CLOSE_MENU" }
   | { type: "SET_MENU_PANEL"; panel: MenuPanel }
-  | { type: "SET_VISIBLE"; visible: boolean };
+  | { type: "SET_VISIBLE"; visible: boolean }
+  | { type: "SET_NOVA_NUDGE"; nudge: NovaNudge | null };
 
 const initialState: GuideState = {
   mode: "idle",
@@ -49,6 +52,7 @@ const initialState: GuideState = {
   position: "home",
   menuOpen: false,
   menuPanel: "main",
+  novaNudge: null,
 };
 
 function guideReducer(state: GuideState, action: GuideAction): GuideState {
@@ -76,6 +80,8 @@ function guideReducer(state: GuideState, action: GuideAction): GuideState {
       return { ...state, menuPanel: action.panel };
     case "SET_VISIBLE":
       return { ...state, isVisible: action.visible };
+    case "SET_NOVA_NUDGE":
+      return { ...state, novaNudge: action.nudge };
     default:
       return state;
   }
@@ -92,6 +98,7 @@ type GuideContextValue = {
   closeMenu: () => void;
   setMenuPanel: (panel: MenuPanel) => void;
   setVisible: (visible: boolean) => void;
+  setNovaNudge: (nudge: NovaNudge | null) => void;
 };
 
 const GuideContext = createContext<GuideContextValue | null>(null);
@@ -129,12 +136,16 @@ export function GuideProvider({ children }: { children: ReactNode }) {
     (visible: boolean) => dispatch({ type: "SET_VISIBLE", visible }),
     [],
   );
+  const setNovaNudge = useCallback(
+    (nudge: NovaNudge | null) => dispatch({ type: "SET_NOVA_NUDGE", nudge }),
+    [],
+  );
 
   return (
     <GuideContext.Provider
       value={{
         state, speak, dismiss, moveTo, goHome, setMode,
-        toggleMenu, closeMenu, setMenuPanel, setVisible,
+        toggleMenu, closeMenu, setMenuPanel, setVisible, setNovaNudge,
       }}
     >
       {children}
