@@ -15,6 +15,13 @@ export function CookieConsent() {
     }
   }, []);
 
+  // Dismiss when tour starts (tour sets consent via localStorage but component already mounted)
+  useEffect(() => {
+    function handleDismiss() { setVisible(false); }
+    window.addEventListener("dismiss-cookie-consent", handleDismiss);
+    return () => window.removeEventListener("dismiss-cookie-consent", handleDismiss);
+  }, []);
+
   function accept(level: "all" | "essential") {
     localStorage.setItem(CONSENT_KEY, level);
     setVisible(false);

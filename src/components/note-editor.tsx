@@ -14,6 +14,7 @@ import { TradeLinker } from "@/components/note-editor/trade-linker";
 import { VoiceInput, type VoiceResult } from "@/components/note-editor/voice-input";
 import { getCustomTagPresets, isUserTag } from "@/lib/tag-manager";
 import { isStructuredTemplate, StructuredTemplateForm, serializeToHtml, serializePsychToHtml } from "@/components/note-editor/structured-templates";
+import { usePsychologyTier } from "@/lib/psychology-tier-context";
 import { EmotionPicker, ConfidenceSlider, ProcessScoreInput } from "@/components/psychology-inputs";
 import { useTheme } from "@/lib/theme-context";
 import {
@@ -120,6 +121,7 @@ interface NoteEditorProps {
 export function NoteEditor({ editNote = null, initialTemplate = "free", assetType = "crypto", onClose, onSaved }: NoteEditorProps) {
   const { timezone } = useTimezone();
   const { viewMode } = useTheme();
+  const { tier } = usePsychologyTier();
   const isBeginner = viewMode === "beginner";
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -362,6 +364,27 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
     if (data.tags?.length) {
       setSelectedTag(data.tags[0]);
     }
+
+    // Upload attached images and insert into content
+    if (data.images?.length && contentRef.current) {
+      (async () => {
+        for (const file of data.images!) {
+          try {
+            const url = await uploadJournalImage(file);
+            if (url && contentRef.current) {
+              const img = document.createElement("img");
+              img.src = url;
+              img.style.maxWidth = "100%";
+              img.style.borderRadius = "0.5rem";
+              img.style.margin = "0.5rem 0";
+              contentRef.current.appendChild(img);
+            }
+          } catch {
+            // Skip failed uploads silently
+          }
+        }
+      })();
+    }
   }, [selectedEmotions.length, structuredData.confidence]);
 
   async function saveNote(e: React.FormEvent<HTMLFormElement>) {
@@ -550,6 +573,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                 onResult={handleVoiceResult}
                 currentTemplate={appliedTemplate}
                 customTemplates={voiceCustomTemplates}
+                tier={tier}
               />
             </div>
           )}

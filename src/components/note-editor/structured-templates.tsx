@@ -130,6 +130,54 @@ export function isStructuredTemplate(templateId: string): boolean {
   return templateId in TEMPLATE_FIELDS;
 }
 
+/** Returns all fields for a template including tier-specific ones. Used by voice input to send complete fields to AI. */
+export function getTierFields(templateId: string, tier: "simple" | "advanced" | "expert"): FieldDef[] {
+  const base = TEMPLATE_FIELDS[templateId];
+  if (!base) return [];
+  if (tier === "simple") return base;
+
+  const advanced: FieldDef[] = [];
+  const expert: FieldDef[] = [];
+
+  if (templateId === "morning-plan") {
+    advanced.push(
+      { type: "number", key: "sleep_quality", label: "Sleep quality last night (1=Terrible, 5=Great)" },
+      { type: "number", key: "cognitive_load", label: "Cognitive load (1=Clear, 5=Overloaded)" },
+    );
+  }
+  if (templateId === "daily-review") {
+    advanced.push(
+      { type: "text", key: "biases_today", label: "Biases that influenced me today" },
+      { type: "text", key: "triggers_today", label: "Triggers I experienced" },
+    );
+    expert.push(
+      { type: "text", key: "distortions_today", label: "Cognitive distortions I noticed" },
+      { type: "text", key: "flow_state", label: "Flow state" },
+      { type: "textarea", key: "internal_dialogue", label: "What story was I telling myself today?" },
+    );
+  }
+  if (templateId === "trade-entry") {
+    expert.push(
+      { type: "textarea", key: "internal_dialogue", label: "What story am I telling myself about this trade?" },
+      { type: "text", key: "somatic_note", label: "Where do I feel tension in my body?" },
+    );
+  }
+  if (templateId === "trade-review") {
+    expert.push(
+      { type: "text", key: "review_distortions", label: "Cognitive distortions active during this trade" },
+    );
+  }
+  if (templateId === "mistake") {
+    expert.push(
+      { type: "text", key: "mistake_distortions", label: "Which cognitive distortion was active?" },
+      { type: "text", key: "mistake_defenses", label: "Which defense mechanism did I use?" },
+    );
+  }
+
+  if (tier === "expert") return [...base, ...advanced, ...expert];
+  return [...base, ...advanced];
+}
+
 interface StructuredTemplateFormProps {
   templateId: string;
   data: Record<string, string | number | null>;
