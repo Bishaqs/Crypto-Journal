@@ -102,8 +102,9 @@ export default function DashboardPage() {
 
     if (dbTrades.length === 0) {
       // Show demo data during tour so users see real-looking stats
-      const tourActive = typeof sessionStorage !== "undefined" && sessionStorage.getItem("stargate-tour-active");
-      setTrades(tourActive ? DEMO_TRADES : []);
+      const onboarded = localStorage.getItem("stargate-onboarded") === "true";
+      const tourDone = localStorage.getItem("stargate-tour-welcome") === "true";
+      setTrades(onboarded && !tourDone ? DEMO_TRADES : []);
       setUsingDemo(true);
     } else {
       setTrades(dbTrades);

@@ -395,24 +395,39 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
       localStorage.setItem("stargate-mode-override", "true");
     }
 
-    // Award starting XP based on experience level
-    const xpLevelMap: Record<string, number> = {
-      intermediate: 10,  // Unlocks Analytics + Intelligence
-      advanced: 25,       // Unlocks everything
-      professional: 25,   // Unlocks everything
-    };
-    const targetLevel = xpLevelMap[data.experienceLevel];
-    if (targetLevel) {
-      try {
-        const supabase = createClient();
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData?.user) {
+    // Persist onboarding data to Supabase + award XP
+    try {
+      const supabase = createClient();
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        // Save onboarding responses to DB
+        await supabase.from("user_onboarding").upsert({
+          user_id: userData.user.id,
+          display_name: data.displayName.trim(),
+          experience_level: data.experienceLevel,
+          account_type: data.accountType,
+          broker: data.broker,
+          instruments: data.instruments,
+          goals: data.goals,
+          risk_tolerance: data.riskTolerance,
+          preferred_analytics: data.preferredAnalytics,
+          referral: data.referral,
+        });
+
+        // Award starting XP based on experience level
+        const xpLevelMap: Record<string, number> = {
+          intermediate: 10,
+          advanced: 25,
+          professional: 25,
+        };
+        const targetLevel = xpLevelMap[data.experienceLevel];
+        if (targetLevel) {
           const targetXP = xpForLevel(targetLevel) + 1;
           await awardXP(supabase, userData.user.id, "onboarding_bonus", "onboarding", targetXP);
         }
-      } catch {
-        // Non-critical — user starts at Level 1 if XP award fails
       }
+    } catch {
+      // Non-critical — onboarding still works via localStorage
     }
   }
 
