@@ -10,11 +10,16 @@ export function CookieConsent() {
 
   useEffect(() => {
     const consent = localStorage.getItem(CONSENT_KEY);
-    // Hide during active tour
-    const tourActive = sessionStorage.getItem("stargate-tour-active");
-    if (!consent && !tourActive) {
+    if (!consent) {
       setVisible(true);
     }
+  }, []);
+
+  // Dismiss when tour starts (tour sets consent via localStorage but component already mounted)
+  useEffect(() => {
+    function handleDismiss() { setVisible(false); }
+    window.addEventListener("dismiss-cookie-consent", handleDismiss);
+    return () => window.removeEventListener("dismiss-cookie-consent", handleDismiss);
   }, []);
 
   function accept(level: "all" | "essential") {

@@ -424,6 +424,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
         if (targetLevel) {
           const targetXP = xpForLevel(targetLevel) + 1;
           await awardXP(supabase, userData.user.id, "onboarding_bonus", "onboarding", targetXP);
+          window.dispatchEvent(new Event("stargate-xp-refresh"));
         }
       }
     } catch {

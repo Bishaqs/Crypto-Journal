@@ -124,6 +124,13 @@ export function LevelProvider({ children, userId: initialUserId }: { children: R
     if (userId) refresh();
   }, [userId, refresh]);
 
+  // Re-fetch when XP is awarded externally (e.g., onboarding bonus)
+  useEffect(() => {
+    function handleRefresh() { refresh(); }
+    window.addEventListener("stargate-xp-refresh", handleRefresh);
+    return () => window.removeEventListener("stargate-xp-refresh", handleRefresh);
+  }, [refresh]);
+
   const level = userLevel?.current_level ?? 1;
   const totalXP = userLevel?.total_xp ?? 0;
   const xpToday = userLevel?.xp_today ?? 0;

@@ -300,6 +300,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
         if (!localStorage.getItem("stargate-cookie-consent")) {
           localStorage.setItem("stargate-cookie-consent", "all");
         }
+        window.dispatchEvent(new Event("dismiss-cookie-consent"));
       }
 
       dispatch({ type: "START", tourName: name, totalSteps: tour.steps.length });

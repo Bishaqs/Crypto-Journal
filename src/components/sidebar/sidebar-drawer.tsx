@@ -75,7 +75,7 @@ export function SidebarDrawer({
 
   function getResolvedCategoryItems(): NavItem[] {
     // Intelligence: use beginnerItems when in beginner mode
-    if (categoryKey === "intelligence" && isBeginner && category.beginnerItems) {
+    if (categoryKey === "intelligence" && isBeginner && !hasOverride && category.beginnerItems) {
       return category.beginnerItems;
     }
 
