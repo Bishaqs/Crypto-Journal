@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Rocket } from "lucide-react";
 import { TraverseLogo } from "@/components/traverse-logo";
 import { useGuide } from "./guide-context";
-import { useNovaNudge } from "./use-nova-nudge";
+import { useNovaNudge, dismissNovaNudge, snoozeNovaNudges } from "./use-nova-nudge";
+import { NovaNudgeBubble } from "./nova-nudge-bubble";
 import { useTour, getEffectiveLayout } from "@/lib/tour-context";
 import { useI18n } from "@/lib/i18n";
 import type { TourStep } from "@/lib/tour-context";
@@ -361,9 +362,12 @@ function GuideCharacterAnimated({
 }
 
 export function TraverseGuideCharacter() {
-  const { state, toggleMenu } = useGuide();
+  const { state, toggleMenu, setNovaNudge } = useGuide();
   useNovaNudge();
   const hasNudge = state.novaNudge !== null;
+  const [showNudgeBubble, setShowNudgeBubble] = useState(false);
+  const nudgeAutoShownRef = useRef<string | null>(null);
+  const nudgeDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { state: tourState, currentStepDef, stepTarget, nextStep, prevStep, skipTour, advanceStep } = useTour();
   const guideRef = useRef<HTMLDivElement>(null);
   const [isFlying, setIsFlying] = useState(false);
@@ -545,8 +549,43 @@ export function TraverseGuideCharacter() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isTourMode, nextStep, prevStep, skipTour]);
 
+  // ── Nova nudge popup lifecycle ──
+  useEffect(() => {
+    // Clear timer on cleanup
+    return () => {
+      if (nudgeDismissTimerRef.current) clearTimeout(nudgeDismissTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const nudge = state.novaNudge;
+    if (!nudge) {
+      setShowNudgeBubble(false);
+      return;
+    }
+    // Don't show popup during tour or if menu is open
+    if (isTourMode || state.menuOpen) {
+      setShowNudgeBubble(false);
+      return;
+    }
+    // Don't re-popup a nudge that was already auto-shown
+    if (nudgeAutoShownRef.current === nudge.id) return;
+
+    nudgeAutoShownRef.current = nudge.id;
+    // Brief delay so it feels natural
+    nudgeDismissTimerRef.current = setTimeout(() => {
+      setShowNudgeBubble(true);
+    }, 500);
+  }, [state.novaNudge, isTourMode, state.menuOpen]);
+
+  // Hide nudge bubble when tour starts or menu opens
+  useEffect(() => {
+    if (isTourMode || state.menuOpen) setShowNudgeBubble(false);
+  }, [isTourMode, state.menuOpen]);
+
   const handleClick = useCallback(() => {
     if (state.mode === "idle" || state.mode === "help") {
+      setShowNudgeBubble(false);
       toggleMenu();
     }
   }, [state.mode, toggleMenu]);
@@ -560,7 +599,7 @@ export function TraverseGuideCharacter() {
 
   const glow = GLOW_BY_MODE[glowKey];
   const isClickable = state.mode === "idle" || state.mode === "help";
-  const isTalking = isTourMode && showBubble;
+  const isTalking = (isTourMode && showBubble) || showNudgeBubble;
 
   // Guide absolute position for attached bubble placement
   const homeX = typeof window !== "undefined" ? window.innerWidth - 24 - GUIDE_SIZE / 2 : 0;
@@ -724,6 +763,45 @@ export function TraverseGuideCharacter() {
         )}
       </AnimatePresence>
 
+      {/* ── Nova Nudge Popup ── */}
+      {!isTourMode && !state.menuOpen && (
+        <AnimatePresence>
+          {showNudgeBubble && state.novaNudge && (
+            <motion.div
+              key={`nudge-${state.novaNudge.id}`}
+              className="fixed z-50 pointer-events-auto"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ type: "spring" as const, damping: 25, stiffness: 300 }}
+              style={{
+                bottom: `${24 + GUIDE_SIZE + BUBBLE_GAP}px`,
+                right: "24px",
+                width: BUBBLE_WIDTH,
+                maxWidth: "90vw",
+              }}
+            >
+              <NovaNudgeBubble
+                nudge={state.novaNudge}
+                onCta={() => setShowNudgeBubble(false)}
+                onSnooze={() => {
+                  snoozeNovaNudges();
+                  setNovaNudge(null);
+                  setShowNudgeBubble(false);
+                }}
+                onDismiss={() => {
+                  dismissNovaNudge(state.novaNudge!.id);
+                  setNovaNudge(null);
+                  setShowNudgeBubble(false);
+                }}
+                autoDismissMs={15000}
+                onAutoDismiss={() => setShowNudgeBubble(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+
       {/* ── Guide Character (bottom-right, used in attached mode + idle) ── */}
       {!isCentered && (
         <motion.div
@@ -772,7 +850,7 @@ export function TraverseGuideCharacter() {
             glow={glow}
             arrivalKey={arrivalKey}
           />
-          {hasNudge && !isTourMode && (
+          {hasNudge && !isTourMode && !showNudgeBubble && (
             <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-accent border-2 border-background animate-pulse" />
           )}
         </motion.div>

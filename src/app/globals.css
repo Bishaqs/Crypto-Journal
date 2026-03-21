@@ -472,6 +472,20 @@ body {
   }
 }
 
+/* Nova nudge auto-dismiss progress bar */
+@keyframes nudge-shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.nudge-progress-bar {
+  animation: nudge-shrink var(--nudge-duration, 15s) linear forwards;
+}
+
+*:hover > .nudge-progress-bar {
+  animation-play-state: paused;
+}
+
 /* Starfield layers */
 .stars-small {
   position: absolute;

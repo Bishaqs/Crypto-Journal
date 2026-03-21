@@ -50,12 +50,20 @@ export function useNovaNudge() {
         .sort((a, b) => a.priority - b.priority);
 
       setNovaNudge(allNudges[0] ?? null);
-    } catch {
-      // Non-critical
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("does not exist") && !msg.includes("PGRST")) {
+        console.error("[Nova Nudge]", msg);
+      }
     }
   }, [supabase, setNovaNudge]);
 
   useEffect(() => {
+    function startEvaluating() {
+      evaluate();
+      intervalRef.current = setInterval(evaluate, REFRESH_INTERVAL);
+    }
+
     // Check consent before evaluating
     const stored = localStorage.getItem("stargate-privacy-ai-consent");
     if (stored !== "true") {
@@ -66,14 +74,13 @@ export function useNovaNudge() {
           const granted = data.consents?.find(
             (c: { consent_type: string; granted: boolean }) => c.consent_type === "ai_data_processing"
           )?.granted;
-          if (granted) evaluate();
+          if (granted) startEvaluating();
         })
         .catch(() => {});
     } else {
-      evaluate();
+      startEvaluating();
     }
 
-    intervalRef.current = setInterval(evaluate, REFRESH_INTERVAL);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
