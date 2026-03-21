@@ -17,6 +17,9 @@ export function useNovaNudge() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const evaluate = useCallback(async () => {
+    // Skip during active tour
+    if (sessionStorage.getItem("stargate-tour-active")) return;
+
     // Check snooze
     const snoozedUntil = localStorage.getItem(SNOOZED_KEY);
     if (snoozedUntil && Date.now() < parseInt(snoozedUntil, 10)) return;

@@ -35,7 +35,6 @@ export type TourStep = {
   pointerRadius?: number;
   viewportID?: string;
   presentation?: "centered" | "attached"; // legacy — mapped to layout
-  transitionEffect?: "star-warp";
   logoSize?: number;
   bubbleAlign?: "left" | "center";
 };
@@ -205,7 +204,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     // 2. Sidebar control — new declarative fields take precedence, then fall back to legacy behavior
     if (step.sidebarClose) {
       window.dispatchEvent(new CustomEvent("tour-sidebar", { detail: { expand: false, force: true } }));
-      await sleep(300);
+      await sleep(150);
     }
     if (step.sidebarCategory) {
       const existingPanel = document.querySelector("#tour-drawer-panel");
@@ -214,6 +213,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
       if (existingPanel) {
         // Wait for old drawer to unmount (AnimatePresence exit animation)
+        const parent = existingPanel.parentElement;
         await new Promise<void>((resolve) => {
           let timer: ReturnType<typeof setTimeout>;
           const observer = new MutationObserver(() => {
@@ -223,15 +223,15 @@ export function TourProvider({ children }: { children: ReactNode }) {
               resolve();
             }
           });
-          observer.observe(document.body, { childList: true, subtree: true });
-          timer = setTimeout(() => { observer.disconnect(); resolve(); }, 500);
+          observer.observe(parent || document.body, { childList: true, subtree: !parent });
+          timer = setTimeout(() => { observer.disconnect(); resolve(); }, 400);
         });
       }
 
       // Wait for new drawer to mount
-      await waitForElement("#tour-drawer-panel", 1500);
+      await waitForElement("#tour-drawer-panel", 800);
       // Let spring enter animation settle
-      await sleep(200);
+      await sleep(100);
     }
 
     // 3. Apps dropdown
@@ -287,14 +287,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
       if (!tour || tour.steps.length === 0) return;
       dispatch({ type: "START", tourName: name, totalSteps: tour.steps.length });
 
-      const firstStep = tour.steps[0];
-      if (firstStep.transitionEffect === "star-warp") {
-        requestAnimationFrame(() => {
-          window.dispatchEvent(new CustomEvent("tour-star-warp"));
-        });
-        return;
-      }
-
       requestAnimationFrame(() => {
         executeStep(tour.steps[0]);
       });
@@ -323,18 +315,12 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const s = stateRef.current;
     if (!s.isActive || !s.tourName) return;
 
-    const tour = allTours.find((t) => t.tour === s.tourName);
-    const currentDef = tour?.steps[s.currentStep];
-    if (currentDef?.transitionEffect === "star-warp") {
-      window.dispatchEvent(new CustomEvent("tour-star-warp"));
-      return;
-    }
-
     if (s.currentStep >= s.totalSteps - 1) {
       completeTour(s.tourName);
       return;
     }
     dispatch({ type: "NEXT" });
+    const tour = allTours.find((t) => t.tour === s.tourName);
     const nextIdx = s.currentStep + 1;
     if (tour?.steps[nextIdx]) {
       executeStep(tour.steps[nextIdx]).catch((err) => {
@@ -366,22 +352,27 @@ export function TourProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!state.isActive || !currentSelectorRef.current) return;
 
+    let rafId = 0;
     const updateRect = () => {
-      const el = document.querySelector(currentSelectorRef.current!);
-      if (el) {
-        setStepTarget({
-          rect: el.getBoundingClientRect(),
-          side: currentSideRef.current,
-          padding: currentPaddingRef.current,
-          radius: currentRadiusRef.current,
-        });
-      }
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const el = document.querySelector(currentSelectorRef.current!);
+        if (el) {
+          setStepTarget({
+            rect: el.getBoundingClientRect(),
+            side: currentSideRef.current,
+            padding: currentPaddingRef.current,
+            radius: currentRadiusRef.current,
+          });
+        }
+      });
     };
 
     window.addEventListener("resize", updateRect);
     window.addEventListener("scroll", updateRect, { capture: true, passive: true });
 
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener("resize", updateRect);
       window.removeEventListener("scroll", updateRect, { capture: true });
     };

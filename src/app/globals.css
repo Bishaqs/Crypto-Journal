@@ -919,8 +919,8 @@ body {
 .tour-card {
   position: relative;
   background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(16px) saturate(1.5);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   box-shadow:
@@ -966,6 +966,10 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tour-highlight {
+    animation: none;
+  }
+
   .tour-cta-shimmer::after {
     animation: none;
   }

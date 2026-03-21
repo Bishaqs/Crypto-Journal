@@ -332,10 +332,10 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
 
   // Intro phase sequencer
   useEffect(() => {
-    const t1 = setTimeout(() => setIntroPhase("portal-opening"), 500);
-    const t2 = setTimeout(() => setIntroPhase("eye-arriving"), 2000);
-    const t3 = setTimeout(() => setIntroPhase("greeting"), 3500);
-    const t4 = setTimeout(() => setIntroPhase("ready"), 5500);
+    const t1 = setTimeout(() => setIntroPhase("portal-opening"), 200);
+    const t2 = setTimeout(() => setIntroPhase("eye-arriving"), 600);
+    const t3 = setTimeout(() => setIntroPhase("greeting"), 1000);
+    const t4 = setTimeout(() => setIntroPhase("ready"), 1500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, []);
 
