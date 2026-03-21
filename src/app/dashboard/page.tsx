@@ -117,6 +117,15 @@ export default function DashboardPage() {
     fetchTrades();
   }, [fetchTrades]);
 
+  // Re-fetch after onboarding completes so demo data check runs with correct localStorage state
+  useEffect(() => {
+    function handleOnboardingDone() {
+      fetchTrades();
+    }
+    window.addEventListener("stargate-onboarding-complete", handleOnboardingDone);
+    return () => window.removeEventListener("stargate-onboarding-complete", handleOnboardingDone);
+  }, [fetchTrades]);
+
   const filteredTrades = useMemo(() => filterByAccount(filterTrades(trades)), [trades, filterTrades, filterByAccount]);
 
   const stats = useMemo(() => calculateStats(filteredTrades), [filteredTrades]);
@@ -442,7 +451,7 @@ export default function DashboardPage() {
 
           {/* Recent Trades (3 max) + Streak */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+            <div id="tour-trades-table" className="lg:col-span-2">
               <TradesTable
                 trades={filteredTrades.slice(0, 3)}
                 onEdit={
