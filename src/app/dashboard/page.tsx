@@ -31,6 +31,7 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CSVImportModal } from "@/components/csv-import-modal";
 import { GettingStartedCard } from "@/components/getting-started";
 import { DEMO_TRADES } from "@/lib/demo-data";
+import { PsychologyProfileWizard } from "@/components/psychology-profile-wizard";
 import { WeeklySummaryCard } from "@/components/dashboard/weekly-summary-card";
 import { ProactiveInsightBar } from "@/components/dashboard/proactive-insight-bar";
 import { PostTradePrompt } from "@/components/post-trade-prompt";
@@ -60,6 +61,7 @@ export default function DashboardPage() {
   const [postTradeData, setPostTradeData] = useState<{ id: string; symbol: string; pnl: number } | null>(null);
   const [deletingTrade, setDeletingTrade] = useState<Trade | null>(null);
   const [showReadiness, setShowReadiness] = useState(false);
+  const [showPsychWizard, setShowPsychWizard] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { filterTrades } = useDateRange();
   const { filterByAccount } = useAccount();
@@ -219,6 +221,7 @@ export default function DashboardPage() {
         <GettingStartedCard
           onLogTrade={() => { setEditTrade(null); setShowForm(true); }}
           onImport={() => setShowImport(true)}
+          onPsychology={() => setShowPsychWizard(true)}
         />
       )}
 
@@ -628,6 +631,14 @@ export default function DashboardPage() {
         open={showReadiness}
         onClose={() => setShowReadiness(false)}
       />
+
+      {showPsychWizard && (
+        <PsychologyProfileWizard
+          variant="settings"
+          onComplete={() => setShowPsychWizard(false)}
+          onCancel={() => setShowPsychWizard(false)}
+        />
+      )}
     </div>
   );
 }

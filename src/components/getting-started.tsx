@@ -13,7 +13,7 @@ interface Step {
   description: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   href?: string;
-  action?: "logTrade" | "import";
+  action?: "logTrade" | "import" | "psychology";
 }
 
 const STEPS: Step[] = [
@@ -50,16 +50,17 @@ const STEPS: Step[] = [
     title: "Complete your Psychology Profile",
     description: "A 5-min assessment that unlocks personalized AI coaching from Nova.",
     icon: Target,
-    href: "/dashboard/insights",
+    action: "psychology",
   },
 ];
 
 interface GettingStartedProps {
   onLogTrade: () => void;
   onImport: () => void;
+  onPsychology: () => void;
 }
 
-export function GettingStartedCard({ onLogTrade, onImport }: GettingStartedProps) {
+export function GettingStartedCard({ onLogTrade, onImport, onPsychology }: GettingStartedProps) {
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [dismissed, setDismissed] = useState(false);
 
@@ -116,6 +117,7 @@ export function GettingStartedCard({ onLogTrade, onImport }: GettingStartedProps
             markComplete(step.id);
             if (step.action === "logTrade") onLogTrade();
             if (step.action === "import") onImport();
+            if (step.action === "psychology") onPsychology();
           };
 
           if (step.href && !step.action) {
