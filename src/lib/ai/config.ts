@@ -35,7 +35,7 @@ export const PROVIDER_CONFIGS: Record<ProviderId, ProviderConfig> = {
   },
 };
 
-export const DEFAULT_PROVIDER: ProviderId = "anthropic";
+export const DEFAULT_PROVIDER: ProviderId = "google";
 
 /** Returns an array of providers that have API keys configured */
 export function getAvailableProviders(): ProviderConfig[] {

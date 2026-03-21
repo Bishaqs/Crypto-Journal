@@ -176,6 +176,14 @@ export function TourProvider({ children }: { children: ReactNode }) {
     if (tourName) markTourComplete(tourName);
     sessionStorage.removeItem(TOUR_SESSION_KEY);
 
+    // Re-lock features for beginners after welcome tour
+    if (tourName === "welcome") {
+      const exp = localStorage.getItem("stargate-experience-level");
+      if (exp === "beginner") {
+        localStorage.removeItem("stargate-mode-override");
+      }
+    }
+
     // Close apps dropdown
     window.dispatchEvent(new CustomEvent("tour-apps", { detail: { open: false } }));
 
@@ -285,6 +293,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       if (stateRef.current.isActive) return;
       const tour = allTours.find((t) => t.tour === name);
       if (!tour || tour.steps.length === 0) return;
+
       dispatch({ type: "START", tourName: name, totalSteps: tour.steps.length });
 
       requestAnimationFrame(() => {
