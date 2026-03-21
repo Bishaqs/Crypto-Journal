@@ -183,8 +183,8 @@ export function CosmeticProvider({ children, userId: initialUserId }: { children
   }, [equipped.theme_accent, definitions]);
 
   const isOwned = useCallback(
-    (cosmeticId: string) => true, // All cosmetics unlocked — re-enable before launch
-    [],
+    (cosmeticId: string) => owned.some((o) => o.cosmetic_id === cosmeticId),
+    [owned],
   );
 
   const getDefinition = useCallback(
