@@ -26,6 +26,9 @@ import {
 } from "lucide-react";
 import { useI18n, LOCALES } from "@/lib/i18n";
 import { TraverseLogo } from "@/components/traverse-logo";
+import { createClient } from "@/lib/supabase/client";
+import { awardXP } from "@/lib/xp/engine";
+import { xpForLevel } from "@/lib/xp/types";
 
 /* ── Types ───────────────────────────────────────── */
 type OnboardingData = {
@@ -332,10 +335,10 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
 
   // Intro phase sequencer
   useEffect(() => {
-    const t1 = setTimeout(() => setIntroPhase("portal-opening"), 500);
-    const t2 = setTimeout(() => setIntroPhase("eye-arriving"), 2000);
-    const t3 = setTimeout(() => setIntroPhase("greeting"), 3500);
-    const t4 = setTimeout(() => setIntroPhase("ready"), 5500);
+    const t1 = setTimeout(() => setIntroPhase("portal-opening"), 200);
+    const t2 = setTimeout(() => setIntroPhase("eye-arriving"), 600);
+    const t3 = setTimeout(() => setIntroPhase("greeting"), 1000);
+    const t4 = setTimeout(() => setIntroPhase("ready"), 1500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, []);
 
@@ -363,7 +366,7 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
     }
   }
 
-  function saveData() {
+  async function saveData() {
     const saves: [string, string][] = [
       ["stargate-display-name", data.displayName.trim()],
       ["stargate-experience-level", data.experienceLevel],
@@ -390,6 +393,41 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
     // Override level-gating for experienced users
     if (["intermediate", "advanced", "professional"].includes(data.experienceLevel)) {
       localStorage.setItem("stargate-mode-override", "true");
+    }
+
+    // Persist onboarding data to Supabase + award XP
+    try {
+      const supabase = createClient();
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        // Save onboarding responses to DB
+        await supabase.from("user_onboarding").upsert({
+          user_id: userData.user.id,
+          display_name: data.displayName.trim(),
+          experience_level: data.experienceLevel,
+          account_type: data.accountType,
+          broker: data.broker,
+          instruments: data.instruments,
+          goals: data.goals,
+          risk_tolerance: data.riskTolerance,
+          preferred_analytics: data.preferredAnalytics,
+          referral: data.referral,
+        });
+
+        // Award starting XP based on experience level
+        const xpLevelMap: Record<string, number> = {
+          intermediate: 10,
+          advanced: 25,
+          professional: 25,
+        };
+        const targetLevel = xpLevelMap[data.experienceLevel];
+        if (targetLevel) {
+          const targetXP = xpForLevel(targetLevel) + 1;
+          await awardXP(supabase, userData.user.id, "onboarding_bonus", "onboarding", targetXP);
+        }
+      }
+    } catch {
+      // Non-critical — onboarding still works via localStorage
     }
   }
 

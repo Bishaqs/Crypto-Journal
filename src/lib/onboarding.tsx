@@ -22,31 +22,19 @@ export function markTourComplete(tourName: string): void {
 export const welcomeTour: Tour = {
   tour: "welcome",
   steps: [
-    // ── Step 0: Star-warp intro ──
-    {
-      id: "warp-intro",
-      icon: "🚀",
-      title: "Ready for Liftoff?",
-      titleKey: "tours.welcome.step0Title",
-      content: "Come with me. I'm Nova, and I'll show you everything you need to become a profitable trader.",
-      contentKey: "tours.welcome.step0Content",
-      layout: "fullscreen",
-      transitionEffect: "star-warp",
-      showSkip: true,
-    },
-    // ── Step 1: Welcome splash ──
+    // ── Step 0: Welcome splash ──
     {
       id: "welcome-splash",
       icon: "🚀",
       title: "Welcome to Traverse!",
       titleKey: "tours.welcome.step1Title",
-      content: "Hey! I'm Nova, your trading companion. Let me show you around. This takes about a minute, and you can skip anytime.",
+      content: "Hey! I'm Nova, your trading companion. Let me show you around — this takes about a minute.",
       contentKey: "tours.welcome.step1Content",
       layout: "fullscreen",
       logoSize: 96,
       showSkip: true,
     },
-    // ── Step 2: Dashboard overview ──
+    // ── Step 1: Dashboard overview ──
     {
       id: "dashboard-overview",
       icon: "🏠",
@@ -61,58 +49,26 @@ export const welcomeTour: Tour = {
       pointerRadius: 16,
       showSkip: true,
     },
-    // ── Step 3: Journal & Planning (entire drawer) ──
+    // ── Step 2: Intelligence & AI ──
     {
-      id: "journal-category",
-      icon: "📓",
-      title: "Journal & Planning",
-      content: "Trade Log, Journal, Calendar, and Trade Plans. Log trades, write reflections, and plan entries here.",
+      id: "sidebar-nav",
+      icon: "🧠",
+      title: "Intelligence & AI",
+      content: "Meet Nova, your AI coach. Get personalized insights, edge profiling, weekly reports, and more — all powered by your trading data.",
       selector: "#tour-drawer-panel",
-      layout: "spotlight",
-      sidebarCategory: "journal",
-      side: "right",
-      bubbleAlign: "left",
+      layout: "fullscreen",
+      sidebarCategory: "intelligence",
       pointerPadding: 4,
       pointerRadius: 12,
       showSkip: true,
     },
-    // ── Step 4: Analytics & Intelligence (entire drawer) ──
-    {
-      id: "analytics-category",
-      icon: "📈",
-      title: "Analytics Hub",
-      content: "50+ metrics, emotional insights, and Nova. Spot your edge and stop guessing.",
-      selector: "#tour-drawer-panel",
-      layout: "spotlight",
-      sidebarCategory: "analytics",
-      side: "right",
-      bubbleAlign: "left",
-      pointerPadding: 4,
-      pointerRadius: 12,
-      showSkip: true,
-    },
-    // ── Step 5: Simple/Advanced toggle ──
-    {
-      id: "view-toggle",
-      icon: "⚡",
-      title: "Simple & Advanced Mode",
-      titleKey: "tours.welcome.step11Title",
-      content: "You're in Simple mode with 6 core tools. Switch to Advanced for prop firm tracking, heat maps, and more.",
-      contentKey: "tours.welcome.step11Content",
-      selector: "#tour-view-toggle",
-      layout: "spotlight",
-      side: "right",
-      pointerPadding: 4,
-      pointerRadius: 12,
-      showSkip: true,
-    },
-    // ── Step 6: Key metrics strip ──
+    // ── Step 3: Key metrics ──
     {
       id: "key-metrics",
       icon: "📊",
       title: "Your Key Metrics",
       titleKey: "tours.welcome.step12Title",
-      content: "Win rate, P&L, profit factor, max drawdown. These four numbers tell the whole story.",
+      content: "Win rate, P&L, profit factor, max drawdown — these four numbers tell the whole story.",
       contentKey: "tours.welcome.step12Content",
       selector: "#tour-stats",
       layout: "spotlight",
@@ -121,7 +77,7 @@ export const welcomeTour: Tour = {
       viewportID: "dashboard-viewport",
       showSkip: true,
     },
-    // ── Step 7: Charts zone ──
+    // ── Step 4: Charts ──
     {
       id: "equity-chart",
       icon: "📈",
@@ -135,21 +91,21 @@ export const welcomeTour: Tour = {
       viewportID: "dashboard-viewport",
       showSkip: true,
     },
-    // ── Step 8: Activity zone ──
+    // ── Step 5: Recent Activity ──
     {
       id: "activity-zone",
       icon: "📋",
       title: "Recent Activity",
-      content: "Recent trades, streak, and heatmap. Click any row and notice the difference between calm and anxious trades.",
+      content: "Your latest trades, streak tracker, and calendar heatmap. Click any trade to see the full breakdown.",
       selector: "#tour-trades-table",
       layout: "spotlight",
-      side: "right",
-      bubbleAlign: "left",
+      side: "top",
+      bubbleAlign: "center",
       pointerPadding: 12,
       viewportID: "dashboard-viewport",
       showSkip: true,
     },
-    // ── Step 9: Apps launcher ──
+    // ── Step 6: Apps launcher ──
     {
       id: "apps-launcher",
       icon: "🧩",
@@ -164,13 +120,13 @@ export const welcomeTour: Tour = {
       pointerRadius: 12,
       showSkip: true,
     },
-    // ── Step 10: Outro ──
+    // ── Step 7: Outro ──
     {
       id: "outro",
       icon: "✅",
       title: "You're All Set!",
       titleKey: "tours.welcome.step20Title",
-      content: "Hit Log Trade to record your first one. I'm Nova, click me anytime you need help. Now go trade!",
+      content: "Log your first trade to get started. Complete your Psychology Profile from the Getting Started card for personalized AI coaching. Click me anytime!",
       contentKey: "tours.welcome.step20Content",
       layout: "fullscreen",
       showSkip: false,

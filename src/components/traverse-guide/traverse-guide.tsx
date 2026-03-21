@@ -10,7 +10,6 @@ import { NovaNudgeBubble } from "./nova-nudge-bubble";
 import { useTour, getEffectiveLayout } from "@/lib/tour-context";
 import { useI18n } from "@/lib/i18n";
 import type { TourStep } from "@/lib/tour-context";
-import { StarWarpTransition } from "./star-warp";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 const GUIDE_SIZE = 48;
@@ -298,64 +297,21 @@ function GuideCharacterAnimated({
     );
   }
 
+  // Talking/flying: static glow + arrival bounce (no infinite animations)
   return (
-    <motion.div className="rounded-full overflow-visible">
-      {/* Talking pulse or flying */}
+    <motion.div
+      className="rounded-full"
+      style={{ boxShadow: glow }}
+    >
       <motion.div
-        animate={
-          isFlying
-            ? { scale: 1 }
-            : { scale: [1, 1.08, 1, 1.05, 1] }
-        }
-        transition={
-          isFlying
-            ? { duration: 0.3 }
-            : { duration: 0.8, repeat: Infinity, ease: "easeInOut" as const }
-        }
+        key={arrivalKey}
+        initial={isFlying ? { scale: 1.2 } : false}
+        animate={{ scale: 1 }}
+        transition={{ type: "spring" as const, damping: 12, stiffness: 200 }}
       >
-        {/* Float + glow */}
-        <motion.div
-          className="rounded-full"
-          animate={
-            isFlying
-              ? { y: 0, boxShadow: glow }
-              : {
-                    y: [0, -8, 0],
-                    boxShadow: [
-                      "0 0 20px var(--accent-glow)",
-                      "0 0 36px var(--accent-glow), 0 0 64px var(--accent-glow)",
-                      "0 0 20px var(--accent-glow)",
-                    ],
-                  }
-          }
-          transition={
-            isFlying
-              ? { duration: 0.3 }
-              : { duration: 2.5, repeat: Infinity, ease: "easeInOut" as const }
-          }
-        >
-          {/* Tilt */}
-          <motion.div
-            animate={isFlying ? { rotate: 0 } : { rotate: [0, 4, -3, 0] }}
-            transition={
-              isFlying
-                ? { duration: 0.3 }
-                : { duration: 1.5, repeat: Infinity, ease: "easeInOut" as const, times: [0, 0.3, 0.7, 1] }
-            }
-          >
-            {/* Arrival bounce */}
-            <motion.div
-              key={arrivalKey}
-              initial={isFlying ? { scale: 1.2 } : false}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring" as const, damping: 12, stiffness: 200 }}
-            >
-              <div className="drop-shadow-[0_0_8px_var(--accent-glow)]">
-                <TraverseLogo size={size} />
-              </div>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+        <div className="drop-shadow-[0_0_8px_var(--accent-glow)]">
+          <TraverseLogo size={size} />
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -368,15 +324,13 @@ export function TraverseGuideCharacter() {
   const [showNudgeBubble, setShowNudgeBubble] = useState(false);
   const nudgeAutoShownRef = useRef<string | null>(null);
   const nudgeDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { state: tourState, currentStepDef, stepTarget, nextStep, prevStep, skipTour, advanceStep } = useTour();
+  const { state: tourState, currentStepDef, stepTarget, nextStep, prevStep, skipTour } = useTour();
   const guideRef = useRef<HTMLDivElement>(null);
   const [isFlying, setIsFlying] = useState(false);
   const [flyOffset, setFlyOffset] = useState({ x: 0, y: 0 });
   const [arrivalKey, setArrivalKey] = useState(0);
   const [showBubble, setShowBubble] = useState(false);
   const [isCentered, setIsCentered] = useState(false);
-  const [showStarWarp, setShowStarWarp] = useState(false);
-  const [pendingFly, setPendingFly] = useState(false);
   const wasCenteredRef = useRef(false);
   const needsTargetRef = useRef(false);
   const bubbleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -445,8 +399,6 @@ export function TraverseGuideCharacter() {
 
       if (currentStepDef.selector) {
         needsTargetRef.current = true;
-        // Hold guide at center position if transitioning from centered to spotlight
-        setPendingFly(wasCenteredRef.current);
       } else {
         // Spotlight with no selector — show at home
         needsTargetRef.current = false;
@@ -484,7 +436,6 @@ export function TraverseGuideCharacter() {
       if (needsTargetRef.current) {
         // Initial target arrival — full transition
         needsTargetRef.current = false;
-        setPendingFly(false);
         setIsFlying(true);
         setArrivalKey((k) => k + 1);
         // Use ref-based timer — scroll/resize re-triggering stepTarget must NOT cancel this
@@ -512,21 +463,6 @@ export function TraverseGuideCharacter() {
       });
     }
   }, [isCentered]);
-
-  // ── Star warp trigger ──
-  useEffect(() => {
-    function handleWarp() {
-      setShowBubble(false);
-      setShowStarWarp(true);
-    }
-    window.addEventListener("tour-star-warp", handleWarp);
-    return () => window.removeEventListener("tour-star-warp", handleWarp);
-  }, []);
-
-  const handleWarpComplete = useCallback(() => {
-    setShowStarWarp(false);
-    advanceStep();
-  }, [advanceStep]);
 
   // ── Keyboard navigation during tour ──
   useEffect(() => {
@@ -629,9 +565,7 @@ export function TraverseGuideCharacter() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
                 style={{
-                  background: currentStepDef?.transitionEffect === "star-warp"
-                    ? "rgb(0, 0, 0)"
-                    : "rgba(0, 0, 0, 0.75)",
+                  background: "rgba(0, 0, 0, 0.75)",
                 }}
               />
             ) : spotlightRect ? (
@@ -661,7 +595,7 @@ export function TraverseGuideCharacter() {
                 }}
                 style={{
                   borderRadius: spotlightRect.radius,
-                  boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.75)",
+                  boxShadow: `0 0 0 ${Math.max(typeof window !== "undefined" ? window.innerWidth : 2000, typeof window !== "undefined" ? window.innerHeight : 2000) * 2}px rgba(0, 0, 0, 0.75)`,
                 }}
               />
             ) : (
@@ -819,12 +753,7 @@ export function TraverseGuideCharacter() {
           animate={
             isFlying
               ? { x: flyOffset.x, y: flyOffset.y }
-              : pendingFly
-                ? {
-                    x: (typeof window !== "undefined" ? window.innerWidth / 2 - GUIDE_SIZE / 2 : 0) - homeX,
-                    y: (typeof window !== "undefined" ? window.innerHeight / 2 - GUIDE_SIZE / 2 : 0) - homeY,
-                  }
-                : { x: 0, y: 0 }
+              : { x: 0, y: 0 }
           }
           transition={{
             type: "spring" as const,
@@ -855,9 +784,6 @@ export function TraverseGuideCharacter() {
           )}
         </motion.div>
       )}
-
-      {/* ── Star Warp Transition ── */}
-      {showStarWarp && <StarWarpTransition onComplete={handleWarpComplete} />}
     </>
   );
 }

@@ -37,11 +37,7 @@ function TourStateManager() {
       if (!isTourComplete("welcome")) {
         setTimeout(() => {
           startTour("welcome");
-          // Warp takes 2.5s — delay tour-started until after warp + step 1 render
-          setTimeout(() => {
-            window.dispatchEvent(new Event("stargate-tour-started"));
-          }, 3000);
-        }, 500);
+        }, 300);
       }
     }
     window.addEventListener(

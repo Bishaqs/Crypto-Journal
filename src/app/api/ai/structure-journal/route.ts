@@ -26,12 +26,12 @@ const RequestSchema = z.object({
 
 type TemplateField = z.infer<typeof TemplateFieldSchema>;
 
-const BASE_SYSTEM_PROMPT = `You are a trading journal assistant. A trader has spoken or typed a journal entry as natural speech. Your job is to structure it into a well-organized journal entry.
+const BASE_SYSTEM_PROMPT = `You are a trading journal assistant. A trader has spoken a journal entry as natural speech. Your job is to transform it into a clean, natural-sounding written journal entry.
 
 Return ONLY valid JSON with this exact structure:
 {
   "title": "Specific, actionable title (under 60 chars). Use the asset name, direction, or key theme. Examples: 'BTC Long — Descending Wedge Breakout', 'Morning Plan — March 18', 'Daily Review: 3 Wins, 1 Mistake'",
-  "content": "HTML formatted journal entry with <h2> sections, <p> paragraphs, <ul>/<li> lists as appropriate",
+  "content": "Clean, natural HTML journal entry (see Content Formatting rules below)",
   "template": "trade-entry" | "trade-review" | "daily-review" | "morning-plan" | "weekly-recap" | "monthly-recap" | "mistake" | "free",
   "emotion": "Calm" | "Anxious" | "Excited" | "Frustrated" | "FOMO" | "Revenge" | "Bored" | "Confident" | "Greedy" | "Fearful" | "Disciplined" | "Relieved" | "Hopeful" | "Impatient" | "Regretful" | "Overconfident" | "Confused" | "Indifferent" | null,
   "tags": ["relevant", "tags"],
@@ -43,9 +43,18 @@ Rules:
 - Extract emotion from what they describe feeling. If no emotion mentioned, set to null
 - Extract confidence level if they mention how confident they were (1-10 scale). If not mentioned, set to null
 - Tags should include: asset symbols (BTC, ETH, SPY, ADA), trade direction (long, short), timeframe, strategy names, and other relevant keywords
-- Format the content HTML with clear sections using <h2> headers. Organize their thoughts logically even if they spoke in a scattered way
-- Keep the trader's voice and perspective — don't add information they didn't provide
-- If the transcript is very short or unclear, still do your best to structure it`;
+- If the transcript is very short or unclear, still do your best to structure it
+
+Content Formatting:
+- This is a TRANSCRIPT of speech, not written text. Convert it into what the trader would have WRITTEN in their journal — not a cleaned-up transcription
+- Remove all filler words (um, uh, like, you know, so yeah, I mean, basically, right), false starts, repetitions, and self-corrections
+- Condense verbose or rambling sections to their essence. If they said the same thing 3 ways, keep the clearest version
+- Preserve all specific details exactly: numbers, prices, percentages, asset names, dates, strategy names, and concrete plans
+- Keep the trader's first-person voice and perspective — don't make it sound corporate or robotic, and never add information they didn't provide
+- Scale formatting to length:
+  - Short entries (1-3 sentences): use only <p> tags, no headers
+  - Medium entries (1-3 paragraphs): use <p> tags, optionally one <h2> if there's a clear topic shift
+  - Long entries (4+ distinct topics): use <h2> headers to separate sections, <p> for paragraphs, <ul>/<li> for lists of items`;
 
 function buildFieldDescription(field: TemplateField): string {
   switch (field.type) {
@@ -207,7 +216,7 @@ export async function POST(req: NextRequest) {
   try {
     const text = await provider.chat({
       system: systemPrompt,
-      userMessage: `Here is my voice journal entry transcript:\n\n"${transcript}"`,
+      userMessage: `Here is a raw voice transcript from a trader. Transform it into a clean journal entry:\n\n"${transcript}"`,
       maxTokens: 2048,
       model,
       apiKey,
