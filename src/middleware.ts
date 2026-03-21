@@ -66,7 +66,7 @@ export async function middleware(request: NextRequest) {
   // Early access gate: check if user is allowed to access protected routes
   // Owner always gets through. Others need to be on waitlist or manually approved.
   if (user && !isOwner && (pathname.startsWith("/dashboard") || pathname.startsWith("/simulator"))) {
-    const hasAccess = request.cookies.get("stargate-early-access")?.value === "1";
+    const hasAccess = request.cookies.get("stargate-early-access")?.value === user.email?.toLowerCase();
 
     if (!hasAccess) {
       // Check DB: waitlist_signups OR early_access_emails
@@ -97,7 +97,7 @@ export async function middleware(request: NextRequest) {
 
       if (verified) {
         // Set cookie to avoid DB queries on subsequent requests
-        supabaseResponse.cookies.set("stargate-early-access", "1", {
+        supabaseResponse.cookies.set("stargate-early-access", email, {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",

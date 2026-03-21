@@ -91,7 +91,7 @@ export async function GET(request: Request) {
           }
 
           if (hasEarlyAccess) {
-            response.cookies.set("stargate-early-access", "1", {
+            response.cookies.set("stargate-early-access", emailLower, {
               path: "/",
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
