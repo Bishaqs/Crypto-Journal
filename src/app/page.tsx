@@ -33,11 +33,6 @@ export default function LandingPage() {
       stagger: 0.15,
       ease: "power3.out",
       delay: 0.2,
-      onComplete: () => {
-        document.querySelectorAll("h1 .hero-text-line").forEach((el) => {
-          (el as HTMLElement).style.overflow = "visible";
-        });
-      },
     });
 
     gsap.from(".hero-cta", {
