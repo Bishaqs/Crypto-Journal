@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendWaitlistConfirmation } from "@/lib/email";
 import { z } from "zod";
+import { TIERS, getTierForPosition, TOTAL_CAP, type WaitlistTier } from "@/lib/waitlist-tiers";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,8 @@ export async function POST(req: NextRequest) {
     access_token?: string;
     remaining?: number;
     total?: number;
+    tier?: WaitlistTier;
+    discount?: number;
   };
 
   if (!result.success) {
@@ -68,24 +71,29 @@ export async function POST(req: NextRequest) {
     if (result.error === "waitlist_full") {
       return NextResponse.json({
         success: false,
-        error: "All 100 early access spots have been claimed!",
+        error: `All ${TOTAL_CAP.toLocaleString()} early access spots have been claimed!`,
       });
     }
     return NextResponse.json({ success: false, error: result.error }, { status: 400 });
   }
 
-  // Generate discount code
-  const discountCode = `TRAVERSE50-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  // Determine tier info
+  const tier = result.tier ?? getTierForPosition(result.position!);
+  const tierInfo = TIERS[tier];
+  const discount = result.discount ?? tierInfo.discount;
+
+  // Generate tier-appropriate discount code
+  const discountCode = `${tierInfo.codePrefix}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const referralCode = `REF-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
   // Insert into discount_codes table
   const { error: discountErr } = await admin.from("discount_codes").insert({
     code: discountCode,
     discount_type: "percentage",
-    discount_value: 50,
+    discount_value: discount,
     applicable_tiers: ["pro", "max"],
     applicable_billing: ["monthly", "yearly"],
-    description: `Early access waitlist #${result.position} - 50% forever`,
+    description: `${tierInfo.name} waitlist #${result.position} - ${discount}% forever`,
     max_uses: 1,
     is_active: true,
   });
@@ -100,18 +108,34 @@ export async function POST(req: NextRequest) {
     .update({ discount_code: discountCode, referral_code: referralCode })
     .eq("id", result.id);
 
+  // Schedule quiz invitation email for Day 1
+  const quizInviteDate = new Date();
+  quizInviteDate.setDate(quizInviteDate.getDate() + 1);
+  quizInviteDate.setHours(10, 0, 0, 0);
+  await admin.from("email_sequences").insert({
+    email: parsed.email.toLowerCase().trim(),
+    waitlist_signup_id: result.id,
+    sequence_name: "waitlist_nurture",
+    day_index: 1,
+    scheduled_for: quizInviteDate.toISOString(),
+    status: "pending",
+  });
+
   // Send confirmation email (non-blocking)
   sendWaitlistConfirmation(
     parsed.email,
     result.position!,
     result.access_token!,
     discountCode,
-    referralCode
+    referralCode,
+    tierInfo.name,
+    discount
   ).catch((err) => console.error("[waitlist/signup] email failed:", err));
 
   return NextResponse.json({
     success: true,
     position: result.position,
     remaining: result.remaining,
+    tier: tierInfo.name,
   });
 }

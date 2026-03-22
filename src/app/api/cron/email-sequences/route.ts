@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendNurtureEmail } from "@/lib/email";
+import { sendNurtureEmail, sendQuizInvitation, sendProtocolDelivery } from "@/lib/email";
+import { ARCHETYPES, type TradingArchetype } from "@/lib/psychology-scoring";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export async function GET(req: Request) {
     // Get pending emails that are due
     const { data: pendingEmails, error } = await supabase
       .from("email_sequences")
-      .select("id, email, quiz_result_id, day_index")
+      .select("id, email, quiz_result_id, waitlist_signup_id, sequence_name, day_index")
       .eq("status", "pending")
       .lte("scheduled_for", new Date().toISOString())
       .order("scheduled_for", { ascending: true })
@@ -57,49 +58,125 @@ export async function GET(req: Request) {
         continue;
       }
 
-      // Get quiz result for archetype/scores
-      const { data: quizResult } = await supabase
-        .from("quiz_results")
-        .select("archetype, scores, unsubscribe_token")
-        .eq("id", email.quiz_result_id)
-        .single();
+      let success = false;
 
-      if (!quizResult) {
-        await supabase
-          .from("email_sequences")
-          .update({ status: "failed" })
-          .eq("id", email.id);
-        failed++;
-        continue;
-      }
+      // Route by sequence type
+      if (email.sequence_name === "waitlist_nurture") {
+        // Quiz invitation email — needs waitlist signup data
+        if (!email.waitlist_signup_id) {
+          await supabase.from("email_sequences").update({ status: "failed" }).eq("id", email.id);
+          failed++;
+          continue;
+        }
 
-      // Look up discount code from waitlist (if linked)
-      let discountCode: string | undefined;
-      const { data: quizRow } = await supabase
-        .from("quiz_results")
-        .select("waitlist_signup_id")
-        .eq("id", email.quiz_result_id)
-        .single();
-
-      if (quizRow?.waitlist_signup_id) {
-        const { data: waitlist } = await supabase
+        const { data: signup } = await supabase
           .from("waitlist_signups")
-          .select("discount_code")
-          .eq("id", quizRow.waitlist_signup_id)
+          .select("access_token, position, tier")
+          .eq("id", email.waitlist_signup_id)
           .single();
-        if (waitlist?.discount_code) discountCode = waitlist.discount_code;
+
+        if (!signup) {
+          await supabase.from("email_sequences").update({ status: "failed" }).eq("id", email.id);
+          failed++;
+          continue;
+        }
+
+        const tierNames: Record<string, string> = {
+          founding_100: "Founding 100",
+          pioneer: "Pioneer",
+          early_adopter: "Early Adopter",
+          vanguard: "Vanguard",
+          trailblazer: "Trailblazer",
+        };
+
+        const unsubscribeUrl = `https://traversejournal.com/api/email/unsubscribe?email=${encodeURIComponent(email.email)}`;
+        success = await sendQuizInvitation(
+          email.email,
+          signup.access_token,
+          tierNames[signup.tier] ?? "Early Access",
+          signup.position,
+          unsubscribeUrl,
+        );
+      } else if (email.sequence_name === "protocol_delivery") {
+        // Protocol delivery email — needs quiz result + protocol
+        if (!email.quiz_result_id) {
+          await supabase.from("email_sequences").update({ status: "failed" }).eq("id", email.id);
+          failed++;
+          continue;
+        }
+
+        const { data: quizResult } = await supabase
+          .from("quiz_results")
+          .select("id, archetype, protocol, unsubscribe_token")
+          .eq("id", email.quiz_result_id)
+          .single();
+
+        if (!quizResult) {
+          await supabase.from("email_sequences").update({ status: "failed" }).eq("id", email.id);
+          failed++;
+          continue;
+        }
+
+        // Generate protocol if not yet cached
+        if (!quizResult.protocol) {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://traversejournal.com"}/api/quiz/protocol?id=${quizResult.id}&token=${quizResult.unsubscribe_token}`
+          ).catch(() => {});
+
+          // Re-fetch to get the generated protocol
+          const { data: updated } = await supabase
+            .from("quiz_results")
+            .select("protocol")
+            .eq("id", quizResult.id)
+            .single();
+          if (updated?.protocol) quizResult.protocol = updated.protocol;
+        }
+
+        const protocol = quizResult.protocol as { slides?: { title: string }[] } | null;
+        const slideTitles = protocol?.slides?.map((s) => s.title) ?? ["Your Pattern", "Your Hidden Costs", "Your Protocol"];
+        const archetypeInfo = ARCHETYPES[quizResult.archetype as TradingArchetype];
+
+        success = await sendProtocolDelivery(
+          email.email,
+          quizResult.id,
+          quizResult.unsubscribe_token,
+          archetypeInfo?.name ?? quizResult.archetype,
+          slideTitles,
+        );
+      } else {
+        // Default: nurture sequence (days 3, 7, 10, 15)
+        const { data: quizResult } = await supabase
+          .from("quiz_results")
+          .select("archetype, scores, unsubscribe_token, waitlist_signup_id")
+          .eq("id", email.quiz_result_id)
+          .single();
+
+        if (!quizResult) {
+          await supabase.from("email_sequences").update({ status: "failed" }).eq("id", email.id);
+          failed++;
+          continue;
+        }
+
+        let discountCode: string | undefined;
+        if (quizResult.waitlist_signup_id) {
+          const { data: waitlist } = await supabase
+            .from("waitlist_signups")
+            .select("discount_code")
+            .eq("id", quizResult.waitlist_signup_id)
+            .single();
+          if (waitlist?.discount_code) discountCode = waitlist.discount_code;
+        }
+
+        const unsubscribeUrl = `https://traversejournal.com/api/email/unsubscribe?token=${quizResult.unsubscribe_token}`;
+        success = await sendNurtureEmail(
+          email.email,
+          email.day_index,
+          quizResult.archetype,
+          quizResult.scores,
+          unsubscribeUrl,
+          discountCode,
+        );
       }
-
-      const unsubscribeUrl = `https://traversejournal.com/api/email/unsubscribe?token=${quizResult.unsubscribe_token}`;
-
-      const success = await sendNurtureEmail(
-        email.email,
-        email.day_index,
-        quizResult.archetype,
-        quizResult.scores,
-        unsubscribeUrl,
-        discountCode,
-      );
 
       await supabase
         .from("email_sequences")

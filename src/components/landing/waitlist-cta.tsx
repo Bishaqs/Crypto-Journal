@@ -16,6 +16,8 @@ export function WaitlistCTA() {
   const [errorMsg, setErrorMsg] = useState("");
   const [position, setPosition] = useState<number | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [tierName, setTierName] = useState<string | null>(null);
+  const [discount, setDiscount] = useState<number | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
@@ -24,11 +26,13 @@ export function WaitlistCTA() {
     fetch("/api/waitlist/count")
       .then((r) => r.json())
       .then((d) => {
-        const rem = d.remaining ?? 100;
+        const rem = d.remaining ?? 2000;
         setRemaining(rem);
+        setTierName(d.currentTierName ?? null);
+        setDiscount(d.currentDiscount ?? null);
         if (rem <= 0) setStatus("full");
       })
-      .catch(() => setRemaining(100));
+      .catch(() => setRemaining(2000));
   }, []);
 
   // GSAP staggered reveal
@@ -79,6 +83,7 @@ export function WaitlistCTA() {
       if (data.success) {
         setPosition(data.position);
         setRemaining(data.remaining);
+        if (data.tier) setTierName(data.tier);
         setStatus("success");
         // Animate success state
         gsap.fromTo(
@@ -124,7 +129,7 @@ export function WaitlistCTA() {
             <span className="w-2 h-2 rounded-full bg-[#67e8f9] animate-pulse" />
             <span className="font-mono text-xs uppercase tracking-wider text-[#67e8f9]">
               {remaining > 0
-                ? `${remaining} of 100 early access spots remaining`
+                ? `${remaining.toLocaleString()} spots left${tierName ? ` — ${tierName} tier (${discount}% off)` : ""}`
                 : "Early access is full"}
             </span>
           </div>
@@ -138,7 +143,8 @@ export function WaitlistCTA() {
 
         {/* Subhead */}
         <p className="wl-title text-lg md:text-xl text-white/50 max-w-2xl mb-12 font-sans font-light leading-relaxed">
-          Traverse logs your trades and emotional state in 30 seconds to expose the exact cost of your psychological leaks. Join the first 100 to dictate the roadmap.
+          Traverse logs your trades and emotional state in 30 seconds to expose the exact cost of your psychological leaks.{" "}
+          {tierName ? `Join the ${tierName} tier and lock in ${discount}% off forever.` : "Join early and lock in your discount forever."}
         </p>
 
         {/* Form area */}
@@ -183,7 +189,7 @@ export function WaitlistCTA() {
               <div className="flex items-center gap-3 text-white">
                 <CheckCircle2 className="w-5 h-5 text-[#67e8f9] flex-shrink-0" />
                 <span className="font-sans">
-                  Spot Secured. You are <strong className="text-[#67e8f9]">#{position}</strong> of 100.
+                  Spot Secured. You are <strong className="text-[#67e8f9]">#{position}</strong>{tierName ? ` — ${tierName}` : ""}.
                   <span className="block sm:inline sm:ml-2 text-white/60 text-sm">Check your email for your link.</span>
                 </span>
               </div>
@@ -214,8 +220,8 @@ export function WaitlistCTA() {
         {/* Value pills */}
         <div className="flex flex-wrap justify-center gap-3 md:gap-4">
           {[
-            { icon: TrendingUp, text: "50% Off Paid Plans Forever" },
-            { icon: Users, text: "Vote on Next Features" },
+            { icon: TrendingUp, text: `Up to ${discount ?? 50}% Off Forever` },
+            { icon: Users, text: "Free Psychology Protocol" },
             { icon: Sparkles, text: "Shape the Product" },
           ].map((pill, i) => (
             <div

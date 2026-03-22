@@ -1,6 +1,6 @@
 // ─── Shared Psychology Question Bank ────────────────────────────────────────
 // Used by both the in-app Psychology Kickstart and the public Lead Magnet Quiz.
-// Each question has a `quizEligible` flag — true = included in the 12-question quiz.
+// Each question has a `quizEligible` flag — true = included in the 20-question quiz.
 
 import type { RiskPersonality, DecisionStyle } from "@/lib/types";
 
@@ -63,7 +63,7 @@ export type LikertQuestion = {
 export const RISK_SCENARIOS: RiskScenario[] = [
   {
     id: "risk_1",
-    quizEligible: false,
+    quizEligible: true,
     question: "You're in a trade that's up 2R. The setup suggests it could go to 5R, but there's a clear resistance level. You:",
     options: [
       { label: "Take profit now — 2R is 2R", score: { conservative_guardian: 3, calculated_risk_taker: 1, aggressive_hunter: 0, adaptive_chameleon: 1 } },
@@ -96,7 +96,7 @@ export const RISK_SCENARIOS: RiskScenario[] = [
   },
   {
     id: "risk_4",
-    quizEligible: false,
+    quizEligible: true,
     question: "Your maximum acceptable drawdown before you stop trading is:",
     options: [
       { label: "5% of account — preserve capital above all", score: { conservative_guardian: 3, calculated_risk_taker: 1, aggressive_hunter: 0, adaptive_chameleon: 1 } },
@@ -133,12 +133,12 @@ export const RISK_SCENARIOS: RiskScenario[] = [
 
 export const MONEY_SCRIPT_QUESTIONS: MoneyScriptQuestion[] = [
   // Avoidance
-  { id: "ma_1", category: "avoidance", text: "I feel guilty when I have a profitable trading day", quizEligible: false },
+  { id: "ma_1", category: "avoidance", text: "I feel guilty when I have a profitable trading day", quizEligible: true },
   { id: "ma_2", category: "avoidance", text: "Taking money from the market feels wrong somehow", quizEligible: false },
   { id: "ma_3", category: "avoidance", text: "I don't deserve to make money this easily", quizEligible: false },
   // Worship
   { id: "mw_1", category: "worship", text: "If I could just hit my P&L target, all my problems would be solved", quizEligible: true },
-  { id: "mw_2", category: "worship", text: "I think about potential trading profits constantly", quizEligible: false },
+  { id: "mw_2", category: "worship", text: "I think about potential trading profits constantly", quizEligible: true },
   { id: "mw_3", category: "worship", text: "More money from trading would make me happier", quizEligible: false },
   // Status
   { id: "ms_1", category: "status", text: "My P&L defines my worth as a trader and as a person", quizEligible: true },
@@ -158,7 +158,7 @@ export const DECISION_STYLE_QUESTIONS: DecisionStyleQuestion[] = [
     { label: "Opening charts and checking indicators", score: "analytical" },
     { label: "It depends on the situation", score: "hybrid" },
   ]},
-  { id: "ds_2", quizEligible: false, text: "I make my best trades when:", options: [
+  { id: "ds_2", quizEligible: true, text: "I make my best trades when:", options: [
     { label: "I trust my instincts and act quickly", score: "intuitive" },
     { label: "I follow my rules exactly", score: "analytical" },
     { label: "I balance my gut with the data", score: "hybrid" },
@@ -220,7 +220,7 @@ export const LOSS_AVERSION_SCENARIOS: LossAversionScenario[] = [
 // ─── Category 7: Trading Discipline (2 Likert questions) ───────────────────
 
 export const DISCIPLINE_QUESTIONS: LikertQuestion[] = [
-  { id: "td_1", text: "I stick to my pre-trade plan even when the market tempts me to deviate", quizEligible: false },
+  { id: "td_1", text: "I stick to my pre-trade plan even when the market tempts me to deviate", quizEligible: true },
   { id: "td_2", text: "I have clear rules for when to stop trading for the day, and I follow them", quizEligible: false },
 ];
 
@@ -242,7 +242,7 @@ export const EMOTIONAL_REGULATION_QUESTIONS: ScenarioQuestion[] = [
   },
   {
     id: "er_2",
-    quizEligible: false,
+    quizEligible: true,
     question: "When you notice yourself getting emotionally activated during a trade, you:",
     options: [
       { label: "Let the emotion guide my decision — it's useful data", value: "reactive" },
@@ -258,7 +258,7 @@ export const EMOTIONAL_REGULATION_QUESTIONS: ScenarioQuestion[] = [
 export const BIAS_AWARENESS_QUESTIONS: ScenarioQuestion[] = [
   {
     id: "ba_1",
-    quizEligible: false,
+    quizEligible: true,
     question: "You bought at $100, it dropped to $80, then recovered to $95. You:",
     options: [
       { label: "Wait for it to get back to $100 — I need to break even", value: "anchored" },

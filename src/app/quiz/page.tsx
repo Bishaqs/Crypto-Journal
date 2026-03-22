@@ -15,6 +15,7 @@ import {
   EMOTIONAL_REGULATION_QUESTIONS,
   BIAS_AWARENESS_QUESTIONS,
   STRESS_RESPONSE_QUESTION,
+  DISCIPLINE_QUESTIONS,
 } from "@/lib/psychology-questions";
 import type { ArchetypeInfo } from "@/lib/psychology-scoring";
 
@@ -87,6 +88,11 @@ function buildQuizQuestions(): QuizQuestion[] {
     });
   }
 
+  // Discipline (quiz eligible)
+  for (const q of DISCIPLINE_QUESTIONS.filter((q) => q.quizEligible)) {
+    questions.push({ type: "likert", id: q.id, text: q.text });
+  }
+
   // Stress response (quiz eligible)
   if (STRESS_RESPONSE_QUESTION.quizEligible) {
     questions.push({
@@ -128,7 +134,7 @@ function QuizContent() {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ archetype: string; archetypeInfo: ArchetypeInfo } | null>(null);
+  const [result, setResult] = useState<{ archetype: string; archetypeInfo: ArchetypeInfo; quizResultId?: string; unsubscribeToken?: string } | null>(null);
 
   function handleAnswer(questionId: string, value: string | number) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -161,7 +167,7 @@ function QuizContent() {
         return;
       }
 
-      setResult({ archetype: data.archetype, archetypeInfo: data.archetypeInfo });
+      setResult({ archetype: data.archetype, archetypeInfo: data.archetypeInfo, quizResultId: data.quizResultId, unsubscribeToken: data.unsubscribeToken });
       setPhase("results");
     } catch {
       setError("Network error. Please try again.");
@@ -192,11 +198,11 @@ function QuizContent() {
                 What&apos;s Your Trading Psychology Pattern?
               </h1>
               <p className="text-gray-400 text-sm leading-relaxed max-w-md mx-auto">
-                Answer 12 questions to discover your trading archetype — and get
-                a personalized report on your strengths, blind spots, and one
-                actionable technique to improve immediately.
+                Answer 20 questions to discover your trading archetype — and get
+                a personalized AI-generated protocol with your strengths, blind spots,
+                and actionable techniques to improve immediately.
               </p>
-              <p className="text-gray-500 text-xs">Takes about 3 minutes</p>
+              <p className="text-gray-500 text-xs">Takes about 5 minutes</p>
               <button
                 onClick={() => setPhase("questions")}
                 className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-all"
@@ -414,15 +420,31 @@ function QuizContent() {
               </div>
 
               <div className="text-center space-y-3 pt-4">
-                <p className="text-xs text-gray-500">
-                  Check your email for your full psychology report and personalized techniques.
-                </p>
-                <a
-                  href="https://traversejournal.com"
-                  className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-all"
-                >
-                  Explore Traverse Journal <ArrowRight size={16} />
-                </a>
+                {result.quizResultId && result.unsubscribeToken ? (
+                  <>
+                    <p className="text-xs text-gray-500">
+                      Your AI-generated psychology protocol will be ready within 24 hours.
+                    </p>
+                    <a
+                      href={`/quiz/results?id=${result.quizResultId}&token=${result.unsubscribeToken}`}
+                      className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-all"
+                    >
+                      View Your Protocol <ArrowRight size={16} />
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-500">
+                      Check your email for your full psychology report.
+                    </p>
+                    <a
+                      href="https://traversejournal.com"
+                      className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-all"
+                    >
+                      Explore Traverse Journal <ArrowRight size={16} />
+                    </a>
+                  </>
+                )}
               </div>
             </motion.div>
           )}

@@ -45,6 +45,7 @@ function VotePageContent() {
 
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [position, setPosition] = useState<number | null>(null);
+  const [canVote, setCanVote] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [votingId, setVotingId] = useState<string | null>(null);
@@ -66,6 +67,7 @@ function VotePageContent() {
       if (res.ok) {
         setProposals(data.proposals);
         setPosition(data.position);
+        setCanVote(data.canVote ?? false);
         setError(null);
       } else {
         setError(data.error || "Invalid token");
@@ -82,7 +84,7 @@ function VotePageContent() {
   }, [fetchProposals]);
 
   async function handleVote(proposalId: string, action: "vote" | "unvote") {
-    if (!token || votingId) return;
+    if (!token || votingId || !canVote) return;
     setVotingId(proposalId);
 
     setProposals((prev) =>
@@ -202,9 +204,17 @@ function VotePageContent() {
             Feature Roadmap
           </h1>
           <p className="text-white/50 text-base leading-relaxed">
-            Allocate your votes to the features you need most to stop bleeding P&L.
+            {canVote
+              ? "Allocate your votes to the features you need most to stop bleeding P&L."
+              : "Browse the proposed features. Voting is exclusive to Founding 100 members."}
           </p>
         </div>
+
+        {!canVote && position && (
+          <div className="mb-8 px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-300 text-sm">
+            You are #{position}. Feature voting is exclusive to the first 100 members (Founding 100).
+          </div>
+        )}
 
         {/* Category filter */}
         <div className="flex gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide">
@@ -233,9 +243,13 @@ function VotePageContent() {
               {/* Vote column */}
               <button
                 onClick={() => handleVote(proposal.id, proposal.hasVoted ? "unvote" : "vote")}
-                disabled={votingId === proposal.id}
+                disabled={votingId === proposal.id || !canVote}
                 className={`flex flex-col items-center gap-0.5 pt-0.5 min-w-[48px] transition-colors ${
-                  proposal.hasVoted ? "text-[#67e8f9]" : "text-white/30 hover:text-[#67e8f9]"
+                  !canVote
+                    ? "text-white/20 cursor-not-allowed"
+                    : proposal.hasVoted
+                      ? "text-[#67e8f9]"
+                      : "text-white/30 hover:text-[#67e8f9]"
                 }`}
               >
                 <ChevronUp size={20} />
