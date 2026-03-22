@@ -21,10 +21,16 @@ export async function GET() {
     const tier = nextPosition <= TOTAL_CAP ? getTierForPosition(nextPosition) : null;
     const tierInfo = tier ? TIERS[tier] : null;
 
+    // Calculate remaining spots within the current tier
+    const tierRemaining = tierInfo
+      ? Math.max(0, tierInfo.range[1] - total)
+      : 0;
+
     return NextResponse.json(
       {
         total,
         remaining: Math.max(0, TOTAL_CAP - total),
+        tierRemaining,
         currentTier: tier,
         currentTierName: tierInfo?.name ?? null,
         currentDiscount: tierInfo?.discount ?? null,

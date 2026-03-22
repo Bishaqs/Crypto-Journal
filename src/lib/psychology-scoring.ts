@@ -6,9 +6,16 @@ import {
   RISK_SCENARIOS,
   MONEY_SCRIPT_QUESTIONS,
   LOSS_AVERSION_SCENARIOS,
+  FQ_RISK_SCENARIOS,
+  FQ_MONEY_QUESTIONS,
+  FQ_LOSS_AVERSION_SCENARIOS,
   type EmotionalRegulationLevel,
   type StressResponse,
 } from "@/lib/psychology-questions";
+
+const ALL_RISK_SCENARIOS = [...RISK_SCENARIOS, ...FQ_RISK_SCENARIOS];
+const ALL_MONEY_QUESTIONS = [...MONEY_SCRIPT_QUESTIONS, ...FQ_MONEY_QUESTIONS];
+const ALL_LOSS_AVERSION = [...LOSS_AVERSION_SCENARIOS, ...FQ_LOSS_AVERSION_SCENARIOS];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -26,7 +33,7 @@ export function computeRiskPersonality(riskResponses: Record<string, number>): R
     adaptive_chameleon: 0,
   };
   for (const [qId, optIdx] of Object.entries(riskResponses)) {
-    const scenario = RISK_SCENARIOS.find((s) => s.id === qId);
+    const scenario = ALL_RISK_SCENARIOS.find((s) => s.id === qId);
     if (scenario) {
       const option = scenario.options[optIdx];
       for (const [key, val] of Object.entries(option.score)) {
@@ -44,7 +51,7 @@ export function computeMoneyScripts(moneyResponses: Record<string, number>): {
   vigilance: number;
 } {
   const sums: Record<string, number[]> = { avoidance: [], worship: [], status: [], vigilance: [] };
-  for (const q of MONEY_SCRIPT_QUESTIONS) {
+  for (const q of ALL_MONEY_QUESTIONS) {
     const val = moneyResponses[q.id];
     if (val !== undefined) sums[q.category].push(val);
   }
@@ -70,10 +77,10 @@ export function computeAttachmentScore(attachmentResponses: Record<string, numbe
 }
 
 export function computeLossAversion(lossAversionResponses: Record<string, number>): number {
-  const vals = Object.values(lossAversionResponses);
-  if (vals.length === 0) return 2.0;
-  const multipliers = vals.map((idx, i) => {
-    const scenario = LOSS_AVERSION_SCENARIOS[i];
+  const entries = Object.entries(lossAversionResponses);
+  if (entries.length === 0) return 2.0;
+  const multipliers = entries.map(([qId, idx]) => {
+    const scenario = ALL_LOSS_AVERSION.find((s) => s.id === qId);
     return scenario ? scenario.options[idx]?.multiplier ?? 2.0 : 2.0;
   });
   return Math.round(avg(multipliers) * 100) / 100;
