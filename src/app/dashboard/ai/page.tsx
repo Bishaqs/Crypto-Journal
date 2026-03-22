@@ -170,17 +170,9 @@ export default function AIPage() {
   const prevConversationIdRef = useRef<string | null>(null);
   const extractedConversationsRef = useRef<Set<string>>(new Set());
 
-  // Refs for beforeunload/visibilitychange (capture latest state without stale closures)
+  // Ref for periodic extraction (needs latest messages inside async callbacks)
   const messagesRef = useRef(messages);
-  const activeConvRef = useRef(activeConversationId);
-  const aiProviderRef = useRef(aiProvider);
-  const aiModelRef = useRef(aiModel);
-  const aiApiKeyRef = useRef(aiApiKey);
   messagesRef.current = messages;
-  activeConvRef.current = activeConversationId;
-  aiProviderRef.current = aiProvider;
-  aiModelRef.current = aiModel;
-  aiApiKeyRef.current = aiApiKey;
   const supabase = createClient();
 
   // ─── Consent ──────────────────────────────────────────────────────────────
@@ -219,45 +211,8 @@ export default function AIPage() {
     }
   }
 
-  // ─── Extract memories on page unload / tab hide ──────────────────────────
-  useEffect(() => {
-    function extractOnUnload() {
-      const convId = activeConvRef.current;
-      const msgs = messagesRef.current;
-      if (!convId || msgs.length < 4 || extractedConversationsRef.current.has(convId)) return;
-
-      const chatMsgs = msgs
-        .filter((m) => m.role !== "error")
-        .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
-      if (chatMsgs.length < 4) return;
-
-      extractedConversationsRef.current.add(convId);
-      const payload = JSON.stringify({
-        conversationId: convId,
-        messages: chatMsgs.slice(-30),
-        provider: aiProviderRef.current,
-        model: aiModelRef.current,
-        ...(aiApiKeyRef.current ? { apiKey: aiApiKeyRef.current } : {}),
-      });
-
-      // sendBeacon survives page close; fetch does not
-      navigator.sendBeacon(
-        "/api/ai/extract-memories",
-        new Blob([payload], { type: "application/json" })
-      );
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === "hidden") extractOnUnload();
-    }
-
-    window.addEventListener("beforeunload", extractOnUnload);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      window.removeEventListener("beforeunload", extractOnUnload);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
+  // Tracks last extracted message index per conversation for periodic extraction
+  const lastExtractedIndexRef = useRef<Record<string, number>>({});
 
   // ─── Load AI settings from localStorage ───────────────────────────────────
   useEffect(() => {
@@ -513,17 +468,23 @@ export default function AIPage() {
     }
   }
 
-  function extractMemories(conversationId: string, msgs: Message[], { silent = false }: { silent?: boolean } = {}) {
-    // Prevent duplicate extractions for the same conversation
-    if (extractedConversationsRef.current.has(conversationId)) return;
-
+  function extractMemories(conversationId: string, msgs: Message[], { silent = false, periodic = false }: { silent?: boolean; periodic?: boolean } = {}) {
     const chatMsgs = msgs
       .filter((m) => m.role !== "error")
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
 
     if (chatMsgs.length < 4) return;
 
-    extractedConversationsRef.current.add(conversationId);
+    if (periodic) {
+      // Periodic: only extract if 8+ new messages since last extraction
+      const lastIdx = lastExtractedIndexRef.current[conversationId] ?? 0;
+      if (chatMsgs.length - lastIdx < 8) return;
+      lastExtractedIndexRef.current[conversationId] = chatMsgs.length;
+    } else {
+      // On-switch: prevent duplicate extraction for the same conversation
+      if (extractedConversationsRef.current.has(conversationId)) return;
+      extractedConversationsRef.current.add(conversationId);
+    }
 
     fetch("/api/ai/extract-memories", {
       method: "POST",
@@ -694,6 +655,12 @@ export default function AIPage() {
       // Save messages to database after streaming completes
       if (convId && accumulated) {
         saveMessages(convId, msg, accumulated);
+
+        // Periodic memory extraction: every 8 messages in a long conversation
+        const currentMsgs = messagesRef.current;
+        if (currentMsgs.length >= 8) {
+          extractMemories(convId, currentMsgs, { silent: true, periodic: true });
+        }
       }
 
       // Read response aloud if TTS is enabled
