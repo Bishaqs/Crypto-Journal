@@ -1219,6 +1219,81 @@ export function buildCorrelationContext(
 
 export type CoachMemory = { id: string; content: string; category: string; created_at: string; last_referenced_at?: string | null; relevance_score?: number };
 
+// ─── Memory Relevance Filtering ─────────────────────────────────────────────
+
+const STOP_WORDS = new Set([
+  "i", "me", "my", "the", "a", "an", "is", "are", "was", "were", "be",
+  "been", "being", "have", "has", "had", "do", "does", "did", "will",
+  "would", "could", "should", "can", "may", "to", "of", "in", "for",
+  "on", "with", "at", "by", "from", "it", "this", "that", "and", "or",
+  "but", "not", "no", "so", "if", "as", "what", "how", "when", "why",
+]);
+
+/**
+ * Score and filter memories by relevance to the current conversation.
+ * Returns at most `maxMemories` (default 15), prioritizing:
+ * - Keyword matches with the user's current message
+ * - Memories mentioning recently traded symbols
+ * - Commitments (always relevant for accountability)
+ * - Pattern snapshots (recent behavioral changes)
+ * - Recently referenced memories
+ */
+export function selectRelevantMemories(
+  memories: CoachMemory[],
+  currentMessage: string,
+  recentTradeSymbols: string[],
+  maxMemories: number = 15,
+): CoachMemory[] {
+  if (memories.length <= maxMemories) return memories;
+
+  const msgWords = new Set(
+    currentMessage.toLowerCase().split(/\s+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w)),
+  );
+  const symbols = new Set(recentTradeSymbols.map((s) => s.toLowerCase()));
+  const now = Date.now();
+  const sevenDays = 7 * 86400000;
+  const thirtyDays = 30 * 86400000;
+
+  const scored = memories.map((m) => {
+    let score = 0;
+    const words = m.content.toLowerCase().split(/\s+/);
+
+    // +3 if memory contains a keyword from the current message
+    for (const w of words) {
+      if (msgWords.has(w)) { score += 3; break; }
+    }
+
+    // +2 if memory mentions a recently traded symbol
+    for (const w of words) {
+      if (symbols.has(w)) { score += 2; break; }
+    }
+
+    // +2 if commitment (always relevant for accountability)
+    if (m.category === "commitment") score += 2;
+
+    // +1.5 if snapshot (recent pattern changes are high-signal)
+    if (m.category === "snapshot") score += 1.5;
+
+    // +1 if referenced in last 7 days
+    if (m.last_referenced_at && now - new Date(m.last_referenced_at).getTime() < sevenDays) {
+      score += 1;
+    }
+
+    // -1 if stale (>30 days unreferenced)
+    if (m.last_referenced_at && now - new Date(m.last_referenced_at).getTime() > thirtyDays) {
+      score -= 1;
+    }
+
+    // +0.5 for high relevance_score
+    if ((m.relevance_score ?? 1) > 0.7) score += 0.5;
+
+    return { memory: m, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, maxMemories).map((s) => s.memory);
+}
+
 /** Build memory context to inject into the system prompt. */
 export function buildMemoryContext(memories: CoachMemory[]): string {
   if (!memories || memories.length === 0) return "";
@@ -1229,6 +1304,7 @@ export function buildMemoryContext(memories: CoachMemory[]): string {
     progress: "Progress",
     preference: "Preference",
     insight: "Insight",
+    snapshot: "Pattern Change",
     general: "Note",
   };
 

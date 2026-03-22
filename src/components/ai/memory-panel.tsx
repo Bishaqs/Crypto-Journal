@@ -18,6 +18,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   progress: "text-gain bg-gain/10",
   preference: "text-purple-400 bg-purple-400/10",
   insight: "text-cyan-400 bg-cyan-400/10",
+  snapshot: "text-teal-400 bg-teal-400/10",
   general: "text-muted bg-muted/10",
 };
 
