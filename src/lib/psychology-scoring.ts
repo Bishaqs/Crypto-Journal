@@ -328,7 +328,7 @@ export function computeTradingArchetype(scores: {
     archScores.intuitive_risk_taker += 3;
     archScores.status_driven_competitor += 2;
   } else if (scores.riskPersonality === "adaptive_chameleon") {
-    archScores.adaptive_analyst += 3;
+    archScores.adaptive_analyst += 2;
     archScores.resilient_survivor += 2;
   }
 
@@ -340,35 +340,36 @@ export function computeTradingArchetype(scores: {
     archScores.disciplined_strategist += 2;
     archScores.anxious_overthinker += 1;
   } else if (scores.decisionStyle === "hybrid") {
-    archScores.adaptive_analyst += 2;
+    archScores.adaptive_analyst += 1;
+    archScores.resilient_survivor += 1;
   }
 
   // Money scripts
   if (scores.moneyScripts) {
-    if (scores.moneyScripts.status >= 3.5) {
+    if (scores.moneyScripts.status >= 3) {
       archScores.status_driven_competitor += 3;
     }
-    if (scores.moneyScripts.vigilance >= 3.5) {
+    if (scores.moneyScripts.vigilance >= 3) {
       archScores.anxious_overthinker += 2;
       archScores.cautious_perfectionist += 1;
     }
-    if (scores.moneyScripts.worship >= 3.5) {
+    if (scores.moneyScripts.worship >= 3) {
       archScores.emotional_reactor += 1;
       archScores.status_driven_competitor += 1;
     }
-    if (scores.moneyScripts.avoidance >= 3.5) {
+    if (scores.moneyScripts.avoidance >= 3) {
       archScores.cautious_perfectionist += 1;
     }
   }
 
   // FOMO & Revenge (high = emotional reactor)
   if (scores.fomoRevengeScore !== undefined) {
-    if (scores.fomoRevengeScore >= 4) {
+    if (scores.fomoRevengeScore >= 3.5) {
       archScores.emotional_reactor += 3;
-    } else if (scores.fomoRevengeScore >= 3) {
+    } else if (scores.fomoRevengeScore >= 2.5) {
       archScores.emotional_reactor += 1;
       archScores.intuitive_risk_taker += 1;
-    } else if (scores.fomoRevengeScore <= 2) {
+    } else if (scores.fomoRevengeScore <= 2.5) {
       archScores.disciplined_strategist += 2;
     }
   }
@@ -377,7 +378,7 @@ export function computeTradingArchetype(scores: {
   if (scores.emotionalRegulation === "reactive") {
     archScores.emotional_reactor += 3;
   } else if (scores.emotionalRegulation === "aware") {
-    archScores.adaptive_analyst += 1;
+    archScores.cautious_perfectionist += 1;
   } else if (scores.emotionalRegulation === "managed") {
     archScores.disciplined_strategist += 1;
   } else if (scores.emotionalRegulation === "mastered") {
@@ -389,8 +390,7 @@ export function computeTradingArchetype(scores: {
   if (scores.stressResponse === "resilient") {
     archScores.resilient_survivor += 3;
   } else if (scores.stressResponse === "analytical") {
-    archScores.disciplined_strategist += 1;
-    archScores.adaptive_analyst += 1;
+    archScores.disciplined_strategist += 2;
   } else if (scores.stressResponse === "emotional") {
     archScores.emotional_reactor += 2;
     archScores.anxious_overthinker += 1;
@@ -400,18 +400,18 @@ export function computeTradingArchetype(scores: {
 
   // Bias awareness (high = analyst, low = reactor)
   if (scores.biasAwareness !== undefined) {
-    if (scores.biasAwareness >= 4) {
+    if (scores.biasAwareness >= 3.5) {
       archScores.adaptive_analyst += 2;
-    } else if (scores.biasAwareness <= 2) {
+    } else if (scores.biasAwareness <= 2.5) {
       archScores.emotional_reactor += 1;
     }
   }
 
   // Discipline (high = strategist, low = reactor)
   if (scores.disciplineScore !== undefined) {
-    if (scores.disciplineScore >= 4) {
+    if (scores.disciplineScore >= 3.5) {
       archScores.disciplined_strategist += 2;
-    } else if (scores.disciplineScore <= 2) {
+    } else if (scores.disciplineScore <= 2.5) {
       archScores.emotional_reactor += 1;
     }
   }
