@@ -43,14 +43,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ protocol: result.protocol });
   }
 
+  const archetype = result.archetype as TradingArchetype;
+  const archetypeInfo = ARCHETYPES[archetype];
+
   // Generate protocol via Claude
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "AI service not configured" }, { status: 500 });
+    return NextResponse.json({
+      error: "ai_not_ready",
+      archetype,
+      archetypeInfo,
+    }, { status: 503 });
   }
-
-  const archetype = result.archetype as TradingArchetype;
-  const archetypeInfo = ARCHETYPES[archetype];
   const scores = result.scores as Record<string, unknown>;
 
   if (!archetypeInfo) {
@@ -151,6 +155,10 @@ Make the protocol deeply personal and specific to their score profile. Reference
     return NextResponse.json({ protocol });
   } catch (err) {
     console.error("[quiz/protocol] AI generation failed:", err);
-    return NextResponse.json({ error: "Protocol generation failed" }, { status: 500 });
+    return NextResponse.json({
+      error: "ai_not_ready",
+      archetype,
+      archetypeInfo,
+    }, { status: 503 });
   }
 }

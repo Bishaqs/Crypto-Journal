@@ -47,8 +47,10 @@ function ResultsContent() {
 
   const [protocol, setProtocol] = useState<Protocol | null>(null);
   const [archetype, setArchetype] = useState<string | null>(null);
+  const [fallbackArchetypeInfo, setFallbackArchetypeInfo] = useState<import("@/lib/psychology-scoring").ArchetypeInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [aiNotReady, setAiNotReady] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -61,15 +63,19 @@ function ResultsContent() {
     // Fetch archetype from quiz result
     fetch(`/api/quiz/protocol?id=${id}&token=${token}`)
       .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
+          if (data.error === "ai_not_ready" && data.archetypeInfo) {
+            // AI not available — show archetype fallback
+            setArchetype(data.archetype ?? null);
+            setFallbackArchetypeInfo(data.archetypeInfo);
+            setAiNotReady(true);
+            setLoading(false);
+            return;
+          }
           throw new Error(data.error ?? "Failed to load protocol");
         }
-        return res.json();
-      })
-      .then((data) => {
         setProtocol(data.protocol);
-        // Extract archetype from the first slide title or fallback
         setArchetype(data.archetype ?? null);
         setLoading(false);
       })
@@ -117,6 +123,55 @@ function ResultsContent() {
         <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
         <p className="text-gray-400 text-sm">Generating your personalized protocol...</p>
         <p className="text-gray-600 text-xs">This may take a moment on first load</p>
+      </div>
+    );
+  }
+
+  if (aiNotReady && fallbackArchetypeInfo) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center justify-center p-6 md:p-12">
+        <div className="w-full max-w-2xl space-y-8 text-center">
+          <p className="text-xs font-mono uppercase tracking-widest text-cyan-400/50">
+            Your Trading Archetype
+          </p>
+          <h1 className="text-3xl md:text-4xl font-bold">{fallbackArchetypeInfo.name}</h1>
+          <p className="text-white/50 text-sm leading-relaxed max-w-lg mx-auto">
+            {fallbackArchetypeInfo.description}
+          </p>
+
+          <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-5 text-left">
+            <p className="text-sm font-semibold text-cyan-400 mb-3">Your Strengths</p>
+            {fallbackArchetypeInfo.strengths.map((s, i) => (
+              <p key={i} className="text-xs text-white/60 mb-1.5 flex items-start gap-2">
+                <span className="text-green-400 shrink-0">&#10003;</span> {s}
+              </p>
+            ))}
+          </div>
+
+          <div className="bg-white/[0.03] border border-white/10 rounded-xl p-5 text-left">
+            <p className="text-sm font-semibold text-amber-400 mb-3">Your Blind Spots</p>
+            {fallbackArchetypeInfo.blindSpots.map((s, i) => (
+              <p key={i} className="text-xs text-white/60 mb-1.5 flex items-start gap-2">
+                <span className="text-amber-400 shrink-0">&#9888;</span> {s}
+              </p>
+            ))}
+          </div>
+
+          <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5">
+            <p className="text-sm text-white/70 leading-relaxed">
+              Your full personalized AI-generated protocol with 3 actionable
+              techniques is being prepared and will be delivered to your email
+              within 24 hours.
+            </p>
+          </div>
+
+          <a
+            href="https://traversejournal.com/#waitlist"
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-all"
+          >
+            Back to Traverse Journal
+          </a>
+        </div>
       </div>
     );
   }

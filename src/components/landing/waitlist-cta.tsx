@@ -146,8 +146,8 @@ export function WaitlistCTA() {
 
         {/* Subhead */}
         <p className="wl-title text-lg md:text-xl text-white/50 max-w-2xl mb-12 font-sans font-light leading-relaxed">
-          Traverse logs your trades and emotional state in 30 seconds to expose the exact cost of your psychological leaks.{" "}
-          {tierName ? `Join the ${tierName} tier and lock in ${discount}% off forever.` : "Join early and lock in your discount forever."}
+          Secure your spot and get a free AI-generated Trading Psychology Protocol — discover the hidden patterns costing you money.{" "}
+          {tierName ? `${tierName} members lock in ${discount}% off forever.` : "Early members lock in their discount forever."}
         </p>
 
         {/* Form area */}
@@ -172,7 +172,7 @@ export function WaitlistCTA() {
                 className="relative overflow-hidden group bg-[#67e8f9] text-[#0a0a0c] font-medium rounded-[2rem] px-8 py-4 w-full sm:w-auto flex-shrink-0 shadow-lg"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  Claim My Spot <ArrowRight className="w-4 h-4" />
+                  Secure My Spot <ArrowRight className="w-4 h-4" />
                 </span>
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-0" />
               </button>
@@ -223,9 +223,9 @@ export function WaitlistCTA() {
         {/* Value pills */}
         <div className="flex flex-wrap justify-center gap-3 md:gap-4">
           {[
-            { icon: TrendingUp, text: `Up to ${discount ?? 50}% Off Forever` },
             { icon: Users, text: "Free Psychology Protocol" },
-            { icon: Sparkles, text: "Shape the Product" },
+            { icon: Sparkles, text: "Discover Your Trading Patterns" },
+            { icon: TrendingUp, text: `Up to ${discount ?? 50}% Off Forever` },
           ].map((pill, i) => (
             <div
               key={i}
