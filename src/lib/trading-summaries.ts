@@ -6,7 +6,7 @@
  */
 
 import type { Trade } from "./types";
-import { calculateTradePnl } from "./calculations";
+import { calculateTradePnl, parseEmotions } from "./calculations";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -70,10 +70,12 @@ function computeBaseStats(trades: Trade[]): SummaryStats {
   // Emotions
   const emotionMap: Record<string, { count: number; wins: number }> = {};
   for (const t of closed) {
-    const emotion = t.emotion || "Untagged";
-    if (!emotionMap[emotion]) emotionMap[emotion] = { count: 0, wins: 0 };
-    emotionMap[emotion].count++;
-    if (pnl(t) > 0) emotionMap[emotion].wins++;
+    const emotions = parseEmotions(t.emotion);
+    for (const emotion of emotions) {
+      if (!emotionMap[emotion]) emotionMap[emotion] = { count: 0, wins: 0 };
+      emotionMap[emotion].count++;
+      if (pnl(t) > 0) emotionMap[emotion].wins++;
+    }
   }
 
   const emotionBreakdown: Record<string, { count: number; winRate: number }> = {};

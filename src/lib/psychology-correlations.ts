@@ -31,6 +31,7 @@ import type {
   SomaticArea,
   SomaticIntensity,
 } from "./types";
+import { parseEmotions } from "./calculations";
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 
@@ -61,9 +62,11 @@ export function calculateEmotionCorrelations(trades: Trade[]): CorrelationResult
   const byEmotion: Record<string, Trade[]> = {};
 
   for (const t of closed) {
-    const emotion = t.emotion || "Untagged";
-    if (!byEmotion[emotion]) byEmotion[emotion] = [];
-    byEmotion[emotion].push(t);
+    const emotions = parseEmotions(t.emotion);
+    for (const emotion of emotions) {
+      if (!byEmotion[emotion]) byEmotion[emotion] = [];
+      byEmotion[emotion].push(t);
+    }
   }
 
   return Object.entries(byEmotion)

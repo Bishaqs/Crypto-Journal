@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Trash2, Brain, Pencil, Check } from "lucide-react";
+import { X, Trash2, Brain, Pencil, Check, MessageSquare, BookOpen, BarChart3 } from "lucide-react";
 
 export type CoachMemory = {
   id: string;
@@ -9,6 +9,7 @@ export type CoachMemory = {
   category: string;
   created_at: string;
   last_referenced_at?: string | null;
+  source_type?: string | null;
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -16,7 +17,15 @@ const CATEGORY_COLORS: Record<string, string> = {
   pattern: "text-amber-400 bg-amber-400/10",
   progress: "text-gain bg-gain/10",
   preference: "text-purple-400 bg-purple-400/10",
+  insight: "text-cyan-400 bg-cyan-400/10",
   general: "text-muted bg-muted/10",
+};
+
+const SOURCE_ICONS: Record<string, { icon: typeof MessageSquare; label: string }> = {
+  conversation: { icon: MessageSquare, label: "From conversation" },
+  journal: { icon: BookOpen, label: "From journal" },
+  pattern_snapshot: { icon: BarChart3, label: "From trade data" },
+  manual: { icon: Pencil, label: "Added manually" },
 };
 
 type Props = {
@@ -79,7 +88,7 @@ export function MemoryPanel({ memories, onDelete, onEdit, onClose }: Props) {
             <div className="text-center py-12">
               <Brain size={32} className="mx-auto text-muted/20 mb-3" />
               <p className="text-sm text-muted/50">
-                No memories yet. Nova will remember key facts about your trading after a few conversations.
+                No memories yet. Nova will remember key facts about your trading from conversations and journal entries.
               </p>
             </div>
           ) : (
@@ -125,6 +134,15 @@ export function MemoryPanel({ memories, onDelete, onEdit, onClose }: Props) {
                       <p className="text-sm text-foreground leading-snug">{m.content}</p>
                     )}
                     <div className="flex items-center gap-2 mt-1">
+                      {(() => {
+                        const source = SOURCE_ICONS[m.source_type ?? "conversation"];
+                        const Icon = source?.icon ?? MessageSquare;
+                        return (
+                          <span className="text-muted/30" title={source?.label ?? "From conversation"}>
+                            <Icon size={10} />
+                          </span>
+                        );
+                      })()}
                       <p className="text-[10px] text-muted/40">
                         {new Date(m.created_at).toLocaleDateString()}
                       </p>
@@ -162,7 +180,7 @@ export function MemoryPanel({ memories, onDelete, onEdit, onClose }: Props) {
         {/* Footer */}
         <div className="p-3 border-t border-border">
           <p className="text-[10px] text-muted/40 text-center">
-            Nova automatically remembers key patterns, commitments, and progress from your coaching sessions.
+            Nova automatically remembers key patterns, commitments, and progress from your coaching sessions and journal entries.
             Edit or delete a memory to refine what Nova knows about you.
           </p>
         </div>

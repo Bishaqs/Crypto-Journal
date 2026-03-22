@@ -6,6 +6,14 @@ import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
 import { getProvider, resolveModel } from "@/lib/ai/providers";
 import type { SummaryStats } from "@/lib/trading-summaries";
 import {
+  computeDailySummary,
+  computeWeeklySummary,
+  computeMonthlySummary,
+  computeYearlySummary,
+} from "@/lib/trading-summaries";
+import type { Trade } from "@/lib/types";
+import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
+import {
   getDailyNarrativePrompt,
   getWeeklyNarrativePrompt,
   getMonthlyNarrativePrompt,
@@ -74,7 +82,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Fetch the summary row
-  const { data: summary, error: fetchErr } = await supabase
+  let { data: summary, error: fetchErr } = await supabase
     .from("trading_summaries")
     .select("id, period_start, period_end, stats, narrative")
     .eq("user_id", user.id)
@@ -85,8 +93,48 @@ export async function POST(req: NextRequest) {
   if (fetchErr) {
     return NextResponse.json({ error: "Failed to fetch summary" }, { status: 500 });
   }
+
+  // If no summary row exists, compute it on-demand
   if (!summary) {
-    return NextResponse.json({ error: "No summary found for this period" }, { status: 404 });
+    const { data: tradeData } = await fetchAllTrades(supabase);
+    if (!tradeData || tradeData.length === 0) {
+      return NextResponse.json({ error: "No trade data available" }, { status: 404 });
+    }
+    const trades = tradeData as Trade[];
+    let computed;
+    switch (period_type) {
+      case "daily":
+        computed = computeDailySummary(trades, period_start, user.id);
+        break;
+      case "weekly":
+        computed = computeWeeklySummary(trades, period_start, user.id);
+        break;
+      case "monthly":
+        computed = computeMonthlySummary(trades, period_start.substring(0, 7), user.id);
+        break;
+      case "yearly":
+        computed = computeYearlySummary(trades, period_start.substring(0, 4), user.id);
+        break;
+    }
+    if (computed.stats.tradeCount === 0) {
+      return NextResponse.json({ error: "No trades found for this period" }, { status: 404 });
+    }
+    const { data: upserted, error: upsertErr } = await supabase
+      .from("trading_summaries")
+      .upsert({
+        user_id: computed.user_id,
+        period_type: computed.period_type,
+        period_start: computed.period_start,
+        period_end: computed.period_end,
+        stats: computed.stats,
+        narrative: null,
+      }, { onConflict: "user_id,period_type,period_start" })
+      .select("id, period_start, period_end, stats, narrative")
+      .single();
+    if (upsertErr || !upserted) {
+      return NextResponse.json({ error: "Failed to create summary" }, { status: 500 });
+    }
+    summary = upserted;
   }
 
   // Return existing narrative if not forcing regeneration
