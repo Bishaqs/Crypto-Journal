@@ -195,15 +195,19 @@ export async function sendNurtureEmail(
         react: NurtureDay10({ unsubscribeUrl }),
         tags: [{ name: "category", value: "nurture" }],
       });
-    case 15:
+    case 15: {
+      // Extract discount percentage from code prefix (TRAVERSE50 = 50, TRAVERSE40 = 40, etc.)
+      const discountMatch = discountCode?.match(/TRAVERSE(\d+)/);
+      const discount = discountMatch ? parseInt(discountMatch[1], 10) : 50;
       return send({
         to,
         subject: discountCode
-          ? `Last chance: your discount code`
+          ? `Last chance: your ${discount}% discount code`
           : "Your trading psychology insights are waiting",
-        react: NurtureDay15({ unsubscribeUrl, discountCode }),
+        react: NurtureDay15({ unsubscribeUrl, discountCode, discount }),
         tags: [{ name: "category", value: "nurture" }],
       });
+    }
     default:
       return false;
   }

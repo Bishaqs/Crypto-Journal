@@ -7,20 +7,21 @@ import { EmailFooter } from "./components/email-footer";
 export interface NurtureDay15Props {
   unsubscribeUrl: string;
   discountCode?: string;
+  discount?: number;
 }
 
-export function NurtureDay15({ unsubscribeUrl, discountCode }: NurtureDay15Props) {
+export function NurtureDay15({ unsubscribeUrl, discountCode, discount = 50 }: NurtureDay15Props) {
   const t = THEMES.dark;
 
   return (
-    <BaseLayout preview={discountCode ? "Last chance: your 50% discount" : "Your psychology insights are waiting"}>
+    <BaseLayout preview={discountCode ? `Last chance: your ${discount}% discount` : "Your psychology insights are waiting"}>
       <Section style={{ textAlign: "center" as const, marginBottom: "32px" }}>
         <Heading
           as="h1"
           style={{ fontSize: "22px", fontWeight: 700, color: t.text, margin: "0 0 12px 0" }}
         >
           {discountCode
-            ? "Your 50% discount won't last forever"
+            ? `Your ${discount}% discount won't last forever`
             : "Your trading psychology insights are waiting"
           }
         </Heading>
@@ -49,7 +50,7 @@ export function NurtureDay15({ unsubscribeUrl, discountCode }: NurtureDay15Props
             {discountCode}
           </Text>
           <Text style={{ fontSize: "13px", color: t.text, margin: 0 }}>
-            50% off forever when paid tiers launch
+            {discount}% off forever when paid tiers launch
           </Text>
         </Section>
       )}
