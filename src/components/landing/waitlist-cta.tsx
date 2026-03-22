@@ -22,12 +22,15 @@ export function WaitlistCTA() {
   const btnRef = useRef<HTMLButtonElement>(null);
 
   // Fetch counter on mount
+  const [tierRemaining, setTierRemaining] = useState<number | null>(null);
+
   useEffect(() => {
     fetch("/api/waitlist/count")
       .then((r) => r.json())
       .then((d) => {
         const rem = d.remaining ?? 2000;
         setRemaining(rem);
+        setTierRemaining(d.tierRemaining ?? rem);
         setTierName(d.currentTierName ?? null);
         setDiscount(d.currentDiscount ?? null);
         if (rem <= 0) setStatus("full");
@@ -129,7 +132,7 @@ export function WaitlistCTA() {
             <span className="w-2 h-2 rounded-full bg-[#67e8f9] animate-pulse" />
             <span className="font-mono text-xs uppercase tracking-wider text-[#67e8f9]">
               {remaining > 0
-                ? `${remaining.toLocaleString()} spots left${tierName ? ` — ${tierName} tier (${discount}% off)` : ""}`
+                ? `${tierName ?? "Early Access"} — ${tierRemaining ?? remaining} spots left (${discount ?? 50}% off)`
                 : "Early access is full"}
             </span>
           </div>

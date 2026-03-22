@@ -92,6 +92,19 @@ export function WaitlistConfirmation({
           We're building Traverse because traders are blind to the actual cost of
           their emotional leaks. You now have a front-row seat to fixing that.
         </Text>
+
+        <Text
+          style={{
+            fontSize: "12px",
+            color: t.textMuted,
+            margin: "0 0 32px 0",
+            lineHeight: "1.5",
+            fontStyle: "italic" as const,
+          }}
+        >
+          Didn&apos;t see this in your inbox? Check your spam or junk folder and
+          mark us as safe so you don&apos;t miss your quiz invitation and protocol.
+        </Text>
       </Section>
 
       <Section

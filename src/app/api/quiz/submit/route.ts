@@ -19,7 +19,7 @@ import {
 export const dynamic = "force-dynamic";
 
 const QuizSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().email("Please enter a valid email address").optional(),
   answers: z.record(z.string(), z.union([z.number(), z.string()])),
   waitlistToken: z.string().uuid().optional(),
 });
@@ -43,8 +43,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: msg }, { status: 400 });
   }
 
-  const email = parsed.email.toLowerCase().trim();
   const admin = createAdminClient();
+
+  // Resolve email: use provided email, or look up from waitlist token
+  let email = parsed.email?.toLowerCase().trim();
+  if (!email && parsed.waitlistToken) {
+    const { data: signup } = await admin
+      .from("waitlist_signups")
+      .select("email")
+      .eq("access_token", parsed.waitlistToken)
+      .maybeSingle();
+    if (signup?.email) email = signup.email.toLowerCase().trim();
+  }
+
+  if (!email) {
+    return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 });
+  }
 
   // Separate answers by category based on question ID prefix
   const riskResponses: Record<string, number> = {};
@@ -58,15 +72,15 @@ export async function POST(req: NextRequest) {
   const disciplineResponses: Record<string, number> = {};
 
   for (const [key, value] of Object.entries(parsed.answers)) {
-    if (key.startsWith("risk_")) riskResponses[key] = value as number;
-    else if (key.startsWith("mw_") || key.startsWith("ms_") || key.startsWith("mv_") || key.startsWith("ma_")) moneyResponses[key] = value as number;
-    else if (key.startsWith("ds_")) decisionResponses[key] = value as string;
-    else if (key.startsWith("la_")) lossAversionResponses[key] = value as number;
-    else if (key.startsWith("fr_")) fomoRevengeResponses[key] = value as number;
-    else if (key.startsWith("er_")) emotionalRegResponses[key] = value as string;
-    else if (key.startsWith("ba_")) biasResponses[key] = value as string;
-    else if (key.startsWith("sr_")) stressResponses[key] = value as string;
-    else if (key.startsWith("td_")) disciplineResponses[key] = value as number;
+    if (key.startsWith("risk_") || key.startsWith("fq_risk_")) riskResponses[key] = value as number;
+    else if (key.startsWith("mw_") || key.startsWith("ms_") || key.startsWith("mv_") || key.startsWith("ma_") || key.startsWith("fq_money_")) moneyResponses[key] = value as number;
+    else if (key.startsWith("ds_") || key.startsWith("fq_ds_")) decisionResponses[key] = value as string;
+    else if (key.startsWith("la_") || key.startsWith("fq_la_")) lossAversionResponses[key] = value as number;
+    else if (key.startsWith("fr_") || key.startsWith("fq_fr_")) fomoRevengeResponses[key] = value as number;
+    else if (key.startsWith("er_") || key.startsWith("fq_er_")) emotionalRegResponses[key] = value as string;
+    else if (key.startsWith("ba_") || key.startsWith("fq_ba_")) biasResponses[key] = value as string;
+    else if (key.startsWith("sr_") || key.startsWith("fq_sr_")) stressResponses[key] = value as string;
+    else if (key.startsWith("td_") || key.startsWith("fq_td_") || key.startsWith("fq_sa_")) disciplineResponses[key] = value as number;
   }
 
   // Compute scores

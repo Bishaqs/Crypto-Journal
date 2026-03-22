@@ -7,15 +7,16 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Brain, Check, Loader2 } from "lucide-react";
 import {
-  RISK_SCENARIOS,
-  MONEY_SCRIPT_QUESTIONS,
-  DECISION_STYLE_QUESTIONS,
-  LOSS_AVERSION_SCENARIOS,
-  FOMO_REVENGE_QUESTIONS,
-  EMOTIONAL_REGULATION_QUESTIONS,
-  BIAS_AWARENESS_QUESTIONS,
-  STRESS_RESPONSE_QUESTION,
-  DISCIPLINE_QUESTIONS,
+  FQ_RISK_SCENARIOS,
+  FQ_MONEY_QUESTIONS,
+  FQ_DECISION_STYLE_QUESTIONS,
+  FQ_LOSS_AVERSION_SCENARIOS,
+  FQ_FOMO_QUESTIONS,
+  FQ_EMOTIONAL_REGULATION_QUESTIONS,
+  FQ_BIAS_AWARENESS_QUESTIONS,
+  FQ_DISCIPLINE_QUESTIONS,
+  FQ_STRESS_RESPONSE_QUESTION,
+  FQ_SELF_AWARENESS_QUESTIONS,
 } from "@/lib/psychology-questions";
 import type { ArchetypeInfo } from "@/lib/psychology-scoring";
 
@@ -28,79 +29,33 @@ type QuizQuestion =
 function buildQuizQuestions(): QuizQuestion[] {
   const questions: QuizQuestion[] = [];
 
-  // Risk scenarios (quiz eligible)
-  for (const s of RISK_SCENARIOS.filter((q) => q.quizEligible)) {
-    questions.push({
-      type: "scenario",
-      id: s.id,
-      question: s.question,
-      options: s.options.map((o, i) => ({ label: o.label, value: i })),
-    });
+  for (const s of FQ_RISK_SCENARIOS) {
+    questions.push({ type: "scenario", id: s.id, question: s.question, options: s.options.map((o, i) => ({ label: o.label, value: i })) });
   }
-
-  // Money script questions (quiz eligible)
-  for (const q of MONEY_SCRIPT_QUESTIONS.filter((q) => q.quizEligible)) {
+  for (const q of FQ_MONEY_QUESTIONS) {
     questions.push({ type: "likert", id: q.id, text: q.text });
   }
-
-  // Decision style (quiz eligible)
-  for (const q of DECISION_STYLE_QUESTIONS.filter((q) => q.quizEligible)) {
-    questions.push({
-      type: "scenario",
-      id: q.id,
-      question: q.text,
-      options: q.options.map((o) => ({ label: o.label, value: o.score })),
-    });
+  for (const q of FQ_DECISION_STYLE_QUESTIONS) {
+    questions.push({ type: "scenario", id: q.id, question: q.text, options: q.options.map((o) => ({ label: o.label, value: o.score })) });
   }
-
-  // Loss aversion (quiz eligible)
-  for (const s of LOSS_AVERSION_SCENARIOS.filter((q) => q.quizEligible)) {
-    questions.push({
-      type: "scenario",
-      id: s.id,
-      question: s.question,
-      options: s.options.map((o, i) => ({ label: o.label, value: i })),
-    });
+  for (const s of FQ_LOSS_AVERSION_SCENARIOS) {
+    questions.push({ type: "scenario", id: s.id, question: s.question, options: s.options.map((o, i) => ({ label: o.label, value: i })) });
   }
-
-  // FOMO/Revenge (quiz eligible)
-  for (const q of FOMO_REVENGE_QUESTIONS.filter((q) => q.quizEligible)) {
+  for (const q of FQ_FOMO_QUESTIONS) {
     questions.push({ type: "likert", id: q.id, text: q.text });
   }
-
-  // Emotional regulation (quiz eligible)
-  for (const q of EMOTIONAL_REGULATION_QUESTIONS.filter((q) => q.quizEligible)) {
-    questions.push({
-      type: "scenario",
-      id: q.id,
-      question: q.question,
-      options: q.options.map((o) => ({ label: o.label, value: o.value })),
-    });
+  for (const q of FQ_EMOTIONAL_REGULATION_QUESTIONS) {
+    questions.push({ type: "scenario", id: q.id, question: q.question, options: q.options.map((o) => ({ label: o.label, value: o.value })) });
   }
-
-  // Bias awareness (quiz eligible)
-  for (const q of BIAS_AWARENESS_QUESTIONS.filter((q) => q.quizEligible)) {
-    questions.push({
-      type: "scenario",
-      id: q.id,
-      question: q.question,
-      options: q.options.map((o) => ({ label: o.label, value: o.value })),
-    });
+  for (const q of FQ_BIAS_AWARENESS_QUESTIONS) {
+    questions.push({ type: "scenario", id: q.id, question: q.question, options: q.options.map((o) => ({ label: o.label, value: o.value })) });
   }
-
-  // Discipline (quiz eligible)
-  for (const q of DISCIPLINE_QUESTIONS.filter((q) => q.quizEligible)) {
+  for (const q of FQ_DISCIPLINE_QUESTIONS) {
     questions.push({ type: "likert", id: q.id, text: q.text });
   }
-
-  // Stress response (quiz eligible)
-  if (STRESS_RESPONSE_QUESTION.quizEligible) {
-    questions.push({
-      type: "scenario",
-      id: STRESS_RESPONSE_QUESTION.id,
-      question: STRESS_RESPONSE_QUESTION.question,
-      options: STRESS_RESPONSE_QUESTION.options.map((o) => ({ label: o.label, value: o.value })),
-    });
+  questions.push({ type: "scenario", id: FQ_STRESS_RESPONSE_QUESTION.id, question: FQ_STRESS_RESPONSE_QUESTION.question, options: FQ_STRESS_RESPONSE_QUESTION.options.map((o) => ({ label: o.label, value: o.value })) });
+  for (const q of FQ_SELF_AWARENESS_QUESTIONS) {
+    questions.push({ type: "likert", id: q.id, text: q.text });
   }
 
   return questions;
@@ -140,9 +95,14 @@ function QuizContent() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   }
 
+  const hasToken = !!waitlistToken;
+
   function handleNext() {
     if (currentQ < QUIZ_QUESTIONS.length - 1) {
       setCurrentQ((q) => q + 1);
+    } else if (hasToken && consent) {
+      // Token users already gave consent on intro — submit directly
+      doSubmit();
     } else {
       setPhase("email");
     }
@@ -150,6 +110,10 @@ function QuizContent() {
 
   async function handleSubmit() {
     if (!email || !consent) return;
+    doSubmit();
+  }
+
+  async function doSubmit() {
     setPhase("submitting");
     setError(null);
 
@@ -157,13 +121,17 @@ function QuizContent() {
       const res = await fetch("/api/quiz/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, answers, waitlistToken }),
+        body: JSON.stringify({
+          email: email || undefined,
+          answers,
+          waitlistToken,
+        }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
         setError(data.error ?? "Something went wrong. Please try again.");
-        setPhase("email");
+        setPhase(hasToken ? "questions" : "email");
         return;
       }
 
@@ -171,7 +139,7 @@ function QuizContent() {
       setPhase("results");
     } catch {
       setError("Network error. Please try again.");
-      setPhase("email");
+      setPhase(hasToken ? "questions" : "email");
     }
   }
 
@@ -203,9 +171,27 @@ function QuizContent() {
                 and actionable techniques to improve immediately.
               </p>
               <p className="text-gray-500 text-xs">Takes about 5 minutes</p>
+
+              {hasToken && (
+                <label className="flex items-start gap-2 cursor-pointer text-left max-w-md mx-auto">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-1 accent-cyan-500"
+                  />
+                  <span className="text-xs text-gray-400 leading-relaxed">
+                    I agree to receive my quiz results and a short email series
+                    about trading psychology (5 emails over 15 days).
+                    Unsubscribe anytime.
+                  </span>
+                </label>
+              )}
+
               <button
                 onClick={() => setPhase("questions")}
-                className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-all"
+                disabled={hasToken && !consent}
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-semibold bg-cyan-500 text-black hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 Start Quiz <ArrowRight size={16} />
               </button>

@@ -277,7 +277,7 @@ export function AdminWaitlistManager({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Mail size={14} className="text-accent" />
-          <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Waitlist Signups ({signups.length}/100)</span>
+          <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Waitlist Signups ({signups.length}/2,000)</span>
         </div>
 
         {/* Search */}
