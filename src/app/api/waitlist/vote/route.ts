@@ -75,9 +75,12 @@ export async function GET(req: NextRequest) {
     votedIds = new Set((userVotes ?? []).map((v: { proposal_id: string }) => v.proposal_id));
   }
 
+  const isFounder = signup ? signup.position <= 100 : false;
+
   return NextResponse.json({
     position: signup?.position ?? null,
-    canVote: !!signup,
+    canVote: isFounder,
+    isFounder,
     proposals: (proposals ?? []).map((p: { id: string; title: string; description: string | null; category: string; vote_count: number; created_at: string }) => ({
       ...p,
       hasVoted: votedIds.has(p.id),
@@ -101,6 +104,14 @@ export async function POST(req: NextRequest) {
   const signup = await resolveSignup(admin, parsed.token, parsed.dashboard);
   if (!signup) {
     return NextResponse.json({ success: false, error: "You must be on the waitlist to vote" }, { status: 403 });
+  }
+
+  // Only Founding 100 members can vote
+  if (signup.position > 100) {
+    return NextResponse.json({
+      success: false,
+      error: "Feature voting is exclusive to Founding 100 members. You are #" + signup.position + ".",
+    }, { status: 403 });
   }
 
   // Get the access token for the RPC call

@@ -13,6 +13,8 @@ import { NurtureDay3 } from "@/emails/nurture-day-3";
 import { NurtureDay7 } from "@/emails/nurture-day-7";
 import { NurtureDay10 } from "@/emails/nurture-day-10";
 import { NurtureDay15 } from "@/emails/nurture-day-15";
+import { QuizInvitation } from "@/emails/quiz-invitation";
+import { ProtocolDelivery } from "@/emails/protocol-delivery";
 import type { ArchetypeInfo } from "@/lib/psychology-scoring";
 
 const resend = process.env.RESEND_API_KEY
@@ -61,15 +63,17 @@ export async function sendWaitlistConfirmation(
   position: number,
   accessToken: string,
   discountCode: string,
-  referralCode: string
+  referralCode: string,
+  tierName: string = "Founding 100",
+  discount: number = 50
 ) {
   const voteLink = `https://traversejournal.com/waitlist/vote?token=${accessToken}`;
   const referralLink = `https://traversejournal.com/?ref=${referralCode}`;
   const quizLink = `https://traversejournal.com/quiz?token=${accessToken}`;
   return send({
     to,
-    subject: `Welcome to Traverse. You're #${position} of 100.`,
-    react: WaitlistConfirmation({ position, voteLink, discountCode, referralLink, referralCode, quizLink }),
+    subject: `Welcome to Traverse — You're #${position}, ${tierName}.`,
+    react: WaitlistConfirmation({ position, voteLink, discountCode, referralLink, referralCode, quizLink, tierName, discount }),
     tags: [{ name: "category", value: "waitlist" }],
   });
 }
@@ -195,7 +199,7 @@ export async function sendNurtureEmail(
       return send({
         to,
         subject: discountCode
-          ? "Last chance: your 50% discount"
+          ? `Last chance: your discount code`
           : "Your trading psychology insights are waiting",
         react: NurtureDay15({ unsubscribeUrl, discountCode }),
         tags: [{ name: "category", value: "nurture" }],
@@ -203,4 +207,37 @@ export async function sendNurtureEmail(
     default:
       return false;
   }
+}
+
+export async function sendQuizInvitation(
+  to: string,
+  accessToken: string,
+  tierName: string,
+  position: number,
+  unsubscribeUrl: string,
+): Promise<boolean> {
+  const quizLink = `https://traversejournal.com/quiz?token=${accessToken}`;
+  return send({
+    to,
+    subject: "Discover your trading psychology pattern (free)",
+    react: QuizInvitation({ quizLink, tierName, position, unsubscribeUrl }),
+    tags: [{ name: "category", value: "waitlist_nurture" }],
+  });
+}
+
+export async function sendProtocolDelivery(
+  to: string,
+  quizResultId: string,
+  unsubscribeToken: string,
+  archetypeName: string,
+  slideTitles: string[],
+): Promise<boolean> {
+  const protocolLink = `https://traversejournal.com/quiz/results?id=${quizResultId}&token=${unsubscribeToken}`;
+  const cardImageUrl = `https://traversejournal.com/api/quiz/card/${quizResultId}`;
+  return send({
+    to,
+    subject: `Your AI Psychology Protocol is ready`,
+    react: ProtocolDelivery({ protocolLink, cardImageUrl, archetypeName, slideTitles, unsubscribeToken }),
+    tags: [{ name: "category", value: "protocol" }],
+  });
 }

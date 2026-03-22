@@ -11,6 +11,8 @@ interface WaitlistConfirmationProps {
   referralLink: string;
   referralCode: string;
   quizLink?: string;
+  tierName?: string;
+  discount?: number;
 }
 
 export function WaitlistConfirmation({
@@ -20,13 +22,16 @@ export function WaitlistConfirmation({
   referralLink = "https://traversejournal.com/?ref=REF-PREVIEW",
   referralCode = "REF-PREVIEW",
   quizLink = "https://traversejournal.com/quiz?token=preview",
+  tierName = "Founding 100",
+  discount = 50,
 }: WaitlistConfirmationProps) {
+  const isFounder = position <= 100;
   const t = THEMES.dark;
 
   return (
     <BaseLayout
       theme="dark"
-      preview={`You're #${position} of 100 early adopters.`}
+      preview={`You're #${position} — ${tierName}. ${discount}% off forever.`}
     >
       <Section style={{ textAlign: "center" as const }}>
         <div
@@ -48,7 +53,7 @@ export function WaitlistConfirmation({
               color: t.accent,
             }}
           >
-            Early Access
+            {tierName}
           </span>
         </div>
 
@@ -73,7 +78,7 @@ export function WaitlistConfirmation({
             margin: "0 0 16px 0",
           }}
         >
-          You are #{position} out of 100 early adopters.
+          You are #{position} — {tierName}.
         </Text>
 
         <Text
@@ -130,48 +135,48 @@ export function WaitlistConfirmation({
             lineHeight: "1.5",
           }}
         >
-          Keep this safe. This code automatically activates your 50% discount
+          Keep this safe. This code automatically activates your {discount}% discount
           when our paid tiers launch.
         </Text>
       </Section>
 
-      <Section
-        style={{
-          background: t.surface,
-          border: `1px solid ${t.border}`,
-          borderRadius: "12px",
-          padding: "24px",
-          marginBottom: "32px",
-          textAlign: "left" as const,
-        }}
-      >
-        <Text
+      {isFounder && (
+        <Section
           style={{
-            fontSize: "15px",
-            fontWeight: 600,
-            color: t.text,
-            margin: "0 0 8px 0",
+            background: t.surface,
+            border: `1px solid ${t.border}`,
+            borderRadius: "12px",
+            padding: "24px",
+            marginBottom: "32px",
+            textAlign: "left" as const,
           }}
         >
-          Shape the Product
-        </Text>
-        <Text
-          style={{
-            fontSize: "14px",
-            color: t.textMuted,
-            margin: "0 0 16px 0",
-            lineHeight: "1.5",
-          }}
-        >
-          As part of the first 100, you have voting rights. You decide what we
-          build next. We've compiled a list of initial features ranging from
-          automated broker syncs to tilt-alerts. Review the proposals and cast
-          your votes.
-        </Text>
-        <EmailButton href={voteLink} theme="dark">
-          Vote on Features
-        </EmailButton>
-      </Section>
+          <Text
+            style={{
+              fontSize: "15px",
+              fontWeight: 600,
+              color: t.text,
+              margin: "0 0 8px 0",
+            }}
+          >
+            Shape the Product
+          </Text>
+          <Text
+            style={{
+              fontSize: "14px",
+              color: t.textMuted,
+              margin: "0 0 16px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            As part of the Founding 100, you have exclusive voting rights. You
+            decide what we build next. Review the proposals and cast your votes.
+          </Text>
+          <EmailButton href={voteLink} theme="dark">
+            Vote on Features
+          </EmailButton>
+        </Section>
+      )}
 
       {/* Psychology Quiz */}
       {quizLink && (
@@ -308,6 +313,8 @@ WaitlistConfirmation.PreviewProps = {
   referralLink: "https://traversejournal.com/?ref=REF-A1B2C3D4",
   referralCode: "REF-A1B2C3D4",
   quizLink: "https://traversejournal.com/quiz?token=preview",
+  tierName: "Founding 100",
+  discount: 50,
 } as WaitlistConfirmationProps;
 
 export default WaitlistConfirmation;

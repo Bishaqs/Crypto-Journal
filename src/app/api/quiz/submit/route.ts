@@ -55,16 +55,18 @@ export async function POST(req: NextRequest) {
   const emotionalRegResponses: Record<string, string> = {};
   const biasResponses: Record<string, string> = {};
   const stressResponses: Record<string, string> = {};
+  const disciplineResponses: Record<string, number> = {};
 
   for (const [key, value] of Object.entries(parsed.answers)) {
     if (key.startsWith("risk_")) riskResponses[key] = value as number;
-    else if (key.startsWith("mw_") || key.startsWith("ms_") || key.startsWith("mv_")) moneyResponses[key] = value as number;
+    else if (key.startsWith("mw_") || key.startsWith("ms_") || key.startsWith("mv_") || key.startsWith("ma_")) moneyResponses[key] = value as number;
     else if (key.startsWith("ds_")) decisionResponses[key] = value as string;
     else if (key.startsWith("la_")) lossAversionResponses[key] = value as number;
     else if (key.startsWith("fr_")) fomoRevengeResponses[key] = value as number;
     else if (key.startsWith("er_")) emotionalRegResponses[key] = value as string;
     else if (key.startsWith("ba_")) biasResponses[key] = value as string;
     else if (key.startsWith("sr_")) stressResponses[key] = value as string;
+    else if (key.startsWith("td_")) disciplineResponses[key] = value as number;
   }
 
   // Compute scores
@@ -77,6 +79,12 @@ export async function POST(req: NextRequest) {
   const biasAwareness = Object.keys(biasResponses).length > 0 ? computeBiasAwareness(biasResponses) : undefined;
   const stressResponse = Object.keys(stressResponses).length > 0 ? computeStressResponse(stressResponses) : undefined;
 
+  // Discipline: average of Likert responses (1-5 scale)
+  const disciplineVals = Object.values(disciplineResponses);
+  const disciplineScore = disciplineVals.length > 0
+    ? disciplineVals.reduce((a, b) => a + b, 0) / disciplineVals.length
+    : undefined;
+
   const archetype = computeTradingArchetype({
     riskPersonality,
     moneyScripts,
@@ -86,6 +94,7 @@ export async function POST(req: NextRequest) {
     emotionalRegulation,
     biasAwareness,
     stressResponse,
+    disciplineScore,
   });
 
   const scores = {
@@ -97,6 +106,7 @@ export async function POST(req: NextRequest) {
     emotionalRegulation,
     biasAwareness,
     stressResponse,
+    disciplineScore,
   };
 
   // Link to waitlist if token provided
@@ -154,6 +164,20 @@ export async function POST(req: NextRequest) {
       };
     });
 
+    // Schedule protocol delivery email (1 day after quiz completion)
+    const protocolDate = new Date(now);
+    protocolDate.setDate(protocolDate.getDate() + 1);
+    protocolDate.setHours(10, 0, 0, 0);
+    emailRows.push({
+      email,
+      quiz_result_id: quizResult.id,
+      sequence_name: "protocol_delivery",
+      day_index: 1,
+      scheduled_for: protocolDate.toISOString(),
+      status: "pending" as const,
+      sent_at: null,
+    });
+
     await admin.from("email_sequences").insert(emailRows);
 
     // Send Day 0 results email immediately
@@ -162,6 +186,10 @@ export async function POST(req: NextRequest) {
     sendQuizResults(email, archetypeInfo, scores, unsubscribeUrl).catch((err) =>
       console.error("[quiz/submit] Email send failed:", err)
     );
+
+    // Trigger protocol generation in background (so it's cached by the time the email arrives)
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://traversejournal.com"}/api/quiz/protocol?id=${quizResult.id}&token=${quizResult.unsubscribe_token}`)
+      .catch(() => { /* non-blocking */ });
   }
 
   return NextResponse.json({
@@ -169,5 +197,7 @@ export async function POST(req: NextRequest) {
     archetype,
     archetypeInfo: ARCHETYPES[archetype],
     scores,
+    quizResultId: quizResult.id,
+    unsubscribeToken: quizResult.unsubscribe_token,
   });
 }
