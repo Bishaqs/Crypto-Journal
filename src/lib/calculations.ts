@@ -4,6 +4,24 @@ import { Trade, Chain, DashboardStats, DailyPnl, AdvancedStats, BehavioralInsigh
 // This is where all the trading math lives.
 
 /**
+ * Parse a trade's emotion field.
+ * Handles both single strings ("Calm") and JSON arrays ('["Calm","Excited"]').
+ */
+export function parseEmotions(raw: string | null | undefined): string[] {
+  if (!raw) return ["Untagged"];
+  if (raw.startsWith("[")) {
+    try {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+      return ["Untagged"];
+    } catch {
+      return [raw];
+    }
+  }
+  return [raw];
+}
+
+/**
  * Calculate P&L for a single trade.
  * Long: (exit - entry) * quantity - fees
  * Short: (entry - exit) * quantity - fees
@@ -562,12 +580,15 @@ export function generateWeeklyReport(trades: Trade[], weekStart: string): Weekly
   // Emotion breakdown
   const emotionMap = new Map<string, { count: number; pnl: number }>();
   for (const t of weekTrades) {
-    const emotion = t.emotion ?? "Untagged";
-    const existing = emotionMap.get(emotion) ?? { count: 0, pnl: 0 };
-    emotionMap.set(emotion, {
-      count: existing.count + 1,
-      pnl: existing.pnl + (t.pnl ?? calculateTradePnl(t) ?? 0),
-    });
+    const emotions = parseEmotions(t.emotion);
+    const tradePnl = t.pnl ?? calculateTradePnl(t) ?? 0;
+    for (const emotion of emotions) {
+      const existing = emotionMap.get(emotion) ?? { count: 0, pnl: 0 };
+      emotionMap.set(emotion, {
+        count: existing.count + 1,
+        pnl: existing.pnl + tradePnl,
+      });
+    }
   }
 
   // Rule compliance (% of trades where all checklist items were true)
@@ -692,12 +713,15 @@ export function generateMonthlyRecap(
   // Emotion breakdown
   const emotionMap = new Map<string, { count: number; pnl: number }>();
   for (const t of monthTrades) {
-    const emotion = t.emotion ?? "Untagged";
-    const existing = emotionMap.get(emotion) ?? { count: 0, pnl: 0 };
-    emotionMap.set(emotion, {
-      count: existing.count + 1,
-      pnl: existing.pnl + (t.pnl ?? calculateTradePnl(t) ?? 0),
-    });
+    const emotions = parseEmotions(t.emotion);
+    const tradePnl = t.pnl ?? calculateTradePnl(t) ?? 0;
+    for (const emotion of emotions) {
+      const existing = emotionMap.get(emotion) ?? { count: 0, pnl: 0 };
+      emotionMap.set(emotion, {
+        count: existing.count + 1,
+        pnl: existing.pnl + tradePnl,
+      });
+    }
   }
 
   // Weekly P&L within this month

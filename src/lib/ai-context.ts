@@ -1228,6 +1228,7 @@ export function buildMemoryContext(memories: CoachMemory[]): string {
     pattern: "Pattern",
     progress: "Progress",
     preference: "Preference",
+    insight: "Insight",
     general: "Note",
   };
 

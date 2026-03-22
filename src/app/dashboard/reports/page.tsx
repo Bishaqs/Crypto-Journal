@@ -198,10 +198,10 @@ export default function ReportsPage() {
         </div>
         <div className="flex items-center justify-center gap-6 mt-2 text-xs text-muted">
           <span>
-            <span className="text-win font-semibold">{report.greenDays}</span> green days
+            <span className="text-win font-semibold">{report.greenDays}</span> profitable {report.greenDays === 1 ? "day" : "days"}
           </span>
           <span>
-            <span className="text-loss font-semibold">{report.redDays}</span> red days
+            <span className="text-loss font-semibold">{report.redDays}</span> losing {report.redDays === 1 ? "day" : "days"}
           </span>
           <span>
             {report.tradingDays} days traded
@@ -307,70 +307,82 @@ export default function ReportsPage() {
             </h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-xl border border-border p-4 text-center">
-              <p className="text-[10px] text-muted uppercase tracking-wider mb-1">
-                Avg Process Score
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {report.avgProcessScore !== null
-                  ? report.avgProcessScore.toFixed(1)
-                  : "—"}
-                <span className="text-sm text-muted">/10</span>
+          {report.avgProcessScore === null && (report.ruleCompliance === null || report.ruleCompliance === 0) ? (
+            <div className="rounded-xl border border-border/50 bg-background/50 p-6 text-center space-y-2">
+              <Target size={24} className="mx-auto text-accent/30" />
+              <p className="text-sm text-muted">No discipline data this week.</p>
+              <p className="text-xs text-muted/70">
+                Rate your process after each trade and use the pre-trade checklist to track your discipline over time.
               </p>
             </div>
-            <div className="rounded-xl border border-border p-4 text-center">
-              <p className="text-[10px] text-muted uppercase tracking-wider mb-1">
-                Rule Compliance
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {report.ruleCompliance !== null
-                  ? `${report.ruleCompliance.toFixed(0)}%`
-                  : "—"}
-              </p>
-            </div>
-          </div>
-
-          {report.avgProcessScore !== null && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted">Process Quality</span>
-                <span className="text-foreground font-semibold">
-                  {report.avgProcessScore >= 7
-                    ? "Excellent"
-                    : report.avgProcessScore >= 5
-                    ? "Needs Work"
-                    : "Poor"}
-                </span>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-xl border border-border p-4 text-center">
+                  <p className="text-[10px] text-muted uppercase tracking-wider mb-1">
+                    Avg Process Score
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {report.avgProcessScore !== null
+                      ? report.avgProcessScore.toFixed(1)
+                      : "—"}
+                    <span className="text-sm text-muted">/10</span>
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border p-4 text-center">
+                  <p className="text-[10px] text-muted uppercase tracking-wider mb-1">
+                    Rule Compliance
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {report.ruleCompliance !== null
+                      ? `${report.ruleCompliance.toFixed(0)}%`
+                      : "—"}
+                  </p>
+                </div>
               </div>
-              <div className="h-2 bg-background rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    report.avgProcessScore >= 7
-                      ? "bg-win"
-                      : report.avgProcessScore >= 5
-                      ? "bg-amber-500"
-                      : "bg-loss"
-                  }`}
-                  style={{ width: `${(report.avgProcessScore / 10) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
 
-          {/* Suggestion */}
-          <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
-            <p className="text-xs text-accent font-semibold mb-1">
-              {report.avgProcessScore !== null && report.avgProcessScore >= 7 ? (
-                <><CheckCircle2 size={12} className="inline mr-1" />Keep it up!</>
-              ) : (
-                <><Target size={12} className="inline mr-1" />Focus Area</>
+              {report.avgProcessScore !== null && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted">Process Quality</span>
+                    <span className="text-foreground font-semibold">
+                      {report.avgProcessScore >= 7
+                        ? "Excellent"
+                        : report.avgProcessScore >= 5
+                        ? "Needs Work"
+                        : "Poor"}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-background rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        report.avgProcessScore >= 7
+                          ? "bg-win"
+                          : report.avgProcessScore >= 5
+                          ? "bg-amber-500"
+                          : "bg-loss"
+                      }`}
+                      style={{ width: `${(report.avgProcessScore / 10) * 100}%` }}
+                    />
+                  </div>
+                </div>
               )}
-            </p>
-            <p className="text-[11px] text-muted leading-relaxed">
-              {getSuggestion(report)}
-            </p>
-          </div>
+
+              {/* Suggestion */}
+              <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
+                <p className="text-xs text-accent font-semibold mb-1">
+                  {report.avgProcessScore !== null && report.avgProcessScore >= 7 ? (
+                    <><CheckCircle2 size={12} className="inline mr-1" />Keep it up!</>
+                  ) : (
+                    <><Target size={12} className="inline mr-1" />Focus Area</>
+                  )}
+                </p>
+                <p className="text-[11px] text-muted leading-relaxed">
+                  {getSuggestion(report)}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Emotional State */}
@@ -500,9 +512,9 @@ export default function ReportsPage() {
               <div className="rounded-xl border border-border p-3 text-center col-span-2">
                 <p className="text-[10px] text-muted uppercase tracking-wider mb-2">Trading Readiness</p>
                 <div className="flex items-center justify-center gap-4 text-xs">
-                  <span><Zap size={10} className="inline text-win mr-0.5" />{greenDays} green</span>
-                  <span><Zap size={10} className="inline text-yellow-400 mr-0.5" />{yellowDays} yellow</span>
-                  <span><Zap size={10} className="inline text-loss mr-0.5" />{redDays} red</span>
+                  <span><Zap size={10} className="inline text-win mr-0.5" />{greenDays} go</span>
+                  <span><Zap size={10} className="inline text-yellow-400 mr-0.5" />{yellowDays} caution</span>
+                  <span><Zap size={10} className="inline text-loss mr-0.5" />{redDays} stop</span>
                 </div>
               </div>
             </div>
@@ -574,6 +586,9 @@ function getSuggestion(report: ReturnType<typeof generateWeeklyReport>): string 
   }
 
   if (report.ruleCompliance !== null && report.ruleCompliance < 50) {
+    if (report.ruleCompliance === 0) {
+      return "Start using the pre-trade checklist to build discipline. Having a routine before each trade helps prevent impulsive decisions.";
+    }
     return "Your rule compliance is below 50%. Focus on going through your pre-trade checklist before every entry. The checklist exists to protect you from impulsive decisions.";
   }
 

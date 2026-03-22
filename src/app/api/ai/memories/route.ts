@@ -12,7 +12,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("ai_memories")
-    .select("id, content, category, created_at, last_referenced_at")
+    .select("id, content, category, created_at, last_referenced_at, source_type")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .order("created_at", { ascending: false });
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       content: parsed.data.content,
       category: parsed.data.category,
+      source_type: parsed.data.sourceConversationId ? "conversation" : "manual",
       source_conversation_id: parsed.data.sourceConversationId || null,
       source_message_index: parsed.data.sourceMessageIndex ?? null,
     })

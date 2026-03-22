@@ -98,9 +98,16 @@ export const MessageSaveSchema = z.object({
 
 export const MemoryCreateSchema = z.object({
   content: z.string().min(1).max(500),
-  category: z.enum(["general", "pattern", "commitment", "progress", "preference"]),
+  category: z.enum(["general", "pattern", "commitment", "progress", "preference", "insight", "snapshot"]),
   sourceConversationId: z.string().uuid().optional(),
   sourceMessageIndex: z.number().int().optional(),
+});
+
+export const JournalMemoryExtractSchema = z.object({
+  noteId: z.string().uuid(),
+  content: z.string().min(100).max(10000),
+  title: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const MemoryExtractSchema = z.object({

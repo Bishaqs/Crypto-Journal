@@ -494,6 +494,27 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
         } catch { /* junction table may not exist yet */ }
       }
 
+      // Extract memories from journal entry (non-blocking, fire-and-forget)
+      if (noteId) {
+        const plainText = (useStructured
+          ? serializeToHtml(appliedTemplate, structuredData)
+          : (contentRef.current?.innerHTML ?? "")
+        ).replace(/<[^>]*>/g, "").trim();
+
+        if (plainText.length > 100) {
+          fetch("/api/ai/extract-journal-memories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              noteId,
+              content: plainText,
+              title: title || undefined,
+              tags: selectedTag ? [selectedTag] : undefined,
+            }),
+          }).catch(() => {}); // Non-blocking — don't fail the save
+        }
+      }
+
       onClose();
       onSaved();
     } catch (err) {
