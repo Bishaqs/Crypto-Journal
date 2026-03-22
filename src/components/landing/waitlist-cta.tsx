@@ -86,6 +86,7 @@ export function WaitlistCTA() {
       if (data.success) {
         setPosition(data.position);
         setRemaining(data.remaining);
+        setTierRemaining(data.remaining);
         if (data.tier) setTierName(data.tier);
         setStatus("success");
         // Animate success state
