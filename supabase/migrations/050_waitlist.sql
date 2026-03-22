@@ -146,13 +146,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Seed initial feature proposals
 INSERT INTO feature_proposals (title, description, category, is_approved, created_by_admin) VALUES
-  ('AI Trade Coach', 'Get AI-powered feedback after every trade based on your emotional patterns', 'psychology', true, true),
-  ('Broker Auto-Sync', 'Automatically import trades from Binance, Bybit, and other exchanges', 'automation', true, true),
-  ('Monte Carlo Simulator', 'Run probability simulations on your trading system to test edge', 'analytics', true, true),
-  ('Community Leaderboard', 'Compare your process scores with other traders (anonymous)', 'social', true, true),
+  ('Tilt Circuit Breaker', 'Set a personal daily loss limit — when hit, Traverse locks new trade entries and guides you through a cooldown protocol', 'automation', true, true),
+  ('Pre-Trade Checklist', 'Build a customizable pre-trade ritual with rules you must check off before opening any position', 'psychology', true, true),
+  ('Emotional Heatmap Calendar', 'See your emotional states mapped across a calendar — spot recurring patterns and correlate with P&L performance', 'psychology', true, true),
+  ('Trade Autopsy Mode', 'Guided deep-dive review of your worst trades with structured questions to uncover the psychological root cause', 'psychology', true, true),
   ('Mobile App', 'Native iOS/Android app for logging trades on the go', 'general', true, true),
   ('Trade Replay', 'Replay your trades with candlestick charts and emotional annotations', 'analytics', true, true),
-  ('Prop Firm Mode', 'Track drawdown limits, daily loss limits, and profit targets for funded accounts', 'analytics', true, true),
-  ('Weekly Psychology Report', 'Automated weekly email with your emotional patterns and actionable insights', 'psychology', true, true),
-  ('Voice Journal', 'Record voice notes instead of typing - AI transcribes and tags emotions', 'psychology', true, true),
+  ('Accountability Partner', 'Get matched with a trader at your level for weekly check-ins — share process scores, not P&L', 'social', true, true),
+  ('Drawdown Recovery Protocol', 'When you hit a drawdown threshold, activates guided recovery mode with position sizing rules and mandatory journaling', 'psychology', true, true),
+  ('Trade Screenshot Annotation', 'Paste chart screenshots onto trades, draw entries/exits/zones, and annotate with visual proof for every decision', 'analytics', true, true),
   ('Custom Alerts', 'Get notified when you are entering a revenge trade pattern', 'automation', true, true);
