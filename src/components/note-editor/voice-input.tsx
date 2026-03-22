@@ -83,6 +83,7 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
   const recognitionRef = useRef<any>(null);
   const reviewTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const baseTranscriptRef = useRef("");
   const [collapsed, setCollapsed] = useState(false);
   const [images, setImages] = useState<File[]>([]);
   const [consented, setConsented] = useState<boolean | null>(() => {
@@ -175,11 +176,14 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
-      const text = Array.from(event.results as ArrayLike<{ 0: { transcript: string } }>)
+      const sessionText = Array.from(event.results as ArrayLike<{ 0: { transcript: string } }>)
         .map((result) => result[0].transcript)
         .join("");
-      setTranscript(text);
-      onRawTranscript?.(text);
+      const full = baseTranscriptRef.current
+        ? baseTranscriptRef.current + " " + sessionText
+        : sessionText;
+      setTranscript(full);
+      onRawTranscript?.(full);
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -205,6 +209,7 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
     recognitionRef.current = recognition;
     recognition.start();
     setState("recording");
+    baseTranscriptRef.current = "";
     setTranscript("");
     setShowAllPrompts(false);
   }, [onRawTranscript]);
@@ -214,6 +219,72 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
     recognitionRef.current = null;
     setState("review");
   }, []);
+
+  const continueRecording = useCallback(async () => {
+    setError(null);
+    const SpeechRecognitionClass = getSpeechRecognition();
+    if (!SpeechRecognitionClass) return;
+
+    // Save current transcript as base for appending
+    baseTranscriptRef.current = transcript;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      setMicPermission("granted");
+    } catch (err) {
+      setMicPermission("denied");
+      if (err instanceof DOMException && err.name === "NotAllowedError") {
+        setError(
+          "Microphone access was denied. Click the lock/info icon in your browser\u2019s address bar, find \u201CMicrophone\u201D, set it to \u201CAllow\u201D, then reload the page."
+        );
+      } else {
+        setError("Could not access microphone. Please check your device settings.");
+      }
+      return;
+    }
+
+    const recognition = new SpeechRecognitionClass();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      const sessionText = Array.from(event.results as ArrayLike<{ 0: { transcript: string } }>)
+        .map((result) => result[0].transcript)
+        .join("");
+      const full = baseTranscriptRef.current
+        ? baseTranscriptRef.current + " " + sessionText
+        : sessionText;
+      setTranscript(full);
+      onRawTranscript?.(full);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onerror = (event: any) => {
+      if (event.error === "not-allowed") {
+        setMicPermission("denied");
+        setError(
+          "Microphone access was denied. Click the lock/info icon in your browser\u2019s address bar, find \u201CMicrophone\u201D, set it to \u201CAllow\u201D, then reload the page."
+        );
+      } else if (event.error !== "aborted") {
+        setError(`Speech recognition error: ${event.error}`);
+      }
+      setState("review");
+    };
+
+    recognition.onend = () => {
+      if (recognitionRef.current === recognition) {
+        setState((s) => (s === "recording" ? "review" : s));
+      }
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setState("recording");
+    setShowAllPrompts(false);
+  }, [transcript, onRawTranscript]);
 
   const structureWithAI = useCallback(async () => {
     if (!transcript.trim()) return;
@@ -296,6 +367,7 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
     recognitionRef.current = null;
     setState("idle");
     setTranscript("");
+    baseTranscriptRef.current = "";
     setError(null);
     setShowAllPrompts(false);
     setImages([]);
@@ -548,10 +620,18 @@ export function VoiceInput({ onResult, onRawTranscript, currentTemplate, customT
         <div className="px-4 py-3 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs text-emerald-400 font-medium uppercase tracking-wider">Transcript ready</p>
-            <button type="button" onClick={reset} className="flex items-center gap-1 text-xs text-muted hover:text-foreground transition-colors">
-              <RotateCcw size={12} />
-              Start over
-            </button>
+            <div className="flex items-center gap-3">
+              {isSupported && micPermission !== "denied" && (
+                <button type="button" onClick={continueRecording} className="flex items-center gap-1 text-xs text-accent hover:text-accent-hover transition-colors">
+                  <Mic size={12} />
+                  Continue recording
+                </button>
+              )}
+              <button type="button" onClick={reset} className="flex items-center gap-1 text-xs text-muted hover:text-foreground transition-colors">
+                <RotateCcw size={12} />
+                Start over
+              </button>
+            </div>
           </div>
           <textarea
             ref={reviewTextareaRef}

@@ -95,6 +95,22 @@ export function NovaNarrative({ periodType, periodStart, narrative: initial }: P
           </button>
         </div>
       )}
+
+      {!loading && !narrative && error && (
+        <div className="space-y-2">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-loss/10 border border-loss/20">
+            <AlertCircle size={14} className="text-loss shrink-0 mt-0.5" />
+            <p className="text-xs text-loss/80 leading-relaxed">{error}</p>
+          </div>
+          <button
+            onClick={() => generate(false)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-accent bg-accent/10 hover:bg-accent/20 transition-colors"
+          >
+            <RefreshCw size={12} />
+            Try again
+          </button>
+        </div>
+      )}
     </div>
   );
 }
