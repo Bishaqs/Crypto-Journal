@@ -169,7 +169,6 @@ export default function LandingPage() {
             {/* Gradients for readability */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/30 to-transparent"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] to-transparent"></div>
-            <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-tr from-[#0a0a0c] to-transparent"></div>
           </div>
 
           {/* Hero Content (Left-aligned asymmetric) */}
