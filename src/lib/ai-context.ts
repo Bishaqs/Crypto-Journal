@@ -811,6 +811,12 @@ export function buildExpertPsychologyContext(
     self_concept_text: string | null;
     self_concept_identity: string | null;
     loss_aversion_coefficient: number | null;
+    discipline_score?: number | null;
+    emotional_regulation?: string | null;
+    bias_awareness_score?: number | null;
+    fomo_revenge_score?: number | null;
+    stress_response?: string | null;
+    journaling_style?: string | null;
   } | null,
   sessionLogs: {
     session_date: string;
@@ -945,6 +951,64 @@ export function buildExpertPsychologyContext(
     const label = identityLabels[profile.self_concept_identity];
     if (label) {
       coachingParts.push(`- Self-Concept (${profile.self_concept_identity.replace(/_/g, " ")}): ${label}`);
+      hasAdaptation = true;
+    }
+  }
+
+  // ─── New Kickstart Fields ─────────────────────────────────────────────────
+
+  if (profile.discipline_score != null) {
+    parts.push(`- **Trading Discipline**: ${profile.discipline_score.toFixed(1)}/5`);
+    if (profile.discipline_score <= 2.5) {
+      coachingParts.push(`- LOW Discipline (${profile.discipline_score.toFixed(1)}/5): This trader struggles to follow their own rules. Frame every coaching intervention around process adherence. "What did your plan say? Did you follow it?"`);
+      hasAdaptation = true;
+    }
+  }
+
+  if (profile.emotional_regulation) {
+    parts.push(`- **Emotional Regulation**: ${profile.emotional_regulation}`);
+    if (profile.emotional_regulation === "reactive") {
+      coachingParts.push(`- REACTIVE Emotional Regulation: This trader acts on emotions before processing them. Always ask "What are you feeling right now?" before discussing any trade decision. Build in pause protocols.`);
+      hasAdaptation = true;
+    } else if (profile.emotional_regulation === "mastered") {
+      coachingParts.push(`- MASTERED Emotional Regulation: This trader has strong emotional protocols. Speak at a higher level — focus on edge refinement and meta-psychology rather than basic emotional management.`);
+      hasAdaptation = true;
+    }
+  }
+
+  if (profile.fomo_revenge_score != null) {
+    parts.push(`- **FOMO/Revenge Tendency**: ${profile.fomo_revenge_score.toFixed(1)}/5`);
+    if (profile.fomo_revenge_score >= 3.5) {
+      coachingParts.push(`- HIGH FOMO/Revenge (${profile.fomo_revenge_score.toFixed(1)}/5): Proactively flag potential FOMO/revenge patterns. After any loss, explicitly ask: "Are you considering this next trade because of the setup, or because of the loss?"`);
+      hasAdaptation = true;
+    }
+  }
+
+  if (profile.bias_awareness_score != null) {
+    parts.push(`- **Bias Awareness**: ${profile.bias_awareness_score.toFixed(1)}/5`);
+    if (profile.bias_awareness_score <= 2.5) {
+      coachingParts.push(`- LOW Bias Awareness (${profile.bias_awareness_score.toFixed(1)}/5): This trader is susceptible to anchoring, sunk cost, and social proof biases. Name biases explicitly when detected: "I notice anchoring here — you're referencing your entry price rather than current value."`);
+      hasAdaptation = true;
+    }
+  }
+
+  if (profile.stress_response) {
+    parts.push(`- **Stress Response**: ${profile.stress_response}`);
+    if (profile.stress_response === "emotional" || profile.stress_response === "avoidant") {
+      coachingParts.push(`- ${profile.stress_response.toUpperCase()} Stress Response: During drawdowns, this trader becomes ${profile.stress_response}. Pre-empt with: "Your drawdown protocol: reduce size 50%, review last 10 trades, no new entries until review complete."`);
+      hasAdaptation = true;
+    }
+  }
+
+  if (profile.journaling_style) {
+    const styleLabels: Record<string, string> = {
+      detailed: "Already a detailed journalist — reinforce this habit",
+      quick_notes: "Takes quick notes — encourage expanding into emotion/process tracking",
+      mental: "Reviews mentally only — suggest writing things down to spot patterns over time",
+      none: "Does not review trades — this is a critical gap. Gently but consistently encourage journaling",
+    };
+    if (styleLabels[profile.journaling_style]) {
+      coachingParts.push(`- Journaling Style: ${styleLabels[profile.journaling_style]}`);
       hasAdaptation = true;
     }
   }

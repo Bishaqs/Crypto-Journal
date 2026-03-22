@@ -97,7 +97,7 @@ export async function middleware(request: NextRequest) {
 
       if (verified) {
         // Set cookie to avoid DB queries on subsequent requests
-        supabaseResponse.cookies.set("stargate-early-access", email, {
+        supabaseResponse.cookies.set("stargate-early-access", email ?? "", {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",

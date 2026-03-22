@@ -208,6 +208,18 @@ export type PsychologyProfile = {
   self_concept_identity: SelfConceptIdentity | null;
   loss_aversion_coefficient: number | null;
   loss_aversion_responses: Record<string, unknown>;
+  discipline_score: number | null;
+  discipline_responses: Record<string, unknown>;
+  emotional_regulation: "reactive" | "aware" | "managed" | "mastered" | null;
+  emotional_regulation_responses: Record<string, unknown>;
+  bias_awareness_score: number | null;
+  bias_awareness_responses: Record<string, unknown>;
+  fomo_revenge_score: number | null;
+  fomo_revenge_responses: Record<string, unknown>;
+  journaling_style: string | null;
+  stress_response: "resilient" | "analytical" | "emotional" | "avoidant" | null;
+  stress_response_responses: Record<string, unknown>;
+  source: "wizard" | "kickstart" | "quiz" | null;
   completed_at: string | null;
   reassess_after: string | null;
   created_at: string;

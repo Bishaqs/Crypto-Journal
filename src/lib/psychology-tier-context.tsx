@@ -116,11 +116,10 @@ export function PsychologyTierProvider({
     }
   }, [userId]);
 
+  // Always load profile — kickstart makes it available to all tiers
   useEffect(() => {
-    if (tier === "expert") {
-      refreshProfile();
-    }
-  }, [tier, refreshProfile]);
+    refreshProfile();
+  }, [refreshProfile]);
 
   // Update tier in DB and state (clamped)
   const setTier = useCallback(async (newTier: PsychologyTier) => {

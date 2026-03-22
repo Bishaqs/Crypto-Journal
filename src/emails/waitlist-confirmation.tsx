@@ -10,6 +10,7 @@ interface WaitlistConfirmationProps {
   discountCode: string;
   referralLink: string;
   referralCode: string;
+  quizLink?: string;
 }
 
 export function WaitlistConfirmation({
@@ -18,6 +19,7 @@ export function WaitlistConfirmation({
   discountCode = "TRAVERSE50-PREVIEW",
   referralLink = "https://traversejournal.com/?ref=REF-PREVIEW",
   referralCode = "REF-PREVIEW",
+  quizLink = "https://traversejournal.com/quiz?token=preview",
 }: WaitlistConfirmationProps) {
   const t = THEMES.dark;
 
@@ -171,6 +173,46 @@ export function WaitlistConfirmation({
         </EmailButton>
       </Section>
 
+      {/* Psychology Quiz */}
+      {quizLink && (
+        <Section
+          style={{
+            background: t.surface,
+            border: `1px solid ${t.border}`,
+            borderRadius: "12px",
+            padding: "24px",
+            marginBottom: "24px",
+            textAlign: "left" as const,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: "15px",
+              fontWeight: 600,
+              color: t.text,
+              margin: "0 0 8px 0",
+            }}
+          >
+            Discover Your Trading Psychology
+          </Text>
+          <Text
+            style={{
+              fontSize: "14px",
+              color: t.textMuted,
+              margin: "0 0 16px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            Take a 3-minute quiz to find out your trading archetype — and get
+            personalized insights on your strengths, blind spots, and emotional
+            patterns. Your free Trading Psychology Protocol.
+          </Text>
+          <EmailButton href={quizLink} theme="dark">
+            Take the Quiz
+          </EmailButton>
+        </Section>
+      )}
+
       {/* Referral */}
       <Section
         style={{
@@ -265,6 +307,7 @@ WaitlistConfirmation.PreviewProps = {
   discountCode: "TRAVERSE50-ABCD1234",
   referralLink: "https://traversejournal.com/?ref=REF-A1B2C3D4",
   referralCode: "REF-A1B2C3D4",
+  quizLink: "https://traversejournal.com/quiz?token=preview",
 } as WaitlistConfirmationProps;
 
 export default WaitlistConfirmation;
