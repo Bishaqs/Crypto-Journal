@@ -361,7 +361,7 @@ export const FQ_RISK_SCENARIOS: RiskScenario[] = [
       { label: "Sell now — profit is profit", score: { conservative_guardian: 3, calculated_risk_taker: 1, aggressive_hunter: 0, adaptive_chameleon: 1 } },
       { label: "Sell half and let the rest ride", score: { conservative_guardian: 1, calculated_risk_taker: 3, aggressive_hunter: 1, adaptive_chameleon: 2 } },
       { label: "Hold everything — I came here to win big", score: { conservative_guardian: 0, calculated_risk_taker: 1, aggressive_hunter: 3, adaptive_chameleon: 0 } },
-      { label: "Look at the chart first, then decide", score: { conservative_guardian: 0, calculated_risk_taker: 1, aggressive_hunter: 1, adaptive_chameleon: 3 } },
+      { label: "Wait for more confirmation before deciding", score: { conservative_guardian: 1, calculated_risk_taker: 1, aggressive_hunter: 0, adaptive_chameleon: 3 } },
     ],
   },
   {
@@ -371,7 +371,7 @@ export const FQ_RISK_SCENARIOS: RiskScenario[] = [
       { label: "Take the week off — I need to reset", score: { conservative_guardian: 3, calculated_risk_taker: 1, aggressive_hunter: 0, adaptive_chameleon: 1 } },
       { label: "Trade with half my usual size", score: { conservative_guardian: 1, calculated_risk_taker: 3, aggressive_hunter: 0, adaptive_chameleon: 2 } },
       { label: "Trade normally — last week is irrelevant", score: { conservative_guardian: 0, calculated_risk_taker: 1, aggressive_hunter: 3, adaptive_chameleon: 0 } },
-      { label: "Check how I'm feeling before deciding anything", score: { conservative_guardian: 1, calculated_risk_taker: 1, aggressive_hunter: 0, adaptive_chameleon: 3 } },
+      { label: "Spend the day backtesting instead of live trading", score: { conservative_guardian: 1, calculated_risk_taker: 2, aggressive_hunter: 0, adaptive_chameleon: 2 } },
     ],
   },
   {
@@ -381,7 +381,7 @@ export const FQ_RISK_SCENARIOS: RiskScenario[] = [
       { label: "Pass — if it sounds too good, it usually is", score: { conservative_guardian: 3, calculated_risk_taker: 1, aggressive_hunter: 0, adaptive_chameleon: 1 } },
       { label: "Research it myself and take a small position if it checks out", score: { conservative_guardian: 1, calculated_risk_taker: 3, aggressive_hunter: 1, adaptive_chameleon: 2 } },
       { label: "Jump in — you don't get rich being timid", score: { conservative_guardian: 0, calculated_risk_taker: 0, aggressive_hunter: 3, adaptive_chameleon: 0 } },
-      { label: "Depends who's sharing and what market we're in", score: { conservative_guardian: 0, calculated_risk_taker: 1, aggressive_hunter: 1, adaptive_chameleon: 3 } },
+      { label: "Ask them for their stop loss and risk/reward setup", score: { conservative_guardian: 1, calculated_risk_taker: 2, aggressive_hunter: 0, adaptive_chameleon: 2 } },
     ],
   },
   {
@@ -391,7 +391,7 @@ export const FQ_RISK_SCENARIOS: RiskScenario[] = [
       { label: "Mostly safe assets, maybe 10-20% in trades", score: { conservative_guardian: 3, calculated_risk_taker: 1, aggressive_hunter: 0, adaptive_chameleon: 1 } },
       { label: "Diversified across several positions, each one sized carefully", score: { conservative_guardian: 1, calculated_risk_taker: 3, aggressive_hunter: 1, adaptive_chameleon: 1 } },
       { label: "Concentrate on my 2-3 highest conviction ideas", score: { conservative_guardian: 0, calculated_risk_taker: 1, aggressive_hunter: 3, adaptive_chameleon: 1 } },
-      { label: "Depends on current market conditions and opportunities", score: { conservative_guardian: 0, calculated_risk_taker: 1, aggressive_hunter: 1, adaptive_chameleon: 3 } },
+      { label: "Split between a core strategy and some speculative plays", score: { conservative_guardian: 0, calculated_risk_taker: 2, aggressive_hunter: 2, adaptive_chameleon: 2 } },
     ],
   },
 ];
