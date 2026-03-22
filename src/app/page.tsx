@@ -11,6 +11,7 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 import { ThemeShowcase } from "@/components/landing/theme-showcase";
 import { WaitlistCTA } from "@/components/landing/waitlist-cta";
 import { useTheme } from "@/lib/theme-context";
+import { RealisticBlackHole } from "@/components/realistic-black-hole";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -33,6 +34,11 @@ export default function LandingPage() {
       stagger: 0.15,
       ease: "power3.out",
       delay: 0.2,
+      onComplete: () => {
+        document.querySelectorAll("h1 .hero-text-line").forEach((el) => {
+          (el as HTMLElement).style.overflow = "visible";
+        });
+      },
     });
 
     gsap.from(".hero-cta", {
@@ -43,7 +49,7 @@ export default function LandingPage() {
       delay: 0.6,
     });
 
-    // Parallax on the video background
+    // Parallax on the black hole background
     gsap.to(".hero-video", {
       yPercent: 30,
       ease: "none",
@@ -151,20 +157,10 @@ export default function LandingPage() {
       {/* --- HERO SECTION --- */}
       <main>
         <section className="hero-section relative w-full min-h-[100dvh] flex flex-col justify-end pb-24 md:pb-32 px-4 md:px-24">
-          {/* Video Background */}
+          {/* Black Hole Background */}
           <div className="absolute inset-0 z-0 overflow-hidden">
-            <div className="hero-video absolute inset-[-10%] w-[120%] h-[120%]">
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                className="w-full h-full object-cover scale-105" 
-                poster="/themes/nebula-bg.webp" 
-                onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).playbackRate = 0.6; }}
-              >
-                <source src="/hero-blackhole.mp4" type="video/mp4" />
-              </video>
+            <div className="hero-video absolute inset-0 flex items-center justify-end pr-[5%]">
+              <RealisticBlackHole size="large" opacity={0.5} color="purple" />
             </div>
             {/* Gradients for readability */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/40 via-transparent to-[#0a0a0c] mix-blend-multiply"></div>
