@@ -319,29 +319,27 @@ export function SidebarDrawer({
               { ctx: "stocks" as const, label: t("sidebar.stocksLabel"), icon: LineChart },
               { ctx: "commodities" as const, label: t("sidebar.commoditiesLabel"), icon: Gem },
               { ctx: "forex" as const, label: t("sidebar.forexLabel"), icon: ArrowLeftRight },
-            ]).map(({ ctx, label, icon: Icon }) => (
-              <button
-                key={ctx}
-                onClick={() => onAssetToggle(ctx)}
-                className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                  assetContext === ctx
-                    ? "bg-accent/15 text-accent border border-accent/30"
-                    : "text-muted hover:text-foreground border border-transparent"
-                }`}
-              >
-                <Icon size={11} />
-                {label}
-              </button>
-            ))}
+            ]).map(({ ctx, label, icon: Icon }) => {
+              const comingSoon = ctx !== "crypto";
+              return (
+                <button
+                  key={ctx}
+                  onClick={comingSoon ? undefined : () => onAssetToggle(ctx)}
+                  className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                    assetContext === ctx
+                      ? "bg-accent/15 text-accent border border-accent/30"
+                      : comingSoon
+                        ? "text-muted/50 border border-transparent cursor-not-allowed opacity-50"
+                        : "text-muted hover:text-foreground border border-transparent"
+                  }`}
+                >
+                  <Icon size={11} />
+                  <span>{label}</span>
+                  {comingSoon && <span className="text-[8px] text-muted/70 ml-0.5">Soon</span>}
+                </button>
+              );
+            })}
           </div>
-          {showStockUpgrade && (
-            <div className="mt-2 p-2.5 rounded-lg bg-accent/5 border border-accent/20 text-center">
-              <p className="text-[10px] text-muted mb-1.5">{t("sidebar.stockUpgradeMsg")}</p>
-              <a href="/dashboard/settings" className="text-[10px] font-semibold text-accent hover:text-accent-hover transition-colors">
-                {t("sidebar.upgradeNow")} &rarr;
-              </a>
-            </div>
-          )}
         </div>}
 
         {/* Mode toggle removed — accessible in Settings only */}

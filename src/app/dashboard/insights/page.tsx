@@ -650,6 +650,7 @@ export default function InsightsPage() {
       {/* Expert Profile Wizard Modal */}
       {showWizard && (
         <PsychologyProfileWizard
+          variant="settings"
           onComplete={() => { setShowWizard(false); refreshProfile(); }}
           onCancel={() => setShowWizard(false)}
         />

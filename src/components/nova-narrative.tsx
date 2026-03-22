@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Sparkles, RefreshCw } from "lucide-react";
+import { Sparkles, RefreshCw, AlertCircle } from "lucide-react";
 
 type Props = {
   periodType: "daily" | "weekly" | "monthly" | "yearly";
@@ -12,11 +12,11 @@ type Props = {
 export function NovaNarrative({ periodType, periodStart, narrative: initial }: Props) {
   const [narrative, setNarrative] = useState(initial);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const generate = useCallback(async (force: boolean) => {
     setLoading(true);
-    setError(false);
+    setError(null);
     try {
       const res = await fetch("/api/ai/generate-narrative", {
         method: "POST",
@@ -24,21 +24,19 @@ export function NovaNarrative({ periodType, periodStart, narrative: initial }: P
         body: JSON.stringify({ period_type: periodType, period_start: periodStart, force }),
       });
       if (!res.ok) {
-        setError(true);
+        const errData = await res.json().catch(() => ({ error: "Failed to generate analysis" }));
+        setError(errData.error || `Error ${res.status}`);
         return;
       }
       const data = await res.json();
       if (data.narrative) setNarrative(data.narrative);
-      else setError(true);
+      else setError("No narrative was returned");
     } catch {
-      setError(true);
+      setError("Connection error — please try again");
     } finally {
       setLoading(false);
     }
   }, [periodType, periodStart]);
-
-  // Don't render at all if no narrative and generation failed silently
-  if (!narrative && !loading && error) return null;
 
   return (
     <div
@@ -74,6 +72,13 @@ export function NovaNarrative({ periodType, periodStart, narrative: initial }: P
 
       {!loading && narrative && (
         <p className="text-sm text-foreground/80 leading-relaxed">{narrative}</p>
+      )}
+
+      {!loading && narrative && error && (
+        <div className="flex items-start gap-2 px-3 py-2 mt-2 rounded-lg bg-loss/10 border border-loss/20">
+          <AlertCircle size={14} className="text-loss shrink-0 mt-0.5" />
+          <p className="text-xs text-loss/80">{error}</p>
+        </div>
       )}
 
       {!loading && !narrative && !error && (

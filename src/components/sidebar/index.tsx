@@ -98,19 +98,8 @@ export function Sidebar() {
 
   /* ── Asset context ─────────────────────────────── */
   function handleAssetToggle(context: AssetContext) {
-    if (context === "stocks" && !hasStockAccess()) {
-      setShowStockUpgrade(true);
-      return;
-    }
-    if (context === "commodities" && !hasCommodityAccess()) {
-      setShowStockUpgrade(true);
-      return;
-    }
-    if (context === "forex" && !hasForexAccess()) {
-      setShowStockUpgrade(true);
-      return;
-    }
-    setShowStockUpgrade(false);
+    // Non-crypto markets are coming soon — block navigation
+    if (context !== "crypto") return;
     setAssetContext(context);
     localStorage.setItem("stargate-asset-context", context);
 

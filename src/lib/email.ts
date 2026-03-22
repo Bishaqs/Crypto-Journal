@@ -8,6 +8,12 @@ import { StreakRisk } from "@/emails/streak-risk";
 import { LevelUp } from "@/emails/level-up";
 import { AchievementUnlocked } from "@/emails/achievement-unlocked";
 import { TrialExpired } from "@/emails/trial-expired";
+import { QuizResults } from "@/emails/quiz-results";
+import { NurtureDay3 } from "@/emails/nurture-day-3";
+import { NurtureDay7 } from "@/emails/nurture-day-7";
+import { NurtureDay10 } from "@/emails/nurture-day-10";
+import { NurtureDay15 } from "@/emails/nurture-day-15";
+import type { ArchetypeInfo } from "@/lib/psychology-scoring";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -59,10 +65,11 @@ export async function sendWaitlistConfirmation(
 ) {
   const voteLink = `https://traversejournal.com/waitlist/vote?token=${accessToken}`;
   const referralLink = `https://traversejournal.com/?ref=${referralCode}`;
+  const quizLink = `https://traversejournal.com/quiz?token=${accessToken}`;
   return send({
     to,
     subject: `Welcome to Traverse. You're #${position} of 100.`,
-    react: WaitlistConfirmation({ position, voteLink, discountCode, referralLink, referralCode }),
+    react: WaitlistConfirmation({ position, voteLink, discountCode, referralLink, referralCode, quizLink }),
     tags: [{ name: "category", value: "waitlist" }],
   });
 }
@@ -136,4 +143,64 @@ export async function sendTrialExpiredEmail(to: string, trialTier: string) {
     react: TrialExpired({ trialTier, pricingLink: "https://traversejournal.com/pricing" }),
     tags: [{ name: "category", value: "monetization" }],
   });
+}
+
+export async function sendQuizResults(
+  to: string,
+  archetypeInfo: ArchetypeInfo,
+  scores: Record<string, unknown>,
+  unsubscribeUrl: string,
+) {
+  return send({
+    to,
+    subject: `Your Trading Psychology: ${archetypeInfo.name}`,
+    react: QuizResults({ archetypeInfo, scores, unsubscribeUrl }),
+    tags: [{ name: "category", value: "quiz" }],
+  });
+}
+
+export async function sendNurtureEmail(
+  to: string,
+  dayIndex: number,
+  archetype: string,
+  scores: Record<string, unknown>,
+  unsubscribeUrl: string,
+  discountCode?: string,
+): Promise<boolean> {
+  const archetypeName = archetype.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+  switch (dayIndex) {
+    case 3:
+      return send({
+        to,
+        subject: `What traders with your pattern struggle with most`,
+        react: NurtureDay3({ archetypeName, archetype, scores, unsubscribeUrl }),
+        tags: [{ name: "category", value: "nurture" }],
+      });
+    case 7:
+      return send({
+        to,
+        subject: `3 techniques for ${archetypeName} traders`,
+        react: NurtureDay7({ archetypeName, archetype, scores, unsubscribeUrl }),
+        tags: [{ name: "category", value: "nurture" }],
+      });
+    case 10:
+      return send({
+        to,
+        subject: "How Traverse tracks your psychology over time",
+        react: NurtureDay10({ unsubscribeUrl }),
+        tags: [{ name: "category", value: "nurture" }],
+      });
+    case 15:
+      return send({
+        to,
+        subject: discountCode
+          ? "Last chance: your 50% discount"
+          : "Your trading psychology insights are waiting",
+        react: NurtureDay15({ unsubscribeUrl, discountCode }),
+        tags: [{ name: "category", value: "nurture" }],
+      });
+    default:
+      return false;
+  }
 }
