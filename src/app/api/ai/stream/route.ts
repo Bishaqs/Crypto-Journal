@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext, buildMarketContext, buildExperienceLevelContext, buildEdgeProfileContext } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext, selectRelevantMemories, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext, buildMarketContext, buildExperienceLevelContext, buildEdgeProfileContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 import { calculateAllCorrelations, calculateEmotionCorrelations, calculateTimeCorrelations } from "@/lib/psychology-correlations";
 import { calculateAdvancedStats } from "@/lib/calculations";
@@ -59,24 +59,26 @@ export async function POST(req: NextRequest) {
     ? `\n\n## Attached Images (${imageData.length})\n${imageData.map((img, i) => `- Image ${i + 1}: from journal entry "${img.noteTitle}" (${img.noteDate})`).join("\n")}\n`
     : "";
 
-  // Load coach memories for this user
+  // Load coach memories for this user (filtered by relevance)
   let memoryContext = "";
   try {
-    const { data: memories } = await supabase
+    const { data: allMemories } = await supabase
       .from("ai_memories")
-      .select("id, content, category, created_at, last_referenced_at")
+      .select("id, content, category, created_at, last_referenced_at, relevance_score")
       .eq("user_id", user.id)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
-    if (memories && memories.length > 0) {
-      memoryContext = buildMemoryContext(memories);
-      // Touch last_referenced_at for relevance tracking (non-blocking)
-      const memoryIds = memories.map((m: { id: string }) => m.id);
+    if (allMemories && allMemories.length > 0) {
+      const tradeSymbols = trades.map((t) => (t.symbol as string) ?? "").filter(Boolean);
+      const selected = selectRelevantMemories(allMemories, message, tradeSymbols);
+      memoryContext = buildMemoryContext(selected);
+      // Touch last_referenced_at only for selected memories (non-blocking)
+      const selectedIds = selected.map((m: { id: string }) => m.id);
       supabase
         .from("ai_memories")
         .update({ last_referenced_at: new Date().toISOString() })
-        .in("id", memoryIds)
+        .in("id", selectedIds)
         .then(() => {});
     }
   } catch {

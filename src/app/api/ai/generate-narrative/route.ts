@@ -24,8 +24,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const NARRATIVE_MODEL = "claude-haiku-4-5-20251001";
-
 type PeriodType = "daily" | "weekly" | "monthly" | "yearly";
 
 function getPrompt(pt: PeriodType): string {
@@ -76,7 +74,7 @@ export async function POST(req: NextRequest) {
 
   const { period_type, period_start, force } = parsed.data;
 
-  const provider = getProvider("anthropic");
+  const provider = getProvider();
   if (!provider.isConfigured()) {
     return NextResponse.json({ error: "AI narratives not available" }, { status: 503 });
   }
@@ -207,7 +205,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const model = resolveModel("anthropic", NARRATIVE_MODEL);
+    const model = resolveModel(provider.id);
     const narrative = await provider.chat({
       system: getPrompt(period_type),
       userMessage,

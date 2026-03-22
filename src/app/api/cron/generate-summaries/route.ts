@@ -6,7 +6,9 @@ import {
   computeMonthlySummary,
   computeYearlySummary,
 } from "@/lib/trading-summaries";
+import { computePatternSnapshot, detectSignificantChanges } from "@/lib/pattern-snapshots";
 import type { Trade } from "@/lib/types";
+import type { PatternSnapshot } from "@/lib/pattern-snapshots";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,7 @@ export async function GET(req: Request) {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
   const now = new Date();
-  const results = { daily: 0, weekly: 0, monthly: 0, yearly: 0, skipped: 0, errors: 0 };
+  const results = { daily: 0, weekly: 0, monthly: 0, yearly: 0, snapshots: 0, snapshotMemories: 0, skipped: 0, errors: 0 };
 
   // Get distinct user IDs with trades
   const { data: users, error: usersError } = await supabase
@@ -131,6 +133,62 @@ export async function GET(req: Request) {
           }
         } else {
           results.skipped++;
+        }
+
+        // ─── Pattern Snapshot: compute and compare (Mondays only) ──────
+        if (Date.now() < deadline) {
+          try {
+            const thirtyDaysAgo = new Date(now);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const recentTrades = allTrades.filter((t) =>
+              new Date(t.close_timestamp!).getTime() >= thirtyDaysAgo.getTime(),
+            );
+
+            const snapshot = computePatternSnapshot(recentTrades);
+            if (snapshot) {
+              // Store snapshot on this week's summary
+              const lastMondayStr2 = lastMonday.toISOString().split("T")[0];
+              await supabase
+                .from("trading_summaries")
+                .update({ pattern_snapshot: snapshot })
+                .eq("user_id", userId)
+                .eq("period_type", "weekly")
+                .eq("period_start", lastMondayStr2);
+              results.snapshots++;
+
+              // Load previous week's snapshot for comparison
+              const prevMonday = new Date(lastMonday);
+              prevMonday.setDate(prevMonday.getDate() - 7);
+              const { data: prevSummary } = await supabase
+                .from("trading_summaries")
+                .select("pattern_snapshot")
+                .eq("user_id", userId)
+                .eq("period_type", "weekly")
+                .eq("period_start", prevMonday.toISOString().split("T")[0])
+                .single();
+
+              if (prevSummary?.pattern_snapshot) {
+                const changes = detectSignificantChanges(
+                  snapshot,
+                  prevSummary.pattern_snapshot as PatternSnapshot,
+                );
+                if (changes.length > 0) {
+                  await supabase.from("ai_memories").insert(
+                    changes.slice(0, 3).map((content) => ({
+                      user_id: userId,
+                      content,
+                      category: "snapshot",
+                      source_type: "pattern_snapshot",
+                      is_active: true,
+                    })),
+                  );
+                  results.snapshotMemories += Math.min(changes.length, 3);
+                }
+              }
+            }
+          } catch {
+            // Non-critical — don't fail the cron for snapshot errors
+          }
         }
       }
 
