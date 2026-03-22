@@ -33,11 +33,6 @@ export default function LandingPage() {
       stagger: 0.15,
       ease: "power3.out",
       delay: 0.2,
-      onComplete: () => {
-        document.querySelectorAll("h1 .hero-text-line").forEach((el) => {
-          (el as HTMLElement).style.overflow = "visible";
-        });
-      },
     });
 
     gsap.from(".hero-cta", {
@@ -186,13 +181,13 @@ export default function LandingPage() {
             </div>
             
             <h1 className="text-5xl sm:text-6xl md:text-[5.5rem] lg:text-[6.5rem] leading-[0.9] tracking-tighter font-medium text-balance">
-              <div className="hero-text-line overflow-hidden">
+              <div className="hero-text-line">
                 <span className="block">See exactly which</span>
               </div>
-              <div className="hero-text-line overflow-hidden text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
+              <div className="hero-text-line text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
                 <span className="block">emotions cost you money.</span>
               </div>
-              <div className="hero-text-line overflow-hidden">
+              <div className="hero-text-line">
                 <span className="block font-drama italic text-white/80">Then stop repeating them.</span>
               </div>
             </h1>
