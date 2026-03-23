@@ -45,6 +45,7 @@ import { NoteLinkPicker } from "@/components/trade-detail/note-link-picker";
 import { TradeMarketContext } from "@/components/market/trade-market-context";
 import { EmotionTimeline } from "@/components/emotion-timeline";
 import { FollowUpEmotionForm } from "@/components/follow-up-emotion";
+import { EmotionPriceChart } from "@/components/trade-detail/emotion-price-chart";
 import { SmilePlus } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -494,12 +495,17 @@ export default function TradeDetailPage() {
         <ExecutionsTable trade={trade} />
       </CollapsibleSection>
 
-      {/* Advanced TradingView Chart */}
+      {/* Price Chart with Emotion Overlay (crypto) / TradingView fallback (stocks) */}
       <CollapsibleSection
-        title="Delayed Chart"
+        title={trade.symbol.endsWith("USDT") || trade.symbol.includes("BTC") || trade.symbol.includes("ETH") ? "Price Chart + Emotions" : "Delayed Chart"}
         icon={<BarChart2 size={14} className="text-accent" />}
+        defaultOpen
       >
-        <TradingViewAdvancedChart symbol={trade.symbol} colorTheme={tvColorTheme} />
+        {trade.symbol.endsWith("USDT") || trade.symbol.includes("BINANCE:") ? (
+          <EmotionPriceChart trade={trade} emotionLogs={emotionLogs} />
+        ) : (
+          <TradingViewAdvancedChart symbol={trade.symbol} colorTheme={tvColorTheme} />
+        )}
       </CollapsibleSection>
 
       {/* Trade Timeline */}

@@ -57,6 +57,6 @@ export type PlaybackState = {
   speed: PlaybackSpeed;
 };
 
-export type SimInterval = "1m" | "5m";
+export type SimInterval = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
 
 export { SUPPORTED_BINANCE_SYMBOLS as SUPPORTED_SYMBOLS, type SupportedSymbol } from "@/lib/coin-registry";
