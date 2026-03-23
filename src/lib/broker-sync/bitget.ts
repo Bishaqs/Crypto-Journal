@@ -209,11 +209,25 @@ export async function fetchBitgetPositions(
 
       for (const pos of list) {
         try {
-          const closePrice = parseFloat(pos.closeAvgPrice) || 0;
+          let closePrice = parseFloat(pos.closeAvgPrice) || 0;
           const closeTime = parseInt(pos.utime);
 
           // Skip positions that haven't been closed (closeAvgPrice = 0 or missing)
-          if (closePrice <= 0) continue;
+          if (closePrice <= 0) {
+            const closedQty = parseFloat(pos.closeTotalPos) || 0;
+            const rawPnl = parseFloat(pos.pnl);
+            const entryPrice = parseFloat(pos.openAvgPrice) || 0;
+
+            // If position was closed (has qty + pnl), derive close price from PnL
+            if (closedQty > 0 && !isNaN(rawPnl) && entryPrice > 0) {
+              const dir = pos.holdSide?.toLowerCase() === "short" ? -1 : 1;
+              closePrice = entryPrice + (rawPnl / (dir * closedQty));
+              console.log(`[sync:positions] Derived closePrice for ${pos.symbol} ${pos.holdSide}: ${closePrice.toFixed(4)} (pnl=${rawPnl}, entry=${entryPrice}, qty=${closedQty})`);
+            } else {
+              console.log(`[sync:positions] Skipped ${pos.symbol} ${pos.holdSide} posId=${pos.positionId} (closeAvgPrice=${pos.closeAvgPrice}, closeTotalPos=${pos.closeTotalPos}, pnl=${pos.pnl})`);
+              continue;
+            }
+          }
 
           if (!isNaN(closeTime) && (latestCloseTime === null || closeTime > latestCloseTime)) {
             latestCloseTime = closeTime;
@@ -257,6 +271,12 @@ export async function fetchBitgetPositions(
       errors.push(err instanceof Error ? err.message : "Network error fetching positions");
       break;
     }
+  }
+
+  // Log skip summary for diagnostics
+  const totalSkipped = fetched - closedTrades.length;
+  if (totalSkipped > 0) {
+    console.log(`[sync:positions] Total: ${fetched} fetched, ${closedTrades.length} mapped, ${totalSkipped} skipped`);
   }
 
   // Deduplicate by positionId — broken pagination can return same positions on multiple pages

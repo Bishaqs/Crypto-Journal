@@ -167,9 +167,8 @@ export default function LandingPage() {
               </video>
             </div>
             {/* Gradients for readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/40 via-transparent to-[#0a0a0c] mix-blend-multiply"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/60 to-transparent"></div>
-            <div className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-tr from-[#0a0a0c] via-[#0a0a0c]/80 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/30 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] to-transparent"></div>
           </div>
 
           {/* Hero Content (Left-aligned asymmetric) */}
@@ -181,13 +180,13 @@ export default function LandingPage() {
             </div>
             
             <h1 className="text-5xl sm:text-6xl md:text-[5.5rem] lg:text-[6.5rem] leading-[0.9] tracking-tighter font-medium text-balance">
-              <div className="hero-text-line overflow-hidden">
+              <div className="hero-text-line">
                 <span className="block">See exactly which</span>
               </div>
-              <div className="hero-text-line overflow-hidden text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
+              <div className="hero-text-line text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
                 <span className="block">emotions cost you money.</span>
               </div>
-              <div className="hero-text-line overflow-hidden">
+              <div className="hero-text-line">
                 <span className="block font-drama italic text-white/80">Then stop repeating them.</span>
               </div>
             </h1>

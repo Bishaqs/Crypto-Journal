@@ -44,7 +44,7 @@ async function handleCronSync(req: NextRequest) {
     .from("broker_connections")
     .select("*")
     .eq("auto_sync_enabled", true)
-    .eq("status", "active")
+    .in("status", ["active", "error"])
     .order("last_sync_at", { ascending: true, nullsFirst: true });
 
   if (fetchError) {
@@ -80,6 +80,16 @@ async function handleCronSync(req: NextRequest) {
         console.log(`[cron/sync-trades] Skipping ${conn.id} — synced ${daysSince.toFixed(1)} days ago (frequency: ${conn.sync_frequency})`);
         continue;
       }
+    }
+
+    // Cooldown for errored connections — retry after 1 hour
+    if (conn.status === "error" && conn.updated_at) {
+      const hoursSinceError = (Date.now() - new Date(conn.updated_at).getTime()) / (1000 * 60 * 60);
+      if (hoursSinceError < 1) {
+        console.log(`[cron/sync-trades] Skipping ${conn.id} — error cooldown (${hoursSinceError.toFixed(1)}h ago)`);
+        continue;
+      }
+      console.log(`[cron/sync-trades] Retrying errored connection ${conn.id} (error was ${hoursSinceError.toFixed(1)}h ago)`);
     }
 
     // Sync lock check
@@ -204,10 +214,16 @@ async function handleCronSync(req: NextRequest) {
         completed_at: new Date().toISOString(),
       });
 
+      // Only mark as permanent error for auth failures — transient errors keep status
+      const isPermanentError = errorMsg.includes("Auth failed") ||
+        errorMsg.includes("Check API key") ||
+        errorMsg.includes("Invalid API") ||
+        errorMsg.includes("passphrase");
+
       await supabase
         .from("broker_connections")
         .update({
-          status: "error",
+          status: isPermanentError ? "error" : conn.status,
           last_error: errorMsg,
           updated_at: new Date().toISOString(),
         })
