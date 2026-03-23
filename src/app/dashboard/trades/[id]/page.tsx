@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
-import { Trade, JournalNote, CHAINS } from "@/lib/types";
+import { Trade, JournalNote, TradeEmotionLog, CHAINS } from "@/lib/types";
 import { getLinkedNotesForTrade } from "@/lib/journal-links";
 import { formatAndSanitizeMarkdown } from "@/lib/sanitize";
 import { useTheme } from "@/lib/theme-context";
@@ -151,7 +151,7 @@ export default function TradeDetailPage() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [linkedNotes, setLinkedNotes] = useState<JournalNote[]>([]);
-  const [emotionLogs, setEmotionLogs] = useState<{ id: string; emotion: string; phase: string | null; note: string | null; price_at_log: number | null; created_at: string }[]>([]);
+  const [emotionLogs, setEmotionLogs] = useState<TradeEmotionLog[]>([]);
   const [showNotePicker, setShowNotePicker] = useState(false);
   const supabase = createClient();
 
@@ -193,7 +193,7 @@ export default function TradeDetailPage() {
   const fetchEmotionLogs = useCallback(async () => {
     const { data } = await supabase
       .from("trade_emotion_logs")
-      .select("id, emotion, phase, note, price_at_log, created_at")
+      .select("id, emotion, phase, note, price_at_log, started_at, ended_at, price_at_end, created_at")
       .eq("trade_id", tradeId)
       .eq("trade_table", "trades")
       .order("created_at", { ascending: true });
@@ -267,7 +267,7 @@ export default function TradeDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.push("/dashboard/trades")} className="p-2 rounded-xl hover:bg-surface-hover transition-colors">
+          <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-surface-hover transition-colors">
             <ArrowLeft size={20} className="text-muted" />
           </button>
           <div>
@@ -289,6 +289,12 @@ export default function TradeDetailPage() {
 
         <div className="flex items-center gap-3">
           {/* Action Buttons */}
+          <button
+            onClick={() => router.push(`/dashboard/journal?template=trade-review&tradeId=${trade.id}`)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface border border-border text-muted text-xs font-semibold hover:text-foreground hover:border-accent/30 transition-colors"
+          >
+            <FileText size={14} /> Write Review
+          </button>
           <button
             onClick={() => setShowEditForm(true)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors"

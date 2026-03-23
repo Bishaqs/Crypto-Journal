@@ -209,7 +209,9 @@ export default function LoginPage() {
           setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1500);
           return;
         }
-      } catch {}
+      } catch (err) {
+        console.error("Failed to redeem invite code:", err);
+      }
     }
 
     // Track referral signup if present
@@ -219,7 +221,9 @@ export default function LoginPage() {
           p_code: refCodeRef.current,
           p_new_user_id: user.id,
         });
-      } catch {}
+      } catch (err) {
+        console.error("Failed to track referral signup:", err);
+      }
     }
 
     setLoading(false);

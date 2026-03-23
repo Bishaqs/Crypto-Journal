@@ -36,7 +36,7 @@ const PsychologyUpgradePrompt = dynamic(() => import("@/components/psychology-up
 const FlashNewsBanner = dynamic(() => import("@/components/news/flash-news-banner").then(m => ({ default: m.FlashNewsBanner })));
 const HelpCenterPanel = dynamic(() => import("@/components/help-center/help-center-panel").then(m => ({ default: m.HelpCenterPanel })));
 const TagColorHydrator = dynamic(() => import("@/components/tag-color-hydrator").then(m => ({ default: m.TagColorHydrator })));
-// PhantomQuickAdd removed — What If is now a toggle inside TradeForm
+const GlobalQuickAdd = dynamic(() => import("@/components/global-quick-add").then(m => ({ default: m.GlobalQuickAdd })));
 
 export default async function DashboardLayout({
   children,
@@ -123,6 +123,7 @@ export default async function DashboardLayout({
                   <GuideSupport />
                   <Heartbeat />
                   <HelpCenterPanel />
+                  <GlobalQuickAdd />
                 </div>
               </OnboardingTour>
             </FlashNewsProvider>

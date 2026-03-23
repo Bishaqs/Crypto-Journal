@@ -154,8 +154,44 @@ export default function RulesPage() {
         ))}
       </div>
 
+      {/* ═══════════ EMPTY STATE ═══════════ */}
+      {rules.length === 0 && (
+        <div className="glass rounded-2xl border border-border/50 p-12" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+              <Shield size={28} className="text-accent" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground mb-2">Create Your First Trading Rule</h3>
+            <p className="text-sm text-muted mb-6 max-w-sm">
+              Trading rules build discipline. Define the boundaries you won&apos;t cross, then track what breaking them costs you.
+            </p>
+            <button
+              onClick={() => { setTab("rules"); setShowAddForm(true); }}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(0,180,216,0.3)] transition-all duration-300"
+            >
+              <Plus size={18} />
+              Create Your First Rule
+            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 w-full max-w-lg">
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface-hover/30">
+                <DollarSign size={16} className="text-loss" />
+                <span className="text-[11px] text-muted text-center">See cost of violations</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface-hover/30">
+                <TrendingUp size={16} className="text-win" />
+                <span className="text-[11px] text-muted text-center">Track compliance rate</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface-hover/30">
+                <BarChart3 size={16} className="text-accent" />
+                <span className="text-[11px] text-muted text-center">Spot your worst habits</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ═══════════ OVERVIEW ═══════════ */}
-      {tab === "overview" && (
+      {tab === "overview" && rules.length > 0 && (
         <div id="tour-rules-list" className="space-y-6">
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -392,6 +428,7 @@ export default function RulesPage() {
       {/* ═══════════ VIOLATIONS TAB ═══════════ */}
       {tab === "violations" && (
         <div className="rounded-2xl border border-border glass overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-surface/50">
@@ -439,6 +476,7 @@ export default function RulesPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

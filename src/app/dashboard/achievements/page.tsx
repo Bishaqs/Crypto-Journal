@@ -125,6 +125,56 @@ export default function AchievementsPage() {
         <XPInfoPanel />
       </div>
 
+      {/* Encouraging empty state when no achievements unlocked */}
+      {totalUnlocked === 0 && (
+        <div
+          className="glass rounded-2xl border border-border/50 p-8 mb-6"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+              <Trophy size={28} className="text-accent" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground mb-2">
+              Your Achievement Journey Starts Here
+            </h3>
+            <p className="text-sm text-muted mb-6 max-w-sm">
+              Start logging trades and journaling to earn your first achievement. Here are the easiest ones to unlock:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-hover/30 text-left">
+                <span className="text-2xl">🚀</span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">First Step</p>
+                  <p className="text-xs text-muted">Log your very first trade</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-hover/30 text-left">
+                <span className="text-2xl">📝</span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Chronicler</p>
+                  <p className="text-xs text-muted">Maintain a 7-day journaling streak</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-hover/30 text-left">
+                <span className="text-2xl">🌅</span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Sunrise Ritual</p>
+                  <p className="text-xs text-muted">Complete 7 daily check-ins</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-hover/30 text-left">
+                <span className="text-2xl">💪</span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">No Excuses</p>
+                  <p className="text-xs text-muted">Journal 10 losing trades</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tab switch */}
       <div className="flex gap-2 mb-6">
         <button

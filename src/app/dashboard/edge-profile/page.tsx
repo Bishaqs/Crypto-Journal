@@ -65,6 +65,7 @@ const IDENTITY_LABELS: Record<string, string> = {
 export default function EdgeProfilePage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const { profile } = usePsychologyTier();
   const { filterTrades } = useDateRange();
 
@@ -72,7 +73,13 @@ export default function EdgeProfilePage() {
     async function load() {
       setLoading(true);
       const supabase = createClient();
-      const { data } = await fetchAllTrades(supabase);
+      const { data, error } = await fetchAllTrades(supabase);
+      if (error) {
+        console.error("Failed to load trades for edge profile:", error.message);
+        setFetchError("Failed to load trade data. Please refresh the page.");
+        setLoading(false);
+        return;
+      }
       setTrades(filterTrades(data as Trade[]));
       setLoading(false);
     }
@@ -217,14 +224,41 @@ export default function EdgeProfilePage() {
     );
   }
 
-  if (closed.length < 10) {
+  if (fetchError) {
     return (
-      <div className="max-w-2xl mx-auto py-12 px-4 text-center">
-        <Fingerprint className="w-12 h-12 mx-auto mb-4 opacity-30" />
-        <h2 className="text-xl font-semibold mb-2">Not Enough Data Yet</h2>
-        <p className="text-sm opacity-60">
-          Your Edge Profile needs at least 10 closed trades to generate. You have {closed.length}. Keep trading!
-        </p>
+      <div className="max-w-2xl mx-auto py-12 px-4">
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-loss/10 border border-loss/30 text-loss text-sm">
+          <AlertTriangle size={14} />
+          {fetchError}
+        </div>
+      </div>
+    );
+  }
+
+  if (closed.length < 10) {
+    const required = 10;
+    const current = closed.length;
+    return (
+      <div className="max-w-2xl mx-auto py-12 px-4">
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+            <Fingerprint size={28} className="text-accent" />
+          </div>
+          <h3 className="text-lg font-bold text-foreground mb-2">Building Your Edge Profile</h3>
+          <p className="text-sm text-muted mb-4 max-w-sm">
+            Complete {required - current} more closed trade{required - current !== 1 ? "s" : ""} to unlock your personalized edge analysis.
+          </p>
+          <div className="w-48 h-2 rounded-full bg-surface-hover overflow-hidden mb-2">
+            <div
+              className="h-full rounded-full bg-accent transition-all"
+              style={{ width: `${Math.min(100, (current / required) * 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted">{current} of {required} trades</p>
+          <p className="text-xs text-muted/60 mt-4 max-w-xs">
+            Your Edge Profile reveals your trading DNA — best setups, strongest days, emotional patterns, and risk personality.
+          </p>
+        </div>
       </div>
     );
   }

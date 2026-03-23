@@ -162,15 +162,51 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
     !editNote || (editNote.template_id != null && isStructuredTemplate(editNote.template_id))
   );
 
-  // Initialize contentEditable content ONCE on mount
+  const DRAFT_KEY = "stargate-journal-draft";
+
+  // Initialize contentEditable content ONCE on mount (recover draft if available)
   useEffect(() => {
     if (!initialized.current && contentRef.current) {
       let initial = editNote?.content ?? (TEMPLATES.find((t) => t.id === initialTemplate)?.content ?? "");
       // Strip previously prepended psychology block to avoid duplication on re-save
       initial = initial.replace(/<div class="psych-insights-block">[\s\S]*?<\/div>(<hr[^>]*>)?/g, "");
+
+      // Recover draft for new notes (not edits)
+      if (!editNote) {
+        try {
+          const draft = localStorage.getItem(DRAFT_KEY);
+          if (draft) {
+            const parsed = JSON.parse(draft);
+            if (parsed.content && parsed.content.replace(/<[^>]*>/g, "").trim().length > 0) {
+              initial = parsed.content;
+              if (parsed.title) setTitle(parsed.title);
+              if (parsed.tag) setSelectedTag(parsed.tag);
+            }
+          }
+        } catch { /* ignore corrupt draft */ }
+      }
+
       contentRef.current.innerHTML = sanitizeHtml(initial);
       initialized.current = true;
     }
+  }, []);
+
+  // Auto-save draft every 3 seconds (new notes only)
+  useEffect(() => {
+    if (editNote) return; // Don't auto-save when editing existing notes
+    const interval = setInterval(() => {
+      const content = contentRef.current?.innerHTML ?? "";
+      const hasContent = content.replace(/<[^>]*>/g, "").trim().length > 0 || title.trim().length > 0;
+      if (hasContent) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ content, title, tag: selectedTag }));
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [editNote, title, selectedTag]);
+
+  // Clear draft on successful save
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(DRAFT_KEY);
   }, []);
 
   // Auto-open psychology insights if editing a free-form note that has psychology data
@@ -515,6 +551,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
         }
       }
 
+      clearDraft();
       onClose();
       onSaved();
     } catch (err) {

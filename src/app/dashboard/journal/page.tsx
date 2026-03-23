@@ -29,6 +29,7 @@ import {
   Wheat,
   DollarSign,
   Layers,
+  AlertTriangle,
 } from "lucide-react";
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
@@ -166,6 +167,7 @@ export default function JournalPage() {
   const [linkingNoteId, setLinkingNoteId] = useState<string | null>(null);
   const [linkSearch, setLinkSearch] = useState("");
   const [linkedNoteIdSet, setLinkedNoteIdSet] = useState<Set<string>>(new Set());
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const { viewMode } = useTheme();
   const isBeginner = viewMode === "beginner";
   const supabase = createClient();
@@ -185,6 +187,7 @@ export default function JournalPage() {
 
     if (error) {
       console.error("[Journal] fetchNotes error:", error.message);
+      setFetchError("Failed to load journal notes. Please refresh the page.");
       setLoading(false);
       return;
     }
@@ -227,7 +230,9 @@ export default function JournalPage() {
     try {
       const ids = await getLinkedNoteIds(supabase);
       setLinkedNoteIdSet(ids);
-    } catch { /* junction table may not exist yet */ }
+    } catch (err) {
+      console.error("Failed to load linked note IDs:", err);
+    }
   }, [supabase]);
 
   useEffect(() => {
@@ -384,6 +389,13 @@ export default function JournalPage() {
 
   return (
     <div className="space-y-4 mx-auto max-w-[1600px]">
+      {fetchError && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-loss/10 border border-loss/30 text-loss text-sm">
+          <AlertTriangle size={14} />
+          {fetchError}
+        </div>
+      )}
+
       <div id="journal-header" className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">Journal <InfoTooltip text="Write daily reflections, tag trades, and track your mental state over time" articleId="tj-journal" /></h2>

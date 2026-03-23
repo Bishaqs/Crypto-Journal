@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Clock, CalendarRange, Grid3X3 } from "lucide-react";
+import { CalendarDays, Clock, Grid3X3 } from "lucide-react";
 
 const CALENDAR_TABS = [
   { href: "/dashboard/calendar", label: "Month", icon: CalendarDays },
   { href: "/dashboard/calendar/day", label: "Day", icon: Clock },
-  { href: "/dashboard/calendar/week", label: "Week", icon: CalendarRange },
   { href: "/dashboard/calendar/year", label: "Year", icon: Grid3X3 },
 ] as const;
 

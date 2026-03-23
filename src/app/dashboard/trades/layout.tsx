@@ -11,7 +11,6 @@ import {
   ScatterChart,
   BarChart3,
   ClipboardList,
-  Target,
 } from "lucide-react";
 
 const TRADE_TABS = [
@@ -23,7 +22,6 @@ const TRADE_TABS = [
   { href: "/dashboard/trades/chart", label: "Chart", icon: ScatterChart },
   { href: "/dashboard/trades/pivot", label: "Pivot", icon: BarChart3 },
   { href: "/dashboard/trades/plan-analytics", label: "Plans", icon: ClipboardList },
-  { href: "/dashboard/trades/goals", label: "Goals", icon: Target },
 ] as const;
 
 const SUB_PAGE_SLUGS = new Set([
@@ -34,7 +32,6 @@ const SUB_PAGE_SLUGS = new Set([
   "chart",
   "pivot",
   "plan-analytics",
-  "goals",
 ]);
 
 export default function TradesLayout({ children }: { children: React.ReactNode }) {

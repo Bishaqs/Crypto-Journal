@@ -15,6 +15,9 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
+  Download,
+  Copy,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -385,6 +388,33 @@ export default function AIPage() {
       // Fall through
     }
     return null;
+  }
+
+  const [copied, setCopied] = useState(false);
+
+  function exportConversation() {
+    if (messages.length === 0) return;
+    const text = messages
+      .map((m) => `${m.role === "user" ? "You" : "Nova"}: ${m.content}`)
+      .join("\n\n---\n\n");
+    const blob = new Blob([text], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `nova-conversation-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function copyConversation() {
+    if (messages.length === 0) return;
+    const text = messages
+      .map((m) => `**${m.role === "user" ? "You" : "Nova"}**: ${m.content}`)
+      .join("\n\n---\n\n");
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   async function handleNewChat() {
@@ -806,13 +836,31 @@ export default function AIPage() {
             Settings
           </Link>
           {messages.length > 0 && (
-            <button
-              onClick={handleNewChat}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-accent hover:bg-accent/10 transition-all"
-            >
-              <MessageSquare size={14} />
-              New Chat
-            </button>
+            <>
+              <button
+                onClick={copyConversation}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+                title="Copy conversation"
+              >
+                {copied ? <Check size={14} className="text-win" /> : <Copy size={14} />}
+                {copied ? "Copied" : "Copy"}
+              </button>
+              <button
+                onClick={exportConversation}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover transition-all"
+                title="Export conversation as Markdown"
+              >
+                <Download size={14} />
+                Export
+              </button>
+              <button
+                onClick={handleNewChat}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-accent hover:bg-accent/10 transition-all"
+              >
+                <MessageSquare size={14} />
+                New Chat
+              </button>
+            </>
           )}
         </div>
       </div>

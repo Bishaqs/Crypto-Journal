@@ -190,6 +190,7 @@ export default function PivotPage() {
         className="bg-surface rounded-2xl border border-border overflow-hidden"
         style={{ boxShadow: "var(--shadow-card)" }}
       >
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
@@ -234,6 +235,7 @@ export default function PivotPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

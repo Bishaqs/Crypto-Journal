@@ -36,6 +36,7 @@ import { PsychologyProfileWizard } from "@/components/psychology-profile-wizard"
 import { WeeklySummaryCard } from "@/components/dashboard/weekly-summary-card";
 import { ProactiveInsightBar } from "@/components/dashboard/proactive-insight-bar";
 import { PostTradePrompt } from "@/components/post-trade-prompt";
+import { TradeUsageCounter } from "@/components/dashboard/trade-usage-counter";
 import { LowContrastWarning } from "@/components/low-contrast-warning";
 import { PsychologyProfileBanner } from "@/components/psychology-profile-banner";
 import { DeleteTradeConfirmation } from "@/components/delete-trade-confirmation";
@@ -317,9 +318,12 @@ export default function DashboardPage() {
       {/* Control bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight">
-            {t("dashboard.overview")}
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">
+              {t("dashboard.overview")}
+            </h2>
+            {!usingDemo && <TradeUsageCounter />}
+          </div>
           <p className="text-sm text-muted mt-0.5">
             {usingDemo ? (
               <span className="flex items-center gap-1.5">

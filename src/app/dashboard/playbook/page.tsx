@@ -18,6 +18,7 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  AlertTriangle,
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { useSubscription } from "@/lib/use-subscription";
@@ -43,6 +44,7 @@ export default function PlaybookPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlaybook, setEditingPlaybook] = useState<Playbook | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const supabase = createClient();
 
   const fetchPlaybooks = useCallback(async () => {
@@ -52,8 +54,9 @@ export default function PlaybookPage() {
         const data = await res.json();
         setPlaybooks(data.playbooks ?? []);
       }
-    } catch {
-      // Table may not exist yet
+    } catch (err) {
+      console.error("Failed to load playbooks:", err);
+      setFetchError("Failed to load playbooks. Please refresh the page.");
     }
   }, []);
 
@@ -161,6 +164,13 @@ export default function PlaybookPage() {
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
+      {fetchError && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-loss/10 border border-loss/30 text-loss text-sm">
+          <AlertTriangle size={14} />
+          {fetchError}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div id="tour-playbook-header">
           <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
@@ -183,20 +193,38 @@ export default function PlaybookPage() {
 
       {/* Empty state */}
       {!hasPlaybooks && (
-        <div className="glass rounded-2xl border border-border/50 p-12 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
-          <BookMarked size={48} className="text-accent/30 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-foreground mb-2">Build Your Trading Playbook</h3>
-          <p className="text-sm text-muted mb-6 max-w-md mx-auto">
-            Document your proven setups with specific entry/exit rules, stop loss strategies, and risk parameters.
-            The AI Coach will check every trade against your playbook and flag rule violations.
-          </p>
-          <button
-            onClick={() => { setEditingPlaybook(null); setShowForm(true); }}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all"
-          >
-            <Plus size={18} />
-            Create Your First Setup
-          </button>
+        <div className="glass rounded-2xl border border-border/50 p-12" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+              <BookMarked size={28} className="text-accent" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground mb-2">Create Your First Playbook</h3>
+            <p className="text-sm text-muted mb-6 max-w-md">
+              Document your trading setups with entry/exit rules, stop loss strategies, and risk parameters.
+              Track real performance against each setup over time.
+            </p>
+            <button
+              onClick={() => { setEditingPlaybook(null); setShowForm(true); }}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(0,180,216,0.3)] transition-all duration-300"
+            >
+              <Plus size={18} />
+              Create Your First Setup
+            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 w-full max-w-lg">
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface-hover/30">
+                <TrendingUp size={16} className="text-win" />
+                <span className="text-[11px] text-muted text-center">Define entry &amp; exit rules</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface-hover/30">
+                <Target size={16} className="text-accent" />
+                <span className="text-[11px] text-muted text-center">Set stop loss &amp; risk limits</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface-hover/30">
+                <BarChart3 size={16} className="text-accent" />
+                <span className="text-[11px] text-muted text-center">Track win rate &amp; P&amp;L per setup</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
