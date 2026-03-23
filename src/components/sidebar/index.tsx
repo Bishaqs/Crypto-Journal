@@ -196,6 +196,7 @@ export function Sidebar() {
         onLogout={() => setShowLogoutConfirm(true)}
         isOwner={isOwner}
         viewMode={viewMode}
+        setViewModeTo={setViewModeTo}
       />
 
       {/* Desktop Drawer */}

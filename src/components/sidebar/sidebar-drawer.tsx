@@ -57,8 +57,11 @@ export function SidebarDrawer({
   // Non-nullable reference for use in nested functions
   const category: RailCategory = foundCategory;
 
-  // Check if level gating should be bypassed
-  const hasOverride = typeof window !== "undefined" && localStorage.getItem("stargate-mode-override") === "true";
+  // Check if level gating should be bypassed (expert mode, mode override, or experienced user bypass)
+  const hasOverride = typeof window !== "undefined" && (
+    localStorage.getItem("stargate-mode-override") === "true" ||
+    localStorage.getItem("stargate-level-bypass") === "true"
+  );
   const bypassLevelGating = viewMode === "expert" || hasOverride;
   const isLocked = !bypassLevelGating && category.requiredLevel != null && level < category.requiredLevel;
 

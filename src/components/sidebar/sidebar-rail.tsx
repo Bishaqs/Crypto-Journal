@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, HelpCircle, Shield, MessageSquareText, ArrowUpDown, Lock } from "lucide-react";
+import { Settings, LogOut, HelpCircle, Shield, MessageSquareText, ArrowUpDown, Lock, MoreHorizontal } from "lucide-react";
 import { TraverseLogo } from "../traverse-logo";
 import { LevelBadge } from "./level-badge";
 import { RAIL_CATEGORIES, getCategoryForPath } from "./sidebar-data";
@@ -19,9 +19,10 @@ interface SidebarRailProps {
   onLogout: () => void;
   isOwner: boolean;
   viewMode?: "beginner" | "advanced" | "expert";
+  setViewModeTo?: (mode: "beginner" | "advanced" | "expert") => void;
 }
 
-export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCloseDrawer, onLogout, isOwner, viewMode = "advanced" }: SidebarRailProps) {
+export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCloseDrawer, onLogout, isOwner, viewMode = "advanced", setViewModeTo }: SidebarRailProps) {
   const pathname = usePathname();
   const currentCategory = getCategoryForPath(pathname);
   const { t } = useI18n();
@@ -29,8 +30,11 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
   const { level } = useLevel();
   const [lockedToast, setLockedToast] = useState<{ label: string; requiredLevel: number } | null>(null);
 
-  // Check if level gating should be bypassed (expert mode or mode override)
-  const hasOverride = typeof window !== "undefined" && localStorage.getItem("stargate-mode-override") === "true";
+  // Check if level gating should be bypassed (expert mode, mode override, or experienced user bypass)
+  const hasOverride = typeof window !== "undefined" && (
+    localStorage.getItem("stargate-mode-override") === "true" ||
+    localStorage.getItem("stargate-level-bypass") === "true"
+  );
   const bypassLevelGating = viewMode === "expert" || hasOverride;
 
   // Auto-dismiss locked toast
@@ -62,13 +66,16 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
       <div className="flex-1 flex flex-col items-center gap-1 py-3">
         {RAIL_CATEGORIES.filter(cat => {
           if (bypassLevelGating) return true;
-          // Show categories that are visible for the current view mode OR locked (to show locked state)
-          if (viewMode === "beginner") return cat.showInBeginner !== false || (cat.requiredLevel != null);
+          // Beginners: only show explicitly allowed categories (no lock icons)
+          if (viewMode === "beginner") return cat.showInBeginner === true;
           if (viewMode === "advanced") return cat.showInAdvanced !== false;
           return true;
         }).map(cat => {
           const isLocked = !bypassLevelGating && cat.requiredLevel != null && level < cat.requiredLevel;
-          const isHighlighted = !isLocked && (activeCategory === cat.key || (!activeCategory && currentCategory === cat.key));
+          // In advanced/expert mode, journal category also claims calendar paths
+          const matchesCategory = currentCategory === cat.key ||
+            (cat.key === "journal" && currentCategory === "calendar" && viewMode !== "beginner");
+          const isHighlighted = !isLocked && (activeCategory === cat.key || (!activeCategory && matchesCategory));
 
           return (
             <button
@@ -113,6 +120,17 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
               Unlocks at Level {lockedToast.requiredLevel}. You&apos;re Level {level} — keep journaling!
             </p>
           </div>
+        )}
+
+        {/* "More features" indicator for beginners */}
+        {viewMode === "beginner" && setViewModeTo && (
+          <button
+            onClick={() => setViewModeTo("advanced")}
+            title="Switch to Advanced mode for more features"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-muted/40 hover:text-accent hover:bg-surface-hover transition-all duration-200"
+          >
+            <MoreHorizontal size={20} />
+          </button>
         )}
       </div>
 

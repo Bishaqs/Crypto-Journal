@@ -74,13 +74,13 @@ type SettingsTab =
   | "export"
   | "legal";
 
-const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerOnly?: boolean }[] = [
+const TABS: { value: SettingsTab; label: string; icon: React.ElementType; ownerOnly?: boolean; advancedOnly?: boolean }[] = [
   { value: "account", label: "Account", icon: User },
   { value: "global", label: "Global Settings", icon: Globe },
-  { value: "ai", label: "Nova", icon: Brain },
+  { value: "ai", label: "Nova", icon: Brain, advancedOnly: true },
   { value: "subscription", label: "Subscription", icon: CreditCard },
-  { value: "referrals", label: "Referrals", icon: Gift },
-  { value: "export", label: "Export Data", icon: Download },
+  { value: "referrals", label: "Referrals", icon: Gift, advancedOnly: true },
+  { value: "export", label: "Export Data", icon: Download, advancedOnly: true },
   { value: "legal", label: "Legal & Privacy", icon: Shield },
 ];
 
@@ -401,7 +401,11 @@ function SettingsContent() {
 
       {/* Tab bar */}
       <div className="flex gap-1 mb-6 overflow-x-auto pb-1">
-        {TABS.filter((t) => !t.ownerOnly || isOwner).map((t) => (
+        {TABS.filter((t) => {
+          if (t.ownerOnly && !isOwner) return false;
+          if (t.advancedOnly && viewMode === "beginner") return false;
+          return true;
+        }).map((t) => (
           <button
             key={t.value}
             onClick={() => setTab(t.value)}
@@ -486,52 +490,65 @@ function SettingsContent() {
             />
           </SectionCard>
 
-          <SectionCard icon={FileText} title="Tax & Accounting" description="Set your cost basis calculation method.">
-            <SelectField
-              label="Cost Basis Method"
-              value={globalSettings.costBasis}
-              onChange={(v) => setGlobalSettings({ ...globalSettings, costBasis: v })}
-              options={[
-                { value: "fifo", label: "FIFO — First In, First Out (IRS default)" },
-                { value: "lifo", label: "LIFO — Last In, First Out" },
-                { value: "hifo", label: "HIFO — Highest In, First Out" },
-              ]}
-            />
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-accent/5 border border-accent/10">
-              <Shield size={14} className="text-accent mt-0.5 shrink-0" />
-              <p className="text-xs text-muted leading-relaxed">
-                LIFO and HIFO require a documented &ldquo;standing instruction&rdquo; before each tax year. FIFO is the safest default. Consult a CPA.
-              </p>
-            </div>
-          </SectionCard>
+          {viewMode !== "beginner" && (
+            <SectionCard icon={FileText} title="Tax & Accounting" description="Set your cost basis calculation method.">
+              <SelectField
+                label="Cost Basis Method"
+                value={globalSettings.costBasis}
+                onChange={(v) => setGlobalSettings({ ...globalSettings, costBasis: v })}
+                options={[
+                  { value: "fifo", label: "FIFO — First In, First Out (IRS default)" },
+                  { value: "lifo", label: "LIFO — Last In, First Out" },
+                  { value: "hifo", label: "HIFO — Highest In, First Out" },
+                ]}
+              />
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-accent/5 border border-accent/10">
+                <Shield size={14} className="text-accent mt-0.5 shrink-0" />
+                <p className="text-xs text-muted leading-relaxed">
+                  LIFO and HIFO require a documented &ldquo;standing instruction&rdquo; before each tax year. FIFO is the safest default. Consult a CPA.
+                </p>
+              </div>
+            </SectionCard>
+          )}
 
-          <SectionCard icon={Shield} title="Risk Management" description="Set trading limits and guardrails.">
-            <InputField
-              label="Max Daily Loss ($)"
-              value={globalSettings.maxDailyLoss}
-              onChange={(v) => setGlobalSettings({ ...globalSettings, maxDailyLoss: v })}
-              placeholder="500"
-              type="number"
-            />
-            <InputField
-              label="Max Drawdown (%)"
-              value={globalSettings.maxDrawdown}
-              onChange={(v) => setGlobalSettings({ ...globalSettings, maxDrawdown: v })}
-              placeholder="10"
-              type="number"
-            />
-            <InputField
-              label="Max Position Size (% of account)"
-              value={globalSettings.maxPositionSize}
-              onChange={(v) => setGlobalSettings({ ...globalSettings, maxPositionSize: v })}
-              placeholder="5"
-              type="number"
-            />
-          </SectionCard>
+          {viewMode !== "beginner" && (
+            <SectionCard icon={Shield} title="Risk Management" description="Set trading limits and guardrails.">
+              <InputField
+                label="Max Daily Loss ($)"
+                value={globalSettings.maxDailyLoss}
+                onChange={(v) => setGlobalSettings({ ...globalSettings, maxDailyLoss: v })}
+                placeholder="500"
+                type="number"
+              />
+              <InputField
+                label="Max Drawdown (%)"
+                value={globalSettings.maxDrawdown}
+                onChange={(v) => setGlobalSettings({ ...globalSettings, maxDrawdown: v })}
+                placeholder="10"
+                type="number"
+              />
+              <InputField
+                label="Max Position Size (% of account)"
+                value={globalSettings.maxPositionSize}
+                onChange={(v) => setGlobalSettings({ ...globalSettings, maxPositionSize: v })}
+                placeholder="5"
+                type="number"
+              />
+            </SectionCard>
+          )}
 
           <PerformanceSection />
 
           <SaveButton saved={globalSaved} onClick={saveGlobal} label="Save Global Settings" />
+
+          {viewMode === "beginner" && (
+            <button
+              onClick={() => setViewModeTo("advanced")}
+              className="w-full text-center text-xs text-muted hover:text-accent transition-colors py-3"
+            >
+              Looking for more options? Switch to Advanced mode
+            </button>
+          )}
         </div>
       )}
 

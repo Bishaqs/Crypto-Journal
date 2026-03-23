@@ -276,7 +276,7 @@ export const NAV_SECTIONS: NavSection[] = [
 /* ────────────────────────────────────────────────────────────────── */
 
 export const RAIL_CATEGORIES: RailCategory[] = [
-  // === 3 core directNav tabs (visible to ALL modes) ===
+  // === Core directNav tabs ===
   {
     key: "dashboard",
     label: "Dashboard",
@@ -284,6 +284,15 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     directNav: true,
     items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tourId: "tour-home" }],
     showInBeginner: true,
+  },
+  {
+    key: "trades",
+    label: "Trades",
+    icon: Table2,
+    directNav: true,
+    items: [{ href: "/dashboard/trades", label: "Trade Log", icon: Table2, tourId: "tour-trades" }],
+    showInBeginner: true,
+    showInAdvanced: false, // Advanced/expert use the drawer instead
   },
   {
     key: "journal",
@@ -294,12 +303,21 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     showInBeginner: true,
   },
   {
+    key: "calendar",
+    label: "Calendar",
+    icon: CalendarDays,
+    directNav: true,
+    items: [{ href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays, tourId: "tour-calendar" }],
+    showInBeginner: true,
+    showInAdvanced: false, // Advanced/expert access via journal drawer
+  },
+  {
     key: "analytics",
     label: "Analytics",
     icon: BarChart3,
     directNav: true,
     items: [coreItems[4]], // Analytics
-    showInBeginner: true,
+    showInBeginner: false,
     requiredLevel: 5,
   },
   // === Drawer tabs — level-gated for beginners ===
@@ -309,7 +327,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     icon: Brain,
     items: intelligenceItems,
     beginnerItems: intelligenceBeginnerItems,
-    showInBeginner: true,
+    showInBeginner: false,
     showInAdvanced: true,
     requiredLevel: 10,
   },
@@ -329,7 +347,7 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     label: "Compete",
     icon: Trophy,
     items: [coreItems[7], coreItems[8], coreItems[9]],
-    showInBeginner: true,
+    showInBeginner: false,
     showInAdvanced: true,
     requiredLevel: 15,
   },
@@ -493,8 +511,12 @@ export function getCategoryForPath(pathname: string): string | null {
   // Dashboard
   if (pathname === "/dashboard") return "dashboard";
 
+  // Calendar — returns own key so beginner rail highlights correctly;
+  // advanced/expert journal drawer also claims calendar via aliasCategories
+  if (pathname.startsWith("/dashboard/calendar")) return "calendar";
+
   // Journal
-  if (pathname.startsWith("/dashboard/journal") || pathname.startsWith("/dashboard/calendar")) return "journal";
+  if (pathname.startsWith("/dashboard/journal")) return "journal";
 
   // Analytics (direct nav page + sub-pages)
   if (pathname.startsWith("/dashboard/analytics")) return "analytics";

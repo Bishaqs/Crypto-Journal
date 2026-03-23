@@ -392,6 +392,10 @@ export function GuideOnboarding({ onComplete }: { onComplete: () => void }) {
     localStorage.setItem("stargate-mode", modeMap[data.experienceLevel] || "advanced");
     // Unlock all features for tour (beginners get re-locked after tour completes)
     localStorage.setItem("stargate-mode-override", "true");
+    // Persistent bypass for experienced users — survives tour cleanup
+    if (data.experienceLevel !== "beginner") {
+      localStorage.setItem("stargate-level-bypass", "true");
+    }
     // Accept cookies so banner doesn't overlap the tour
     localStorage.setItem("stargate-cookie-consent", "all");
 

@@ -32,11 +32,12 @@ export interface AppEntry {
   category: AppCategory;
   isExternal?: boolean;
   exists: boolean;
+  beginnerVisible?: boolean;
 }
 
 export const APPS_REGISTRY: AppEntry[] = [
   // === Apps ===
-  { id: "paper-trading", label: "Paper Trading", href: "/simulator", icon: CandlestickChart, category: "apps", exists: true },
+  { id: "paper-trading", label: "Paper Trading", href: "/simulator", icon: CandlestickChart, category: "apps", exists: true, beginnerVisible: true },
   { id: "multi-chart-trading", label: "Multi-Chart Trading", href: "/simulator/multi", icon: Grid2X2, category: "apps", exists: true },
   { id: "multi-simulator", label: "Multi Simulator", href: "/dashboard/apps/multi-simulator", icon: Layers, category: "apps", exists: true },
   { id: "options-simulator", label: "Options Simulator", href: "/dashboard/apps/options-simulator", icon: GitBranch, category: "apps", exists: true },
@@ -49,13 +50,13 @@ export const APPS_REGISTRY: AppEntry[] = [
   { id: "pnl-charts", label: "P&L Charts", href: "/dashboard/apps/pnl-charts", icon: BarChart3, category: "apps", exists: true },
   { id: "options-backtest", label: "Options Backtest", href: "/dashboard/apps/options-backtest", icon: History, category: "apps", exists: true },
   { id: "options-payoff", label: "Options Payoff", href: "/dashboard/apps/options-payoff", icon: LineChart, category: "apps", exists: true },
-  { id: "daily-screener", label: "Daily Screener", href: "/dashboard/screener", icon: Search, category: "apps", exists: true },
+  { id: "daily-screener", label: "Daily Screener", href: "/dashboard/screener", icon: Search, category: "apps", exists: true, beginnerVisible: true },
   { id: "target-simulator", label: "Target Simulator", href: "/dashboard/apps/target-simulator", icon: Target, category: "apps", exists: true },
 
   // === Links ===
   { id: "shared-trades", label: "Shared Trades", href: "/dashboard/apps/shared-trades", icon: Share2, category: "links", exists: true },
-  { id: "blog-guides", label: "Blog & Guides", href: "https://blog.traversejournal.com", icon: BookOpen, category: "links", isExternal: true, exists: true },
-  { id: "import-export", label: "Import & Export", href: "/dashboard/settings", icon: ArrowUpDown, category: "links", exists: true },
+  { id: "blog-guides", label: "Blog & Guides", href: "https://blog.traversejournal.com", icon: BookOpen, category: "links", isExternal: true, exists: true, beginnerVisible: true },
+  { id: "import-export", label: "Import & Export", href: "/dashboard/settings", icon: ArrowUpDown, category: "links", exists: true, beginnerVisible: true },
   { id: "stock-screener", label: "Stock Screener", href: "/dashboard/apps/stock-screener", icon: BarChart3, category: "links", exists: true },
-  { id: "help-center", label: "Help Center", href: "/dashboard/help", icon: HelpCircle, category: "links", exists: true },
+  { id: "help-center", label: "Help Center", href: "/dashboard/help", icon: HelpCircle, category: "links", exists: true, beginnerVisible: true },
 ];

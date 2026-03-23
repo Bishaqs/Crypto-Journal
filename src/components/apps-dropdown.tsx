@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { APPS_REGISTRY, type AppEntry } from "@/lib/apps-registry";
+import { useTheme } from "@/lib/theme-context";
 
 function AppTile({ app, onSelect }: { app: AppEntry; onSelect: () => void }) {
   const Icon = app.icon;
@@ -49,8 +50,10 @@ export function AppsDropdown() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [portalPos, setPortalPos] = useState<{ top: number; right: number } | null>(null);
 
-  const apps = APPS_REGISTRY.filter((a) => a.category === "apps");
-  const links = APPS_REGISTRY.filter((a) => a.category === "links");
+  const { viewMode } = useTheme();
+  const isBeginner = viewMode === "beginner";
+  const apps = APPS_REGISTRY.filter((a) => a.category === "apps" && (!isBeginner || a.beginnerVisible));
+  const links = APPS_REGISTRY.filter((a) => a.category === "links" && (!isBeginner || a.beginnerVisible));
 
   // Tour integration: programmatic open/close via single event
   useEffect(() => {

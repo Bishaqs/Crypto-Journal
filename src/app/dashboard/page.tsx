@@ -19,12 +19,13 @@ import dynamic from "next/dynamic";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { TradesTable } from "@/components/dashboard/trades-table";
 import { TradeForm } from "@/components/trade-form";
+import { QuickTradeForm } from "@/components/quick-trade-form";
 import { TiltWarnings } from "@/components/dashboard/tilt-warnings";
 import { StreakWidget } from "@/components/dashboard/streak-widget";
 import { XPBar } from "@/components/dashboard/xp-bar";
 import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
-import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Bitcoin, Shield } from "lucide-react";
+import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Bitcoin, Shield, BookOpen } from "lucide-react";
 import { PreTradeReadiness } from "@/components/pre-trade-readiness";
 import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
@@ -54,6 +55,7 @@ export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showQuickForm, setShowQuickForm] = useState(false);
   const [editTrade, setEditTrade] = useState<Trade | null>(null);
   const [advMetricsOpen, setAdvMetricsOpen] = useState(false);
   const [usingDemo, setUsingDemo] = useState(false);
@@ -63,6 +65,9 @@ export default function DashboardPage() {
   const [showReadiness, setShowReadiness] = useState(false);
   const [showPsychWizard, setShowPsychWizard] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [skipEmptyState, setSkipEmptyState] = useState(() =>
+    typeof window !== "undefined" && localStorage.getItem("stargate-skip-empty-state") === "true"
+  );
   const { filterTrades } = useDateRange();
   const { filterByAccount } = useAccount();
   const { viewMode, setViewModeTo } = useTheme();
@@ -191,6 +196,78 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* ── Empty state: 0 real trades, tour done ── */}
+      {usingDemo && filteredTrades.length === 0 && !skipEmptyState ? (
+        <>
+          {/* Welcome greeting */}
+          <div className="relative glass rounded-2xl border border-border/50 p-4 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="relative z-10">
+              <p className="text-xs text-muted/60 uppercase tracking-widest font-semibold mb-1">
+                {t("dashboard.gm")}, <span className="text-foreground">{getDisplayName()}</span>
+              </p>
+              <p className="text-base md:text-lg font-medium text-accent italic">
+                &ldquo;{getDailyGreeting()}&rdquo;
+              </p>
+            </div>
+          </div>
+
+          <GettingStartedCard
+            onLogTrade={() => { setEditTrade(null); viewMode === "beginner" ? setShowQuickForm(true) : setShowForm(true); }}
+            onImport={() => setShowImport(true)}
+            onPsychology={() => setShowPsychWizard(true)}
+          />
+
+          {/* How it works */}
+          <div className="glass rounded-2xl border border-border/50 p-8 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
+            <p className="text-xs text-muted/60 uppercase tracking-widest font-semibold mb-6">How Traverse Works</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                  <Plus size={20} className="text-accent" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">Log</p>
+                <p className="text-xs text-muted max-w-[140px]">Record your trades with entry, exit, and how you felt</p>
+              </div>
+              <div className="hidden sm:block text-muted/30 text-2xl">&rarr;</div>
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                  <BookOpen size={20} className="text-accent" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">Review</p>
+                <p className="text-xs text-muted max-w-[140px]">See patterns in your wins, losses, and emotions</p>
+              </div>
+              <div className="hidden sm:block text-muted/30 text-2xl">&rarr;</div>
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                  <Activity size={20} className="text-accent" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">Improve</p>
+                <p className="text-xs text-muted max-w-[140px]">Get AI insights that help you trade better</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => { setEditTrade(null); viewMode === "beginner" ? setShowQuickForm(true) : setShowForm(true); }}
+              className="mt-8 inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-accent text-background font-semibold text-base hover:bg-accent-hover transition-all duration-300 animate-[cosmic-pulse_3s_ease-in-out_infinite]"
+            >
+              <Plus size={20} />
+              Log Your First Trade
+            </button>
+            <div className="mt-4">
+              <button
+                onClick={() => {
+                  localStorage.setItem("stargate-skip-empty-state", "true");
+                  setSkipEmptyState(true);
+                }}
+                className="text-xs text-muted/60 hover:text-muted transition-colors underline underline-offset-2"
+              >
+                I&apos;m experienced — show me the full dashboard
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
       {/* Asset Identity Badge */}
       <div className="flex items-center justify-center py-1">
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20">
@@ -229,13 +306,13 @@ export default function DashboardPage() {
 
       {usingDemo && (
         <GettingStartedCard
-          onLogTrade={() => { setEditTrade(null); setShowForm(true); }}
+          onLogTrade={() => { setEditTrade(null); viewMode === "beginner" ? setShowQuickForm(true) : setShowForm(true); }}
           onImport={() => setShowImport(true)}
           onPsychology={() => setShowPsychWizard(true)}
         />
       )}
 
-      <PsychologyProfileBanner />
+      {viewMode !== "beginner" && <PsychologyProfileBanner />}
 
       {/* Control bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -256,33 +333,43 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           {/* Mode toggle removed — accessible in Settings only */}
-          <button
-            onClick={() => setShowImport(true)}
-            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
-          >
-            <Upload size={14} />
-            {t("common.import")}
-          </button>
-          <button
-            onClick={exportCSV}
-            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
-          >
-            <Download size={14} />
-            {t("common.export")}
-          </button>
-          <button
-            onClick={() => setShowReadiness(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 font-semibold text-sm hover:bg-cyan-500/20 hover:border-cyan-500/60 transition-all shadow-[0_0_12px_rgba(0,180,216,0.15)]"
-            title="Pre-Trade Readiness Check"
-          >
-            <Shield size={16} />
-            Readiness Check
-          </button>
+          {viewMode !== "beginner" && (
+            <button
+              onClick={() => setShowImport(true)}
+              className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
+            >
+              <Upload size={14} />
+              {t("common.import")}
+            </button>
+          )}
+          {viewMode !== "beginner" && (
+            <button
+              onClick={exportCSV}
+              className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border text-muted text-xs font-medium hover:text-foreground hover:border-accent/30 transition-all"
+            >
+              <Download size={14} />
+              {t("common.export")}
+            </button>
+          )}
+          {viewMode !== "beginner" && (
+            <button
+              onClick={() => setShowReadiness(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 font-semibold text-sm hover:bg-cyan-500/20 hover:border-cyan-500/60 transition-all shadow-[0_0_12px_rgba(0,180,216,0.15)]"
+              title="Pre-Trade Readiness Check"
+            >
+              <Shield size={16} />
+              Readiness Check
+            </button>
+          )}
           <div id="tour-log-trade">
             <button
               onClick={() => {
                 setEditTrade(null);
-                setShowForm(true);
+                if (viewMode === "beginner") {
+                  setShowQuickForm(true);
+                } else {
+                  setShowForm(true);
+                }
               }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-all duration-300 animate-[cosmic-pulse_3s_ease-in-out_infinite]"
             >
@@ -577,6 +664,8 @@ export default function DashboardPage() {
           <NewsWidget asset="crypto" />
         </>
       )}
+        </>
+      )}
 
       {showForm && (
         <TradeForm
@@ -597,6 +686,21 @@ export default function DashboardPage() {
             setEditTrade(null);
             setDeletingTrade(trade);
           } : undefined}
+        />
+      )}
+
+      {showQuickForm && (
+        <QuickTradeForm
+          onClose={() => setShowQuickForm(false)}
+          onSaved={() => { setShowQuickForm(false); fetchTrades(); }}
+          onTradeCompleted={(trade) => {
+            setShowQuickForm(false);
+            setPostTradeData(trade);
+          }}
+          onSwitchToFull={() => {
+            setShowQuickForm(false);
+            setShowForm(true);
+          }}
         />
       )}
 
