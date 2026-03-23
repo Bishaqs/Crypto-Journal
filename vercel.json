@@ -5,32 +5,8 @@
       "schedule": "0 0 * * *"
     },
     {
-      "path": "/api/cron/generate-summaries",
-      "schedule": "0 1 * * *"
-    },
-    {
-      "path": "/api/cron/weekly-digest",
-      "schedule": "0 18 * * 0"
-    },
-    {
-      "path": "/api/cron/generate-narratives",
-      "schedule": "0 2 * * *"
-    },
-    {
       "path": "/api/cron/streak-check",
       "schedule": "0 17 * * *"
-    },
-    {
-      "path": "/api/cron/trial-check",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/email-sequences",
-      "schedule": "0 10 * * *"
-    },
-    {
-      "path": "/api/cron/consolidate-memories",
-      "schedule": "0 4 * * 0"
     }
   ]
 }
