@@ -107,6 +107,26 @@ export async function POST(req: NextRequest) {
     ? `${((new Date(trade.close_timestamp).getTime() - new Date(trade.open_timestamp).getTime()) / 3600000).toFixed(1)}h`
     : "Still open";
 
+  // Fetch mid-trade emotion logs for this specific trade
+  let emotionLogLines = "None";
+  try {
+    const { data: emotionLogs } = await supabase
+      .from("trade_emotion_logs")
+      .select("emotion, phase, note, price_at_log, created_at")
+      .eq("trade_id", trade.id)
+      .order("created_at", { ascending: true });
+    if (emotionLogs && emotionLogs.length > 0) {
+      emotionLogLines = emotionLogs.map((l) => {
+        const ts = l.created_at?.split("T").join(" ").slice(0, 19) ?? "";
+        const price = l.price_at_log ? ` @ $${l.price_at_log}` : "";
+        const note = l.note ? ` — "${l.note}"` : "";
+        return `${ts}: ${l.emotion}${price}${note}`;
+      }).join("\n  ");
+    }
+  } catch {
+    // Non-critical
+  }
+
   const tradeContext = `## Trade Data
 - **Symbol**: ${trade.symbol} (${trade.position})
 - **Entry**: $${trade.entry_price} → **Exit**: ${trade.exit_price ? `$${trade.exit_price}` : "OPEN"}
@@ -119,7 +139,8 @@ export async function POST(req: NextRequest) {
 - **Pre-trade checklist**: ${trade.checklist ? Object.entries(trade.checklist).map(([k, v]) => `${k}: ${v ? "✓" : "✗"}`).join(", ") : "None"}
 - **Post-trade review**: ${trade.review ? Object.entries(trade.review).map(([k, v]) => `${k}: ${v}`).join(" | ") : "None"}
 - **Notes**: ${trade.notes || "None"}
-- **Tags**: ${trade.tags?.length ? trade.tags.join(", ") : "None"}`;
+- **Tags**: ${trade.tags?.length ? trade.tags.join(", ") : "None"}
+- **Mid-trade emotions**: ${emotionLogLines}`;
 
   try {
     const text = await provider.chat({

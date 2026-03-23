@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext, selectRelevantMemories, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext, buildMarketContext, buildExperienceLevelContext, buildEdgeProfileContext } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildMemoryContext, selectRelevantMemories, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext, buildMarketContext, buildExperienceLevelContext, buildEdgeProfileContext, buildEmotionLogContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 import { calculateAllCorrelations, calculateEmotionCorrelations, calculateTimeCorrelations } from "@/lib/psychology-correlations";
 import { calculateAdvancedStats } from "@/lib/calculations";
@@ -96,12 +96,14 @@ export async function POST(req: NextRequest) {
       { data: profileRows },
       { data: sessionLogs },
       { data: userPrefs },
+      { data: recentEmotionLogs },
     ] = await Promise.all([
       supabase.from("behavioral_logs").select("emotion, intensity, trigger, physical_state, biases, traffic_light, note, phase, readiness_score, override, psychology_tier, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("daily_checkins").select("date, mood, energy, traffic_light, sleep_quality, cognitive_load").eq("user_id", user.id).order("date", { ascending: false }).limit(14),
       supabase.from("psychology_profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1),
       supabase.from("expert_session_logs").select("session_date, somatic_areas, somatic_intensity, flow_state, cognitive_distortions, defense_mechanisms, internal_dialogue").eq("user_id", user.id).order("session_date", { ascending: false }).limit(20),
       supabase.from("user_preferences").select("psychology_tier").eq("user_id", user.id).limit(1),
+      supabase.from("trade_emotion_logs").select("emotion, phase, note, price_at_log, created_at, trade_id").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
     ]);
 
     const tier = userPrefs?.[0]?.psychology_tier || "simple";
@@ -136,6 +138,11 @@ export async function POST(req: NextRequest) {
         (behavioralLogs || []) as any[],
       );
       psychologyContext += "\n" + buildCorrelationContext(correlations);
+    }
+
+    // Mid-trade emotion logs context
+    if (recentEmotionLogs && recentEmotionLogs.length > 0) {
+      psychologyContext += buildEmotionLogContext(recentEmotionLogs as { emotion: string; phase: string; note: string | null; price_at_log: number | null; created_at: string; trade_id: string }[]);
     }
   } catch {
     // Non-critical — proceed without psychology context

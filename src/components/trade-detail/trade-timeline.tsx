@@ -6,21 +6,33 @@ import { sanitizeHtml } from "@/lib/sanitize";
 import { createClient } from "@/lib/supabase/client";
 import { unlinkNoteFromTrade } from "@/lib/journal-links";
 import { Clock, Plus, Link2, X, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { EMOTION_CONFIG } from "@/components/psychology-inputs";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+type EmotionLog = {
+  id: string;
+  emotion: string;
+  phase: string | null;
+  note: string | null;
+  price_at_log: number | null;
+  created_at: string;
+};
+
 type TimelineEvent = {
-  type: "trade-open" | "note" | "trade-close";
+  type: "trade-open" | "note" | "trade-close" | "emotion";
   timestamp: string;
   trade?: Trade;
   note?: JournalNote;
+  emotionLog?: EmotionLog;
 };
 
 type TradeTimelineProps = {
   trade: Trade;
   notes: JournalNote[];
+  emotionLogs?: EmotionLog[];
   onCreateNote: () => void;
   onLinkExisting: () => void;
   onRefresh: () => void;
@@ -31,13 +43,17 @@ type TradeTimelineProps = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function buildTimeline(trade: Trade, notes: JournalNote[]): TimelineEvent[] {
+function buildTimeline(trade: Trade, notes: JournalNote[], emotionLogs: EmotionLog[] = []): TimelineEvent[] {
   const events: TimelineEvent[] = [];
 
   events.push({ type: "trade-open", timestamp: trade.open_timestamp, trade });
 
   for (const note of notes) {
     events.push({ type: "note", timestamp: note.note_date ?? note.created_at, note });
+  }
+
+  for (const log of emotionLogs) {
+    events.push({ type: "emotion", timestamp: log.created_at, emotionLog: log });
   }
 
   if (trade.close_timestamp) {
@@ -53,6 +69,7 @@ function dotColor(event: TimelineEvent): string {
   if (event.type === "trade-close") {
     return (event.trade?.pnl ?? 0) >= 0 ? "bg-win" : "bg-loss";
   }
+  if (event.type === "emotion") return "bg-yellow-500";
   return "bg-muted/60";
 }
 
@@ -188,14 +205,38 @@ function NoteItem({
   );
 }
 
+function EmotionItem({ log }: { log: EmotionLog }) {
+  const config = EMOTION_CONFIG[log.emotion];
+  const phaseLabel = log.phase === "post" ? "Post-Trade" : "Check-In";
+
+  return (
+    <div className="pb-1">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] uppercase tracking-wider text-muted font-semibold">{phaseLabel}</span>
+        <span className="text-[10px] text-muted/50">{formatTs(log.created_at)}</span>
+      </div>
+      <div className="flex items-center gap-1.5 mt-0.5">
+        <span className="text-sm">{config?.emoji ?? ""}</span>
+        <span className="text-sm text-foreground">{log.emotion}</span>
+        {log.price_at_log !== null && (
+          <span className="text-xs text-muted ml-1">@ ${log.price_at_log.toLocaleString()}</span>
+        )}
+      </div>
+      {log.note && (
+        <p className="text-xs text-muted mt-0.5 italic">&quot;{log.note}&quot;</p>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
-export function TradeTimeline({ trade, notes, onCreateNote, onLinkExisting, onRefresh, variant = "card" }: TradeTimelineProps) {
+export function TradeTimeline({ trade, notes, emotionLogs = [], onCreateNote, onLinkExisting, onRefresh, variant = "card" }: TradeTimelineProps) {
   const [unlinking, setUnlinking] = useState<string | null>(null);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
-  const events = useMemo(() => buildTimeline(trade, notes), [trade, notes]);
+  const events = useMemo(() => buildTimeline(trade, notes, emotionLogs), [trade, notes, emotionLogs]);
 
   async function handleUnlink(noteId: string) {
     setUnlinking(noteId);
@@ -252,7 +293,7 @@ export function TradeTimeline({ trade, notes, onCreateNote, onLinkExisting, onRe
       <div className="space-y-0">
         {events.map((event, i) => {
           const isLast = i === events.length - 1 && !!trade.close_timestamp;
-          const key = event.type === "note" ? event.note!.id : event.type;
+          const key = event.type === "note" ? event.note!.id : event.type === "emotion" ? `emotion-${event.emotionLog!.id}` : event.type;
 
           return (
             <div key={key} className="flex gap-3">
@@ -266,6 +307,7 @@ export function TradeTimeline({ trade, notes, onCreateNote, onLinkExisting, onRe
               <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-3"}`}>
                 {event.type === "trade-open" && <TradeOpenItem trade={event.trade!} />}
                 {event.type === "trade-close" && <TradeCloseItem trade={event.trade!} />}
+                {event.type === "emotion" && <EmotionItem log={event.emotionLog!} />}
                 {event.type === "note" && (
                   <NoteItem
                     note={event.note!}

@@ -1,15 +1,16 @@
 "use client";
 
-import { Eye, Pencil, ChevronDown } from "lucide-react";
+import { Eye, Pencil, ChevronDown, SmilePlus } from "lucide-react";
 
 type TradeRowActionsProps = {
   onView: () => void;
   onEdit?: () => void;
+  onEmotion?: () => void;
   onExpand: () => void;
   isExpanded: boolean;
 };
 
-export function TradeRowActions({ onView, onEdit, onExpand, isExpanded }: TradeRowActionsProps) {
+export function TradeRowActions({ onView, onEdit, onEmotion, onExpand, isExpanded }: TradeRowActionsProps) {
   return (
     <div className="flex items-center gap-0.5">
       <button
@@ -26,6 +27,15 @@ export function TradeRowActions({ onView, onEdit, onExpand, isExpanded }: TradeR
           className="p-1.5 rounded-md text-muted/50 hover:text-accent hover:bg-accent/10 transition-colors"
         >
           <Pencil size={14} />
+        </button>
+      )}
+      {onEmotion && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onEmotion(); }}
+          title="Log emotion"
+          className="p-1.5 rounded-md text-muted/50 hover:text-yellow-400 hover:bg-yellow-400/10 transition-colors"
+        >
+          <SmilePlus size={14} />
         </button>
       )}
       <button
