@@ -8,14 +8,26 @@ import {
   ResponsiveContainer, ReferenceDot,
 } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { EMOTION_CONFIG } from "@/components/psychology-inputs";
 
 type DataPoint = {
   time: number;
   pnl: number;
   label: string;
+  emotion?: string;
+  emotionNote?: string;
 };
 
-export function TradeRunningPnlChart({ trade }: { trade: Trade }) {
+type EmotionLog = {
+  id: string;
+  emotion: string;
+  phase: string | null;
+  note: string | null;
+  price_at_log: number | null;
+  created_at: string;
+};
+
+export function TradeRunningPnlChart({ trade, emotionLogs = [] }: { trade: Trade; emotionLogs?: EmotionLog[] }) {
   const data = useMemo(() => {
     const points: DataPoint[] = [];
     const openTime = new Date(trade.open_timestamp).getTime();
@@ -60,10 +72,42 @@ export function TradeRunningPnlChart({ trade }: { trade: Trade }) {
       });
     }
 
+    // Add emotion log points
+    for (const log of emotionLogs) {
+      const logTime = new Date(log.created_at).getTime();
+      let pnl = 0;
+      if (log.price_at_log !== null) {
+        // Calculate exact PnL at this price
+        pnl = trade.position === "long"
+          ? (log.price_at_log - trade.entry_price) * trade.quantity
+          : (trade.entry_price - log.price_at_log) * trade.quantity;
+      } else {
+        // Interpolate between nearest known points
+        const sorted = [...points].sort((a, b) => a.time - b.time);
+        const before = sorted.filter((p) => p.time <= logTime).pop();
+        const after = sorted.find((p) => p.time >= logTime);
+        if (before && after && before.time !== after.time) {
+          const ratio = (logTime - before.time) / (after.time - before.time);
+          pnl = before.pnl + ratio * (after.pnl - before.pnl);
+        } else if (before) {
+          pnl = before.pnl;
+        } else if (after) {
+          pnl = after.pnl;
+        }
+      }
+      points.push({
+        time: logTime,
+        pnl,
+        label: `${EMOTION_CONFIG[log.emotion]?.emoji ?? ""} ${log.emotion}`,
+        emotion: log.emotion,
+        emotionNote: log.note ?? undefined,
+      });
+    }
+
     // Sort by time
     points.sort((a, b) => a.time - b.time);
     return points;
-  }, [trade]);
+  }, [trade, emotionLogs]);
 
   const hasData = data.length >= 2;
 
@@ -117,6 +161,9 @@ export function TradeRunningPnlChart({ trade }: { trade: Trade }) {
                   <p className={p.pnl >= 0 ? "text-win" : "text-loss"}>
                     ${p.pnl.toFixed(2)}
                   </p>
+                  {p.emotionNote && (
+                    <p className="text-muted italic mt-0.5">&quot;{p.emotionNote}&quot;</p>
+                  )}
                   <p className="text-muted">{new Date(p.time).toLocaleString()}</p>
                 </div>
               );
@@ -129,8 +176,8 @@ export function TradeRunningPnlChart({ trade }: { trade: Trade }) {
             strokeWidth={2}
             dot={false}
           />
-          {/* Reference dots for each labeled point */}
-          {data.map((pt) => (
+          {/* Reference dots for trade points (Entry, MAE, MFE, Exit) */}
+          {data.filter((pt) => !pt.emotion).map((pt) => (
             <ReferenceDot
               key={pt.label}
               x={pt.time}
@@ -139,6 +186,24 @@ export function TradeRunningPnlChart({ trade }: { trade: Trade }) {
               fill={pt.label === "MFE" ? "var(--color-win)" : pt.label === "MAE" ? "var(--color-loss)" : "var(--color-accent)"}
               stroke="var(--color-background)"
               strokeWidth={2}
+            />
+          ))}
+          {/* Emotion dots */}
+          {data.filter((pt) => pt.emotion).map((pt, i) => (
+            <ReferenceDot
+              key={`emotion-${i}`}
+              x={pt.time}
+              y={pt.pnl}
+              r={6}
+              fill="var(--color-accent)"
+              stroke="var(--color-background)"
+              strokeWidth={2}
+              label={{
+                value: EMOTION_CONFIG[pt.emotion!]?.emoji ?? "",
+                position: "top",
+                offset: 8,
+                style: { fontSize: 14 },
+              }}
             />
           ))}
         </LineChart>

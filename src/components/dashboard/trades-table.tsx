@@ -17,6 +17,7 @@ import {
   useTableState, Pagination, TradeRowActions,
   type TradeTableColumn, type TableConfig,
 } from "@/components/trade-table";
+import { QuickEmotionPopover } from "@/components/trade-table/quick-emotion-popover";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -257,6 +258,7 @@ export function TradesTable({
   const { viewMode } = useTheme();
   const { paginatedData, totalItems, totalPages, state, actions } = useTableState(TABLE_CONFIG, trades);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [emotionTradeId, setEmotionTradeId] = useState<string | null>(null);
 
   // Derive columns directly from viewMode — no localStorage race condition
   const displayColumns = useMemo(() =>
@@ -302,13 +304,22 @@ export function TradesTable({
                   return (
                     <Fragment key={trade.id}>
                       <tr className="hover:bg-surface-hover/50 transition-colors">
-                        <td className="px-2 py-2.5">
+                        <td className="px-2 py-2.5 relative">
                           <TradeRowActions
                             onView={() => router.push(`/dashboard/trades/${trade.id}`)}
                             onEdit={onEdit ? () => onEdit(trade) : undefined}
+                            onEmotion={trade.exit_price === null ? () => setEmotionTradeId(emotionTradeId === trade.id ? null : trade.id) : undefined}
                             onExpand={() => setExpandedId(isExpanded ? null : trade.id)}
                             isExpanded={isExpanded}
                           />
+                          {emotionTradeId === trade.id && (
+                            <QuickEmotionPopover
+                              tradeId={trade.id}
+                              tradeTable="trades"
+                              symbol={trade.symbol}
+                              onClose={() => setEmotionTradeId(null)}
+                            />
+                          )}
                         </td>
                         {displayColumns.map((col) => (
                           <td key={col.id} className={`px-4 py-2.5 ${col.align === "right" ? "text-right" : ""}`}>

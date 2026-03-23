@@ -43,6 +43,9 @@ import { ExecutionsTable } from "@/components/trade-detail/executions-table";
 import { MultiTimeframeExit } from "@/components/trade-detail/multi-timeframe-exit";
 import { NoteLinkPicker } from "@/components/trade-detail/note-link-picker";
 import { TradeMarketContext } from "@/components/market/trade-market-context";
+import { EmotionTimeline } from "@/components/emotion-timeline";
+import { FollowUpEmotionForm } from "@/components/follow-up-emotion";
+import { SmilePlus } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // TradingView Mini Chart
@@ -147,6 +150,7 @@ export default function TradeDetailPage() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [linkedNotes, setLinkedNotes] = useState<JournalNote[]>([]);
+  const [emotionLogs, setEmotionLogs] = useState<{ id: string; emotion: string; phase: string | null; note: string | null; price_at_log: number | null; created_at: string }[]>([]);
   const [showNotePicker, setShowNotePicker] = useState(false);
   const supabase = createClient();
 
@@ -185,7 +189,17 @@ export default function TradeDetailPage() {
     }
   }, [supabase, tradeId]);
 
-  useEffect(() => { fetchTrade(); fetchLinkedNotes(); }, [fetchTrade, fetchLinkedNotes]);
+  const fetchEmotionLogs = useCallback(async () => {
+    const { data } = await supabase
+      .from("trade_emotion_logs")
+      .select("id, emotion, phase, note, price_at_log, created_at")
+      .eq("trade_id", tradeId)
+      .eq("trade_table", "trades")
+      .order("created_at", { ascending: true });
+    setEmotionLogs(data ?? []);
+  }, [supabase, tradeId]);
+
+  useEffect(() => { fetchTrade(); fetchLinkedNotes(); fetchEmotionLogs(); }, [fetchTrade, fetchLinkedNotes, fetchEmotionLogs]);
 
   // Load cached AI summary
   useEffect(() => {
@@ -356,7 +370,30 @@ export default function TradeDetailPage() {
       <RiskMetricsCard trade={trade} />
 
       {/* Running PnL Chart */}
-      <TradeRunningPnlChart trade={trade} />
+      <TradeRunningPnlChart trade={trade} emotionLogs={emotionLogs} />
+
+      {/* Emotion Journey */}
+      <CollapsibleSection
+        title="Emotion Journey"
+        icon={<SmilePlus size={14} className="text-accent" />}
+        defaultOpen
+      >
+        <EmotionTimeline
+          tradeId={trade.id}
+          tradeTable="trades"
+          preEmotion={trade.emotion}
+          openTimestamp={trade.open_timestamp}
+          closeTimestamp={trade.close_timestamp}
+        />
+        <div className="mt-3">
+          <FollowUpEmotionForm
+            tradeId={trade.id}
+            tradeTable="trades"
+            phase={trade.close_timestamp ? "post" : "follow_up"}
+            onSaved={fetchEmotionLogs}
+          />
+        </div>
+      </CollapsibleSection>
 
       {/* Post-Trade Review + AI Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -469,6 +506,7 @@ export default function TradeDetailPage() {
       <TradeTimeline
         trade={trade}
         notes={linkedNotes}
+        emotionLogs={emotionLogs}
         onCreateNote={() => router.push(`/dashboard/journal?new=true&link_trade=${trade.id}&asset=crypto`)}
         onLinkExisting={() => setShowNotePicker(true)}
         onRefresh={fetchLinkedNotes}

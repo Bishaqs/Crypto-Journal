@@ -1438,3 +1438,23 @@ export function buildEdgeProfileContext(
 
   return parts.length > 1 ? parts.join("\n") : "";
 }
+
+/**
+ * Build context from mid-trade emotion logs for Nova AI coaching.
+ * Helps Nova identify emotion-vs-price patterns and provide coaching.
+ */
+export function buildEmotionLogContext(
+  emotionLogs: { emotion: string; phase: string; note: string | null; price_at_log: number | null; created_at: string; trade_id?: string }[]
+): string {
+  if (emotionLogs.length === 0) return "";
+  const parts: string[] = [`\n\n## Mid-Trade Emotion Logs (${emotionLogs.length} recent entries)`];
+  parts.push("These are timestamped emotions the trader logged DURING active trades. Use them to identify patterns between emotional states and trade outcomes.");
+  for (const log of emotionLogs.slice(0, 30)) {
+    const ts = log.created_at?.split("T").join(" ").slice(0, 19) ?? "unknown";
+    const price = log.price_at_log ? ` @ $${log.price_at_log}` : "";
+    const note = log.note ? ` — "${log.note}"` : "";
+    const phase = log.phase === "post" ? "[post]" : "[mid-trade]";
+    parts.push(`- ${ts}: ${log.emotion}${price} ${phase}${note}`);
+  }
+  return parts.join("\n");
+}
