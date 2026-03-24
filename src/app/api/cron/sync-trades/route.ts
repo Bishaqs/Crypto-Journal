@@ -153,7 +153,7 @@ async function handleCronSync(req: NextRequest) {
         conn.user_id,
         supabase,
         conn.last_sync_at,
-        { deadline: Math.min(deadline, Date.now() + 6000) },
+        { deadline: Math.min(deadline, Date.now() + 6000), connectionId: conn.id },
       );
 
       // Update sync log

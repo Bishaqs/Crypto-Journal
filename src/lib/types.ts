@@ -44,6 +44,7 @@ export type Trade = {
   // Broker sync fields (populated by API sync, null for manual trades)
   broker_name: string | null;
   broker_order_id: string | null;
+  connection_id: string | null;
   // Playbook link
   playbook_id: string | null;
   // Psychology: idea source tracking
@@ -140,6 +141,20 @@ export type BehavioralLog = {
   readiness_score: number | null; // 1=red, 2=yellow, 3=green
   override: boolean;
   override_outcome_pnl: number | null;
+  created_at: string;
+};
+
+export type TradeEmotionLog = {
+  id: string;
+  trade_id: string;
+  trade_table: string;
+  emotion: string;
+  phase: string | null;
+  note: string | null;
+  price_at_log: number | null;
+  started_at: string | null;
+  ended_at: string | null;
+  price_at_end: number | null;
   created_at: string;
 };
 

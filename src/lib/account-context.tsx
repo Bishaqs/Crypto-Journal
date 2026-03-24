@@ -11,7 +11,7 @@ type AccountContextType = {
   connections: BrokerConnection[];
   connectionsLoading: boolean;
   refreshConnections: () => Promise<void>;
-  filterByAccount: <T extends { broker_name?: string | null }>(items: T[]) => T[];
+  filterByAccount: <T extends { broker_name?: string | null; connection_id?: string | null }>(items: T[]) => T[];
 };
 
 const AccountContext = createContext<AccountContextType>({
@@ -49,14 +49,17 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   }, [fetchConnections]);
 
   const filterByAccount = useCallback(
-    <T extends { broker_name?: string | null }>(items: T[]): T[] => {
+    <T extends { broker_name?: string | null; connection_id?: string | null }>(items: T[]): T[] => {
       if (selectedAccount === "all") return items;
       if (selectedAccount === "manual") {
         return items.filter((t) => !t.broker_name);
       }
       const conn = connections.find((c) => c.id === selectedAccount);
       if (!conn) return items;
-      return items.filter((t) => t.broker_name === conn.broker_name);
+      // Filter by connection_id when available, fall back to broker_name for legacy trades
+      return items.filter((t) =>
+        t.connection_id ? t.connection_id === conn.id : t.broker_name === conn.broker_name
+      );
     },
     [selectedAccount, connections]
   );

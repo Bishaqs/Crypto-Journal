@@ -8,6 +8,12 @@ export type SyncDiagnostics = {
   phase_a_unmatched_closes: number;
   phase_a_all_fill_ids: number;
   phase_a_api_errors: string[];
+  /** Symbols found via history-position endpoint */
+  symbols_from_positions: string[];
+  /** Symbols found via supplementary fills check (missing from positions) */
+  symbols_from_fills: string[];
+  /** Number of trades recovered from supplementary fills */
+  supplementary_fills_recovered: number;
   legacy_cleanup_skipped: boolean;
   dedup_existing_ids: number;
   dedup_new_trades: number;
@@ -41,14 +47,15 @@ export async function syncBitget(
   userId: string,
   supabase: SupabaseClient,
   _lastSyncAt: string | null,
-  opts: { dryRun?: boolean; daysBack?: number; deadline: number },
+  opts: { dryRun?: boolean; daysBack?: number; deadline: number; connectionId?: string },
 ): Promise<SyncOutput> {
-  const { dryRun = false, deadline } = opts;
+  const { dryRun = false, deadline, connectionId } = opts;
   const errors: string[] = [];
 
   const diag: SyncDiagnostics = {
     phase_a_fetched: 0, phase_a_paired: 0, phase_a_unmatched_opens: 0,
     phase_a_unmatched_closes: 0, phase_a_all_fill_ids: 0, phase_a_api_errors: [],
+    symbols_from_positions: [], symbols_from_fills: [], supplementary_fills_recovered: 0,
     legacy_cleanup_skipped: true,
     dedup_existing_ids: 0, dedup_new_trades: 0, dedup_skipped: 0,
     cross_sync_merged: 0, cross_sync_close_only: 0, stale_open_matched: 0,
@@ -75,22 +82,73 @@ export async function syncBitget(
     console.log(`[sync:bitget] history-position returned ${posResult.closedTrades.length} closed trades`);
     errors.push(...posResult.errors);
 
-    // Also fetch open positions
+    // Track which symbols positions covered
+    const positionSymbols = new Set(posResult.closedTrades.map((t) => t.symbol));
+    diag.symbols_from_positions = [...positionSymbols];
+
+    // ── Supplementary fills check (runs BEFORE open positions — higher priority) ──
+    // history-position may not return all symbols (known Bitget API gap for
+    // liquidations, ADL closures, portfolio margin positions, etc.).
+    // Fetch fills for the recent period and recover trades for any symbols
+    // that appear in fills but NOT in positions.
+    let supplementaryTrades: MappedTrade[] = [];
+    if (Date.now() < deadline - 5000) {
+      console.log(`[sync:bitget] Running supplementary fills check (position symbols: ${[...positionSymbols].join(", ")})...`);
+      const fillResult = await fetchBitgetFills(creds, {
+        daysBack: 90,
+        deadlineMs: deadline - 1500,
+        maxWindows: 1,
+        maxPages: 3,
+        productTypes: ["USDT-FUTURES"],
+      });
+
+      // Find symbols in fills that are missing from positions
+      const fillSymbols = new Set([
+        ...fillResult.pairedTrades.map((t) => t.symbol),
+        ...fillResult.unmatchedOpens.map((t) => t.symbol),
+      ]);
+      const missingSymbols = new Set<string>();
+      for (const s of fillSymbols) {
+        if (!positionSymbols.has(s)) missingSymbols.add(s);
+      }
+
+      if (missingSymbols.size > 0) {
+        console.log(`[sync:bitget] FOUND ${missingSymbols.size} symbols in fills missing from positions: ${[...missingSymbols].join(", ")}`);
+        supplementaryTrades = [
+          ...fillResult.pairedTrades.filter((t) => missingSymbols.has(t.symbol)),
+          ...fillResult.unmatchedOpens.filter((t) => missingSymbols.has(t.symbol)),
+        ];
+        diag.symbols_from_fills = [...missingSymbols];
+        diag.supplementary_fills_recovered = supplementaryTrades.length;
+        supplementaryTrades = mergeIcebergTrades(supplementaryTrades);
+        errors.push(...fillResult.errors);
+      } else {
+        console.log(`[sync:bitget] All fill symbols covered by positions. No supplementary recovery needed.`);
+      }
+    } else {
+      console.log(`[sync:bitget] Skipped supplementary fills check (deadline pressure).`);
+    }
+
+    // Fetch open positions (lower priority — skippable if time is tight)
     let openTrades: MappedTrade[] = [];
     if (Date.now() < deadline - 1500) {
-      const openResult = await fetchBitgetOpenPositions(creds);
+      const openResult = await fetchBitgetOpenPositions(creds, { connectionId });
       openTrades = openResult.openTrades;
       errors.push(...openResult.errors);
+      for (const t of openTrades) positionSymbols.add(t.symbol);
     }
 
     const closedIds = new Set(posResult.closedTrades.map((t) => t.broker_order_id));
     const dedupedOpen = openTrades.filter((t) => !closedIds.has(t.broker_order_id));
-    allTrades = [...posResult.closedTrades, ...dedupedOpen];
-    closedTradesForUpdate = posResult.closedTrades;
+    allTrades = [...posResult.closedTrades, ...dedupedOpen, ...supplementaryTrades];
+    closedTradesForUpdate = [
+      ...posResult.closedTrades,
+      ...supplementaryTrades.filter((t) => t.exit_price !== null),
+    ];
     trackingLatestTime = posResult.latestCloseTime;
     diag.phase_a_fetched = posResult.fetched;
-    diag.phase_a_paired = posResult.closedTrades.length;
-    diag.phase_a_unmatched_opens = dedupedOpen.length;
+    diag.phase_a_paired = posResult.closedTrades.length + supplementaryTrades.filter(t => t.exit_price !== null).length;
+    diag.phase_a_unmatched_opens = dedupedOpen.length + supplementaryTrades.filter(t => t.exit_price === null).length;
   } else {
     // history-position returned nothing — fall back to fills + position tracking
     console.log(`[sync:bitget] history-position empty. Falling back to fills + position tracking...`);
@@ -164,13 +222,15 @@ export async function syncBitget(
     // Paginate in chunks of 500 to handle large candidate sets
     for (let i = 0; i < candidateIds.length; i += 500) {
       const batch = candidateIds.slice(i, i + 500);
-      const { data } = await supabase
+      let query = supabase
         .from("trades")
         .select("broker_order_id, exit_price")
         .eq("user_id", userId)
         .eq("broker_name", "Bitget")
         .contains("tags", ["bitget-api-sync"])
         .in("broker_order_id", batch);
+      if (connectionId) query = query.or(`connection_id.eq.${connectionId},connection_id.is.null`);
+      const { data } = await query;
 
       if (data) {
         for (const t of data) {
@@ -201,24 +261,34 @@ export async function syncBitget(
 
     if (closedNewTrades.length > 0) {
       // Derive synthetic keys for each closed trade
-      const syntheticKeys = [...new Set(closedNewTrades.map((t) => `open:${t.symbol}:${t.position}`))];
+      // Include both legacy format (open:SYMBOL:SIDE) and new format (open:CONN_ID:SYMBOL:SIDE)
+      const syntheticKeys = [...new Set(closedNewTrades.flatMap((t) => {
+        const legacy = `open:${t.symbol}:${t.position}`;
+        return connectionId ? [legacy, `open:${connectionId}:${t.symbol}:${t.position}`] : [legacy];
+      }))];
 
       // Batch query: find open rows with these synthetic broker_order_ids
-      const staleOpenRows = new Map<string, { id: string; broker_order_id: string }>();
+      const staleOpenRows = new Map<string, { id: string; broker_order_id: string; open_timestamp: string }>();
       for (let i = 0; i < syntheticKeys.length; i += 500) {
         const batch = syntheticKeys.slice(i, i + 500);
-        const { data } = await supabase
+        let staleQuery = supabase
           .from("trades")
-          .select("id, broker_order_id")
+          .select("id, broker_order_id, open_timestamp")
           .eq("user_id", userId)
           .eq("broker_name", "Bitget")
           .is("exit_price", null)
           .in("broker_order_id", batch);
+        if (connectionId) staleQuery = staleQuery.or(`connection_id.eq.${connectionId},connection_id.is.null`);
+        const { data } = await staleQuery;
 
         if (data) {
           for (const row of data) {
             if (row.broker_order_id) {
-              staleOpenRows.set(row.broker_order_id, { id: row.id, broker_order_id: row.broker_order_id });
+              staleOpenRows.set(row.broker_order_id, {
+                id: row.id,
+                broker_order_id: row.broker_order_id,
+                open_timestamp: (row as { open_timestamp: string }).open_timestamp,
+              });
             }
           }
         }
@@ -237,16 +307,31 @@ export async function syncBitget(
           const staleRow = staleOpenRows.get(syntheticKey);
           if (!staleRow) continue;
 
-          // Update the existing row with close data + real positionId
+          // Validate: don't pair if the stale open is from a wildly different time
+          // This prevents ancient open positions from being merged with recent closes
+          const staleOpenMs = new Date(staleRow.open_timestamp).getTime();
+          const tradeOpenMs = new Date(trade.open_timestamp).getTime();
+          const gapDays = Math.abs(tradeOpenMs - staleOpenMs) / (1000 * 60 * 60 * 24);
+          if (gapDays > 7) {
+            console.log(`[sync:bitget] Skipping stale-open match for ${trade.symbol}: stale open is ${Math.round(gapDays)} days apart from closed trade (${staleRow.open_timestamp} vs ${trade.open_timestamp})`);
+            continue;
+          }
+
+          // Update the existing row with ALL data from the closed position
+          // (entry + exit) — the position history has authoritative data
           const { error } = await supabase
             .from("trades")
             .update({
+              entry_price: trade.entry_price,
               exit_price: trade.exit_price,
+              quantity: trade.quantity,
+              open_timestamp: trade.open_timestamp,
               close_timestamp: trade.close_timestamp,
               pnl: trade.pnl,
               fees: trade.fees,
               tags: trade.tags,
               broker_order_id: trade.broker_order_id,
+              ...(connectionId ? { connection_id: connectionId } : {}),
             })
             .eq("id", staleRow.id)
             .is("exit_price", null);
@@ -286,8 +371,8 @@ export async function syncBitget(
       }
       const batch = closedWithExistingOpen.slice(i, i + UPDATE_BATCH);
       const results = await Promise.all(
-        batch.map((trade) =>
-          supabase
+        batch.map((trade) => {
+          let q = supabase
             .from("trades")
             .update({
               exit_price: trade.exit_price,
@@ -295,12 +380,14 @@ export async function syncBitget(
               pnl: trade.pnl,
               fees: trade.fees,
               tags: trade.tags,
+              ...(connectionId ? { connection_id: connectionId } : {}),
             })
             .eq("user_id", userId)
             .eq("broker_name", "Bitget")
-            .eq("broker_order_id", trade.broker_order_id)
-            .is("exit_price", null),
-        ),
+            .eq("broker_order_id", trade.broker_order_id);
+          if (connectionId) q = q.or(`connection_id.eq.${connectionId},connection_id.is.null`);
+          return q.is("exit_price", null);
+        }),
       );
       merged += results.filter((r) => !r.error).length;
     }
@@ -321,19 +408,21 @@ export async function syncBitget(
       if (Date.now() >= deadline) break;
       const batch = openToRefresh.slice(i, i + REFRESH_BATCH);
       const results = await Promise.all(
-        batch.map((t) =>
-          supabase
+        batch.map((t) => {
+          let q = supabase
             .from("trades")
             .update({
               open_timestamp: t.open_timestamp,
               entry_price: t.entry_price,
               quantity: t.quantity,
+              ...(connectionId ? { connection_id: connectionId } : {}),
             })
             .eq("user_id", userId)
             .eq("broker_name", "Bitget")
-            .eq("broker_order_id", t.broker_order_id)
-            .is("exit_price", null),
-        ),
+            .eq("broker_order_id", t.broker_order_id);
+          if (connectionId) q = q.or(`connection_id.eq.${connectionId},connection_id.is.null`);
+          return q.is("exit_price", null);
+        }),
       );
       refreshed += results.filter((r) => !r.error).length;
     }
@@ -357,7 +446,7 @@ export async function syncBitget(
         break;
       }
       const chunk = newTrades.slice(i, i + CHUNK);
-      const rows = chunk.map((t: MappedTrade) => ({ user_id: userId, ...t }));
+      const rows = chunk.map((t: MappedTrade) => ({ user_id: userId, ...t, ...(connectionId ? { connection_id: connectionId } : {}) }));
 
       const { error: insertError } = await supabase.from("trades").insert(rows);
       if (insertError) {

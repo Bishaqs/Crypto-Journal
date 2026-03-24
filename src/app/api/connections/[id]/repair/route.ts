@@ -7,6 +7,69 @@ import { fetchBitgetPositions } from "@/lib/broker-sync/bitget";
 export const dynamic = "force-dynamic";
 
 /**
+ * GET: Fix stale merges (trades corrupted by stale-open matching).
+ * Accessible via browser URL for easy execution.
+ */
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: conn } = await supabase
+    .from("broker_connections")
+    .select("id")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!conn) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const url = new URL(_req.url);
+  const mode = url.searchParams.get("mode");
+  if (mode !== "fix-stale-merges") {
+    return NextResponse.json({ error: "Use mode=fix-stale-merges" }, { status: 400 });
+  }
+
+  const brokerId = url.searchParams.get("broker_order_id");
+
+  // Find trades where open → close gap > 90 days (bad stale-open merge)
+  const { data: suspects } = await supabase
+    .from("trades")
+    .select("id, symbol, position, entry_price, open_timestamp, close_timestamp, broker_order_id")
+    .eq("user_id", user.id)
+    .eq("broker_name", "Bitget")
+    .or(`connection_id.eq.${id},connection_id.is.null`)
+    .contains("tags", ["bitget-api-sync"])
+    .not("exit_price", "is", null)
+    .not("close_timestamp", "is", null);
+
+  const staleMerges: Array<{ id: string; broker_order_id: string | null; symbol: string; entry: number; open: string; close: string; gap_days: number }> = [];
+  for (const t of suspects ?? []) {
+    const row = t as { id: string; broker_order_id: string | null; symbol: string; entry_price: number; open_timestamp: string; close_timestamp: string };
+    const gapDays = (new Date(row.close_timestamp).getTime() - new Date(row.open_timestamp).getTime()) / (1000 * 60 * 60 * 24);
+    if (gapDays > 90) {
+      staleMerges.push({ id: row.id, broker_order_id: row.broker_order_id, symbol: row.symbol, entry: row.entry_price, open: row.open_timestamp, close: row.close_timestamp, gap_days: Math.round(gapDays) });
+    }
+  }
+
+  const toDelete = brokerId ? staleMerges.filter((t) => t.broker_order_id === brokerId) : staleMerges;
+  let deleted = 0;
+  for (const t of toDelete) {
+    const { error } = await supabase.from("trades").delete().eq("id", t.id).eq("user_id", user.id);
+    if (!error) deleted++;
+  }
+
+  return NextResponse.json({
+    message: `Found ${staleMerges.length} stale merge(s), deleted ${deleted}. Run Full Re-sync to re-import correctly.`,
+    stale_merges_found: staleMerges,
+    deleted,
+  });
+}
+
+/**
  * POST: Repair existing unpaired Bitget fills.
  *
  * Phase 0: Undo bad repairs where close_timestamp < open_timestamp
@@ -57,6 +120,54 @@ export async function POST(
     return csvOverlapCleanup(supabase, user.id);
   }
 
+  // ── Mode: fix-stale-merges — fix trades corrupted by stale-open matching ──
+  // Detects trades where open_timestamp is months before close_timestamp (bad merge)
+  // and the entry_price doesn't match the position history. Deletes them so re-sync
+  // can re-insert with correct data.
+  if (url.searchParams.get("mode") === "fix-stale-merges") {
+    const brokerId = url.searchParams.get("broker_order_id");
+
+    // Find trades where open → close gap > 30 days AND they came from API sync
+    const { data: suspects } = await supabase
+      .from("trades")
+      .select("id, symbol, position, entry_price, exit_price, quantity, open_timestamp, close_timestamp, broker_order_id, tags")
+      .eq("user_id", user.id)
+      .eq("broker_name", "Bitget")
+      .or(`connection_id.eq.${id},connection_id.is.null`)
+      .contains("tags", ["bitget-api-sync"])
+      .not("exit_price", "is", null)
+      .not("close_timestamp", "is", null);
+
+    const staleMerges: Array<{ id: string; broker_order_id: string | null; symbol: string; open: string; close: string; gap_days: number }> = [];
+    for (const t of suspects ?? []) {
+      const row = t as { id: string; broker_order_id: string | null; symbol: string; open_timestamp: string; close_timestamp: string };
+      const openMs = new Date(row.open_timestamp).getTime();
+      const closeMs = new Date(row.close_timestamp).getTime();
+      const gapDays = (closeMs - openMs) / (1000 * 60 * 60 * 24);
+      // Bitget history-position only goes back 90 days — any position open > 90 days is suspicious
+      if (gapDays > 90) {
+        staleMerges.push({ id: row.id, broker_order_id: row.broker_order_id, symbol: row.symbol, open: row.open_timestamp, close: row.close_timestamp, gap_days: Math.round(gapDays) });
+      }
+    }
+
+    // If a specific broker_order_id was provided, only fix that one
+    const toDelete = brokerId
+      ? staleMerges.filter((t) => t.broker_order_id === brokerId)
+      : staleMerges;
+
+    let deleted = 0;
+    for (const t of toDelete) {
+      const { error } = await supabase.from("trades").delete().eq("id", t.id).eq("user_id", user.id);
+      if (!error) deleted++;
+    }
+
+    return NextResponse.json({
+      message: `Found ${staleMerges.length} stale merge(s), deleted ${deleted}. Run Full Re-sync to re-import correctly.`,
+      stale_merges_found: staleMerges,
+      deleted,
+    });
+  }
+
   // ── Phase 0: Undo bad repairs (close_timestamp < open_timestamp) ──────
 
   type RepairedRow = {
@@ -88,6 +199,7 @@ export async function POST(
       .select("id, symbol, position, entry_price, exit_price, quantity, fees, open_timestamp, close_timestamp, pnl, tags, broker_order_id, broker_name, trade_source")
       .eq("user_id", user.id)
       .eq("broker_name", "Bitget")
+      .or(`connection_id.eq.${id},connection_id.is.null`)
       .not("exit_price", "is", null)
       .contains("tags", ["repaired"])
       .range(rPage * PAGE_SIZE, (rPage + 1) * PAGE_SIZE - 1);
@@ -164,6 +276,7 @@ export async function POST(
       .select("id, symbol, position, entry_price, quantity, fees, open_timestamp, pnl, tags")
       .eq("user_id", user.id)
       .eq("broker_name", "Bitget")
+      .or(`connection_id.eq.${id},connection_id.is.null`)
       .is("exit_price", null)
       .order("open_timestamp", { ascending: true })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
@@ -312,6 +425,7 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
         .select("id, symbol, position, created_at")
         .eq("user_id", userId)
         .eq("broker_name", "Bitget")
+        .or(`connection_id.eq.${connectionId},connection_id.is.null`)
         .is("broker_order_id", null)
         .contains("tags", ["from-open-position"])
         .order("created_at", { ascending: false })
@@ -387,6 +501,7 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
       .select("id, broker_order_id, exit_price, close_timestamp, created_at")
       .eq("user_id", userId)
       .eq("broker_name", "Bitget")
+      .or(`connection_id.eq.${connectionId},connection_id.is.null`)
       .contains("tags", ["bitget-api-sync"])
       .order("created_at", { ascending: true })
       .range(page * PAGE, (page + 1) * PAGE - 1);
@@ -468,6 +583,7 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
         .select("id, broker_order_id, symbol, position, open_timestamp")
         .eq("user_id", userId)
         .eq("broker_name", "Bitget")
+        .or(`connection_id.eq.${connectionId},connection_id.is.null`)
         .is("exit_price", null)
         .like("broker_order_id", "open:%")
         .contains("tags", ["bitget-api-sync"])
@@ -488,6 +604,7 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
         .select("id")
         .eq("user_id", userId)
         .eq("broker_name", "Bitget")
+        .or(`connection_id.eq.${connectionId},connection_id.is.null`)
         .eq("symbol", staleRow.symbol)
         .eq("position", staleRow.position)
         .eq("open_timestamp", staleRow.open_timestamp)
@@ -568,6 +685,7 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
             .select("id, broker_order_id")
             .eq("user_id", userId)
             .eq("broker_name", "Bitget")
+            .or(`connection_id.eq.${connectionId},connection_id.is.null`)
             .is("exit_price", null)
             .not("broker_order_id", "is", null)
             .contains("tags", ["bitget-api-sync"])
@@ -614,6 +732,7 @@ async function dedupFix(supabase: SupabaseClient, userId: string, connectionId: 
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
     .eq("broker_name", "Bitget")
+    .or(`connection_id.eq.${connectionId},connection_id.is.null`)
     .contains("tags", ["bitget-api-sync"]);
 
   await supabase
@@ -658,7 +777,7 @@ async function csvOverlapCleanup(supabase: SupabaseClient, userId: string) {
     for (const tradeId of noteTradeIds.slice(0, 50)) {
       const { data: trade } = await supabase
         .from("trades")
-        .select("id, symbol, tags, open_timestamp")
+        .select("id, symbol, tags, open_timestamp, import_batch_id")
         .eq("id", tradeId)
         .maybeSingle();
 
@@ -666,6 +785,7 @@ async function csvOverlapCleanup(supabase: SupabaseClient, userId: string) {
       const tags = (trade.tags as string[]) ?? [];
       if (tags.includes("bitget-api-sync")) continue;
       if (trade.open_timestamp < cutoffDate) continue;
+      if (!(trade as { import_batch_id: string | null }).import_batch_id) continue; // Skip manual trades
 
       // Find matching API trade
       const { data: apiTrade } = await supabase
@@ -687,7 +807,7 @@ async function csvOverlapCleanup(supabase: SupabaseClient, userId: string) {
     }
   }
 
-  // Delete all non-API trades from the last 90 days
+  // Delete CSV-imported trades from the last 90 days (preserve manual entries)
   const PAGE = 200;
   let deleted = 0;
 
@@ -698,6 +818,7 @@ async function csvOverlapCleanup(supabase: SupabaseClient, userId: string) {
       .eq("user_id", userId)
       .gte("open_timestamp", cutoffDate)
       .not("tags", "cs", '{"bitget-api-sync"}')
+      .not("import_batch_id", "is", null)
       .limit(PAGE);
 
     if (!overlapping || overlapping.length === 0) break;
@@ -730,17 +851,18 @@ async function dedupAndResetCursor(
   userId: string,
   connectionId: string,
 ) {
-  // Step 1: Count all API-synced trades
+  // Step 1: Count all API-synced trades for this connection
   const { count } = await supabase
     .from("trades")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
     .eq("broker_name", "Bitget")
+    .or(`connection_id.eq.${connectionId},connection_id.is.null`)
     .contains("tags", ["bitget-api-sync"]);
 
   const totalBefore = count ?? 0;
 
-  // Step 2: Delete all API-synced trades (paginated to avoid timeouts)
+  // Step 2: Delete all API-synced trades for this connection (paginated to avoid timeouts)
   let deleted = 0;
   const PAGE = 200;
   while (true) {
@@ -749,6 +871,7 @@ async function dedupAndResetCursor(
       .select("id")
       .eq("user_id", userId)
       .eq("broker_name", "Bitget")
+      .or(`connection_id.eq.${connectionId},connection_id.is.null`)
       .contains("tags", ["bitget-api-sync"])
       .limit(PAGE);
     if (!data || data.length === 0) break;

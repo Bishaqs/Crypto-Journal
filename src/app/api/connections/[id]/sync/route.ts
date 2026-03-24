@@ -103,7 +103,7 @@ export async function POST(
         user.id,
         supabase,
         fullSync ? null : conn.last_sync_at,
-        { dryRun, daysBack: fullSync ? daysBack : undefined, deadline },
+        { dryRun, daysBack: fullSync ? daysBack : undefined, deadline, connectionId: id },
       );
     } else {
       if (!dryRun) {

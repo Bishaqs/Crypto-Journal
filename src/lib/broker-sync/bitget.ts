@@ -146,9 +146,49 @@ export type PositionSyncResult = {
  * Fetch closed positions from Bitget's history-position endpoint.
  * Returns COMPLETE trades with entry+exit — no classification or pairing needed.
  * Limitation: only data within 3 months.
+ * Queries multiple product types (USDT-FUTURES + COIN-FUTURES) to catch all positions.
  */
 export async function fetchBitgetPositions(
   creds: BitgetCredentials,
+  options?: { deadlineMs?: number; maxPages?: number; productTypes?: string[] },
+): Promise<PositionSyncResult> {
+  const productTypes = options?.productTypes ?? ["USDT-FUTURES"];
+  const allClosed: MappedTrade[] = [];
+  const allErrors: string[] = [];
+  let totalFetched = 0;
+  let latestCloseTime: number | null = null;
+
+  for (const productType of productTypes) {
+    if (options?.deadlineMs && Date.now() >= options.deadlineMs - 2000) {
+      allErrors.push(`Skipped ${productType} (deadline).`);
+      break;
+    }
+    const result = await fetchBitgetPositionsForProduct(creds, productType, options);
+    allClosed.push(...result.closedTrades);
+    allErrors.push(...result.errors);
+    totalFetched += result.fetched;
+    if (result.latestCloseTime !== null && (latestCloseTime === null || result.latestCloseTime > latestCloseTime)) {
+      latestCloseTime = result.latestCloseTime;
+    }
+  }
+
+  // Deduplicate by positionId across product types
+  const seen = new Set<string>();
+  const uniqueTrades: MappedTrade[] = [];
+  for (const t of allClosed) {
+    if (!seen.has(t.broker_order_id)) {
+      seen.add(t.broker_order_id);
+      uniqueTrades.push(t);
+    }
+  }
+
+  return { closedTrades: uniqueTrades, openTrades: [], fetched: totalFetched, errors: allErrors, latestCloseTime };
+}
+
+/** Fetch closed positions for a single product type. */
+async function fetchBitgetPositionsForProduct(
+  creds: BitgetCredentials,
+  productType: string,
   options?: { deadlineMs?: number; maxPages?: number },
 ): Promise<PositionSyncResult> {
   const closedTrades: MappedTrade[] = [];
@@ -161,11 +201,13 @@ export async function fetchBitgetPositions(
 
   for (let page = 0; page < maxPages; page++) {
     if (options?.deadlineMs && Date.now() >= options.deadlineMs - 1500) {
-      errors.push(`Stopped after ${page} pages (deadline). Retry to continue.`);
+      errors.push(`Stopped ${productType} after ${page} pages (deadline). Retry to continue.`);
       break;
     }
 
-    const params = new URLSearchParams({ productType: "USDT-FUTURES", marginCoin: "USDT", limit: "100" });
+    // Don't filter by marginCoin — let the API return all positions for this product type.
+    // Filtering by marginCoin=USDT can exclude positions in certain account configurations.
+    const params = new URLSearchParams({ productType, limit: "100" });
     if (cursor) params.set("endId", cursor);
 
     const path = "/api/v2/mix/position/history-position";
@@ -275,9 +317,8 @@ export async function fetchBitgetPositions(
 
   // Log skip summary for diagnostics
   const totalSkipped = fetched - closedTrades.length;
-  if (totalSkipped > 0) {
-    console.log(`[sync:positions] Total: ${fetched} fetched, ${closedTrades.length} mapped, ${totalSkipped} skipped`);
-  }
+  const symbols = [...new Set(closedTrades.map(t => t.symbol))];
+  console.log(`[sync:positions:${productType}] ${fetched} fetched, ${closedTrades.length} mapped, ${totalSkipped} skipped. Symbols: ${symbols.join(", ") || "none"}`);
 
   // Deduplicate by positionId — broken pagination can return same positions on multiple pages
   const seen = new Set<string>();
@@ -289,7 +330,7 @@ export async function fetchBitgetPositions(
     }
   }
   if (uniqueTrades.length < closedTrades.length) {
-    console.log(`[sync:positions] Deduped ${closedTrades.length} → ${uniqueTrades.length} positions (${closedTrades.length - uniqueTrades.length} duplicates from pagination)`);
+    console.log(`[sync:positions:${productType}] Deduped ${closedTrades.length} → ${uniqueTrades.length} positions`);
   }
 
   return { closedTrades: uniqueTrades, openTrades: [], fetched, errors, latestCloseTime };
@@ -317,12 +358,35 @@ type BitgetOpenPosition = {
 
 /**
  * Fetch currently-open positions (Live trades).
+ * Queries multiple product types for full coverage.
  */
 export async function fetchBitgetOpenPositions(
   creds: BitgetCredentials,
+  options?: { productTypes?: string[]; connectionId?: string },
+): Promise<{ openTrades: MappedTrade[]; errors: string[] }> {
+  const productTypes = options?.productTypes ?? ["USDT-FUTURES"];
+  const allOpen: MappedTrade[] = [];
+  const allErrors: string[] = [];
+
+  const connId = options?.connectionId;
+  for (const productType of productTypes) {
+    const result = await fetchBitgetOpenPositionsForProduct(creds, productType, connId);
+    allOpen.push(...result.openTrades);
+    allErrors.push(...result.errors);
+  }
+
+  return { openTrades: allOpen, errors: allErrors };
+}
+
+/** Fetch open positions for a single product type. */
+async function fetchBitgetOpenPositionsForProduct(
+  creds: BitgetCredentials,
+  productType: string,
+  connectionId?: string,
 ): Promise<{ openTrades: MappedTrade[]; errors: string[] }> {
   const path = "/api/v2/mix/position/all-position";
-  const query = "?productType=USDT-FUTURES&marginCoin=USDT";
+  // Don't filter by marginCoin — return all positions for this product type
+  const query = `?productType=${productType}`;
   const fullPath = path + query;
 
   try {
@@ -335,10 +399,10 @@ export async function fetchBitgetOpenPositions(
     if (!res.ok) {
       // 404 is expected for some account types — silently return empty
       if (res.status === 404) {
-        console.log(`[sync:positions] all-position returned 404 — endpoint not available`);
+        console.log(`[sync:positions:${productType}] all-position returned 404 — endpoint not available`);
         return { openTrades: [], errors: [] };
       }
-      return { openTrades: [], errors: [`HTTP ${res.status}`] };
+      return { openTrades: [], errors: [`${productType} HTTP ${res.status}`] };
     }
 
     const json = await res.json();
@@ -346,14 +410,14 @@ export async function fetchBitgetOpenPositions(
       // "Request URL NOT FOUND" is also a 404-equivalent — not a real error
       const msg = json.msg || json.code;
       if (msg.toLowerCase().includes("not found")) {
-        console.log(`[sync:positions] all-position: ${msg}`);
+        console.log(`[sync:positions:${productType}] all-position: ${msg}`);
         return { openTrades: [], errors: [] };
       }
-      return { openTrades: [], errors: [msg] };
+      return { openTrades: [], errors: [`${productType}: ${msg}`] };
     }
 
     const list: BitgetOpenPosition[] = json.data ?? [];
-    console.log(`[sync:positions] all-position: ${list.length} items. First:`, list[0] ? JSON.stringify(list[0]).slice(0, 300) : "none");
+    console.log(`[sync:positions:${productType}] all-position: ${list.length} items. First:`, list[0] ? JSON.stringify(list[0]).slice(0, 300) : "none");
     const openTrades: MappedTrade[] = [];
     const errors: string[] = [];
 
@@ -379,10 +443,10 @@ export async function fetchBitgetOpenPositions(
           close_timestamp: null,
           // Use real positionId when available — matches history-position's broker_order_id
           // so the sync engine can match open→closed without ID mismatch.
-          // Fallback to composite format for old API responses without positionId.
+          // Fallback includes connectionId to prevent collisions across connections.
           broker_order_id: pos.positionId && pos.positionId.length > 0
             ? pos.positionId
-            : `open:${pos.symbol}:${holdSide}`,
+            : `open:${connectionId ? connectionId + ":" : ""}${pos.symbol}:${holdSide}`,
           broker_name: "Bitget",
           trade_source: "cex",
           tags: ["bitget-api-sync", "from-open-position"],
@@ -426,15 +490,83 @@ export async function testBitgetConnection(
  * Fetch futures fills from Bitget with sliding 7-day time windows.
  * Bitget enforces a max 7-day range between startTime/endTime per request.
  * Windows are processed NEWEST→OLDEST so recent trades are fetched first.
+ * Queries multiple product types for full coverage.
  */
 export async function fetchBitgetFills(
   creds: BitgetCredentials,
+  options?: { startTime?: number; maxPages?: number; daysBack?: number; deadlineMs?: number; oldestFirst?: boolean; maxWindows?: number; productTypes?: string[] },
+): Promise<BitgetSyncResult> {
+  const productTypes = options?.productTypes ?? ["USDT-FUTURES"];
+  const allResults: BitgetSyncResult[] = [];
+
+  for (const pt of productTypes) {
+    if (options?.deadlineMs && Date.now() >= options.deadlineMs - 2000) {
+      break;
+    }
+    const result = await fetchBitgetFillsForProduct(creds, pt, options);
+    allResults.push(result);
+  }
+
+  // Merge results from all product types
+  if (allResults.length === 0) {
+    return buildResult([], 0, ["No product types queried (deadline)."]);
+  }
+  if (allResults.length === 1) return allResults[0];
+
+  // Combine all results
+  const mergedPaired: MappedTrade[] = [];
+  const mergedOpens: MappedTrade[] = [];
+  const mergedCloses: AggregatedOrder[] = [];
+  const mergedErrors: string[] = [];
+  const mergedFillIds: string[] = [];
+  let mergedFetched = 0;
+  let mergedLatestFill: number | null = null;
+  let mergedLastWindowEnd: number | null = null;
+  let mergedStats = { opens: 0, closes: 0, inMemoryMatched: 0 };
+  const mergedSampleFills: Array<{ orderId: string; side: string; tradeSide?: string; profit: string; symbol: string }> = [];
+
+  for (const r of allResults) {
+    mergedPaired.push(...r.pairedTrades);
+    mergedOpens.push(...r.unmatchedOpens);
+    mergedCloses.push(...r.unmatchedCloses);
+    mergedErrors.push(...r.errors);
+    mergedFillIds.push(...r.allFillIds);
+    mergedFetched += r.fetched;
+    if (r.latestFillTime !== null && (mergedLatestFill === null || r.latestFillTime > mergedLatestFill)) {
+      mergedLatestFill = r.latestFillTime;
+    }
+    if (r.lastWindowEnd !== null && (mergedLastWindowEnd === null || r.lastWindowEnd > mergedLastWindowEnd)) {
+      mergedLastWindowEnd = r.lastWindowEnd;
+    }
+    mergedStats.opens += r.classificationStats.opens;
+    mergedStats.closes += r.classificationStats.closes;
+    mergedStats.inMemoryMatched += r.classificationStats.inMemoryMatched;
+    mergedSampleFills.push(...r.sampleFills);
+  }
+
+  return {
+    pairedTrades: mergedPaired,
+    unmatchedOpens: mergedOpens,
+    unmatchedCloses: mergedCloses,
+    fetched: mergedFetched,
+    errors: mergedErrors,
+    allFillIds: mergedFillIds,
+    latestFillTime: mergedLatestFill,
+    lastWindowEnd: mergedLastWindowEnd,
+    classificationStats: mergedStats,
+    sampleFills: mergedSampleFills.slice(0, 10),
+  };
+}
+
+/** Fetch fills for a single product type. */
+async function fetchBitgetFillsForProduct(
+  creds: BitgetCredentials,
+  productType: string,
   options?: { startTime?: number; maxPages?: number; daysBack?: number; deadlineMs?: number; oldestFirst?: boolean; maxWindows?: number },
 ): Promise<BitgetSyncResult> {
   const rawFills: BitgetFill[] = [];
   const errors: string[] = [];
   let totalFetched = 0;
-  const productType = "USDT-FUTURES";
   const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
   const maxPagesPerWindow = options?.maxPages ?? 5;
 
