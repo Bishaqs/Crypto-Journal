@@ -22,7 +22,9 @@ export type XPSource =
   | "achievement_diamond"
   | "achievement_legendary"
   | "achievement_single"
-  | "onboarding_bonus";
+  | "onboarding_bonus"
+  | "lesson_completed"
+  | "course_completed";
 
 export type XPEvent = {
   id: string;
@@ -60,6 +62,8 @@ export const XP_AMOUNTS: Record<XPSource, number> = {
   achievement_legendary: 1000,
   achievement_single: 75,
   onboarding_bonus: 0, // uses customAmount based on experience level
+  lesson_completed: 0, // uses customAmount from lesson definition
+  course_completed: 0, // uses customAmount (bonus for finishing all lessons)
 };
 
 /** Sources that count toward the daily XP cap */
@@ -72,6 +76,8 @@ export const CAPPED_SOURCES: XPSource[] = [
   "trade_plan",
   "weekly_review",
   "streak_bonus",
+  "lesson_completed",
+  "course_completed",
 ];
 
 export const DAILY_XP_CAP = 300;

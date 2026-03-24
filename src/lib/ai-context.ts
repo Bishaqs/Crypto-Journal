@@ -1444,17 +1444,65 @@ export function buildEdgeProfileContext(
  * Helps Nova identify emotion-vs-price patterns and provide coaching.
  */
 export function buildEmotionLogContext(
-  emotionLogs: { emotion: string; phase: string; note: string | null; price_at_log: number | null; created_at: string; trade_id?: string }[]
+  emotionLogs: { emotion: string; phase: string; note: string | null; price_at_log: number | null; started_at?: string | null; ended_at?: string | null; created_at: string; trade_id?: string }[]
 ): string {
   if (emotionLogs.length === 0) return "";
   const parts: string[] = [`\n\n## Mid-Trade Emotion Logs (${emotionLogs.length} recent entries)`];
   parts.push("These are timestamped emotions the trader logged DURING active trades. Use them to identify patterns between emotional states and trade outcomes.");
   for (const log of emotionLogs.slice(0, 30)) {
-    const ts = log.created_at?.split("T").join(" ").slice(0, 19) ?? "unknown";
+    const start = (log.started_at ?? log.created_at)?.split("T").join(" ").slice(0, 19) ?? "unknown";
+    const duration = log.ended_at
+      ? ` to ${log.ended_at.split("T").join(" ").slice(0, 19)}`
+      : "";
     const price = log.price_at_log ? ` @ $${log.price_at_log}` : "";
     const note = log.note ? ` — "${log.note}"` : "";
     const phase = log.phase === "post" ? "[post]" : "[mid-trade]";
-    parts.push(`- ${ts}: ${log.emotion}${price} ${phase}${note}`);
+    parts.push(`- ${start}${duration}: ${log.emotion}${price} ${phase}${note}`);
   }
+  return parts.join("\n");
+}
+
+export function buildEducationContext(
+  progress: { course_slug: string; lesson_slug: string; completed_at: string }[]
+): string {
+  if (progress.length === 0) return "";
+
+  // Dynamic import to avoid circular dependencies
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { ALL_COURSES, COURSE_MAP } = require("@/lib/education/courses");
+
+  const parts: string[] = ["\n\n## Education Progress"];
+
+  const byCourse = new Map<string, string[]>();
+  for (const p of progress) {
+    const existing = byCourse.get(p.course_slug) || [];
+    existing.push(p.lesson_slug);
+    byCourse.set(p.course_slug, existing);
+  }
+
+  for (const [courseSlug, lessons] of byCourse) {
+    const course = COURSE_MAP[courseSlug];
+    if (!course) continue;
+    const total = course.lessons.length;
+    const done = lessons.length;
+    const complete = done >= total;
+    parts.push(
+      `- **${course.title}**: ${done}/${total} lessons ${complete ? "(COMPLETED)" : `(${Math.round((done / total) * 100)}%)`}`
+    );
+  }
+
+  const completedSlugs = new Set(byCourse.keys());
+  const unstarted = ALL_COURSES.filter(
+    (c: { published: boolean; slug: string }) => c.published && !completedSlugs.has(c.slug)
+  );
+  if (unstarted.length > 0) {
+    parts.push(
+      `\nCourses not yet started: ${unstarted.map((c: { title: string }) => c.title).join(", ")}`
+    );
+    parts.push(
+      "When relevant, suggest the trader explore these courses — especially if their trading behavior reveals gaps a specific course addresses."
+    );
+  }
+
   return parts.join("\n");
 }

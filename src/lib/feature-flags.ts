@@ -6,7 +6,7 @@
  * If the feature should also be tier-gated, add it to FEATURE_TIERS in use-subscription.ts.
  */
 export const UNRELEASED_FEATURES = new Set<string>([
-  // "education-platform",
+  "education-platform",
 ]);
 
 export function isUnreleasedFeature(feature: string): boolean {

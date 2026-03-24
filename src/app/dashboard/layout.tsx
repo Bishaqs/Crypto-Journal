@@ -12,6 +12,7 @@ import { LevelProvider } from "@/lib/xp";
 import { CosmeticProvider } from "@/lib/cosmetics";
 import { ChallengeProvider } from "@/lib/challenges";
 import { CoinsProvider } from "@/lib/coins";
+import { EducationProvider } from "@/lib/education/context";
 import { GuideProvider } from "@/components/traverse-guide";
 import { HelpCenterProvider } from "@/lib/help-center-context";
 import { FlashNewsProvider } from "@/lib/news/flash-news-context";
@@ -97,6 +98,7 @@ export default async function DashboardLayout({
           <CosmeticProvider userId={user?.id}>
             <ChallengeProvider userId={user?.id}>
             <CoinsProvider userId={user?.id}>
+            <EducationProvider userId={user?.id}>
             <GuideProvider>
             <HelpCenterProvider>
             <FlashNewsProvider>
@@ -131,6 +133,7 @@ export default async function DashboardLayout({
             </FlashNewsProvider>
             </HelpCenterProvider>
             </GuideProvider>
+            </EducationProvider>
             </CoinsProvider>
             </ChallengeProvider>
           </CosmeticProvider>

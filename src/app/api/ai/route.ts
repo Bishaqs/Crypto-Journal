@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AiChatSchema } from "@/lib/schemas/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkAiDailyLimit } from "@/lib/ai-rate-limit";
-import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext } from "@/lib/ai-context";
+import { AI_CHAT_SYSTEM_PROMPT, buildTradeContext, buildPlaybookContext, extractImagesFromNotes, buildBehavioralContext, buildExpertPsychologyContext, buildCorrelationContext, buildEducationContext } from "@/lib/ai-context";
 import { getProvider, resolveModel } from "@/lib/ai";
 import { calculateAllCorrelations } from "@/lib/psychology-correlations";
 import { buildSummaryContext } from "@/lib/trading-summaries";
@@ -64,12 +64,14 @@ export async function POST(req: NextRequest) {
       { data: profileRows },
       { data: sessionLogs },
       { data: userPrefs },
+      { data: educationProgress },
     ] = await Promise.all([
       supabase.from("behavioral_logs").select("emotion, intensity, trigger, physical_state, biases, traffic_light, note, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("daily_checkins").select("date, mood, energy, traffic_light").eq("user_id", user.id).order("date", { ascending: false }).limit(14),
       supabase.from("psychology_profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1),
       supabase.from("expert_session_logs").select("session_date, somatic_areas, somatic_intensity, flow_state, cognitive_distortions, defense_mechanisms, internal_dialogue").eq("user_id", user.id).order("session_date", { ascending: false }).limit(20),
       supabase.from("user_preferences").select("psychology_tier").eq("user_id", user.id).limit(1),
+      supabase.from("education_progress").select("course_slug, lesson_slug, completed_at").eq("user_id", user.id),
     ]);
 
     const tier = userPrefs?.[0]?.psychology_tier || "simple";
@@ -93,6 +95,9 @@ export async function POST(req: NextRequest) {
     if (trades.length > 0) {
       const correlations = calculateAllCorrelations(trades as any[]);
       psychologyContext += "\n" + buildCorrelationContext(correlations);
+    }
+    if (educationProgress && educationProgress.length > 0) {
+      psychologyContext += buildEducationContext(educationProgress);
     }
   } catch {
     // Non-critical

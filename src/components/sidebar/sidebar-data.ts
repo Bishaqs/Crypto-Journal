@@ -48,6 +48,7 @@ import {
   Newspaper,
   Fingerprint,
   Ghost,
+  GraduationCap,
 } from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -354,6 +355,16 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     showInAdvanced: true,
     requiredLevel: 15,
   },
+  {
+    key: "learn",
+    label: "Learn",
+    icon: GraduationCap,
+    directNav: true,
+    items: [{ href: "/dashboard/learn", label: "Learn", icon: GraduationCap }],
+    showInBeginner: true,
+    showInAdvanced: true,
+    unreleasedFeature: "education-platform",
+  },
 ];
 
 /* ────────────────────────────────────────────────────────────────── */
@@ -543,6 +554,9 @@ export function getCategoryForPath(pathname: string): string | null {
   // Compete
   const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard"];
   if (competePrefixes.some(p => pathname.startsWith(p))) return "compete";
+
+  // Learn
+  if (pathname.startsWith("/dashboard/learn")) return "learn";
 
   return null;
 }
