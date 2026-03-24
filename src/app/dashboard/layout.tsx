@@ -52,6 +52,7 @@ export default async function DashboardLayout({
 
   let tier: SubscriptionTier = "free";
   let isTrial = false;
+  let isBetaTester = false;
   let isReturningUser = false;
 
   if (user) {
@@ -59,7 +60,7 @@ export default async function DashboardLayout({
       // Use regular client — RLS allows SELECT on own rows, no admin client needed
       const { data: sub } = await supabase
         .from("user_subscriptions")
-        .select("tier, is_trial, is_owner, is_banned, created_at")
+        .select("tier, is_trial, is_owner, is_banned, is_beta_tester, created_at")
         .eq("user_id", user.id)
         .maybeSingle();
       if (sub) {
@@ -69,6 +70,7 @@ export default async function DashboardLayout({
         }
         tier = (sub.tier as SubscriptionTier) ?? "free";
         isTrial = sub.is_trial ?? false;
+        isBetaTester = sub.is_beta_tester ?? false;
         if (sub.is_owner) {
           isOwner = true;
         }
@@ -88,7 +90,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <SubscriptionProvider tier={tier} isOwner={isOwner} isTrial={isTrial}>
+    <SubscriptionProvider tier={tier} isOwner={isOwner} isTrial={isTrial} isBetaTester={isBetaTester}>
       <PsychologyTierProvider userId={user?.id}>
       <AchievementProvider userId={user?.id}>
         <LevelProvider userId={user?.id}>

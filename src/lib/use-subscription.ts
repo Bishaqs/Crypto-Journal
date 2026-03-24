@@ -1,6 +1,7 @@
 "use client";
 
 import { useSubscriptionContext } from "@/lib/subscription-context";
+import { UNRELEASED_FEATURES } from "@/lib/feature-flags";
 
 export type SubscriptionTier = "free" | "pro" | "max";
 
@@ -39,9 +40,12 @@ export function checkFeatureAccess(tier: SubscriptionTier, feature: string): boo
 }
 
 export function useSubscription() {
-  const { tier, isOwner, isTrial } = useSubscriptionContext();
+  const { tier, isOwner, isTrial, isBetaTester } = useSubscriptionContext();
 
   function hasAccess(feature: string): boolean {
+    if (UNRELEASED_FEATURES.has(feature)) {
+      return isOwner || isBetaTester;
+    }
     if (isOwner) return true;
     return checkFeatureAccess(tier, feature);
   }
@@ -49,6 +53,7 @@ export function useSubscription() {
   return {
     tier,
     isOwner,
+    isBetaTester,
     loading: false,
     hasAccess,
     refetch: () => {},

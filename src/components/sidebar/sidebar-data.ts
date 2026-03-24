@@ -59,6 +59,7 @@ export interface NavItem {
   label: string;
   icon: React.ComponentType<{ size?: number }>;
   tourId?: string;
+  unreleasedFeature?: string;
 }
 
 export interface SubSection {
@@ -77,6 +78,7 @@ export interface NavSection {
   simpleItems?: NavItem[];
   visibleInBeginner?: boolean;
   beginnerItems?: NavItem[];
+  unreleasedFeature?: string;
 }
 
 export interface RailCategory {
@@ -91,6 +93,7 @@ export interface RailCategory {
   showInAdvanced?: boolean;
   showAssetToggle?: boolean;
   requiredLevel?: number;
+  unreleasedFeature?: string;
 }
 
 /* ────────────────────────────────────────────────────────────────── */

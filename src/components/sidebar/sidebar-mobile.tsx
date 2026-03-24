@@ -29,6 +29,8 @@ import {
   getResolvedCoreItems,
 } from "./sidebar-data";
 import { useI18n } from "@/lib/i18n";
+import { isUnreleasedFeature } from "@/lib/feature-flags";
+import { useSubscriptionContext } from "@/lib/subscription-context";
 import type { AssetContext } from "@/lib/addons";
 import type { ViewMode } from "@/lib/theme-context";
 
@@ -63,6 +65,7 @@ export function SidebarMobile({
   const searchParams = useSearchParams();
   const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const { t } = useI18n();
+  const { isBetaTester } = useSubscriptionContext();
   const isBeginner = viewMode === "beginner";
   const isAdvanced = viewMode === "advanced";
   const isSectionOpen = (key: string) => sectionState[key] ?? true;
@@ -149,16 +152,25 @@ export function SidebarMobile({
     );
   }
 
+  function filterUnreleased(items: NavItem[]): NavItem[] {
+    return items.filter(item => {
+      if (!item.unreleasedFeature) return true;
+      if (!isUnreleasedFeature(item.unreleasedFeature)) return true;
+      return isOwner || isBetaTester;
+    });
+  }
+
   /* ── Render section ──────────────────────────── */
   function renderSection(section: NavSection) {
+    if (section.unreleasedFeature && isUnreleasedFeature(section.unreleasedFeature) && !isOwner && !isBetaTester) return null;
     if (isBeginner && !section.visibleInBeginner) return null;
     if (isAdvanced && !section.visibleInSimple) return null;
 
-    const items = isBeginner && section.beginnerItems
+    const items = filterUnreleased(isBeginner && section.beginnerItems
       ? getResolvedItems(section.beginnerItems)
       : isAdvanced && section.simpleItems
       ? getResolvedItems(section.simpleItems)
-      : getResolvedItems(section.items);
+      : getResolvedItems(section.items));
 
     if (items.length === 0 && !section.subSections?.length) return null;
 

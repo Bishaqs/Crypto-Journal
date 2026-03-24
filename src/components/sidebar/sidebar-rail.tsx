@@ -7,6 +7,8 @@ import { Settings, LogOut, HelpCircle, Shield, MessageSquareText, ArrowUpDown, L
 import { TraverseLogo } from "../traverse-logo";
 import { LevelBadge } from "./level-badge";
 import { RAIL_CATEGORIES, getCategoryForPath } from "./sidebar-data";
+import { isUnreleasedFeature } from "@/lib/feature-flags";
+import { useSubscriptionContext } from "@/lib/subscription-context";
 import { useI18n } from "@/lib/i18n";
 import { useHelpCenter } from "@/lib/help-center-context";
 import { useLevel } from "@/lib/xp/context";
@@ -28,6 +30,7 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
   const { t } = useI18n();
   const { state: helpState, openHelpCenter } = useHelpCenter();
   const { level } = useLevel();
+  const { isBetaTester } = useSubscriptionContext();
   const [lockedToast, setLockedToast] = useState<{ label: string; requiredLevel: number } | null>(null);
 
   // Check if level gating should be bypassed (expert mode, mode override, or experienced user bypass)
@@ -65,6 +68,8 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
       {/* Category icons */}
       <div className="flex-1 flex flex-col items-center gap-1 py-3">
         {RAIL_CATEGORIES.filter(cat => {
+          // Hide unreleased features from non-authorized users
+          if (cat.unreleasedFeature && isUnreleasedFeature(cat.unreleasedFeature) && !isOwner && !isBetaTester) return false;
           if (bypassLevelGating) return true;
           // Beginners: only show explicitly allowed categories (no lock icons)
           if (viewMode === "beginner") return cat.showInBeginner === true;
