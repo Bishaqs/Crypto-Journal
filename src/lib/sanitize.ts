@@ -51,6 +51,7 @@ export function formatAndSanitizeMarkdown(text: string): string {
   const processed = text.replace(tableRegex, (match) => "\n" + parseMarkdownTable(match) + "\n");
 
   const html = processed
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-xl my-3 max-w-full" />')
     .replace(/^### (.+)$/gm, "<h3>$1</h3>")
     .replace(/^## (.+)$/gm, "<h2>$1</h2>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")

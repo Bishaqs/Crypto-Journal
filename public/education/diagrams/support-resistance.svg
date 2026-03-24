@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" fill="none">
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .title { fill: #e2e8f0; font-size: 16px; font-weight: 700; }
+    .label { fill: #e2e8f0; font-size: 11px; font-weight: 600; }
+    .sublabel { fill: #94a3b8; font-size: 10px; }
+  </style>
+
+  <text x="300" y="28" text-anchor="middle" class="title">Support &amp; Resistance</text>
+
+  <!-- Price axis -->
+  <line x1="60" y1="50" x2="60" y2="340" stroke="#334155" stroke-width="1"/>
+  <text x="55" y="345" text-anchor="end" class="sublabel">Time →</text>
+
+  <!-- Resistance line -->
+  <line x1="60" y1="100" x2="560" y2="100" stroke="#ef4444" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="570" y="95" class="label" style="fill: #ef4444;">Resistance</text>
+  <text x="570" y="110" class="sublabel">Sellers defend this level</text>
+
+  <!-- Support line -->
+  <line x1="60" y1="280" x2="560" y2="280" stroke="#22c55e" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="570" y="275" class="label" style="fill: #22c55e;">Support</text>
+  <text x="570" y="290" class="sublabel">Buyers defend this level</text>
+
+  <!-- Price bouncing between support and resistance -->
+  <path d="M 80 190 L 120 280 L 160 120 L 200 270 L 240 110 L 280 275 L 320 105 L 360 270 L 400 115 L 440 280" stroke="#00b4d8" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+
+  <!-- Bounce arrows at support -->
+  <g transform="translate(120, 280)">
+    <path d="M 0 0 L -6 12 L 6 12 Z" fill="#22c55e"/>
+  </g>
+  <g transform="translate(200, 270)">
+    <path d="M 0 0 L -6 12 L 6 12 Z" fill="#22c55e"/>
+  </g>
+  <g transform="translate(280, 275)">
+    <path d="M 0 0 L -6 12 L 6 12 Z" fill="#22c55e"/>
+  </g>
+
+  <!-- Rejection arrows at resistance -->
+  <g transform="translate(160, 120)">
+    <path d="M 0 0 L -6 -12 L 6 -12 Z" fill="#ef4444"/>
+  </g>
+  <g transform="translate(240, 110)">
+    <path d="M 0 0 L -6 -12 L 6 -12 Z" fill="#ef4444"/>
+  </g>
+  <g transform="translate(320, 105)">
+    <path d="M 0 0 L -6 -12 L 6 -12 Z" fill="#ef4444"/>
+  </g>
+
+  <!-- Breakout -->
+  <path d="M 440 280 L 480 200 L 510 90 L 550 60" stroke="#00b4d8" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+  <circle cx="510" cy="90" r="12" fill="none" stroke="#facc15" stroke-width="2" stroke-dasharray="4 2"/>
+  <text x="525" y="75" class="label" style="fill: #facc15;">Breakout!</text>
+
+  <!-- Bottom labels -->
+  <text x="200" y="335" text-anchor="middle" class="sublabel">Price bounces between support &amp; resistance</text>
+  <text x="490" y="335" text-anchor="middle" class="sublabel">Until one level breaks</text>
+</svg>

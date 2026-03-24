@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 350" fill="none">
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .title { fill: #e2e8f0; font-size: 16px; font-weight: 700; }
+    .label { fill: #e2e8f0; font-size: 12px; font-weight: 600; }
+    .sublabel { fill: #94a3b8; font-size: 10px; }
+    .value { fill: #e2e8f0; font-size: 24px; font-weight: 700; }
+  </style>
+
+  <text x="300" y="28" text-anchor="middle" class="title">Risk-to-Reward Ratio</text>
+
+  <!-- Entry line -->
+  <line x1="80" y1="180" x2="520" y2="180" stroke="#00b4d8" stroke-width="2"/>
+  <circle cx="80" cy="180" r="6" fill="#00b4d8"/>
+  <text x="55" y="185" text-anchor="end" class="label" style="fill: #00b4d8;">Entry</text>
+
+  <!-- Stop loss (below) -->
+  <line x1="80" y1="260" x2="280" y2="260" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 3"/>
+  <rect x="80" y="180" width="200" height="80" rx="0" fill="#ef4444" opacity="0.06"/>
+  <text x="180" y="228" text-anchor="middle" class="value" style="fill: #ef4444; opacity: 0.4;">1R</text>
+  <text x="55" y="265" text-anchor="end" class="label" style="fill: #ef4444;">Stop</text>
+  <text x="55" y="280" text-anchor="end" class="sublabel">-$100</text>
+
+  <!-- Take profit (above) -->
+  <line x1="80" y1="60" x2="520" y2="60" stroke="#22c55e" stroke-width="2" stroke-dasharray="6 3"/>
+  <rect x="80" y="60" width="440" height="120" rx="0" fill="#22c55e" opacity="0.04"/>
+  <text x="300" y="135" text-anchor="middle" class="value" style="fill: #22c55e; opacity: 0.4;">3R</text>
+  <text x="55" y="65" text-anchor="end" class="label" style="fill: #22c55e;">Target</text>
+  <text x="55" y="80" text-anchor="end" class="sublabel">+$300</text>
+
+  <!-- R:R label -->
+  <rect x="380" y="225" width="140" height="45" rx="10" fill="#334155" opacity="0.5"/>
+  <text x="450" y="245" text-anchor="middle" class="label">Risk : Reward</text>
+  <text x="450" y="262" text-anchor="middle" class="value" style="font-size: 16px; fill: #00b4d8;">1 : 3</text>
+
+  <!-- Bottom explanation -->
+  <text x="300" y="310" text-anchor="middle" class="sublabel">At 1:3 R:R, you only need to win 25% of trades to break even.</text>
+  <text x="300" y="328" text-anchor="middle" class="sublabel">Risk $100 to potentially make $300 — the math works in your favor.</text>
+</svg>

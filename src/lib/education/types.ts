@@ -5,7 +5,8 @@ export type CourseCategory =
   | "risk-management"
   | "journaling"
   | "strategy"
-  | "mindset";
+  | "mindset"
+  | "fundamentals";
 
 export type CourseDifficulty = "beginner" | "intermediate" | "advanced";
 

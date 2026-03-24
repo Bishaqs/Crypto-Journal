@@ -11,6 +11,7 @@ import type { TradingArchetype } from "@/lib/psychology-scoring";
 
 const CATEGORIES: (CourseCategory | "all")[] = [
   "all",
+  "fundamentals",
   "psychology",
   "risk-management",
   "journaling",

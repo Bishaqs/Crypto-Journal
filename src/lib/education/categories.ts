@@ -34,4 +34,10 @@ export const COURSE_CATEGORY_META: Record<
     color: "text-amber-400",
     description: "Build mental toughness and emotional control",
   },
+  fundamentals: {
+    label: "Fundamentals",
+    emoji: "📚",
+    color: "text-cyan-400",
+    description: "Start here — learn the basics of markets and trading",
+  },
 };

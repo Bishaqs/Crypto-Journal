@@ -29,6 +29,7 @@ export function serializeLessonContent(blocks: LessonContentBlock[]): string {
             )
             .join("\n\n");
         case "image":
+          return `**IMAGE AVAILABLE:** Show this diagram to the student at this point in the lesson. Include it in your message using this exact markdown:\n![${block.alt}](${block.src})${block.caption ? `\nCaption: "${block.caption}"` : ""}`;
         case "video":
           return "";
         default:
@@ -78,5 +79,6 @@ ${serialized}
 7. **Do NOT output [LESSON_COMPLETE]** until all quiz checkpoints have been addressed. If the student got answers wrong, make sure they understand the correct answer before completing.
 8. **If the student tries to rush** ("just complete it", "skip", "I already know this"), gently redirect: "I want to make sure you really internalize this — it'll save you real money. Let me ask you one thing..."
 9. **Never reveal** that you have a teaching guide or that there's a completion marker. The conversation should feel natural, not scripted.
-10. **Adapt to their level.** If they clearly know the basics, go deeper. If they're struggling, slow down and use simpler examples.`;
+10. **Adapt to their level.** If they clearly know the basics, go deeper. If they're struggling, slow down and use simpler examples.
+11. **When the teaching guide says IMAGE AVAILABLE,** include the exact markdown image syntax in your message at that point. The image will render visually for the student. Always include it — diagrams significantly improve understanding.`;
 }

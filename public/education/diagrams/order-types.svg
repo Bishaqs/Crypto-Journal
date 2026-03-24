@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" fill="none">
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .title { fill: #e2e8f0; font-size: 16px; font-weight: 700; }
+    .order-name { fill: #e2e8f0; font-size: 13px; font-weight: 700; }
+    .desc { fill: #94a3b8; font-size: 10px; }
+    .tag { font-size: 9px; font-weight: 600; }
+  </style>
+
+  <text x="300" y="28" text-anchor="middle" class="title">Order Types at a Glance</text>
+
+  <!-- Market Order -->
+  <g transform="translate(30, 50)">
+    <rect x="0" y="0" width="260" height="80" rx="12" fill="#22c55e" opacity="0.08" stroke="#22c55e" stroke-width="1.5" opacity="0.3"/>
+    <text x="20" y="28" class="order-name">Market Order</text>
+    <rect x="180" y="14" width="60" height="18" rx="9" fill="#22c55e" opacity="0.15"/>
+    <text x="210" y="27" text-anchor="middle" class="tag" fill="#22c55e">INSTANT</text>
+    <text x="20" y="48" class="desc">Buy/sell immediately at current price.</text>
+    <text x="20" y="62" class="desc">Best for: Quick execution, liquid markets.</text>
+  </g>
+
+  <!-- Limit Order -->
+  <g transform="translate(310, 50)">
+    <rect x="0" y="0" width="260" height="80" rx="12" fill="#00b4d8" opacity="0.08" stroke="#00b4d8" stroke-width="1.5" opacity="0.3"/>
+    <text x="20" y="28" class="order-name">Limit Order</text>
+    <rect x="180" y="14" width="60" height="18" rx="9" fill="#00b4d8" opacity="0.15"/>
+    <text x="210" y="27" text-anchor="middle" class="tag" fill="#00b4d8">PATIENT</text>
+    <text x="20" y="48" class="desc">Buy/sell only at your specified price or better.</text>
+    <text x="20" y="62" class="desc">Best for: Getting a better entry, not chasing.</text>
+  </g>
+
+  <!-- Stop Loss -->
+  <g transform="translate(30, 150)">
+    <rect x="0" y="0" width="260" height="80" rx="12" fill="#ef4444" opacity="0.08" stroke="#ef4444" stroke-width="1.5" opacity="0.3"/>
+    <text x="20" y="28" class="order-name">Stop Loss</text>
+    <rect x="180" y="14" width="72" height="18" rx="9" fill="#ef4444" opacity="0.15"/>
+    <text x="216" y="27" text-anchor="middle" class="tag" fill="#ef4444">PROTECTIVE</text>
+    <text x="20" y="48" class="desc">Automatically sell if price drops to your level.</text>
+    <text x="20" y="62" class="desc">Best for: Limiting losses, protecting capital.</text>
+  </g>
+
+  <!-- Stop Limit -->
+  <g transform="translate(310, 150)">
+    <rect x="0" y="0" width="260" height="80" rx="12" fill="#f97316" opacity="0.08" stroke="#f97316" stroke-width="1.5" opacity="0.3"/>
+    <text x="20" y="28" class="order-name">Stop Limit</text>
+    <rect x="180" y="14" width="60" height="18" rx="9" fill="#f97316" opacity="0.15"/>
+    <text x="210" y="27" text-anchor="middle" class="tag" fill="#f97316">PRECISE</text>
+    <text x="20" y="48" class="desc">Stop triggers a limit order (not market).</text>
+    <text x="20" y="62" class="desc">Best for: Controlled exit, avoiding slippage.</text>
+  </g>
+
+  <!-- Trailing Stop -->
+  <g transform="translate(30, 250)">
+    <rect x="0" y="0" width="260" height="80" rx="12" fill="#a78bfa" opacity="0.08" stroke="#a78bfa" stroke-width="1.5" opacity="0.3"/>
+    <text x="20" y="28" class="order-name">Trailing Stop</text>
+    <rect x="180" y="14" width="60" height="18" rx="9" fill="#a78bfa" opacity="0.15"/>
+    <text x="210" y="27" text-anchor="middle" class="tag" fill="#a78bfa">DYNAMIC</text>
+    <text x="20" y="48" class="desc">Stop moves with price, locks in profits.</text>
+    <text x="20" y="62" class="desc">Best for: Riding trends, protecting gains.</text>
+  </g>
+
+  <!-- Take Profit -->
+  <g transform="translate(310, 250)">
+    <rect x="0" y="0" width="260" height="80" rx="12" fill="#facc15" opacity="0.08" stroke="#facc15" stroke-width="1.5" opacity="0.3"/>
+    <text x="20" y="28" class="order-name">Take Profit</text>
+    <rect x="180" y="14" width="54" height="18" rx="9" fill="#facc15" opacity="0.15"/>
+    <text x="207" y="27" text-anchor="middle" class="tag" fill="#facc15">TARGET</text>
+    <text x="20" y="48" class="desc">Automatically sell when price hits your target.</text>
+    <text x="20" y="62" class="desc">Best for: Locking in planned profits.</text>
+  </g>
+
+  <!-- Bottom tip -->
+  <rect x="30" y="355" width="540" height="50" rx="12" fill="#334155" opacity="0.3"/>
+  <text x="300" y="378" text-anchor="middle" class="desc" style="fill: #00b4d8;">Pro tip: Always pair your entry with a stop loss AND take profit.</text>
+  <text x="300" y="393" text-anchor="middle" class="desc">Plan your exit before you enter — this removes emotion from the equation.</text>
+</svg>

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" fill="none">
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .label { fill: #e2e8f0; font-size: 12px; font-weight: 600; }
+    .sublabel { fill: #94a3b8; font-size: 10px; }
+    .title { fill: #e2e8f0; font-size: 16px; font-weight: 700; }
+    .annotation { fill: #94a3b8; font-size: 9px; }
+  </style>
+
+  <text x="300" y="30" text-anchor="middle" class="title">Candlestick Anatomy</text>
+
+  <!-- Bullish candle -->
+  <g transform="translate(130, 50)">
+    <text x="50" y="0" text-anchor="middle" class="label" style="fill: #22c55e;">Bullish (Green)</text>
+    <text x="50" y="15" text-anchor="middle" class="sublabel">Price went UP</text>
+
+    <!-- Upper wick -->
+    <line x1="50" y1="35" x2="50" y2="90" stroke="#22c55e" stroke-width="2"/>
+    <!-- Body -->
+    <rect x="25" y="90" width="50" height="120" rx="3" fill="#22c55e" opacity="0.3" stroke="#22c55e" stroke-width="2"/>
+    <!-- Lower wick -->
+    <line x1="50" y1="210" x2="50" y2="280" stroke="#22c55e" stroke-width="2"/>
+
+    <!-- Labels -->
+    <line x1="100" y1="35" x2="80" y2="35" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="105" y="39" class="annotation">High</text>
+
+    <line x1="100" y1="90" x2="80" y2="90" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="105" y="94" class="annotation">Close ↑</text>
+
+    <line x1="100" y1="210" x2="80" y2="210" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="105" y="214" class="annotation">Open</text>
+
+    <line x1="100" y1="280" x2="80" y2="280" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="105" y="284" class="annotation">Low</text>
+
+    <!-- Wick labels -->
+    <text x="-5" y="65" text-anchor="end" class="annotation">Upper</text>
+    <text x="-5" y="75" text-anchor="end" class="annotation">Wick</text>
+    <text x="-5" y="150" text-anchor="end" class="annotation">Body</text>
+    <text x="-5" y="250" text-anchor="end" class="annotation">Lower</text>
+    <text x="-5" y="260" text-anchor="end" class="annotation">Wick</text>
+  </g>
+
+  <!-- Bearish candle -->
+  <g transform="translate(370, 50)">
+    <text x="50" y="0" text-anchor="middle" class="label" style="fill: #ef4444;">Bearish (Red)</text>
+    <text x="50" y="15" text-anchor="middle" class="sublabel">Price went DOWN</text>
+
+    <!-- Upper wick -->
+    <line x1="50" y1="35" x2="50" y2="90" stroke="#ef4444" stroke-width="2"/>
+    <!-- Body -->
+    <rect x="25" y="90" width="50" height="120" rx="3" fill="#ef4444" opacity="0.3" stroke="#ef4444" stroke-width="2"/>
+    <!-- Lower wick -->
+    <line x1="50" y1="210" x2="50" y2="280" stroke="#ef4444" stroke-width="2"/>
+
+    <!-- Labels -->
+    <line x1="100" y1="35" x2="80" y2="35" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="105" y="39" class="annotation">High</text>
+
+    <line x1="100" y1="90" x2="80" y2="90" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="105" y="94" class="annotation">Open</text>
+
+    <line x1="100" y1="210" x2="80" y2="210" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="105" y="214" class="annotation">Close ↓</text>
+
+    <line x1="100" y1="280" x2="80" y2="280" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="105" y="284" class="annotation">Low</text>
+  </g>
+
+  <!-- Bottom explanation -->
+  <text x="300" y="370" text-anchor="middle" class="sublabel">Each candle = one time period (1 minute, 1 hour, 1 day, etc.)</text>
+  <text x="300" y="385" text-anchor="middle" class="sublabel">Body = Open to Close | Wicks = High and Low of the period</text>
+</svg>
