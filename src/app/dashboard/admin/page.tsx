@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText, ShieldBan, Tag, Headphones, HelpCircle, Activity, BarChart3, Zap, Mail } from "lucide-react";
+import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText, ShieldBan, Tag, Headphones, HelpCircle, Activity, BarChart3, Zap, Mail, UserCheck } from "lucide-react";
 import { AdminInviteManager } from "@/components/admin/invite-codes-manager";
 import { EnhancedUsersTable, type EnrichedUser } from "@/components/admin/enhanced-users-table";
 import { AdminFeedbackManager, type FeedbackItem } from "@/components/admin/feedback-manager";
@@ -8,6 +8,7 @@ import { AdminDiscountManager } from "@/components/admin/discount-codes-manager"
 import { AdminSupportTicketsManager, type SupportTicketAdmin } from "@/components/admin/support-tickets-manager";
 import { AdminSubmittedQuestionsManager, type SubmittedQuestion } from "@/components/admin/submitted-questions-manager";
 import { AdminWaitlistManager, type WaitlistSignup, type EarlyAccessEmail } from "@/components/admin/waitlist-manager";
+import { AccessRequestsManager, type AccessRequest } from "@/components/admin/access-requests-manager";
 import { OnlineUsersCard } from "@/components/admin/online-users-card";
 import { AnalyticsOverview } from "@/components/admin/analytics-overview";
 
@@ -70,6 +71,7 @@ export default async function AdminPage() {
     totalTradesResult,
     waitlistResult,
     earlyAccessResult,
+    accessRequestsResult,
   ] = await Promise.all([
     // Existing: subscriptions (now including last_seen)
     admin
@@ -146,6 +148,12 @@ export default async function AdminPage() {
       .from("early_access_emails")
       .select("id, email, granted_by, note, created_at")
       .order("created_at", { ascending: false }),
+
+    // NEW: access requests
+    admin
+      .from("access_requests")
+      .select("id, user_id, email, status, deny_reason, reviewed_at, created_at")
+      .order("created_at", { ascending: false }),
   ]);
 
   // Handle errors
@@ -161,10 +169,12 @@ export default async function AdminPage() {
   if (tradeCountsResult.error) { console.error("[admin] trade counts:", tradeCountsResult.error.message); }
   if (waitlistResult.error) { console.error("[admin] waitlist:", waitlistResult.error.message); }
   if (earlyAccessResult.error) { console.error("[admin] early access:", earlyAccessResult.error.message); }
+  if (accessRequestsResult.error) { console.error("[admin] access requests:", accessRequestsResult.error.message); }
 
   const subs = subsResult.data ?? [];
   const waitlistSignups: WaitlistSignup[] = waitlistResult.data ?? [];
   const earlyAccessEmails: EarlyAccessEmail[] = earlyAccessResult.data ?? [];
+  const accessRequests: AccessRequest[] = (accessRequestsResult.data ?? []) as AccessRequest[];
   const inviteCodes: InviteCode[] = codesResult.data ?? [];
   const discountCodes: DiscountCode[] = discountResult.data ?? [];
 
@@ -277,6 +287,7 @@ export default async function AdminPage() {
     reviewed_at: q.reviewed_at,
   }));
   const pendingQuestions = submittedQuestions.filter((q) => q.status === "pending").length;
+  const pendingAccessRequests = accessRequests.filter((r) => r.status === "pending").length;
 
   // Banned users list
   const bannedUsers = allUsers
@@ -349,6 +360,7 @@ export default async function AdminPage() {
         <StatCard icon={MessageSquareText} label="Unread Feedback" value={unreadFeedback} />
         <StatCard icon={Headphones} label="Open Tickets" value={openTickets} />
         <StatCard icon={HelpCircle} label="Pending Questions" value={pendingQuestions} />
+        <StatCard icon={UserCheck} label="Access Requests" value={pendingAccessRequests} />
       </div>
 
       {/* Analytics Overview — charts */}
@@ -424,6 +436,22 @@ export default async function AdminPage() {
           </h2>
         </div>
         <AdminSubmittedQuestionsManager initialQuestions={submittedQuestions} />
+      </section>
+
+      {/* Access requests */}
+      <section className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="px-5 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <UserCheck size={18} className="text-accent" />
+            Access Requests
+            {pendingAccessRequests > 0 && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400">
+                {pendingAccessRequests} pending
+              </span>
+            )}
+          </h2>
+        </div>
+        <AccessRequestsManager initialRequests={accessRequests} />
       </section>
 
       {/* Waitlist signups */}

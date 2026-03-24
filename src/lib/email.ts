@@ -4,6 +4,7 @@ import { WelcomeEmail } from "@/emails/welcome";
 import { PasswordReset } from "@/emails/password-reset";
 import { WeeklyDigest, type WeeklyDigestProps } from "@/emails/weekly-digest";
 import { BanNotification } from "@/emails/ban-notification";
+import { AccessApproved } from "@/emails/access-approved";
 import { StreakRisk } from "@/emails/streak-risk";
 import { LevelUp } from "@/emails/level-up";
 import { AchievementUnlocked } from "@/emails/achievement-unlocked";
@@ -47,6 +48,15 @@ async function send(options: {
     console.error("[email] Send failed:", err);
     return false;
   }
+}
+
+export async function sendAccessApprovedEmail(to: string) {
+  return send({
+    to,
+    subject: "You're in! Your Traverse Journal access is ready",
+    react: AccessApproved(),
+    tags: [{ name: "category", value: "access" }],
+  });
 }
 
 export async function sendBanNotification(to: string, reason?: string) {
