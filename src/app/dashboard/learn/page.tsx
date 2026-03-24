@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { GraduationCap, Sparkles } from "lucide-react";
+import { useSubscription } from "@/lib/use-subscription";
 import { useEducation } from "@/lib/education/context";
 import { ALL_COURSES, type CourseCategory } from "@/lib/education";
 import { COURSE_CATEGORY_META } from "@/lib/education/categories";
@@ -19,6 +20,8 @@ const CATEGORIES: (CourseCategory | "all")[] = [
 
 export default function LearnPage() {
   const { getCourseProgress, loading } = useEducation();
+  const { hasAccess } = useSubscription();
+  const hasFullCatalog = hasAccess("education-full-catalog");
   const [selectedCategory, setSelectedCategory] = useState<
     CourseCategory | "all"
   >("all");
@@ -132,6 +135,7 @@ export default function LearnPage() {
                 !!userArchetype &&
                 course.recommendedFor.includes(userArchetype)
               }
+              locked={!hasFullCatalog && !course.freeTier}
             />
           ))}
         </div>

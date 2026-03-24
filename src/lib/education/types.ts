@@ -44,6 +44,7 @@ export type CourseDefinition = {
   totalXP: number;
   lessons: LessonDefinition[];
   published: boolean;
+  freeTier?: boolean;
 };
 
 export type LessonProgress = {

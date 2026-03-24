@@ -2,8 +2,9 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, Sparkles, CheckCircle2, ChevronRight } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Sparkles, CheckCircle2, ChevronRight, Lock, GraduationCap } from "lucide-react";
 import { useEducation } from "@/lib/education/context";
+import { useSubscription } from "@/lib/use-subscription";
 import { COURSE_MAP } from "@/lib/education";
 import { COURSE_CATEGORY_META } from "@/lib/education/categories";
 import { redirect } from "next/navigation";
@@ -15,9 +16,38 @@ export default function CourseOverviewPage({
 }) {
   const { courseSlug } = use(params);
   const { getCourseProgress, isLessonComplete, loading } = useEducation();
+  const { hasAccess } = useSubscription();
 
   const course = COURSE_MAP[courseSlug];
   if (!course) redirect("/dashboard/learn");
+
+  // Gate paid courses for free users
+  if (!course.freeTier && !hasAccess("education-full-catalog")) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
+          <Lock size={28} className="text-accent" />
+        </div>
+        <h2 className="text-lg font-bold text-foreground mb-2">Pro Course</h2>
+        <p className="text-sm text-muted mb-6">
+          <span className="font-semibold text-foreground">{course.title}</span> is available with a Pro or Max subscription. Upgrade to unlock all {Object.keys(COURSE_MAP).length} courses and interactive Nova-guided lessons.
+        </p>
+        <Link
+          href="/dashboard/settings?tab=subscription"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm hover:bg-accent/90 transition-all"
+        >
+          <GraduationCap size={16} />
+          Upgrade to Pro
+        </Link>
+        <Link
+          href="/dashboard/learn"
+          className="block mt-4 text-xs text-muted hover:text-accent transition-colors"
+        >
+          Back to courses
+        </Link>
+      </div>
+    );
+  }
 
   const progress = getCourseProgress(courseSlug);
   const categoryMeta = COURSE_CATEGORY_META[course.category];

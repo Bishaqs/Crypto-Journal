@@ -25,6 +25,8 @@ const FEATURE_TIERS: Record<string, SubscriptionTier[]> = {
   "phantom-trades": ["pro", "max"],
   "psychology-advanced": ["pro", "max"],
   "psychology-expert": ["max"],
+  "interactive-lessons": ["pro", "max"],
+  "education-full-catalog": ["pro", "max"],
 };
 
 export function clearSubscriptionCache() {

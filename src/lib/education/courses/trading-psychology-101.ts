@@ -15,6 +15,7 @@ export const TRADING_PSYCHOLOGY_101: CourseDefinition = {
   ],
   totalXP: 150,
   published: true,
+  freeTier: true,
   lessons: [
     {
       slug: "what-is-trading-psychology",
