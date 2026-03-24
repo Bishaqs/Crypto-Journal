@@ -72,6 +72,8 @@ export const AiChatSchema = z.object({
   apiKey: z.string().max(256).optional(),
   conversationId: z.string().uuid().optional(),
   experienceLevel: z.enum(["beginner", "intermediate", "advanced", "professional"]).optional(),
+  lessonCourseSlug: z.string().max(100).optional(),
+  lessonSlug: z.string().max(100).optional(),
 });
 
 // Trade summary request body (used by /api/ai/trade-summary)
@@ -85,6 +87,8 @@ export const TradeSummarySchema = z.object({
 // Conversation management schemas
 export const ConversationCreateSchema = z.object({
   title: z.string().max(100).optional(),
+  lessonCourseSlug: z.string().max(100).optional(),
+  lessonSlug: z.string().max(100).optional(),
 });
 
 export const ConversationUpdateSchema = z.object({

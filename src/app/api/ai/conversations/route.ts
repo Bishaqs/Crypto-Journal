@@ -37,10 +37,18 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const parsed = ConversationCreateSchema.safeParse(body);
   const title = parsed.success && parsed.data.title ? parsed.data.title : "New Chat";
+  const lessonCourseSlug = parsed.success ? parsed.data.lessonCourseSlug : undefined;
+  const lessonSlug = parsed.success ? parsed.data.lessonSlug : undefined;
+
+  const insertPayload: Record<string, unknown> = { user_id: user.id, title };
+  if (lessonCourseSlug && lessonSlug) {
+    insertPayload.lesson_course_slug = lessonCourseSlug;
+    insertPayload.lesson_slug = lessonSlug;
+  }
 
   const { data, error } = await supabase
     .from("ai_conversations")
-    .insert({ user_id: user.id, title })
+    .insert(insertPayload)
     .select("id, title, model, message_count, created_at, updated_at")
     .single();
 

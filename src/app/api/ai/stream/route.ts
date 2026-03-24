@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const msg = parsed.error.issues.map((e) => e.message).join(", ");
     return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { message, trades, notes, playbooks, context, history, customInstructions, provider: providerId, model: modelId, apiKey, conversationId, experienceLevel } = parsed.data;
+  const { message, trades, notes, playbooks, context, history, customInstructions, provider: providerId, model: modelId, apiKey, conversationId, experienceLevel, lessonCourseSlug, lessonSlug } = parsed.data;
 
   const provider = getProvider(providerId, apiKey);
   if (!provider.isConfigured(apiKey)) {
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       supabase.from("psychology_profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1),
       supabase.from("expert_session_logs").select("session_date, somatic_areas, somatic_intensity, flow_state, cognitive_distortions, defense_mechanisms, internal_dialogue").eq("user_id", user.id).order("session_date", { ascending: false }).limit(20),
       supabase.from("user_preferences").select("psychology_tier").eq("user_id", user.id).limit(1),
-      supabase.from("trade_emotion_logs").select("emotion, phase, note, price_at_log, created_at, trade_id").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
+      supabase.from("trade_emotion_logs").select("emotion, phase, note, price_at_log, started_at, ended_at, created_at, trade_id").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
     ]);
 
     const tier = userPrefs?.[0]?.psychology_tier || "simple";
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
 
     // Mid-trade emotion logs context
     if (recentEmotionLogs && recentEmotionLogs.length > 0) {
-      psychologyContext += buildEmotionLogContext(recentEmotionLogs as { emotion: string; phase: string; note: string | null; price_at_log: number | null; created_at: string; trade_id: string }[]);
+      psychologyContext += buildEmotionLogContext(recentEmotionLogs as { emotion: string; phase: string; note: string | null; price_at_log: number | null; started_at: string | null; ended_at: string | null; created_at: string; trade_id: string }[]);
     }
   } catch {
     // Non-critical — proceed without psychology context
@@ -193,8 +193,20 @@ export async function POST(req: NextRequest) {
   // Use server history if available, otherwise fall back to client-sent history
   const effectiveHistory = serverHistory.length > 0 ? serverHistory : (history || []);
 
-  // Build system prompt with optional custom instructions, memories, and psychology context
-  let systemPrompt = AI_CHAT_SYSTEM_PROMPT;
+  // Build system prompt — lesson mode uses lesson-specific prompt, regular mode uses default
+  let systemPrompt: string;
+  if (lessonCourseSlug && lessonSlug) {
+    const { COURSE_MAP } = await import("@/lib/education/courses");
+    const { buildLessonSystemPrompt } = await import("@/lib/education/lesson-prompt");
+    const course = COURSE_MAP[lessonCourseSlug];
+    const lesson = course?.lessons.find((l: { slug: string }) => l.slug === lessonSlug);
+    if (!course || !lesson) {
+      return NextResponse.json({ error: "Lesson not found" }, { status: 400 });
+    }
+    systemPrompt = buildLessonSystemPrompt(course, lesson);
+  } else {
+    systemPrompt = AI_CHAT_SYSTEM_PROMPT;
+  }
   if (memoryContext) {
     systemPrompt += memoryContext;
   }
