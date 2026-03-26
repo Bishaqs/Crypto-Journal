@@ -54,43 +54,17 @@ export async function GET(request: Request) {
           return bannedResponse;
         }
 
-        // Check early access: waitlist OR manually granted
+        // Check early access: only manually granted emails
         if (user.email) {
           const emailLower = user.email.toLowerCase();
-          let hasEarlyAccess = false;
 
-          const { data: waitlistEntry } = await adminClient
-            .from("waitlist_signups")
+          const { data: earlyAccess } = await adminClient
+            .from("early_access_emails")
             .select("id")
             .eq("email", emailLower)
             .maybeSingle();
 
-          if (waitlistEntry) {
-            hasEarlyAccess = true;
-            // Auto-grant Founding Member cosmetic
-            try {
-              await adminClient
-                .from("user_cosmetics")
-                .upsert(
-                  { user_id: user.id, cosmetic_id: "founding-member-frame", earned_at: new Date().toISOString() },
-                  { onConflict: "user_id,cosmetic_id", ignoreDuplicates: true },
-                );
-            } catch {
-              // Non-critical — cosmetic grant failure shouldn't block auth
-            }
-          } else {
-            const { data: earlyAccess } = await adminClient
-              .from("early_access_emails")
-              .select("id")
-              .eq("email", emailLower)
-              .maybeSingle();
-
-            if (earlyAccess) {
-              hasEarlyAccess = true;
-            }
-          }
-
-          if (hasEarlyAccess) {
+          if (earlyAccess) {
             response.cookies.set("stargate-early-access", emailLower, {
               path: "/",
               httpOnly: true,

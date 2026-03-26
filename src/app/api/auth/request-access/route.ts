@@ -51,17 +51,7 @@ export async function POST() {
 
   const email = user.email.toLowerCase();
 
-  // Check if user already has access
-  const { data: waitlist } = await supabase
-    .from("waitlist_signups")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
-
-  if (waitlist) {
-    return NextResponse.json({ status: "approved", message: "You already have access." });
-  }
-
+  // Check if user already has access (only early_access_emails grants access)
   const { data: earlyAccess } = await supabase
     .from("early_access_emails")
     .select("id")

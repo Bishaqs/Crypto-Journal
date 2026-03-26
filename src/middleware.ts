@@ -64,34 +64,24 @@ export async function middleware(request: NextRequest) {
   }
 
   // Early access gate: check if user is allowed to access protected routes
-  // Owner always gets through. Others need to be on waitlist or manually approved.
+  // Owner always gets through. Others need to be manually approved (early_access_emails).
   if (user && !isOwner && (pathname.startsWith("/dashboard") || pathname.startsWith("/simulator"))) {
     const hasAccess = request.cookies.get("stargate-early-access")?.value === user.email?.toLowerCase();
 
     if (!hasAccess) {
-      // Check DB: waitlist_signups OR early_access_emails
+      // Check DB: early_access_emails (manually granted access only)
       const email = user.email?.toLowerCase();
       let verified = false;
 
       if (email) {
-        const { data: waitlist } = await supabase
-          .from("waitlist_signups")
+        const { data: earlyAccess } = await supabase
+          .from("early_access_emails")
           .select("id")
           .eq("email", email)
           .maybeSingle();
 
-        if (waitlist) {
+        if (earlyAccess) {
           verified = true;
-        } else {
-          const { data: earlyAccess } = await supabase
-            .from("early_access_emails")
-            .select("id")
-            .eq("email", email)
-            .maybeSingle();
-
-          if (earlyAccess) {
-            verified = true;
-          }
         }
       }
 
