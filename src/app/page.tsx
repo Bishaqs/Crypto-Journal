@@ -45,73 +45,74 @@ export default function LandingPage() {
       delay: 0.6,
     });
 
-    // Parallax on the video background
-    gsap.to(".hero-video", {
-      yPercent: 30,
-      ease: "none",
-      scrollTrigger: {
-        trigger: ".hero-section",
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
-
-    // Social proof bar fade in
-    gsap.from(".social-proof-item", {
-      y: 20,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.1,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: ".social-proof-bar",
-        start: "top 90%",
-      },
-    });
-    
-    // Philosophy section parallax text
-    gsap.from(".philosophy-text", {
-      y: 100,
-      opacity: 0,
-      duration: 1.5,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: ".philosophy-section",
-        start: "top 75%",
-      },
-    });
-
-    // Features alternating reveal
-    const featureBlocks = gsap.utils.toArray<HTMLElement>(".feature-block");
-    featureBlocks.forEach((block, i) => {
-      gsap.from(block, {
-        x: i % 2 === 0 ? -50 : 50,
-        opacity: 0,
-        duration: 1.2,
-        ease: "power3.out",
+    // ScrollTrigger animations — desktop only (unreliable on mobile, causes black screen)
+    if (window.innerWidth >= 768) {
+      // Parallax on the video background
+      gsap.to(".hero-video", {
+        yPercent: 30,
+        ease: "none",
         scrollTrigger: {
-          trigger: block,
-          start: "top 80%",
+          trigger: ".hero-section",
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
         },
       });
-    });
 
-    // Protocol table tilt effect
-    gsap.from(".protocol-table-container", {
-      rotateX: 15,
-      y: 100,
-      opacity: 0,
-      duration: 1.5,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: ".protocol-section",
-        start: "top 75%",
-      },
-    });
+      // Social proof bar fade in
+      gsap.from(".social-proof-item", {
+        y: 20,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".social-proof-bar",
+          start: "top 90%",
+        },
+      });
 
-    // Add magnetic hover interactions to buttons (desktop only — no hover on touch)
-    if (window.innerWidth >= 768) {
+      // Philosophy section parallax text
+      gsap.from(".philosophy-text", {
+        y: 100,
+        opacity: 0,
+        duration: 1.5,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".philosophy-section",
+          start: "top 75%",
+        },
+      });
+
+      // Features alternating reveal
+      const featureBlocks = gsap.utils.toArray<HTMLElement>(".feature-block");
+      featureBlocks.forEach((block, i) => {
+        gsap.from(block, {
+          x: i % 2 === 0 ? -50 : 50,
+          opacity: 0,
+          duration: 1.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: block,
+            start: "top 80%",
+          },
+        });
+      });
+
+      // Protocol table tilt effect
+      gsap.from(".protocol-table-container", {
+        rotateX: 15,
+        y: 100,
+        opacity: 0,
+        duration: 1.5,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".protocol-section",
+          start: "top 75%",
+        },
+      });
+
+      // Magnetic hover interactions (desktop only)
       const magneticBtns = document.querySelectorAll(".magnetic-btn");
       magneticBtns.forEach((btn) => {
         const enter = () => gsap.to(btn, { scale: 1.03, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
