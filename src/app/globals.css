@@ -335,6 +335,18 @@ body {
   animation: portal-spin 20s linear infinite;
 }
 
+@media (max-width: 768px) {
+  .stargate-ring {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stargate-ring {
+    animation: none;
+  }
+}
+
 /* Onboarding portal glow pulse */
 @keyframes portal-glow-pulse {
 

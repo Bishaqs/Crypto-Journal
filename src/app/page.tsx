@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -19,9 +19,11 @@ if (typeof window !== "undefined") {
 export default function LandingPage() {
   const { setTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setTheme("obsidian");
+    setIsMobile(window.innerWidth < 768);
   }, [setTheme]);
 
   useGSAP(() => {
@@ -108,22 +110,21 @@ export default function LandingPage() {
       },
     });
 
-    // Add magnetic hover interactions to buttons
-    const magneticBtns = document.querySelectorAll(".magnetic-btn");
-    magneticBtns.forEach((btn) => {
-      // Use cubic-bezier as requested in DESIGN SYSTEM 1
-      const enter = () => gsap.to(btn, { scale: 1.03, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
-      const leave = () => gsap.to(btn, { scale: 1, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
-      const down = () => gsap.to(btn, { scale: 0.98, duration: 0.2, ease: "power2.out" });
-      const up = () => gsap.to(btn, { scale: 1.03, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
-      
-      btn.addEventListener("mouseenter", enter);
-      btn.addEventListener("mouseleave", leave);
-      btn.addEventListener("mousedown", down);
-      btn.addEventListener("mouseup", up);
-      
-      // Cleanup happens via useGSAP
-    });
+    // Add magnetic hover interactions to buttons (desktop only — no hover on touch)
+    if (window.innerWidth >= 768) {
+      const magneticBtns = document.querySelectorAll(".magnetic-btn");
+      magneticBtns.forEach((btn) => {
+        const enter = () => gsap.to(btn, { scale: 1.03, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
+        const leave = () => gsap.to(btn, { scale: 1, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
+        const down = () => gsap.to(btn, { scale: 0.98, duration: 0.2, ease: "power2.out" });
+        const up = () => gsap.to(btn, { scale: 1.03, duration: 0.4, ease: "cubic-bezier(0.32, 0.72, 0, 1)" });
+
+        btn.addEventListener("mouseenter", enter);
+        btn.addEventListener("mouseleave", leave);
+        btn.addEventListener("mousedown", down);
+        btn.addEventListener("mouseup", up);
+      });
+    }
 
   }, { scope: containerRef });
 
@@ -133,17 +134,15 @@ export default function LandingPage() {
       {/* --- NAVBAR --- */}
       <nav className="fixed top-0 left-0 right-0 z-50 py-6 px-4 md:px-12 flex items-center justify-between mix-blend-difference pointer-events-none">
         <Link href="/" className="flex items-center gap-3 group pointer-events-auto">
-          <div className="hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(103,232,249,0.5)] transition-all duration-300">
-            <TraverseLogo size={32} />
-          </div>
-          <span className="font-mono text-sm tracking-widest uppercase opacity-90 group-hover:opacity-100 transition-opacity">Traverse</span>
+          <TraverseLogo size={32} />
+          <span className="font-sans text-sm font-semibold tracking-[0.15em] uppercase opacity-90 group-hover:opacity-100 transition-opacity">Traverse</span>
         </Link>
         <div className="flex items-center gap-6 pointer-events-auto">
           <Link href="/login" className="hidden md:block text-sm font-medium hover:text-[#67e8f9] transition-colors duration-300">
             Sign In
           </Link>
-          <a href="#waitlist" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-bold flex items-center gap-2 hover:bg-[#67e8f9] transition-colors duration-300">
-            Early Access
+          <a href="#waitlist" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-semibold flex items-center gap-2 border border-white/10 hover:bg-[#67e8f9] transition-colors duration-300">
+            Start Free
           </a>
         </div>
       </nav>
@@ -154,17 +153,25 @@ export default function LandingPage() {
           {/* Video Background */}
           <div className="absolute inset-0 z-0 overflow-hidden">
             <div className="hero-video absolute inset-[-10%] w-[120%] h-[120%]">
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                className="w-full h-full object-cover scale-105" 
-                poster="/themes/nebula-bg.webp" 
-                onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).playbackRate = 0.6; }}
-              >
-                <source src="/hero-blackhole.mp4" type="video/mp4" />
-              </video>
+              {isMobile ? (
+                <img
+                  src="/themes/nebula-bg.webp"
+                  alt=""
+                  className="w-full h-full object-cover scale-105"
+                />
+              ) : (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover scale-105"
+                  poster="/themes/nebula-bg.webp"
+                  onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).playbackRate = 0.6; }}
+                >
+                  <source src="/hero-blackhole.mp4" type="video/mp4" />
+                </video>
+              )}
             </div>
             {/* Gradients for readability */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/30 to-transparent"></div>
@@ -175,24 +182,24 @@ export default function LandingPage() {
           <div className="relative z-10 max-w-[85ch] flex flex-col items-start gap-8">
             <div className="hero-text-line rounded-full px-3 py-1 bg-white/5 border border-white/10 backdrop-blur-md">
               <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#67e8f9]">
-                Trading Psychology Engine
+                AI Trading Psychology Coach
               </span>
             </div>
             
             <h1 className="text-5xl sm:text-6xl md:text-[5.5rem] lg:text-[6.5rem] leading-[0.9] tracking-tighter font-medium text-balance">
               <div className="hero-text-line">
-                <span className="block">See exactly which</span>
+                <span className="block">Turn emotional trading</span>
               </div>
               <div className="hero-text-line text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
-                <span className="block">emotions cost you money.</span>
+                <span className="block">into disciplined trading.</span>
               </div>
               <div className="hero-text-line">
-                <span className="block font-drama italic text-white/80">Then stop repeating them.</span>
+                <span className="block font-drama italic text-white/80">Your psychology is the edge.</span>
               </div>
             </h1>
 
             <p className="hero-text-line text-lg md:text-xl text-white/70 leading-relaxed max-w-[50ch] font-light">
-              Log any trade in 30 seconds. Traverse tracks your emotional state alongside every entry and shows you the behavioral patterns that are bleeding your account.
+              Still revenge trading after a loss? Still overtrading on green days? The problem isn't your strategy — it's your psychology. Traverse tracks your emotional patterns and coaches you to break them.
             </p>
 
             <div className="hero-cta flex flex-col sm:flex-row items-start sm:items-center gap-6 mt-4">
@@ -201,7 +208,7 @@ export default function LandingPage() {
                 className="magnetic-btn group relative overflow-hidden rounded-full bg-[#f4f4f5] text-[#0a0a0c] pl-8 pr-4 py-3 font-medium flex items-center gap-6 transition-all"
               >
                 <div className="absolute inset-0 bg-[#67e8f9] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-full"></div>
-                <span className="relative z-10">Join the Waitlist</span>
+                <span className="relative z-10">Start Free — Discover Your Psychology</span>
                 <div className="relative z-10 bg-[#0a0a0c]/10 rounded-full w-10 h-10 flex items-center justify-center group-hover:bg-[#0a0a0c]/20 transition-colors">
                   <ArrowRight size={18} />
                 </div>
@@ -221,10 +228,10 @@ export default function LandingPage() {
         <section className="social-proof-bar relative z-20 border-y border-white/5 bg-[#080c14] py-8 md:py-12 overflow-hidden">
           <div className="flex flex-wrap md:flex-nowrap justify-between items-center gap-8 md:gap-4 px-4 md:px-24">
             {[
+              { label: "8 Archetypes", desc: "discover yours in 2 minutes" },
+              { label: "AI Coach", desc: "personalized to your profile" },
               { label: "P&L + Psychology", desc: "connected in every trade" },
-              { label: "30 sec", desc: "to log a trade" },
-              { label: "Data-driven", desc: "pattern detection" },
-              { label: "Automatic", desc: "patterns detected for you" }
+              { label: "30 sec", desc: "to log a trade" }
             ].map((item, i) => (
               <div key={i} className="social-proof-item flex flex-col gap-1.5 w-[45%] md:w-auto">
                 <span className="font-mono text-[#67e8f9] text-lg md:text-xl font-medium tracking-tight">{item.label}</span>
@@ -544,7 +551,7 @@ export default function LandingPage() {
           <div className="flex flex-col gap-8 max-w-[320px]">
              <div className="flex items-center gap-3">
                <TraverseLogo size={28} />
-               <span className="font-mono text-sm tracking-widest uppercase text-white font-semibold">Traverse</span>
+               <span className="font-sans text-sm font-semibold tracking-[0.15em] uppercase text-white">Traverse</span>
              </div>
              <p className="text-white/40 text-sm md:text-base leading-relaxed">
                The trading journal that connects your psychology to your P&L.
