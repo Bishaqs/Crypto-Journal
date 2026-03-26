@@ -38,9 +38,9 @@ export function WaitlistCTA() {
       .catch(() => setRemaining(2000));
   }, []);
 
-  // GSAP staggered reveal
+  // GSAP staggered reveal — desktop only (ScrollTrigger unreliable on mobile)
   useGSAP(() => {
-    if (!sectionRef.current) return;
+    if (!sectionRef.current || window.innerWidth < 768) return;
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: { trigger: sectionRef.current, start: "top 80%" },
@@ -53,10 +53,10 @@ export function WaitlistCTA() {
     return () => ctx.revert();
   }, []);
 
-  // Magnetic button effect
+  // Magnetic button effect — desktop only
   useGSAP(() => {
     const btn = btnRef.current;
-    if (!btn || status === "loading") return;
+    if (!btn || status === "loading" || window.innerWidth < 768) return;
     const enter = () => gsap.to(btn, { scale: 1.03, duration: 0.3, ease: "power2.out" });
     const leave = () => gsap.to(btn, { scale: 1, duration: 0.3, ease: "power2.out" });
     btn.addEventListener("mouseenter", enter);
@@ -112,8 +112,8 @@ export function WaitlistCTA() {
       id="waitlist"
       className="relative min-h-screen py-32 flex items-center justify-center bg-[#0a0a0c] text-white overflow-hidden"
     >
-      {/* Noise overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.05]">
+      {/* Noise overlay — hidden on mobile (feTurbulence is GPU-intensive) */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.05] hidden md:block">
         <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
           <filter id="noiseFilter">
             <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />

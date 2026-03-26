@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TiltCard } from "./tilt-card";
 import { RealisticBlackHole } from "@/components/realistic-black-hole";
 
@@ -108,7 +108,18 @@ const THEME_OPTIONS: ThemeOption[] = [
   },
 ];
 
-function ThemeBackground({ theme }: { theme: ThemeOption }) {
+function ThemeBackground({ theme, isMobile }: { theme: ThemeOption; isMobile: boolean }) {
+  // On mobile, skip all heavy particle/animation backgrounds — just show solid color
+  if (isMobile) {
+    return (
+      <div className="absolute inset-0 overflow-hidden rounded-t-xl" style={{ background: theme.bg }}>
+        <div className="absolute inset-0" style={{
+          background: `radial-gradient(circle at 50% 50%, ${theme.accentGlow}, transparent 70%)`,
+        }} />
+      </div>
+    );
+  }
+
   if (theme.id === "solara") {
     return (
       <div className="absolute inset-0 overflow-hidden rounded-t-xl">
@@ -453,6 +464,11 @@ function MockDashboard({ theme }: { theme: ThemeOption }) {
 
 export function ThemeShowcase() {
   const [active, setActive] = useState(2); // Default to Nebula
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
 
   const current = THEME_OPTIONS[active];
 
@@ -500,7 +516,7 @@ export function ThemeShowcase() {
             boxShadow: `0 2px 12px rgba(0,0,0,0.3), 0 0 60px ${current.accentGlow}`,
           }}
         >
-          <ThemeBackground theme={current} />
+          <ThemeBackground theme={current} isMobile={isMobile} />
           <MockDashboard theme={current} />
         </div>
       </TiltCard>
