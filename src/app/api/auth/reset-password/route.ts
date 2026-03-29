@@ -6,9 +6,24 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
+const ALLOWED_REDIRECT_HOSTS = ["traversejournal.com", "www.traversejournal.com"];
+if (process.env.NODE_ENV === "development") {
+  ALLOWED_REDIRECT_HOSTS.push("localhost");
+}
+
 const ResetSchema = z.object({
   email: z.string().email(),
-  redirectTo: z.string().url(),
+  redirectTo: z.string().url().refine(
+    (url) => {
+      try {
+        const hostname = new URL(url).hostname;
+        return ALLOWED_REDIRECT_HOSTS.some((h) => hostname === h || hostname.endsWith(`.${h}`));
+      } catch {
+        return false;
+      }
+    },
+    "Redirect URL must point to traversejournal.com",
+  ),
 });
 
 export async function POST(request: Request) {

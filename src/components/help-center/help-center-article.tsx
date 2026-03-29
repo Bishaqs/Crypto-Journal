@@ -1,6 +1,7 @@
 "use client";
 
 import { FAQ_MAP, FAQ_CATEGORIES } from "@/lib/help-content";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useHelpCenter } from "@/lib/help-center-context";
 import { ChevronRight } from "lucide-react";
 
@@ -45,7 +46,7 @@ export function HelpCenterArticle({ articleId }: { articleId: string }) {
       {/* Answer */}
       <div
         className={`text-sm text-muted leading-relaxed ${HTML_CLASSES}`}
-        dangerouslySetInnerHTML={{ __html: entry.answer }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(entry.answer) }}
       />
 
       {/* Related Articles */}

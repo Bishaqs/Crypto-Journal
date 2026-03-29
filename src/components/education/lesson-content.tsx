@@ -10,6 +10,7 @@ import {
   Play,
 } from "lucide-react";
 import type { LessonContentBlock, LessonQuizQuestion } from "@/lib/education";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 export function LessonContent({ blocks }: { blocks: LessonContentBlock[] }) {
   return (
@@ -64,7 +65,7 @@ function TextBlock({ content }: { content: string }) {
     <div
       className="text-sm text-muted leading-relaxed prose-sm"
       dangerouslySetInnerHTML={{
-        __html: `<p class="text-sm text-muted leading-relaxed mb-3">${html}</p>`,
+        __html: sanitizeHtml(`<p class="text-sm text-muted leading-relaxed mb-3">${html}</p>`),
       }}
     />
   );
@@ -121,7 +122,7 @@ function CalloutBlock({
         </span>
         <p
           className="text-sm text-muted leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: html }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
         />
       </div>
     </div>
@@ -137,10 +138,14 @@ function ImageBlock({
   alt: string;
   caption?: string;
 }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) return null;
+
   return (
     <figure className="rounded-xl overflow-hidden border border-border/50">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="w-full" />
+      <img src={src} alt={alt} className="w-full" onError={() => setFailed(true)} />
       {caption && (
         <figcaption className="text-xs text-muted text-center py-2 px-4 bg-surface">
           {caption}
