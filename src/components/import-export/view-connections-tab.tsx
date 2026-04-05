@@ -122,6 +122,11 @@ export function ViewConnectionsTab() {
           const apiErrors: string[] = data.api_errors ?? [];
           if (totalImported > 0) {
             result = { status: "success", message: `${totalImported} trade${totalImported !== 1 ? "s" : ""} imported.${lastDiag}`, trades_imported: totalImported };
+            // Dispatch event for post-sync pattern analysis
+            try {
+              const { dispatchTradesSyncedEvent } = await import("@/lib/post-sync-analysis");
+              dispatchTradesSyncedEvent(totalImported);
+            } catch { /* post-sync analysis module may not exist yet */ }
           } else if (apiErrors.length > 0) {
             result = { status: "error", message: `${apiErrors[0]}${lastDiag}` };
           } else {

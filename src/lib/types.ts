@@ -919,6 +919,16 @@ export const LOT_SIZES: Record<ForexLotType, number> = {
   micro: 1000,
 };
 
+// ─── Playbook Stats ─────────────────────────────────────────────────────────
+
+export type SetupStats = {
+  tradeCount: number;
+  winRate: number;
+  totalPnl: number;
+  avgPnl: number;
+  avgProcess: number;
+};
+
 // ─── Phantom Trades (Missed Opportunity Tracker) ─────────────────────────────
 
 export type PhantomTradeStatus = "pending" | "active" | "resolved" | "cancelled";
@@ -957,4 +967,40 @@ export type PhantomTrade = {
   playbook_id: string | null;
   created_at: string;
   updated_at: string;
+};
+
+// ─── Trading Rules Engine ──────────────────────────────────────
+
+export type TradingRuleType =
+  | "max_trades_per_day"
+  | "stop_after_consecutive_losses"
+  | "min_readiness_score"
+  | "max_loss_per_day"
+  | "no_trading_after_time"
+  | "no_trading_before_time"
+  | "cooldown_after_loss_minutes"
+  | "custom";
+
+export type TradingRule = {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  rule_type: TradingRuleType;
+  parameters: Record<string, number | string>;
+  active: boolean;
+  suggested_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RuleViolation = {
+  id: string;
+  user_id: string;
+  rule_id: string;
+  trade_id: string | null;
+  violation_date: string;
+  pnl_impact: number | null;
+  details: string | null;
+  created_at: string;
 };

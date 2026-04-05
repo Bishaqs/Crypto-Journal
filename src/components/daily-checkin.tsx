@@ -89,7 +89,11 @@ export function DailyCheckin({ embedded = false }: { embedded?: boolean } = {}) 
       if (!sessionDone) setShowSessionCheckin(true);
     } else {
       const dismissed = localStorage.getItem(`checkin-dismissed-${today}`);
-      if (!dismissed) setShow(true);
+      // Only auto-popup between 6 AM and 12 PM — outside these hours,
+      // the readiness score widget handles check-in inline.
+      const hour = new Date().getHours();
+      const inAutoPopupWindow = hour >= 6 && hour < 12;
+      if (!dismissed && inAutoPopupWindow) setShow(true);
     }
   }, [supabase, getToday]);
 

@@ -8,6 +8,7 @@ import {
   FAQ_MAP,
   scoreFaq,
 } from "@/lib/help-content";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useGuide } from "./guide-context";
 import { useHelpCenter } from "@/lib/help-center-context";
 
@@ -217,7 +218,7 @@ export function GuideHelp() {
                       <div className="bg-surface border border-border/50 rounded-2xl rounded-tl-md px-3 py-2 max-w-[85%] text-xs text-muted leading-relaxed">
                         <div
                           className={HTML_CLASSES}
-                          dangerouslySetInnerHTML={{ __html: msg.content }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
                         />
                         {msg.relatedIds && msg.relatedIds.length > 0 && (
                           <div className="mt-2 pt-2 border-t border-border/20 flex flex-wrap gap-1">

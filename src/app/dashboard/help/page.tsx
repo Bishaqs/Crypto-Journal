@@ -12,6 +12,7 @@ import {
   type FaqCategory,
   type FaqEntry,
 } from "@/lib/help-content";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 type HelpMessage = {
   role: "user" | "assistant";
@@ -52,7 +53,7 @@ function ChatBubble({ message, onRelatedClick }: { message: HelpMessage; onRelat
         </div>
         <div
           className={HTML_CLASSES}
-          dangerouslySetInnerHTML={{ __html: message.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(message.content) }}
         />
         {message.relatedIds && message.relatedIds.length > 0 && (
           <div className="mt-4 pt-3 border-t border-border/20">
@@ -381,7 +382,7 @@ export default function HelpPage() {
                     <div className="px-5 pb-5 pt-0 border-t border-border/30">
                       <div
                         className={`text-sm text-muted leading-relaxed mt-4 ${HTML_CLASSES}`}
-                        dangerouslySetInnerHTML={{ __html: entry.answer }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(entry.answer) }}
                       />
 
                       {entry.relatedIds.length > 0 && (

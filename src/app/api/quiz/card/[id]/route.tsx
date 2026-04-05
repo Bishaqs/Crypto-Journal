@@ -5,6 +5,9 @@ import { ARCHETYPES, type TradingArchetype } from "@/lib/psychology-scoring";
 
 export const runtime = "edge";
 
+// PUBLIC ENDPOINT (intentional) — generates OG social sharing image for quiz results.
+// No auth required: users share their card URL on social media. Only exposes
+// archetype name, tagline, top strength, and top blind spot (designed for sharing).
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
