@@ -33,13 +33,16 @@ import { CSVImportModal } from "@/components/csv-import-modal";
 import { GettingStartedCard } from "@/components/getting-started";
 import { DEMO_TRADES } from "@/lib/demo-data";
 import { PsychologyProfileWizard } from "@/components/psychology-profile-wizard";
+import { ARCHETYPES, type TradingArchetype } from "@/lib/psychology-scoring";
 import { WeeklySummaryCard } from "@/components/dashboard/weekly-summary-card";
 import { ProactiveInsightBar } from "@/components/dashboard/proactive-insight-bar";
+import { ReadinessScoreWidget } from "@/components/dashboard/readiness-score-widget";
 import { PostTradePrompt } from "@/components/post-trade-prompt";
 import { TradeUsageCounter } from "@/components/dashboard/trade-usage-counter";
 import { LowContrastWarning } from "@/components/low-contrast-warning";
 import { PsychologyProfileBanner } from "@/components/psychology-profile-banner";
 import { DeleteTradeConfirmation } from "@/components/delete-trade-confirmation";
+const PostSyncAlertBanner = dynamic(() => import("@/components/dashboard/post-sync-alert").then(m => ({ default: m.PostSyncAlertBanner })));
 
 // Lazy-load heavy below-fold components (Recharts, AI, News)
 const EquityCurve = dynamic(() => import("@/components/dashboard/equity-curve").then(m => ({ default: m.EquityCurve })));
@@ -51,6 +54,7 @@ const NewsWidget = dynamic(() => import("@/components/news/news-widget").then(m 
 import { useI18n } from "@/lib/i18n";
 import { useCosmetics } from "@/lib/cosmetics";
 import type { CosmeticRarity, UnlockCondition } from "@/lib/cosmetics/types";
+import { usePlaybookStats } from "@/lib/use-playbook-stats";
 
 export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -69,8 +73,14 @@ export default function DashboardPage() {
   const [skipEmptyState, setSkipEmptyState] = useState(() =>
     typeof window !== "undefined" && localStorage.getItem("stargate-skip-empty-state") === "true"
   );
+  const [onboardingArchetype] = useState<TradingArchetype | null>(() => {
+    if (typeof window === "undefined") return null;
+    const stored = localStorage.getItem("stargate-trading-archetype");
+    return stored && stored in ARCHETYPES ? (stored as TradingArchetype) : null;
+  });
   const { filterTrades } = useDateRange();
   const { filterByAccount } = useAccount();
+  const { playbookStats, playbooks: pbList } = usePlaybookStats();
   const { viewMode, setViewModeTo } = useTheme();
   const { t } = useI18n();
   const { equipped, definitions, getDefinition } = useCosmetics();
@@ -212,11 +222,56 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Psychology Profile Summary (from onboarding) */}
+          {onboardingArchetype && (
+            <div className="glass rounded-2xl border border-border/50 p-5 relative overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-[60px] pointer-events-none" />
+              <div className="relative z-10">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-accent mb-2">Your Trading Psychology</p>
+                <p className="text-lg font-semibold text-foreground mb-1">{ARCHETYPES[onboardingArchetype].name}</p>
+                <p className="text-xs text-muted leading-relaxed mb-3">{ARCHETYPES[onboardingArchetype].description.slice(0, 150)}...</p>
+                <div className="rounded-lg border border-accent/15 bg-accent/5 p-2.5 mb-3">
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-accent/80 mb-1">What Nova will watch for</p>
+                  <ul className="space-y-0.5">
+                    {ARCHETYPES[onboardingArchetype].blindSpots.slice(0, 2).map((spot, i) => (
+                      <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
+                        <span className="text-accent text-[10px] mt-0.5">&#x2022;</span>{spot}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <Link href="/dashboard/insights" className="text-xs text-accent hover:underline">View full profile &rarr;</Link>
+              </div>
+            </div>
+          )}
+
           <GettingStartedCard
             onLogTrade={() => { setEditTrade(null); viewMode === "beginner" ? setShowQuickForm(true) : setShowForm(true); }}
             onImport={() => setShowImport(true)}
             onPsychology={() => setShowPsychWizard(true)}
           />
+
+          {/* Milestone tracker */}
+          <div className="glass rounded-2xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted/60 mb-3">What to expect</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center">
+                <p className="text-lg font-semibold text-foreground">5</p>
+                <p className="text-[10px] text-muted">trades</p>
+                <p className="text-[10px] text-accent/70 mt-1">Emotion-profit correlation</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-foreground">10</p>
+                <p className="text-[10px] text-muted">trades</p>
+                <p className="text-[10px] text-accent/70 mt-1">Full behavioral analysis</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-foreground">20</p>
+                <p className="text-[10px] text-muted">trades</p>
+                <p className="text-[10px] text-accent/70 mt-1">Personalized weekly reports</p>
+              </div>
+            </div>
+          </div>
 
           {/* How it works */}
           <div className="glass rounded-2xl border border-border/50 p-8 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -277,7 +332,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {!usingDemo && viewMode !== "beginner" && <ProactiveInsightBar trades={filteredTrades} tiltSignals={tiltSignals} />}
+      {!usingDemo && viewMode !== "beginner" && <PostSyncAlertBanner trades={filteredTrades} />}
+      {!usingDemo && viewMode !== "beginner" && <ReadinessScoreWidget trades={filteredTrades} tiltSignals={tiltSignals} />}
 
       {/* Welcome greeting */}
       <div className="relative glass rounded-2xl border border-border/50 p-4 overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -553,6 +609,8 @@ export default function DashboardPage() {
                         setShowForm(true);
                       }
                 }
+                playbookStats={playbookStats}
+                playbooks={pbList}
               />
             </div>
             <div>
@@ -642,6 +700,8 @@ export default function DashboardPage() {
                         setShowForm(true);
                       }
                 }
+                playbookStats={playbookStats}
+                playbooks={pbList}
               />
             </div>
             <div className="space-y-6">

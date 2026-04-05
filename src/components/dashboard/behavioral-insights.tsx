@@ -25,20 +25,25 @@ import {
   TrendingDown,
   AlertCircle,
   Lightbulb,
+  ChevronRight,
 } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "@/lib/theme-context";
 import { getChartColors } from "@/lib/chart-colors";
+import { getInsightActions, type InsightAction } from "@/lib/insight-actions";
 
 function InsightCard({
   label,
   description,
   value,
   sentiment,
+  actions,
 }: {
   label: string;
   description: string;
   value: string;
   sentiment: "positive" | "negative" | "neutral";
+  actions: InsightAction[];
 }) {
   const colors = {
     positive: { border: "border-win/20", bg: "bg-win/5", text: "text-win", icon: TrendingUp },
@@ -61,6 +66,20 @@ function InsightCard({
             </span>
           </div>
           <p className="text-[11px] text-muted leading-relaxed">{description}</p>
+          {actions.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2.5">
+              {actions.map((action) => (
+                <Link
+                  key={action.href + action.label}
+                  href={action.href}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background/60 border border-border/50 text-[10px] font-medium text-foreground/70 hover:text-accent hover:border-accent/30 transition-all"
+                >
+                  {action.label}
+                  <ChevronRight size={8} />
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
         <span className={`text-sm font-bold ${c.text} whitespace-nowrap`}>
           {value}
@@ -100,7 +119,7 @@ export function BehavioralInsights({ trades }: { trades: Trade[] }) {
       {insights.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {insights.map((insight, i) => (
-            <InsightCard key={i} {...insight} />
+            <InsightCard key={i} {...insight} actions={getInsightActions(insight)} />
           ))}
         </div>
       )}
