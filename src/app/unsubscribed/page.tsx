@@ -10,8 +10,16 @@ export default function UnsubscribedPage() {
       <div className="text-center space-y-4 max-w-md">
         <h1 className="text-2xl font-bold">You&apos;ve been unsubscribed</h1>
         <p className="text-gray-400 text-sm leading-relaxed">
-          You won&apos;t receive any more emails from this series. If this was a
-          mistake, just retake the quiz and we&apos;ll restart.
+          You won&apos;t receive any more marketing emails from us. Your
+          waitlist position and any discounts you&apos;ve earned are still
+          safe — nothing else has changed.
+        </p>
+        <p className="text-gray-500 text-xs leading-relaxed">
+          If this was a mistake, reach out to{" "}
+          <a href="mailto:support@traversejournal.com" className="text-cyan-400 hover:underline">
+            support@traversejournal.com
+          </a>{" "}
+          and we&apos;ll re-enable your emails.
         </p>
         <Link
           href="https://traversejournal.com"

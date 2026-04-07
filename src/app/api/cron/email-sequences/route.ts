@@ -71,7 +71,7 @@ export async function GET(req: Request) {
 
         const { data: signup } = await supabase
           .from("waitlist_signups")
-          .select("access_token, position, tier")
+          .select("access_token, position, tier, unsubscribe_token")
           .eq("id", email.waitlist_signup_id)
           .single();
 
@@ -89,7 +89,7 @@ export async function GET(req: Request) {
           trailblazer: "Trailblazer",
         };
 
-        const unsubscribeUrl = `https://traversejournal.com/api/email/unsubscribe?email=${encodeURIComponent(email.email)}`;
+        const unsubscribeUrl = `https://traversejournal.com/api/email/unsubscribe?token=${signup.unsubscribe_token}`;
         success = await sendQuizInvitation(
           email.email,
           signup.access_token,
