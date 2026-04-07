@@ -193,8 +193,8 @@ export function WaitlistCTA() {
               <div className="flex items-center gap-3 text-white">
                 <CheckCircle2 className="w-5 h-5 text-[#67e8f9] flex-shrink-0" />
                 <span className="font-sans">
-                  Spot Secured. You are <strong className="text-[#67e8f9]">#{position}</strong>{tierName ? ` — ${tierName}` : ""}.
-                  <span className="block sm:inline sm:ml-2 text-white/60 text-sm">Check your email for your link.</span>
+                  Almost there! Check your email and <strong className="text-[#67e8f9]">click the confirmation link within 48 hours</strong> to secure spot #{position}{tierName ? ` — ${tierName}` : ""}.
+                  <span className="block sm:inline sm:ml-2 text-white/60 text-sm">Don&apos;t forget to check spam.</span>
                 </span>
               </div>
             </div>
