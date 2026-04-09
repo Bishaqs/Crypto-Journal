@@ -10,6 +10,7 @@ import { TraverseLogo } from "@/components/traverse-logo";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { ThemeShowcase } from "@/components/landing/theme-showcase";
 import { WaitlistCTA } from "@/components/landing/waitlist-cta";
+import { ScarcityBanner } from "@/components/scarcity-banner";
 import { useTheme } from "@/lib/theme-context";
 
 if (typeof window !== "undefined") {
@@ -127,11 +128,17 @@ export default function LandingPage() {
       });
     }
 
+    // Signal that GSAP is active — disables CSS fallback animations
+    containerRef.current?.setAttribute("data-gsap-hero", "");
+
   }, { scope: containerRef });
 
   return (
     <div ref={containerRef} className="bg-[#0a0a0c] text-[#f4f4f5] font-sans selection:bg-[#67e8f9]/30 selection:text-[#67e8f9] overflow-x-hidden">
-      
+
+      {/* --- SCARCITY BANNER --- */}
+      <ScarcityBanner />
+
       {/* --- NAVBAR --- */}
       <nav className="fixed top-0 left-0 right-0 z-50 py-6 px-4 md:px-12 flex items-center justify-between mix-blend-difference pointer-events-none">
         <Link href="/" className="flex items-center gap-3 group pointer-events-auto">
@@ -139,11 +146,8 @@ export default function LandingPage() {
           <span className="font-sans text-sm font-semibold tracking-[0.15em] uppercase opacity-90 group-hover:opacity-100 transition-opacity">Traverse</span>
         </Link>
         <div className="flex items-center gap-6 pointer-events-auto">
-          <Link href="/login" className="hidden md:block text-sm font-medium hover:text-[#67e8f9] transition-colors duration-300">
-            Sign In
-          </Link>
-          <a href="#waitlist" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-semibold flex items-center gap-2 border border-white/10 hover:bg-[#67e8f9] transition-colors duration-300">
-            Start Free
+          <a href="/quiz" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-semibold flex items-center gap-2 border border-white/10 hover:bg-[#67e8f9] transition-colors duration-300">
+            Take the Quiz
           </a>
         </div>
       </nav>
@@ -180,7 +184,7 @@ export default function LandingPage() {
           </div>
 
           {/* Hero Content (Left-aligned asymmetric) */}
-          <div className="relative z-10 max-w-[85ch] flex flex-col items-start gap-8">
+          <div className="relative z-10 w-full flex flex-col items-center text-center gap-8">
             <div className="hero-text-line rounded-full px-3 py-1 bg-white/5 border border-white/10 backdrop-blur-md">
               <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#67e8f9]">
                 AI Trading Psychology Coach
@@ -203,13 +207,13 @@ export default function LandingPage() {
               Still revenge trading after a loss? Still overtrading on green days? The problem isn't your strategy — it's your psychology. Traverse tracks your emotional patterns and coaches you to break them.
             </p>
 
-            <div className="hero-cta flex flex-col sm:flex-row items-start sm:items-center gap-6 mt-4">
+            <div className="hero-cta flex flex-col sm:flex-row items-center justify-center gap-6 mt-4">
               <a
-                href="#waitlist"
+                href="/quiz"
                 className="magnetic-btn group relative overflow-hidden rounded-full bg-[#f4f4f5] text-[#0a0a0c] pl-8 pr-4 py-3 font-medium flex items-center gap-6 transition-all"
               >
                 <div className="absolute inset-0 bg-[#67e8f9] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-full"></div>
-                <span className="relative z-10">Start Free — Discover Your Psychology</span>
+                <span className="relative z-10">Discover Your Trading Archetype</span>
                 <div className="relative z-10 bg-[#0a0a0c]/10 rounded-full w-10 h-10 flex items-center justify-center group-hover:bg-[#0a0a0c]/20 transition-colors">
                   <ArrowRight size={18} />
                 </div>
