@@ -146,7 +146,7 @@ export default function LandingPage() {
           <span className="font-sans text-sm font-semibold tracking-[0.15em] uppercase opacity-90 group-hover:opacity-100 transition-opacity">Traverse</span>
         </Link>
         <div className="flex items-center gap-6 pointer-events-auto">
-          <a href="/quiz" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-semibold flex items-center gap-2 border border-white/10 hover:bg-[#67e8f9] transition-colors duration-300">
+          <a href="/quiz?retake=1" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-semibold flex items-center gap-2 border border-white/10 hover:bg-[#67e8f9] transition-colors duration-300">
             Take the Quiz
           </a>
         </div>
@@ -209,7 +209,7 @@ export default function LandingPage() {
 
             <div className="hero-cta flex flex-col sm:flex-row items-center justify-center gap-6 mt-4">
               <a
-                href="/quiz"
+                href="/quiz?retake=1"
                 className="magnetic-btn group relative overflow-hidden rounded-full bg-[#f4f4f5] text-[#0a0a0c] pl-8 pr-4 py-3 font-medium flex items-center gap-6 transition-all"
               >
                 <div className="absolute inset-0 bg-[#67e8f9] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] rounded-full"></div>
