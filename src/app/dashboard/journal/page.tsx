@@ -413,40 +413,6 @@ export default function JournalPage() {
         </button>
       </div>
 
-      {/* Asset type switcher — hidden for beginners */}
-      {!isBeginner && <div className="flex rounded-xl border border-border/50 p-0.5 bg-surface w-fit">
-        {ASSET_FILTER_OPTIONS.map(({ value, label, icon: Icon }) => {
-          const comingSoon = value !== "all" && value !== "crypto";
-          return (
-            <button
-              key={value}
-              onClick={comingSoon ? undefined : () => {
-                setAssetFilter(value);
-                setLoading(true);
-                const url = new URL(window.location.href);
-                if (value === "all") {
-                  url.searchParams.delete("asset");
-                } else {
-                  url.searchParams.set("asset", value);
-                }
-                router.replace(url.pathname + url.search, { scroll: false });
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                assetFilter === value
-                  ? "bg-accent/15 text-accent border border-accent/20"
-                  : comingSoon
-                    ? "text-muted/50 border border-transparent cursor-not-allowed opacity-50"
-                    : "text-muted hover:text-foreground border border-transparent"
-              }`}
-            >
-              <Icon size={13} />
-              {label}
-              {comingSoon && <span className="text-[8px] text-muted/70">Soon</span>}
-            </button>
-          );
-        })}
-      </div>}
-
       {/* Filters: Search + Date Range + Tag + Manage tags */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
