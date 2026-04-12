@@ -4,10 +4,7 @@ import { DashboardStats, AdvancedStats } from "@/lib/types";
 import type { ViewMode } from "@/lib/theme-context";
 import {
   TrendingUp,
-  DollarSign,
-  Activity,
   TrendingDown,
-  Crosshair,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
@@ -114,82 +111,29 @@ export function StatsCards({ stats, advancedStats, viewMode = "advanced" }: {
   advancedStats?: AdvancedStats | null;
   viewMode?: ViewMode;
 }) {
-  const isBeginner = viewMode === "beginner";
-  const showExtra = !isBeginner && advancedStats;
-
-  // Beginner: 3 cards only (Win Rate, Avg Return, Profit Factor)
-  if (isBeginner) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <WinRateCard stats={stats} />
-        <StatCard
-          label="Profit Factor"
-          value={stats.profitFactor.toFixed(2)}
-          subLabel={stats.profitFactor >= 1 ? "edge positive" : "negative edge"}
-          icon={TrendingUp}
-          valueColor={stats.profitFactor >= 1 ? "text-win" : "text-loss"}
-          tooltip="Gross wins divided by gross losses — above 1.0 means net positive"
-          articleId="an-profit-factor"
-        />
-      </div>
-    );
-  }
+  // All modes now show the same 3 core metrics: Win Rate, Avg Winner, Avg Loser
+  const avgWin = advancedStats?.avgWinner ?? 0;
+  const avgLoss = advancedStats?.avgLoser ?? 0;
 
   return (
-    <div className={`grid grid-cols-2 md:grid-cols-3 ${showExtra ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-6"} gap-4`}>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <WinRateCard stats={stats} />
       <StatCard
-        label="Avg Return"
-        value={`${stats.avgTradePnl >= 0 ? "+" : ""}$${stats.avgTradePnl.toFixed(2)}`}
-        subLabel="per position"
-        icon={Activity}
-        valueColor={stats.avgTradePnl >= 0 ? "text-win" : "text-loss"}
-      />
-      <StatCard
-        label="Profit Factor"
-        value={stats.profitFactor.toFixed(2)}
-        subLabel={stats.profitFactor >= 1 ? "edge positive" : "negative edge"}
+        label="Avg Winner"
+        value={`+$${avgWin.toFixed(2)}`}
+        subLabel={`${stats.wins} winning trades`}
         icon={TrendingUp}
-        valueColor={stats.profitFactor >= 1 ? "text-win" : "text-loss"}
-        tooltip="Gross wins divided by gross losses — above 1.0 means net positive"
-        articleId="an-profit-factor"
+        valueColor="text-win"
+        tooltip="Average profit on winning trades"
       />
       <StatCard
-        label="Realized"
-        value={`${stats.closedPnl >= 0 ? "+" : ""}$${stats.closedPnl.toFixed(2)}`}
-        subLabel="closed positions"
-        icon={DollarSign}
-        valueColor={stats.closedPnl >= 0 ? "text-win" : "text-loss"}
-      />
-      <StatCard
-        label="Exposure"
-        value={`${stats.unrealizedPnl >= 0 ? "+" : ""}$${stats.unrealizedPnl.toFixed(2)}`}
-        subLabel="open risk"
+        label="Avg Loser"
+        value={`-$${Math.abs(avgLoss).toFixed(2)}`}
+        subLabel={`${stats.losses} losing trades`}
         icon={TrendingDown}
-        valueColor={stats.unrealizedPnl >= 0 ? "text-win" : "text-loss"}
+        valueColor="text-loss"
+        tooltip="Average loss on losing trades"
       />
-      {showExtra && (
-        <>
-          <StatCard
-            label="Expectancy"
-            value={`${advancedStats.expectancy >= 0 ? "+" : ""}${advancedStats.expectancy.toFixed(2)}R`}
-            subLabel="avg edge per trade"
-            icon={Crosshair}
-            valueColor={advancedStats.expectancy >= 0 ? "text-win" : "text-loss"}
-            tooltip="Average return per trade in R-multiples. Positive = your system has an edge."
-            articleId="an-expectancy"
-          />
-          <StatCard
-            label="Max Drawdown"
-            value={`${advancedStats.maxDrawdownPct.toFixed(1)}%`}
-            subLabel={`$${advancedStats.maxDrawdown.toFixed(0)} peak decline`}
-            icon={TrendingDown}
-            valueColor="text-loss"
-            tooltip="Largest peak-to-trough decline in equity. Lower is better."
-            articleId="rm-max-drawdown"
-          />
-        </>
-      )}
     </div>
   );
 }

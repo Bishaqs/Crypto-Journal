@@ -153,7 +153,7 @@ export function computeReadinessScore({
   }
 
   // ─── Tilt signals ─────────────────────────────────────────
-  const signals = tiltSignals ?? detectTiltSignals(trades);
+  const signals = tiltSignals ?? detectTiltSignals(trades, { excludeBrokerSynced: true });
   for (const signal of signals) {
     if (signal.type === "rapid_fire") {
       const adj = -2;

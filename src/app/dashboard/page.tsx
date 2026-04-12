@@ -147,8 +147,9 @@ export default function DashboardPage() {
   const stats = useMemo(() => calculateStats(filteredTrades), [filteredTrades]);
   const dailyPnl = useMemo(() => calculateDailyPnl(filteredTrades), [filteredTrades]);
   const equityData = useMemo(() => buildEquityCurve(dailyPnl), [dailyPnl]);
-  const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades, { excludeImported: true }), [filteredTrades]);
+  const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades, { excludeImported: true, excludeBrokerSynced: true }), [filteredTrades]);
   const adv = useMemo(() => filteredTrades.length >= 2 ? calculateAdvancedStats(filteredTrades) : null, [filteredTrades]);
+  const isWeekend = useMemo(() => { const day = new Date().getDay(); return day === 0 || day === 6; }, []);
 
 
   // Save sentiment for light theme candle background
@@ -359,7 +360,7 @@ export default function DashboardPage() {
 
       <LowContrastWarning />
 
-      {!usingDemo && viewMode !== "beginner" && <WeeklySummaryCard trades={trades} />}
+      {!usingDemo && viewMode !== "beginner" && isWeekend && <WeeklySummaryCard trades={trades} />}
 
       {usingDemo && (
         <GettingStartedCard
@@ -460,7 +461,19 @@ export default function DashboardPage() {
             advMetricsOpen ? "max-h-[800px] opacity-100 mt-3" : "max-h-0 opacity-0"
           }`}>
             <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1">Realized PnL</p>
+                <p className={`text-lg font-bold ${stats.closedPnl >= 0 ? "text-win" : "text-loss"}`}>
+                  {stats.closedPnl >= 0 ? "+" : ""}${stats.closedPnl.toFixed(2)}
+                </p>
+              </div>
+              <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Profit Factor <InfoTooltip text="Gross wins divided by gross losses. Above 1.0 = net positive edge." size={11} articleId="an-profit-factor" /></p>
+                <p className={`text-lg font-bold ${adv.profitFactor >= 1.5 ? "text-win" : adv.profitFactor >= 1 ? "text-foreground" : "text-loss"}`}>
+                  {adv.profitFactor === Infinity ? "∞" : adv.profitFactor.toFixed(2)}
+                </p>
+              </div>
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
                 <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Sharpe Ratio <InfoTooltip text="Risk-adjusted return metric. Measures excess return per unit of volatility. Above 1.0 = good, above 2.0 = excellent." size={11} articleId="an2-sharpe-ratio" /></p>
                 <p className={`text-lg font-bold ${adv.sharpeRatio >= 1 ? "text-win" : adv.sharpeRatio >= 0 ? "text-foreground" : "text-loss"}`}>
@@ -471,12 +484,6 @@ export default function DashboardPage() {
                 <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Expectancy <InfoTooltip text="Average profit per unit of risk. Positive = your system has an edge over time." size={11} articleId="an-expectancy" /></p>
                 <p className={`text-lg font-bold ${adv.expectancy >= 0 ? "text-win" : "text-loss"}`}>
                   {adv.expectancy >= 0 ? "+" : ""}${adv.expectancy.toFixed(2)}
-                </p>
-              </div>
-              <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                <p className="text-[10px] text-muted/60 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">Profit Factor <InfoTooltip text="Gross wins divided by gross losses. Above 1.0 = net positive edge." size={11} articleId="an-profit-factor" /></p>
-                <p className={`text-lg font-bold ${adv.profitFactor >= 1.5 ? "text-win" : adv.profitFactor >= 1 ? "text-foreground" : "text-loss"}`}>
-                  {adv.profitFactor === Infinity ? "∞" : adv.profitFactor.toFixed(2)}
                 </p>
               </div>
               <div className="glass rounded-xl border border-border/50 p-4" style={{ boxShadow: "var(--shadow-card)" }}>
