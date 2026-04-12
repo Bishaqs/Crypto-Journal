@@ -101,6 +101,19 @@ export function TradeForm({
   const [pnlIsManual, setPnlIsManual] = useState(false);
   const [autoPnl, setAutoPnl] = useState<number | null>(null);
 
+  function fieldBorder(fieldName: string): string {
+    return errors[fieldName] ? "border-loss" : "border-border";
+  }
+
+  function scrollToFirstError(fieldErrors: Record<string, string>) {
+    const firstKey = Object.keys(fieldErrors).find((k) => k !== "_form");
+    if (!firstKey || !formRef.current) return;
+    const el = formRef.current.querySelector(`[name="${firstKey}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
   function recalculatePnl() {
     if (!formRef.current) return;
     const fd = new FormData(formRef.current);
@@ -164,7 +177,7 @@ export function TradeForm({
           position: formData.get("position") as string,
           entry_price: formData.get("entry_price") as string,
           stop_loss: formData.get("stop_loss") as string || undefined,
-          profit_target: formData.get("profit_target") as string || undefined,
+          profit_target: (() => { const v = formData.get("profit_target") as string; return v && parseFloat(v) > 0 ? v : undefined; })(),
           thesis: formData.get("notes") as string || undefined,
           setup_type: setupType || undefined,
           confidence: confidence || undefined,
@@ -185,6 +198,7 @@ export function TradeForm({
             else fieldErrors[field] = issue.message;
           }
           setErrors(fieldErrors);
+          scrollToFirstError(fieldErrors);
           return;
         }
 
@@ -220,7 +234,7 @@ export function TradeForm({
         symbol: formData.get("symbol") as string,
         position: formData.get("position") as string,
         entry_price: formData.get("entry_price") as string,
-        exit_price: formData.get("exit_price") as string || undefined,
+        exit_price: (() => { const v = formData.get("exit_price") as string; return v && parseFloat(v) !== 0 ? v : undefined; })(),
         quantity: formData.get("quantity") as string,
         fees: formData.get("fees") as string || "0",
         open_timestamp: formData.get("open_timestamp") as string,
@@ -250,7 +264,7 @@ export function TradeForm({
         gas_fee: tradeSource === "dex" ? gasFee : 0,
         gas_fee_native: 0,
         stop_loss: formData.get("stop_loss") as string || undefined,
-        profit_target: formData.get("profit_target") as string || undefined,
+        profit_target: (() => { const v = formData.get("profit_target") as string; return v && parseFloat(v) > 0 ? v : undefined; })(),
         price_mae: formData.get("price_mae") as string || undefined,
         price_mfe: formData.get("price_mfe") as string || undefined,
         mfe_timestamp: formData.get("mfe_timestamp") as string || undefined,
@@ -264,6 +278,7 @@ export function TradeForm({
           fieldErrors[issue.path[0] as string] = issue.message;
         }
         setErrors(fieldErrors);
+        scrollToFirstError(fieldErrors);
         return;
       }
 
@@ -552,7 +567,7 @@ export function TradeForm({
                 name="symbol"
                 defaultValue={editTrade?.symbol ?? editPhantom?.symbol ?? ""}
                 placeholder="BTCUSDT"
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("symbol")} text-foreground text-sm focus:outline-none focus:border-accent`}
               />
               {errors.symbol && (
                 <p className="text-xs text-loss mt-1">{errors.symbol}</p>
@@ -564,7 +579,7 @@ export function TradeForm({
                 name="position"
                 defaultValue={editTrade?.position ?? editPhantom?.position ?? "long"}
                 onChange={() => recalculatePnl()}
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("position")} text-foreground text-sm focus:outline-none focus:border-accent`}
               >
                 <option value="long">Long</option>
                 <option value="short">Short</option>
@@ -583,7 +598,7 @@ export function TradeForm({
                 defaultValue={editTrade?.entry_price ?? editPhantom?.entry_price ?? ""}
                 placeholder="0.00"
                 onChange={() => recalculatePnl()}
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("entry_price")} text-foreground text-sm focus:outline-none focus:border-accent`}
               />
               {errors.entry_price && (
                 <p className="text-xs text-loss mt-1">{errors.entry_price}</p>
@@ -600,8 +615,11 @@ export function TradeForm({
                 defaultValue={editTrade?.exit_price ?? ""}
                 placeholder="0.00"
                 onChange={(e) => { setHasExit(!!e.target.value); recalculatePnl(); }}
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("exit_price")} text-foreground text-sm focus:outline-none focus:border-accent`}
               />
+              {errors.exit_price && (
+                <p className="text-xs text-loss mt-1">{errors.exit_price}</p>
+              )}
             </div>
           </div>
 
@@ -609,11 +627,17 @@ export function TradeForm({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">Stop Loss <span className="text-muted/60">(optional)</span></label>
-              <input name="stop_loss" type="number" step="any" defaultValue={editTrade?.stop_loss ?? editPhantom?.stop_loss ?? ""} placeholder="0.00" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+              <input name="stop_loss" type="number" step="any" defaultValue={editTrade?.stop_loss ?? editPhantom?.stop_loss ?? ""} placeholder="0.00" className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("stop_loss")} text-foreground text-sm focus:outline-none focus:border-accent`} />
+              {errors.stop_loss && (
+                <p className="text-xs text-loss mt-1">{errors.stop_loss}</p>
+              )}
             </div>
             <div>
               <label className="block text-xs text-muted mb-1">Profit Target <span className="text-muted/60">(optional)</span></label>
-              <input name="profit_target" type="number" step="any" defaultValue={editTrade?.profit_target ?? editPhantom?.profit_target ?? ""} placeholder="0.00" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+              <input name="profit_target" type="number" step="any" defaultValue={editTrade?.profit_target ?? editPhantom?.profit_target ?? ""} placeholder="0.00" className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("profit_target")} text-foreground text-sm focus:outline-none focus:border-accent`} />
+              {errors.profit_target && (
+                <p className="text-xs text-loss mt-1">{errors.profit_target}</p>
+              )}
             </div>
           </div>
 
@@ -621,22 +645,28 @@ export function TradeForm({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">Price MAE <span className="text-muted/60">(optional)</span></label>
-              <input name="price_mae" type="number" step="any" defaultValue={editTrade?.price_mae ?? ""} placeholder="Worst price" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+              <input name="price_mae" type="number" step="any" defaultValue={editTrade?.price_mae ?? ""} placeholder="Worst price" className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("price_mae")} text-foreground text-sm focus:outline-none focus:border-accent`} />
+              {errors.price_mae && (
+                <p className="text-xs text-loss mt-1">{errors.price_mae}</p>
+              )}
             </div>
             <div>
               <label className="block text-xs text-muted mb-1">Price MFE <span className="text-muted/60">(optional)</span></label>
-              <input name="price_mfe" type="number" step="any" defaultValue={editTrade?.price_mfe ?? ""} placeholder="Best price" className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+              <input name="price_mfe" type="number" step="any" defaultValue={editTrade?.price_mfe ?? ""} placeholder="Best price" className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("price_mfe")} text-foreground text-sm focus:outline-none focus:border-accent`} />
+              {errors.price_mfe && (
+                <p className="text-xs text-loss mt-1">{errors.price_mfe}</p>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">MFE Timestamp <span className="text-muted/60">(optional)</span></label>
-              <input name="mfe_timestamp" type="datetime-local" defaultValue={editTrade?.mfe_timestamp ? editTrade.mfe_timestamp.slice(0, 16) : ""} className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+              <input name="mfe_timestamp" type="datetime-local" defaultValue={editTrade?.mfe_timestamp ? editTrade.mfe_timestamp.slice(0, 16) : ""} className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("mfe_timestamp")} text-foreground text-sm focus:outline-none focus:border-accent`} />
             </div>
             <div>
               <label className="block text-xs text-muted mb-1">MAE Timestamp <span className="text-muted/60">(optional)</span></label>
-              <input name="mae_timestamp" type="datetime-local" defaultValue={editTrade?.mae_timestamp ? editTrade.mae_timestamp.slice(0, 16) : ""} className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent" />
+              <input name="mae_timestamp" type="datetime-local" defaultValue={editTrade?.mae_timestamp ? editTrade.mae_timestamp.slice(0, 16) : ""} className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("mae_timestamp")} text-foreground text-sm focus:outline-none focus:border-accent`} />
             </div>
           </div>
 
@@ -651,7 +681,7 @@ export function TradeForm({
                 defaultValue={editTrade?.quantity ?? ""}
                 placeholder="0.00"
                 onChange={() => recalculatePnl()}
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("quantity")} text-foreground text-sm focus:outline-none focus:border-accent`}
               />
               {errors.quantity && (
                 <p className="text-xs text-loss mt-1">{errors.quantity}</p>
@@ -666,8 +696,11 @@ export function TradeForm({
                 defaultValue={editTrade?.fees ?? 0}
                 placeholder="0.00"
                 onChange={() => recalculatePnl()}
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("fees")} text-foreground text-sm focus:outline-none focus:border-accent`}
               />
+              {errors.fees && (
+                <p className="text-xs text-loss mt-1">{errors.fees}</p>
+              )}
             </div>
           </div>
 
@@ -723,7 +756,7 @@ export function TradeForm({
                       ? editPhantom.observed_at.slice(0, 16)
                       : ""
                 }
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("open_timestamp")} text-foreground text-sm focus:outline-none focus:border-accent`}
               />
               {errors.open_timestamp && (
                 <p className="text-xs text-loss mt-1">{errors.open_timestamp}</p>
@@ -741,8 +774,11 @@ export function TradeForm({
                     ? editTrade.close_timestamp.slice(0, 16)
                     : ""
                 }
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent"
+                className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("close_timestamp")} text-foreground text-sm focus:outline-none focus:border-accent`}
               />
+              {errors.close_timestamp && (
+                <p className="text-xs text-loss mt-1">{errors.close_timestamp}</p>
+              )}
             </div>
           </div>
 
@@ -798,8 +834,11 @@ export function TradeForm({
               rows={2}
               defaultValue={editTrade?.notes ?? editPhantom?.thesis ?? ""}
               placeholder="Why did you take this trade?"
-              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent resize-none"
+              className={`w-full px-3 py-2 rounded-lg bg-background border ${fieldBorder("notes")} text-foreground text-sm focus:outline-none focus:border-accent resize-none`}
             />
+            {errors.notes && (
+              <p className="text-xs text-loss mt-1">{errors.notes}</p>
+            )}
           </div>
 
           {/* ═══════════ Psychology Section ═══════════ */}
@@ -879,6 +918,34 @@ export function TradeForm({
                   <p className="text-[10px] uppercase tracking-wider text-muted/60 font-semibold mb-3">
                     Post-Trade Review
                   </p>
+                  {/* Simple discipline check for all users */}
+                  <div className="flex items-center justify-between py-1 mb-3">
+                    <span className="text-xs text-muted">Followed my plan?</span>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setProcessScore(processScore === 10 ? null : 10)}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
+                          processScore !== null && processScore >= 7
+                            ? "bg-win/20 border-win/30 text-win"
+                            : "bg-background border-border text-muted hover:text-foreground"
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProcessScore(processScore === 1 ? null : 1)}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
+                          processScore !== null && processScore < 7
+                            ? "bg-loss/20 border-loss/30 text-loss"
+                            : "bg-background border-border text-muted hover:text-foreground"
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
                   {isAdvanced && <ProcessScoreInput value={processScore} onChange={setProcessScore} />}
                 </div>
                 <PostTradeReview value={review} onChange={setReview} />
@@ -891,11 +958,14 @@ export function TradeForm({
               {errors._form}
             </p>
           )}
-          {Object.keys(errors).length > 0 && !errors._form && (
-            <p className="text-sm text-loss bg-loss/10 px-3 py-2 rounded-lg">
-              Please fix the errors highlighted above
-            </p>
-          )}
+          {(() => {
+            const count = Object.keys(errors).filter((k) => k !== "_form").length;
+            return count > 0 && !errors._form ? (
+              <p className="text-sm text-loss bg-loss/10 px-3 py-2 rounded-lg">
+                Please fix {count} error{count > 1 ? "s" : ""} above
+              </p>
+            ) : null;
+          })()}
 
           <div className="flex items-center gap-3">
             {editTrade && onDelete && (

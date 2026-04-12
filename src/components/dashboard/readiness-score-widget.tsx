@@ -297,13 +297,13 @@ export function ReadinessScoreWidget({
         </div>
       )}
 
-      {/* Expanded details */}
+      {/* Expanded details — show top 3, collapse rest */}
       {expanded && result.components.length > 0 && (
         <div className="border-t border-border/30 px-4 py-3 space-y-1.5">
           <p className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-2">
             Score Breakdown
           </p>
-          {result.components.map((c, i) => (
+          {result.components.slice(0, 3).map((c, i) => (
             <div key={i} className="flex items-center gap-2 text-xs">
               <span
                 className={`w-8 text-right font-mono font-bold ${
@@ -316,16 +316,26 @@ export function ReadinessScoreWidget({
               <span className="text-muted">{c.reason}</span>
             </div>
           ))}
+          {result.components.length > 3 && (
+            <p className="text-[10px] text-muted mt-1">
+              +{result.components.length - 3} more factor{result.components.length - 3 !== 1 ? "s" : ""}
+            </p>
+          )}
 
-          {/* Warnings */}
+          {/* Warnings — show top 2 */}
           {result.warnings.length > 0 && (
             <div className="mt-3 space-y-1.5">
-              {result.warnings.map((w, i) => (
+              {result.warnings.slice(0, 2).map((w, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
                   <AlertTriangle size={12} className="text-amber-400 shrink-0 mt-0.5" />
                   <span className="text-foreground/70">{w}</span>
                 </div>
               ))}
+              {result.warnings.length > 2 && (
+                <p className="text-[10px] text-muted">
+                  +{result.warnings.length - 2} more warning{result.warnings.length - 2 !== 1 ? "s" : ""}
+                </p>
+              )}
             </div>
           )}
         </div>

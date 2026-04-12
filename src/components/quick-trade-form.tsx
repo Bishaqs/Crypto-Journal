@@ -20,6 +20,7 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
   const [quantity, setQuantity] = useState("");
   const [isClosed, setIsClosed] = useState(false);
   const [exitPrice, setExitPrice] = useState("");
+  const [followedPlan, setFollowedPlan] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const supabase = createClient();
@@ -64,7 +65,7 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
         emotion: null,
         confidence: null,
         setup_type: null,
-        process_score: null,
+        process_score: followedPlan === true ? 10 : followedPlan === false ? 1 : null,
         checklist: null,
         review: null,
         chain: null,
@@ -230,6 +231,37 @@ export function QuickTradeForm({ onClose, onSaved, onTradeCompleted, onSwitchToF
                 className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/40"
                 autoFocus
               />
+            </div>
+          )}
+
+          {/* Followed plan toggle (only for closed trades) */}
+          {isClosed && (
+            <div className="flex items-center justify-between py-1">
+              <span className="text-xs text-muted">Followed my plan?</span>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setFollowedPlan(followedPlan === true ? null : true)}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
+                    followedPlan === true
+                      ? "bg-win/20 border-win/30 text-win"
+                      : "bg-background border-border text-muted hover:text-foreground"
+                  }`}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFollowedPlan(followedPlan === false ? null : false)}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
+                    followedPlan === false
+                      ? "bg-loss/20 border-loss/30 text-loss"
+                      : "bg-background border-border text-muted hover:text-foreground"
+                  }`}
+                >
+                  No
+                </button>
+              </div>
             </div>
           )}
 

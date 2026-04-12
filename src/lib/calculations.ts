@@ -112,12 +112,15 @@ export type TiltSignal = {
 
 export function detectTiltSignals(
   trades: Trade[],
-  options?: { excludeImported?: boolean },
+  options?: { excludeImported?: boolean; excludeBrokerSynced?: boolean },
 ): TiltSignal[] {
   const signals: TiltSignal[] = [];
-  const base = options?.excludeImported
+  let base = options?.excludeImported
     ? trades.filter((t) => !t.tags?.includes("csv-import"))
     : trades;
+  if (options?.excludeBrokerSynced) {
+    base = base.filter((t) => !t.connection_id);
+  }
   const sorted = [...base]
     .filter((t) => t.open_timestamp)
     .sort((a, b) => new Date(a.open_timestamp).getTime() - new Date(b.open_timestamp).getTime());
