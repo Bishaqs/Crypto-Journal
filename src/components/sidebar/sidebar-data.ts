@@ -19,27 +19,14 @@ import {
   TrendingDown,
   Crosshair,
   ShieldAlert,
-  TrendingUp,
   Globe,
-  Coins,
-  Search,
   Shield,
   PieChart,
   Activity,
   Tag,
-  Layers,
-  Hash,
-  BarChart,
-  DollarSign,
-  TreePine,
   LineChart,
-  Ruler,
-  Gauge,
-  Scale,
   ArrowUpDown,
-  BarChart2,
   CalendarCheck,
-  Clock,
   Trophy,
   Users,
   HelpCircle,
@@ -115,41 +102,11 @@ export const coreItems: NavItem[] = [
   { href: "/dashboard/trades/phantoms", label: "What If", icon: Ghost },
 ];
 
-const analysisTopItems: NavItem[] = [
-  { href: "/dashboard/analysis/running-pnl", label: "Running PnL Analysis", icon: Activity },
-  { href: "/dashboard/analysis/trade-count", label: "Trade Count", icon: Hash },
-  { href: "/dashboard/analysis/volume", label: "Volume", icon: BarChart },
-  { href: "/dashboard/analysis/fees", label: "Commissions/Fees", icon: DollarSign },
-];
-
-const performanceItems: NavItem[] = [
-  { href: "/dashboard/performance/expectancy", label: "Trade Expectancy", icon: LineChart },
-  { href: "/dashboard/performance/r-value", label: "R-Value", icon: Ruler },
-  { href: "/dashboard/performance/hit-ratio", label: "Hit Ratio", icon: Gauge },
-  { href: "/dashboard/performance/profit-factor", label: "Profit Factor", icon: Scale },
-  { href: "/dashboard/performance/mfe-mae", label: "MFE / MAE", icon: ArrowUpDown },
-  { href: "/dashboard/performance/volume", label: "Relative Volume", icon: BarChart2 },
-  { href: "/dashboard/performance/returns", label: "Returns Distribution", icon: BarChart },
-  { href: "/dashboard/performance/trends", label: "Trend Analysis", icon: TrendingUp },
-  { href: "/dashboard/analysis/technical-analysis", label: "Technical Analysis", icon: Crosshair },
-  { href: "/dashboard/performance/metrics", label: "Metrics", icon: Activity },
-];
-
-const exitAnalysisItems: NavItem[] = [
-  { href: "/dashboard/exit-analysis?tab=best-exit-pnl", label: "Exit PnL", icon: TrendingUp },
-  { href: "/dashboard/exit-analysis?tab=best-exit-efficiency", label: "Exit Efficiency", icon: Gauge },
-  { href: "/dashboard/exit-analysis?tab=best-exit-time", label: "Exit Time", icon: Clock },
-  { href: "/dashboard/exit-analysis?tab=eod-pnl", label: "EOD Exit PnL", icon: TrendingDown },
-  { href: "/dashboard/exit-analysis?tab=eod-efficiency", label: "EOD Efficiency", icon: Gauge },
-  { href: "/dashboard/exit-analysis?tab=multi-tf", label: "Multi-Timeframe", icon: Layers },
-];
-
-const breakdownItems: NavItem[] = [
-  { href: "/dashboard/analysis/tag-groups", label: "Tag Groups", icon: Tag },
-  { href: "/dashboard/analysis/sectors", label: "Sectors", icon: Layers },
-  { href: "/dashboard/analysis/treemap/symbol", label: "Treemap: Symbol", icon: TreePine },
-  { href: "/dashboard/analysis/treemap/sector", label: "Treemap: Sector", icon: TreePine },
-  { href: "/dashboard/analysis/treemap/tags", label: "Treemap: Tags", icon: TreePine },
+const analyticsConsolidatedItems: NavItem[] = [
+  { href: "/dashboard/performance", label: "Performance", icon: LineChart },
+  { href: "/dashboard/analysis", label: "Analysis", icon: Activity },
+  { href: "/dashboard/edge-profile", label: "Edge Profile", icon: Fingerprint },
+  { href: "/dashboard/exit-analysis", label: "Exit Analysis", icon: TrendingDown },
 ];
 
 const summaryItems: NavItem[] = [
@@ -166,7 +123,6 @@ const dateViewItems: NavItem[] = [
 const intelligenceItems: NavItem[] = [
   { href: "/dashboard/insights", label: "Insights", icon: Brain, tourId: "tour-insights" },
   { href: "/dashboard/ai", label: "Nova", icon: Sparkles, tourId: "tour-ai" },
-  { href: "/dashboard/edge-profile", label: "Edge Profile", icon: Fingerprint },
   { href: "/dashboard/reports", label: "Weekly Reports", icon: FileBarChart },
   { href: "/dashboard/recaps", label: "Monthly Recap", icon: CalendarCheck },
 ];
@@ -180,10 +136,8 @@ const marketToolsItemsFull: NavItem[] = [
   { href: "/dashboard/market", label: "Market Overview", icon: Globe },
   { href: "/dashboard/news", label: "Market News", icon: Newspaper },
   { href: "/dashboard/economic-calendar", label: "Economic Calendar", icon: CalendarDays },
-  { href: "/dashboard/screener", label: "Token Screener", icon: Search },
   { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
   { href: "/dashboard/funding-rates", label: "Derivatives", icon: BarChart3 },
-  { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
   { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
   { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
   { href: "/dashboard/stocks/options-analysis", label: "Options Analysis", icon: BarChart3 },
@@ -193,7 +147,6 @@ const marketToolsItemsSimple: NavItem[] = [
   { href: "/dashboard/market", label: "Market Overview", icon: Globe },
   { href: "/dashboard/news", label: "Market News", icon: Newspaper },
   { href: "/dashboard/economic-calendar", label: "Economic Calendar", icon: CalendarDays },
-  { href: "/dashboard/dca", label: "DCA Calculator", icon: Coins },
   { href: "/dashboard/playbook", label: "Playbook", icon: BookMarked },
   { href: "/dashboard/risk", label: "Risk Calculator", icon: Calculator },
   { href: "/dashboard/goals", label: "Goals", icon: Target },
@@ -228,11 +181,8 @@ export const NAV_SECTIONS: NavSection[] = [
     key: "analysis",
     label: "Performance & Analysis",
     icon: PieChart,
-    items: analysisTopItems,
+    items: analyticsConsolidatedItems,
     subSections: [
-      { key: "performance", label: "Performance", items: performanceItems },
-      { key: "exitAnalysis", label: "Exit Analysis", items: exitAnalysisItems },
-      { key: "breakdowns", label: "Breakdown Views", items: breakdownItems },
       { key: "summaries", label: "Summaries", items: summaryItems },
       { key: "dateViews", label: "Date Views", items: dateViewItems },
     ],
@@ -341,16 +291,30 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     icon: Globe,
     items: [],
     sections: [NAV_SECTIONS[2], NAV_SECTIONS[3], NAV_SECTIONS[4]],
-    showInBeginner: false,
-    showInAdvanced: false,
+    showInBeginner: true,
+    showInAdvanced: true,
+    beginnerItems: [
+      { href: "/dashboard/market", label: "Market Overview", icon: Globe },
+      { href: "/dashboard/news", label: "Market News", icon: Newspaper },
+      { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
+    ],
     showAssetToggle: true,
-    requiredLevel: 25,
+    requiredLevel: 5,
+  },
+  {
+    key: "leaderboard",
+    label: "Leaderboard",
+    icon: Users,
+    directNav: true,
+    items: [{ href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users }],
+    showInBeginner: true,
+    showInAdvanced: true,
   },
   {
     key: "compete",
     label: "Compete",
     icon: Trophy,
-    items: [coreItems[7], coreItems[8], coreItems[9]],
+    items: [coreItems[7], coreItems[8]],
     showInBeginner: false,
     showInAdvanced: true,
     requiredLevel: 15,
@@ -396,8 +360,8 @@ export const LABEL_KEY: Record<string, string> = {
   Overview: "sidebar.overview", Insights: "sidebar.insights", Psychology: "sidebar.psychology", Nova: "sidebar.aiCoach",
   "Weekly Reports": "sidebar.weeklyReports", "Monthly Recap": "sidebar.monthlyRecap", "Market Overview": "sidebar.marketOverview",
   "Market News": "sidebar.marketNews",
-  "Token Screener": "sidebar.tokenScreener", "Heat Maps": "sidebar.heatMaps",
-  Derivatives: "sidebar.derivatives", "DCA Calculator": "sidebar.dcaCalculator",
+  "Heat Maps": "sidebar.heatMaps",
+  Derivatives: "sidebar.derivatives",
   "Risk Calculator": "sidebar.riskCalculator", Playbook: "sidebar.playbook",
   "Options Analysis": "sidebar.optionsAnalysis", Goals: "sidebar.goals",
   "Rule Tracker": "sidebar.ruleTracker", Execution: "sidebar.execution",
@@ -548,11 +512,14 @@ export function getCategoryForPath(pathname: string): string | null {
   if (analyticsPrefixes.some(p => pathname.startsWith(p))) return "analytics";
 
   // Market & Tools
-  const marketPrefixes = ["/dashboard/market", "/dashboard/news", "/dashboard/stocks/news", "/dashboard/commodities/news", "/dashboard/forex/news", "/dashboard/economic-calendar", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/screener", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/dca", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
+  const marketPrefixes = ["/dashboard/market", "/dashboard/news", "/dashboard/stocks/news", "/dashboard/commodities/news", "/dashboard/forex/news", "/dashboard/economic-calendar", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
   if (marketPrefixes.some(p => pathname.startsWith(p))) return "market";
 
+  // Leaderboard (own category now)
+  if (pathname.startsWith("/dashboard/leaderboard")) return "leaderboard";
+
   // Compete
-  const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard"];
+  const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements"];
   if (competePrefixes.some(p => pathname.startsWith(p))) return "compete";
 
   // Learn

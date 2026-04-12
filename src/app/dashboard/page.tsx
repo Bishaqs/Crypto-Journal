@@ -42,6 +42,7 @@ import { TradeUsageCounter } from "@/components/dashboard/trade-usage-counter";
 import { LowContrastWarning } from "@/components/low-contrast-warning";
 import { PsychologyProfileBanner } from "@/components/psychology-profile-banner";
 import { DeleteTradeConfirmation } from "@/components/delete-trade-confirmation";
+import { MindsetWidget } from "@/components/dashboard/mindset-widget";
 const PostSyncAlertBanner = dynamic(() => import("@/components/dashboard/post-sync-alert").then(m => ({ default: m.PostSyncAlertBanner })));
 
 // Lazy-load heavy below-fold components (Recharts, AI, News)
@@ -445,6 +446,7 @@ export default function DashboardPage() {
         <StatsCards stats={stats} advancedStats={adv} viewMode={viewMode} />
       </div>
       {viewMode !== "beginner" && <TiltWarnings signals={tiltSignals} />}
+      {!usingDemo && <MindsetWidget trades={filteredTrades} />}
 
       {/* Advanced metrics — collapsible panel */}
       {viewMode !== "beginner" && adv && (
