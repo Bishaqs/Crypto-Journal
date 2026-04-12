@@ -146,6 +146,9 @@ export default function LandingPage() {
           <span className="font-sans text-sm font-semibold tracking-[0.15em] uppercase opacity-90 group-hover:opacity-100 transition-opacity">Traverse</span>
         </Link>
         <div className="flex items-center gap-6 pointer-events-auto">
+          <Link href="/login" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
+            Log In
+          </Link>
           <a href="/quiz?retake=1" className="magnetic-btn rounded-full bg-[#f4f4f5] text-[#0a0a0c] px-6 py-3 text-sm font-semibold flex items-center gap-2 border border-white/10 hover:bg-[#67e8f9] transition-colors duration-300">
             Take the Quiz
           </a>

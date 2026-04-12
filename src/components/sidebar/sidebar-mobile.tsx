@@ -294,7 +294,7 @@ export function SidebarMobile({
         <div className="p-4 border-b border-border flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2.5 overflow-visible" onClick={() => setMobileOpen(false)}>
             <TraverseLogo size={32} collapsed={false} />
-            <h1 className="text-lg font-bold tracking-tight whitespace-nowrap bg-gradient-to-r from-accent via-[#48CAE4] to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
+            <h1 className="text-lg font-bold tracking-tight whitespace-nowrap bg-gradient-to-r from-accent via-accent-hover to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
               Traverse
             </h1>
           </Link>
@@ -306,37 +306,6 @@ export function SidebarMobile({
             >
               <X size={20} />
             </button>
-          </div>
-        </div>
-
-        {/* Asset toggle — 2x2 grid */}
-        <div className="px-3 pt-3">
-          <div className="grid grid-cols-2 gap-1 rounded-xl bg-background border border-border/50 p-1 w-full">
-            {([
-              { ctx: "crypto" as const, label: t("sidebar.cryptoLabel"), icon: Bitcoin },
-              { ctx: "stocks" as const, label: t("sidebar.stocksLabel"), icon: LineChart },
-              { ctx: "commodities" as const, label: t("sidebar.commoditiesLabel"), icon: Gem },
-              { ctx: "forex" as const, label: t("sidebar.forexLabel"), icon: ArrowLeftRight },
-            ]).map(({ ctx, label, icon: Icon }) => {
-              const comingSoon = ctx !== "crypto";
-              return (
-                <button
-                  key={ctx}
-                  onClick={comingSoon ? undefined : () => onAssetToggle(ctx)}
-                  className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                    assetContext === ctx
-                      ? "bg-accent/15 text-accent border border-accent/30"
-                      : comingSoon
-                        ? "text-muted/50 border border-transparent cursor-not-allowed opacity-50"
-                        : "text-muted hover:text-foreground border border-transparent"
-                  }`}
-                >
-                  <Icon size={11} />
-                  <span>{label}</span>
-                  {comingSoon && <span className="text-[8px] text-muted/70 ml-0.5">Soon</span>}
-                </button>
-              );
-            })}
           </div>
         </div>
 

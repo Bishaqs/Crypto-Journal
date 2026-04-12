@@ -25,7 +25,7 @@ import { StreakWidget } from "@/components/dashboard/streak-widget";
 import { XPBar } from "@/components/dashboard/xp-bar";
 import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
-import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Bitcoin, Shield, BookOpen } from "lucide-react";
+import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Shield, BookOpen } from "lucide-react";
 import { PreTradeReadiness } from "@/components/pre-trade-readiness";
 import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
@@ -326,14 +326,6 @@ export default function DashboardPage() {
         </>
       ) : (
         <>
-      {/* Asset Identity Badge */}
-      <div className="flex items-center justify-center py-1">
-        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20">
-          <Bitcoin size={18} className="text-amber-400" />
-          <span className="text-xs font-bold uppercase tracking-widest text-amber-400">Crypto</span>
-        </div>
-      </div>
-
       {!usingDemo && viewMode !== "beginner" && <PostSyncAlertBanner trades={filteredTrades} />}
       {!usingDemo && viewMode !== "beginner" && <ReadinessScoreWidget trades={filteredTrades} tiltSignals={tiltSignals} />}
 

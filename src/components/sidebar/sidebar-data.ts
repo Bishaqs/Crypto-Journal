@@ -298,7 +298,6 @@ export const RAIL_CATEGORIES: RailCategory[] = [
       { href: "/dashboard/news", label: "Market News", icon: Newspaper },
       { href: "/dashboard/heatmaps", label: "Heat Maps", icon: Grid3X3 },
     ],
-    showAssetToggle: true,
     requiredLevel: 5,
   },
   {
