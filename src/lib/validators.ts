@@ -277,7 +277,7 @@ export const tradeSchema = z.object({
   stop_loss: z.coerce.number().positive("Stop loss must be positive").optional(),
   profit_target: z.coerce.number().positive("Profit target must be positive").optional(),
   quantity: z.coerce.number().positive("Quantity must be positive"),
-  fees: z.coerce.number().min(0, "Fees cannot be negative").default(0),
+  fees: z.coerce.number().default(0),
   open_timestamp: z.string().min(1, "Open time is required"),
   close_timestamp: z.string().optional(),
   notes: z.string().optional(),

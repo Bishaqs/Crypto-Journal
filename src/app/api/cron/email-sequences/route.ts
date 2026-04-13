@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendNurtureEmail, sendQuizInvitation, sendProtocolDelivery } from "@/lib/email";
+import { sendNurtureEmail, sendQuizInvitation, sendProtocolDelivery, sendWaitlistVerification } from "@/lib/email";
 import { ARCHETYPES, type TradingArchetype } from "@/lib/psychology-scoring";
 
 export const dynamic = "force-dynamic";
@@ -61,7 +61,31 @@ export async function GET(req: Request) {
       let success = false;
 
       // Route by sequence type
-      if (email.sequence_name === "waitlist_nurture") {
+      if (email.sequence_name === "confirmation_reminder") {
+        // Re-send verification email as reminder (only if still unconfirmed)
+        if (!email.waitlist_signup_id) {
+          await supabase.from("email_sequences").update({ status: "failed" }).eq("id", email.id);
+          failed++;
+          continue;
+        }
+        const { data: signup } = await supabase
+          .from("waitlist_signups")
+          .select("email_confirmed, confirmation_token")
+          .eq("id", email.waitlist_signup_id)
+          .single();
+
+        if (!signup || signup.email_confirmed) {
+          // Already confirmed — skip
+          await supabase.from("email_sequences").update({ status: "skipped" }).eq("id", email.id);
+          continue;
+        }
+
+        if (signup.confirmation_token) {
+          success = await sendWaitlistVerification(email.email, signup.confirmation_token)
+            .then(() => true)
+            .catch(() => false);
+        }
+      } else if (email.sequence_name === "waitlist_nurture") {
         // Quiz invitation email — needs waitlist signup data
         if (!email.waitlist_signup_id) {
           await supabase.from("email_sequences").update({ status: "failed" }).eq("id", email.id);

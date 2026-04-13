@@ -29,9 +29,10 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
   const currentCategory = getCategoryForPath(pathname);
   const { t } = useI18n();
   const { state: helpState, openHelpCenter } = useHelpCenter();
-  const { level } = useLevel();
+  const { level, recentUnlocks, dismissUnlocks } = useLevel();
   const { isBetaTester } = useSubscriptionContext();
   const [lockedToast, setLockedToast] = useState<{ label: string; requiredLevel: number } | null>(null);
+  const [justUnlocked, setJustUnlocked] = useState<Set<string>>(new Set());
 
   // Check if level gating should be bypassed (expert mode, mode override, or experienced user bypass)
   const hasOverride = typeof window !== "undefined" && (
@@ -48,25 +49,38 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
     }
   }, [lockedToast]);
 
+  // Highlight newly unlocked categories
+  useEffect(() => {
+    if (recentUnlocks.length > 0) {
+      setJustUnlocked(new Set(recentUnlocks));
+      const t = setTimeout(() => {
+        setJustUnlocked(new Set());
+        dismissUnlocks();
+      }, 4000);
+      return () => clearTimeout(t);
+    }
+  }, [recentUnlocks, dismissUnlocks]);
+
   return (
     <div
       className="hidden md:flex flex-col w-[68px] shrink-0 h-full glass border-r border-border/50 z-20"
       style={{ boxShadow: "var(--shadow-card)" }}
     >
       {/* Logo */}
-      <div className="p-3 flex items-center justify-center border-b border-border">
-        <Link href="/dashboard">
-          <TraverseLogo size={28} collapsed />
+      <div className="py-4 px-3 flex items-center justify-center border-b border-border/30">
+        <Link href="/dashboard" className="relative">
+          <div className="absolute inset-0 -m-2 rounded-full opacity-40" style={{ background: "radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)" }} />
+          <TraverseLogo size={32} collapsed />
         </Link>
       </div>
 
       {/* Level badge */}
-      <div className="py-2 flex justify-center border-b border-border/30">
+      <div className="py-3 flex justify-center">
         <LevelBadge />
       </div>
 
       {/* Category icons */}
-      <div className="flex-1 flex flex-col items-center gap-1 py-3">
+      <div className="flex-1 flex flex-col items-center gap-1.5 py-3 overflow-y-auto min-h-0">
         {RAIL_CATEGORIES.filter(cat => {
           // Hide unreleased features from non-authorized users
           if (cat.unreleasedFeature && isUnreleasedFeature(cat.unreleasedFeature) && !isOwner && !isBetaTester) return false;
@@ -77,6 +91,7 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
           return true;
         }).map(cat => {
           const isLocked = !bypassLevelGating && cat.requiredLevel != null && level < cat.requiredLevel;
+          const isNewlyUnlocked = justUnlocked.has(cat.key);
           // In advanced/expert mode, journal category also claims calendar paths
           const matchesCategory = currentCategory === cat.key ||
             (cat.key === "journal" && currentCategory === "calendar" && viewMode !== "beginner");
@@ -99,11 +114,13 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
               }}
               title={isLocked ? `${cat.label} — Unlocks at Level ${cat.requiredLevel}` : cat.label}
               className={`relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                isLocked
-                  ? "text-muted/30 cursor-not-allowed"
-                  : isHighlighted
-                    ? "text-accent bg-accent/10 shadow-[0_0_12px_rgba(0,180,216,0.15)]"
-                    : "text-muted hover:text-foreground hover:bg-surface-hover"
+                isNewlyUnlocked
+                  ? "text-accent bg-accent/15 shadow-[0_0_16px_var(--accent-glow)] animate-pulse"
+                  : isLocked
+                    ? "text-muted/30 cursor-not-allowed"
+                    : isHighlighted
+                      ? "text-accent bg-accent/10 shadow-[0_0_8px_var(--accent-glow)]"
+                      : "text-muted hover:text-foreground hover:bg-surface-hover"
               }`}
             >
               <cat.icon size={20} />
@@ -127,20 +144,33 @@ export function SidebarRail({ activeCategory, onCategoryClick, onDirectNav, onCl
           </div>
         )}
 
-        {/* "More features" indicator for beginners */}
+        {/* "More features" indicator + progress for beginners */}
         {viewMode === "beginner" && setViewModeTo && (
-          <button
-            onClick={() => setViewModeTo("advanced")}
-            title="Switch to Advanced mode for more features"
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-muted/40 hover:text-accent hover:bg-surface-hover transition-all duration-200"
-          >
-            <MoreHorizontal size={20} />
-          </button>
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={() => setViewModeTo("advanced")}
+              title="Switch to Advanced mode for more features"
+              className="w-11 h-11 rounded-xl flex items-center justify-center text-muted/40 hover:text-accent hover:bg-surface-hover transition-all duration-200"
+            >
+              <MoreHorizontal size={20} />
+            </button>
+            {level < 5 && (
+              <div className="flex flex-col items-center gap-0.5 px-1">
+                <div className="w-8 h-1 rounded-full bg-border overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-accent/60 transition-all duration-500"
+                    style={{ width: `${Math.min(100, (level / 5) * 100)}%` }}
+                  />
+                </div>
+                <span className="text-[9px] text-muted/50 leading-none">Lv {level}/5</span>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
       {/* Bottom icons */}
-      <div className="flex flex-col items-center gap-1 py-3 border-t border-border">
+      <div className="flex flex-col items-center gap-1.5 py-3 border-t border-border/20 shrink-0">
         {isOwner && (
           <Link
             href="/dashboard/admin"

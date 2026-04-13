@@ -1,5 +1,26 @@
 import type { NextConfig } from "next";
 
+// ── CSP: Client-Side Allowed Origins ─────────────────────────────
+// Every external domain the BROWSER talks to must be listed here.
+// Server-side API routes (src/app/api/) are NOT governed by CSP.
+// When adding a new client-side fetch/WebSocket, add the domain here.
+const cspConnectSrc = [
+  "'self'",
+  "https://*.supabase.co",           // Auth, DB, storage
+  "wss://*.supabase.co",             // Realtime subscriptions
+  "https://api.coingecko.com",       // Market overview (via API route, but also client cache)
+  "https://min-api.cryptocompare.com", // Crypto price data
+  "https://api.anthropic.com",       // AI chat (client streaming)
+  "https://api.openai.com",          // AI chat fallback
+  "https://generativelanguage.googleapis.com", // Gemini AI
+  "https://cryptopanic.com",         // News feed
+  "https://finnhub.io",              // Stock/forex news
+  "https://*.binance.com",           // Derivatives page, emotion popover, simulator klines
+  "wss://*.binance.com",             // Liquidations WebSocket
+  "https://*.tradingview.com",       // TradingView widget data
+  "wss://*.tradingview.com",         // TradingView real-time data
+];
+
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   experimental: {
@@ -34,8 +55,8 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self'",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.coingecko.com https://min-api.cryptocompare.com https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com https://cryptopanic.com https://finnhub.io",
-              "frame-src 'self' https://s3.tradingview.com",
+              `connect-src ${cspConnectSrc.join(' ')}`,
+              "frame-src 'self' https://*.tradingview.com",
             ].join('; '),
           },
         ],

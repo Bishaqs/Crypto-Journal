@@ -21,11 +21,9 @@ import { TradesTable } from "@/components/dashboard/trades-table";
 import { TradeForm } from "@/components/trade-form";
 import { QuickTradeForm } from "@/components/quick-trade-form";
 import { TiltWarnings } from "@/components/dashboard/tilt-warnings";
-import { StreakWidget } from "@/components/dashboard/streak-widget";
-import { XPBar } from "@/components/dashboard/xp-bar";
 import { Header } from "@/components/header";
 import { getDailyGreeting, getDisplayName } from "@/lib/greetings";
-import { Plus, Sparkles, Download, Upload, Activity, Dices, Calculator, Shield, BookOpen } from "lucide-react";
+import { Plus, Sparkles, Download, Upload, Activity, Calculator, Shield, BookOpen } from "lucide-react";
 import { PreTradeReadiness } from "@/components/pre-trade-readiness";
 import Link from "next/link";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
@@ -150,7 +148,6 @@ export default function DashboardPage() {
   const equityData = useMemo(() => buildEquityCurve(dailyPnl), [dailyPnl]);
   const tiltSignals = useMemo(() => detectTiltSignals(filteredTrades, { excludeImported: true, excludeBrokerSynced: true }), [filteredTrades]);
   const adv = useMemo(() => filteredTrades.length >= 2 ? calculateAdvancedStats(filteredTrades) : null, [filteredTrades]);
-  const isWeekend = useMemo(() => { const day = new Date().getDay(); return day === 0 || day === 6; }, []);
 
 
   // Save sentiment for light theme candle background
@@ -353,7 +350,7 @@ export default function DashboardPage() {
 
       <LowContrastWarning />
 
-      {!usingDemo && viewMode !== "beginner" && isWeekend && <WeeklySummaryCard trades={trades} />}
+      {!usingDemo && viewMode !== "beginner" && <WeeklySummaryCard trades={trades} />}
 
       {usingDemo && (
         <GettingStartedCard
@@ -526,13 +523,6 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <Link
-                    href="/dashboard/simulations"
-                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs font-medium hover:bg-accent/15 transition-all"
-                  >
-                    <Dices size={12} />
-                    {t("dashboard.stressTest")}
-                  </Link>
                 </div>
               );
             })()}
@@ -597,27 +587,21 @@ export default function DashboardPage() {
             </ExpandableChart>
           </div>
 
-          {/* Recent Trades (3 max) + Streak */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div id="tour-trades-table" className="lg:col-span-2">
-              <TradesTable
-                trades={filteredTrades.slice(0, 3)}
-                onEdit={
-                  usingDemo
-                    ? undefined
-                    : (trade) => {
-                        setEditTrade(trade);
-                        setShowForm(true);
-                      }
-                }
-                playbookStats={playbookStats}
-                playbooks={pbList}
-              />
-            </div>
-            <div>
-              <div id="tour-streak"><StreakWidget /></div>
-              <XPBar />
-            </div>
+          {/* Recent Trades (3 max) */}
+          <div id="tour-trades-table">
+            <TradesTable
+              trades={filteredTrades.slice(0, 3)}
+              onEdit={
+                usingDemo
+                  ? undefined
+                  : (trade) => {
+                      setEditTrade(trade);
+                      setShowForm(true);
+                    }
+              }
+              playbookStats={playbookStats}
+              playbooks={pbList}
+            />
           </div>
         </>
       )}
@@ -628,16 +612,6 @@ export default function DashboardPage() {
           <div id="tour-ai-summary">
             <AISummaryWidget trades={filteredTrades} />
           </div>
-          {viewMode === "expert" && (
-            <Link href="/dashboard/simulations" className="glass rounded-xl border border-border/50 p-4 hover:border-accent/30 transition-all group block" style={{ boxShadow: "var(--shadow-card)" }}>
-              <div className="flex items-center gap-2 mb-1">
-                <Dices size={14} className="text-accent" />
-                <span className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">{t("sidebar.simulations")}</span>
-              </div>
-              <p className="text-[10px] text-muted">{t("dashboard.stressTestEdge")}</p>
-            </Link>
-          )}
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ExpandableChart
               id="tour-equity"
@@ -706,8 +680,6 @@ export default function DashboardPage() {
               />
             </div>
             <div className="space-y-6">
-              <div id="tour-streak"><StreakWidget /></div>
-              <XPBar />
               <ExpandableChart
                 id="tour-heatmap-mini"
                 title="Calendar"

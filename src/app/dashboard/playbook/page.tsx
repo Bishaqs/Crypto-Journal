@@ -1,10 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Trade } from "@/lib/types";
-import { calculateTradePnl } from "@/lib/calculations";
-import { fetchAllTrades } from "@/lib/supabase/fetch-all-trades";
+import { useEffect, useState, useCallback } from "react";
 import {
   BookMarked,
   Plus,
@@ -25,27 +21,19 @@ import { useSubscription } from "@/lib/use-subscription";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { PlaybookForm } from "@/components/playbook-form";
+import { usePlaybookStats } from "@/lib/use-playbook-stats";
 import type { Playbook } from "@/lib/schemas/playbook";
-
-type SetupStats = {
-  tradeCount: number;
-  winRate: number;
-  totalPnl: number;
-  avgPnl: number;
-  avgProcess: number;
-};
 
 export default function PlaybookPage() {
   const { hasAccess, loading: subLoading } = useSubscription();
+  const { playbookStats, playbooks: hookPlaybooks, loading: statsLoading } = usePlaybookStats();
   const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
-  const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingPlaybook, setEditingPlaybook] = useState<Playbook | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const supabase = createClient();
 
   const fetchPlaybooks = useCallback(async () => {
     try {
@@ -57,74 +45,14 @@ export default function PlaybookPage() {
     } catch (err) {
       console.error("Failed to load playbooks:", err);
       setFetchError("Failed to load playbooks. Please refresh the page.");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const fetchTrades = useCallback(async () => {
-    const { data, error } = await fetchAllTrades(supabase);
-    if (error) {
-      console.error("Failed to fetch trades:", error.message);
-      setTrades([]);
-      return;
-    }
-    const dbTrades = (data as Trade[]) ?? [];
-    setTrades(dbTrades);
-  }, [supabase]);
-
   useEffect(() => {
-    Promise.all([fetchPlaybooks(), fetchTrades()]).then(() => setLoading(false));
-  }, [fetchPlaybooks, fetchTrades]);
-
-  // Calculate stats per playbook from trades with playbook_id
-  const playbookStats = useMemo(() => {
-    const map = new Map<string, { pnl: number; wins: number; count: number; processTotal: number; processCount: number }>();
-
-    for (const t of trades.filter((t) => t.close_timestamp)) {
-      // Match by playbook_id (hard link) or setup_type (fuzzy fallback)
-      const tradeAny = t as Record<string, unknown>;
-      const pbId = tradeAny.playbook_id as string | null;
-
-      if (pbId) {
-        const p = t.pnl ?? calculateTradePnl(t) ?? 0;
-        const e = map.get(pbId) ?? { pnl: 0, wins: 0, count: 0, processTotal: 0, processCount: 0 };
-        map.set(pbId, {
-          pnl: e.pnl + p,
-          wins: e.wins + (p > 0 ? 1 : 0),
-          count: e.count + 1,
-          processTotal: e.processTotal + (t.process_score ?? 0),
-          processCount: e.processCount + (t.process_score !== null ? 1 : 0),
-        });
-      } else if (t.setup_type) {
-        // Fuzzy match: find a playbook whose name matches this setup_type
-        const matchedPb = playbooks.find(
-          (pb) => pb.name.toLowerCase() === t.setup_type!.toLowerCase()
-        );
-        if (matchedPb) {
-          const p = t.pnl ?? calculateTradePnl(t) ?? 0;
-          const e = map.get(matchedPb.id) ?? { pnl: 0, wins: 0, count: 0, processTotal: 0, processCount: 0 };
-          map.set(matchedPb.id, {
-            pnl: e.pnl + p,
-            wins: e.wins + (p > 0 ? 1 : 0),
-            count: e.count + 1,
-            processTotal: e.processTotal + (t.process_score ?? 0),
-            processCount: e.processCount + (t.process_score !== null ? 1 : 0),
-          });
-        }
-      }
-    }
-
-    const result = new Map<string, SetupStats>();
-    for (const [key, d] of map) {
-      result.set(key, {
-        tradeCount: d.count,
-        winRate: d.count > 0 ? (d.wins / d.count) * 100 : 0,
-        totalPnl: d.pnl,
-        avgPnl: d.count > 0 ? d.pnl / d.count : 0,
-        avgProcess: d.processCount > 0 ? d.processTotal / d.processCount : 0,
-      });
-    }
-    return result;
-  }, [trades, playbooks]);
+    fetchPlaybooks();
+  }, [fetchPlaybooks]);
 
   async function toggleActive(pb: Playbook) {
     const res = await fetch(`/api/playbook/${pb.id}`, {
@@ -151,7 +79,7 @@ export default function PlaybookPage() {
   if (subLoading) return null;
   if (!hasAccess("playbook")) return <UpgradePrompt feature="playbook" requiredTier="pro" />;
 
-  if (loading) {
+  if (loading || statsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-pulse text-accent">Loading...</div>

@@ -107,7 +107,7 @@ export default function ForexTradeDetailPage() {
   if (!trade) {
     return (
       <div className="space-y-6 mx-auto max-w-[1200px] pb-20">
-        <button onClick={() => router.push("/dashboard/forex/trades")} className="flex items-center gap-2 text-muted hover:text-foreground">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-muted hover:text-foreground">
           <ArrowLeft size={18} /> Back to Trade Log
         </button>
         <div className="glass rounded-2xl border border-border/50 p-12 text-center">
@@ -127,7 +127,7 @@ export default function ForexTradeDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push("/dashboard/forex/trades")}
+            onClick={() => router.back()}
             className="p-2 rounded-xl hover:bg-surface-hover transition-colors"
           >
             <ArrowLeft size={20} className="text-muted" />

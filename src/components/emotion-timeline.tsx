@@ -3,16 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { EMOTION_CONFIG } from "@/components/psychology-inputs";
-
-type TradeEmotionLog = {
-  id: string;
-  trade_id: string;
-  trade_table: string;
-  emotion: string;
-  phase: string | null;
-  note: string | null;
-  created_at: string;
-};
+import type { TradeEmotionLog } from "@/lib/types";
 
 interface EmotionTimelineProps {
   tradeId: string;
@@ -27,6 +18,7 @@ type TimelineEntry = {
   label: string;
   note: string | null;
   timestamp: string;
+  endTimestamp?: string;
 };
 
 function formatTimestamp(ts: string): string {
@@ -34,6 +26,15 @@ function formatTimestamp(ts: string): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) +
     " " +
     d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function formatDuration(start: string, end: string): string {
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  const remainMins = mins % 60;
+  return remainMins > 0 ? `${hours}h ${remainMins}m` : `${hours}h`;
 }
 
 export function EmotionTimeline({
@@ -75,11 +76,13 @@ export function EmotionTimeline({
 
   // Follow-up and post-trade emotions from logs
   for (const log of logs) {
+    const effectiveStart = log.started_at ?? log.created_at;
     entries.push({
       emotion: log.emotion,
       label: log.phase === "follow_up" ? "Check-In" : "Post-Trade",
       note: log.note,
-      timestamp: log.phase === "post" && closeTimestamp ? closeTimestamp : log.created_at,
+      timestamp: log.phase === "post" && closeTimestamp ? closeTimestamp : effectiveStart,
+      endTimestamp: log.ended_at ?? undefined,
     });
   }
 
@@ -105,9 +108,11 @@ export function EmotionTimeline({
         const emoji = config?.emoji ?? "";
         const isLast = i === entries.length - 1;
 
+        const isDuration = !!entry.endTimestamp;
+
         return (
           <div key={`${entry.label}-${i}`} className="flex gap-3">
-            {/* Timeline line + dot */}
+            {/* Timeline line + dot(s) */}
             <div className="flex flex-col items-center">
               <div
                 className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1 ${
@@ -118,6 +123,20 @@ export function EmotionTimeline({
                     : "bg-muted/60"
                 }`}
               />
+              {isDuration && (
+                <div className="w-1 flex-1 bg-accent/30 min-h-[20px] rounded-full" />
+              )}
+              {isDuration && (
+                <div
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                    entry.label === "Pre-Trade"
+                      ? "bg-accent"
+                      : entry.label === "Post-Trade"
+                      ? "bg-foreground"
+                      : "bg-muted/60"
+                  }`}
+                />
+              )}
               {!isLast && (
                 <div className="w-px flex-1 bg-border/50 min-h-[16px]" />
               )}
@@ -131,6 +150,15 @@ export function EmotionTimeline({
                 </span>
                 <span className="text-[10px] text-muted/50">
                   {formatTimestamp(entry.timestamp)}
+                  {entry.endTimestamp && (
+                    <>
+                      {" \u2192 "}
+                      {formatTimestamp(entry.endTimestamp)}
+                      <span className="ml-1 text-accent/70">
+                        ({formatDuration(entry.timestamp, entry.endTimestamp)})
+                      </span>
+                    </>
+                  )}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">

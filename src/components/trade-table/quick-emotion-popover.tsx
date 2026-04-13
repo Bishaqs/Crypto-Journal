@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { EMOTION_CONFIG } from "@/components/psychology-inputs";
 import { EMOTIONS } from "@/lib/validators";
-import { Check, X } from "lucide-react";
+import { Check, X, Clock } from "lucide-react";
 
 interface QuickEmotionPopoverProps {
   tradeId: string;
@@ -39,6 +39,9 @@ export function QuickEmotionPopover({
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
+  const [showTimeRange, setShowTimeRange] = useState(false);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // Close on click outside
@@ -57,20 +60,33 @@ export function QuickEmotionPopover({
     setShowNote(true);
   }
 
+  function timeToISO(time: string): string | null {
+    if (!time) return null;
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d.toISOString();
+  }
+
   async function handleSave() {
     if (!selectedEmotion) return;
     setSaving(true);
     try {
       const [price] = await Promise.all([fetchCurrentPrice(symbol)]);
       const supabase = createClient();
-      const { error } = await supabase.from("trade_emotion_logs").insert({
+      const payload: Record<string, unknown> = {
         trade_id: tradeId,
         trade_table: tradeTable,
         emotion: selectedEmotion,
         phase: "follow_up",
         note: note.trim() || null,
         price_at_log: price,
-      });
+      };
+      if (showTimeRange && startTime) {
+        payload.started_at = timeToISO(startTime);
+        if (endTime) payload.ended_at = timeToISO(endTime);
+      }
+      const { error } = await supabase.from("trade_emotion_logs").insert(payload);
       if (error) throw error;
       setSaved(true);
       onSaved?.();
@@ -147,6 +163,36 @@ export function QuickEmotionPopover({
           onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
           className="w-full py-1.5 px-2.5 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 mb-2"
         />
+        <button
+          type="button"
+          onClick={() => setShowTimeRange(!showTimeRange)}
+          className="flex items-center gap-1 text-[10px] text-muted hover:text-foreground transition-colors mb-2"
+        >
+          <Clock size={10} />
+          {showTimeRange ? "Hide time range" : "Add time range"}
+        </button>
+        {showTimeRange && (
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex-1">
+              <label className="text-[9px] text-muted block mb-0.5">From</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full py-1 px-1.5 rounded-md bg-background border border-border text-foreground text-[10px] focus:outline-none focus:border-accent/50"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[9px] text-muted block mb-0.5">To</label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full py-1 px-1.5 rounded-md bg-background border border-border text-foreground text-[10px] focus:outline-none focus:border-accent/50"
+              />
+            </div>
+          </div>
+        )}
         <div className="flex gap-2">
           <button
             onClick={() => handleQuickSave(selectedEmotion)}

@@ -46,7 +46,8 @@ import { TradeMarketContext } from "@/components/market/trade-market-context";
 import { EmotionTimeline } from "@/components/emotion-timeline";
 import { FollowUpEmotionForm } from "@/components/follow-up-emotion";
 import { EmotionPriceChart } from "@/components/trade-detail/emotion-price-chart";
-import { SmilePlus } from "lucide-react";
+import { SmilePlus, BookMarked } from "lucide-react";
+import { usePlaybookStats, getStatsForTrade } from "@/lib/use-playbook-stats";
 
 // ---------------------------------------------------------------------------
 // TradingView Mini Chart
@@ -154,6 +155,7 @@ export default function TradeDetailPage() {
   const [emotionLogs, setEmotionLogs] = useState<TradeEmotionLog[]>([]);
   const [showNotePicker, setShowNotePicker] = useState(false);
   const supabase = createClient();
+  const { playbookStats, playbooks: pbList } = usePlaybookStats();
 
   const tradeId = params.id as string;
 
@@ -233,6 +235,14 @@ export default function TradeDetailPage() {
 
   async function handleDelete() {
     if (!trade) return;
+    // Prevent synced trades from reappearing after deletion
+    if (trade.broker_order_id && trade.broker_name) {
+      await supabase.from("sync_dismissed_ids").upsert({
+        user_id: trade.user_id,
+        broker_order_id: trade.broker_order_id,
+        broker_name: trade.broker_name,
+      }, { onConflict: "user_id,broker_order_id,broker_name" });
+    }
     await supabase.from("trades").delete().eq("id", trade.id);
     router.push("/dashboard/trades");
   }
@@ -279,9 +289,21 @@ export default function TradeDetailPage() {
               {trade.trade_source === "dex" && (
                 <span className="text-xs px-2.5 py-1 rounded-full bg-accent/10 text-accent font-semibold">DEX</span>
               )}
-              {trade.setup_type && (
-                <span className="text-xs px-2.5 py-1 rounded-full bg-border/50 text-muted font-medium">{trade.setup_type}</span>
-              )}
+              {trade.setup_type && (() => {
+                const match = getStatsForTrade(trade, playbookStats, pbList);
+                const wrLabel = match
+                  ? (() => {
+                      const wr = match.stats.winRate;
+                      const color = wr >= 55 ? "text-win" : wr >= 40 ? "text-amber-400" : "text-loss";
+                      return <span className={`ml-1 font-semibold ${color}`}>&middot; {wr.toFixed(0)}%</span>;
+                    })()
+                  : null;
+                return (
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-border/50 text-muted font-medium">
+                    {trade.setup_type}{wrLabel}
+                  </span>
+                );
+              })()}
             </div>
             <p className="text-xs text-muted mt-0.5">{new Date(trade.open_timestamp).toLocaleString()}</p>
           </div>
@@ -372,6 +394,34 @@ export default function TradeDetailPage() {
           <TradingViewMiniChart symbol={trade.symbol} colorTheme={tvColorTheme} />
         </div>
       </div>
+
+      {/* Setup Performance Card */}
+      {(() => {
+        const match = getStatsForTrade(trade, playbookStats, pbList);
+        if (!match) return null;
+        const s = match.stats;
+        return (
+          <div className="glass rounded-2xl border border-border/50 p-5 space-y-3" style={{ boxShadow: "var(--shadow-card)" }}>
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wider flex items-center gap-1.5">
+              <BookMarked size={14} className="text-accent" /> Setup Performance &mdash; {match.playbookName}
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {[
+                { label: "Trades", value: String(s.tradeCount) },
+                { label: "Win Rate", value: `${s.winRate.toFixed(0)}%`, color: s.winRate >= 50 ? "text-win" : "text-loss" },
+                { label: "Total P&L", value: `$${s.totalPnl.toFixed(0)}`, color: s.totalPnl >= 0 ? "text-win" : "text-loss" },
+                { label: "Avg P&L", value: `$${s.avgPnl.toFixed(0)}`, color: s.avgPnl >= 0 ? "text-win" : "text-loss" },
+                { label: "Avg Process", value: s.avgProcess > 0 ? `${s.avgProcess.toFixed(1)}/10` : "\u2014" },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-[10px] text-muted/60 uppercase tracking-wider">{stat.label}</p>
+                  <p className={`text-sm font-bold ${stat.color ?? "text-foreground"}`}>{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Risk Metrics */}
       <RiskMetricsCard trade={trade} />

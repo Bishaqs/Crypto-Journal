@@ -181,16 +181,16 @@ export const ORDER_TYPES_EXECUTION: CourseDefinition = {
             {
               id: "ot-4-1",
               question:
-                "You set a trailing stop of $200 on a stock you bought at $50. The stock rises to $58, then drops to $56. What happens?",
+                "You set a trailing stop of $2 on a stock you bought at $50. The stock rises to $58, then drops to $56. What happens?",
               options: [
                 "Nothing — the trailing stop is at $48",
-                "The trailing stop triggers a sell — it trailed to $56 ($58 high minus $200... wait, $200 on a $50 stock?)",
+                "The stop triggers immediately since $2 is too tight",
                 "The stop trailed to $56 ($58 peak - $2) and triggers a sell at approximately $56",
                 "Trailing stops don't work on stocks",
               ],
               correctIndex: 2,
               explanation:
-                "With a $2 trailing stop (let's assume $2 for a $50 stock), as price rises to $58, the stop trails to $56. When price drops from $58 to $56, the stop triggers. You lock in roughly $6/share profit ($56 - $50) without manually adjusting anything. The trailing stop only moves up, never down.",
+                "With a $2 trailing stop on a $50 stock, as price rises to $58, the stop trails to $56. When price drops from $58 to $56, the stop triggers. You lock in roughly $6/share profit ($56 - $50) without manually adjusting anything. The trailing stop only moves up, never down.",
             },
           ],
         },

@@ -18,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import { RealisticBlackHole } from "@/components/realistic-black-hole";
+import { TraverseLogo } from "@/components/traverse-logo";
 
 type Step = 1 | 2 | 3;
 
@@ -290,6 +291,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-background">
       {/* Left — branding (desktop only) */}
       <div className="hidden lg:flex lg:w-[450px] shrink-0 flex-col justify-center px-12">
+        <div className="mb-5">
+          <TraverseLogo size={48} />
+        </div>
         <h1 className="text-4xl font-bold text-foreground mb-3">Traverse</h1>
         <p className="text-lg text-muted mb-12">
           Your edge starts with knowing yourself.
@@ -331,6 +335,10 @@ export default function LoginPage() {
       {/* Center — sign-in form */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
+          {/* Logo — visible on mobile where left panel is hidden */}
+          <div className="flex justify-center mb-6 lg:hidden">
+            <TraverseLogo size={40} />
+          </div>
           {/* Progress indicator */}
           <div className="flex items-center justify-center gap-2 mb-8">
             {[1, 2, 3].map((s) => (
@@ -412,7 +420,7 @@ export default function LoginPage() {
                     setError("Google sign-in is not available yet. Please use email/password.");
                   }
                 }}
-                className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg bg-white/10 border border-white/15 text-foreground font-medium hover:bg-white/15 hover:border-accent/30 transition-all mb-6"
+                className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-foreground font-medium hover:bg-white/15 hover:border-accent/30 transition-all mb-6"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24">
                   <path

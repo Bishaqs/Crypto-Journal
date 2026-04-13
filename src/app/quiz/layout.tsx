@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Trading Psychology Quiz | Traverse Journal",
-  description: "Discover your trading psychology pattern in 3 minutes. Find out if you're a Disciplined Strategist, Emotional Reactor, or one of 6 other archetypes — and get personalized insights.",
+  title: "What's Your Trading Archetype? | Traverse Journal",
+  description: "15 quick questions to discover which of the 8 trader minds you are. Based on Behavioral Finance, Neuroeconomics & Decision Science. No signup required.",
   openGraph: {
-    title: "What's Your Trading Psychology Pattern?",
-    description: "Take a 3-minute quiz to discover your trading archetype and get personalized insights from an AI trading coach.",
+    title: "What's Your Trading Archetype?",
+    description: "15 questions. 2 minutes. Discover if you're The Architect, The Degen, The Paper Hand, or one of 5 other trading archetypes.",
     url: "https://traversejournal.com/quiz",
   },
 };

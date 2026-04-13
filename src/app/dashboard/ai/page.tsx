@@ -29,6 +29,7 @@ import { CoachingEnhancementHint } from "@/components/ai/coaching-enhancement-hi
 import { generateSuggestedQuestions } from "@/lib/ai-suggested-questions";
 import { VoiceChatInput } from "@/components/ai/voice-chat-input";
 import { TtsToggle, useTts } from "@/components/ai/tts-toggle";
+import { ARCHETYPES, type TradingArchetype } from "@/lib/psychology-scoring";
 
 const SUGGESTED_QUESTIONS = [
   "What patterns do you see in my losing trades?",
@@ -40,6 +41,18 @@ const SUGGESTED_QUESTIONS = [
   "Compare my discipline across asset classes.",
   "What would you prioritize improving this week?",
 ];
+
+function getProfileAwareSuggestions(archetype: TradingArchetype): string[] {
+  const info = ARCHETYPES[archetype];
+  return [
+    `What should I watch for with my ${info.name.toLowerCase()} tendencies?`,
+    "Based on my profile, what's my biggest risk as a trader?",
+    "How do I build a pre-trade routine for my psychology type?",
+    "What trading rules would you suggest for someone like me?",
+    `How can I work on "${info.blindSpots[0].toLowerCase()}"?`,
+    "What does my psychology profile say about my relationship with losses?",
+  ];
+}
 
 // Demo responses shown when AI service is not configured
 const DEMO_RESPONSES: Record<string, string> = {
@@ -331,9 +344,39 @@ export default function AIPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery, loading, aiConsent]);
 
+  // ─── Synthetic welcome message for new users with psychology profile ──────
+  useEffect(() => {
+    if (loading || messages.length > 0 || conversations.length > 0) return;
+    if (trades.length > 0) return;
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem("stargate-nova-welcomed")) return;
+
+    const storedArchetype = localStorage.getItem("stargate-trading-archetype");
+    const displayName = localStorage.getItem("stargate-display-name") || "there";
+    if (!storedArchetype || !(storedArchetype in ARCHETYPES)) return;
+
+    const info = ARCHETYPES[storedArchetype as TradingArchetype];
+    const welcomeText = `Welcome to Traverse, ${displayName}! I've reviewed your psychology profile.\n\nAs **${info.name}**, here's what I'll be watching for:\n- ${info.blindSpots[0]}\n- ${info.blindSpots[1]}\n\n${info.recommendation}\n\nOnce you start logging trades, I'll connect your emotional state to your results and help you spot the patterns in real time. Ready to log your first trade?`;
+
+    setMessages([{
+      role: "assistant",
+      content: welcomeText,
+    }]);
+    localStorage.setItem("stargate-nova-welcomed", "true");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, conversations.length, trades.length]);
+
   // ─── Personalized suggested questions ─────────────────────────────────────
   const suggestedQuestions = useMemo(() => {
-    if (loading || trades.length === 0) return SUGGESTED_QUESTIONS;
+    if (loading) return SUGGESTED_QUESTIONS;
+    if (trades.length === 0) {
+      // Check for psychology profile from onboarding
+      const storedArchetype = typeof window !== "undefined" ? localStorage.getItem("stargate-trading-archetype") : null;
+      if (storedArchetype && storedArchetype in ARCHETYPES) {
+        return getProfileAwareSuggestions(storedArchetype as TradingArchetype);
+      }
+      return SUGGESTED_QUESTIONS;
+    }
     return generateSuggestedQuestions(trades, notes, experienceLevel);
   }, [trades, notes, experienceLevel, loading]);
 

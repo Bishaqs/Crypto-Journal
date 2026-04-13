@@ -103,7 +103,7 @@ export function WaitlistConfirmation({
           }}
         >
           Didn&apos;t see this in your inbox? Check your spam or junk folder and
-          mark us as safe so you don&apos;t miss your quiz invitation and protocol.
+          mark us as safe so you don&apos;t miss your deep quiz invitation.
         </Text>
       </Section>
 
@@ -211,7 +211,7 @@ export function WaitlistConfirmation({
               margin: "0 0 8px 0",
             }}
           >
-            Discover Your Trading Psychology
+            Your Personalized Deep Quiz Is Ready
           </Text>
           <Text
             style={{
@@ -221,12 +221,12 @@ export function WaitlistConfirmation({
               lineHeight: "1.5",
             }}
           >
-            Take a 3-minute quiz to find out your trading archetype — and get
-            personalized insights on your strengths, blind spots, and emotional
-            patterns. Your free Trading Psychology Protocol.
+            20 questions tailored to your trading archetype — with personalized
+            advice on your specific triggers, blind spots, and growth areas.
+            Your results will be pre-loaded into Traverse when you get access.
           </Text>
           <EmailButton href={quizLink} theme="dark">
-            Take the Quiz
+            Take Your Deep Quiz
           </EmailButton>
         </Section>
       )}
