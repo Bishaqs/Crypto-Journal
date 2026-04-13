@@ -160,7 +160,6 @@ const disciplineItems: NavItem[] = [
 ];
 
 const reportItems: NavItem[] = [
-  { href: "/dashboard/taxes", label: "Tax Reports", icon: Receipt },
   { href: "/dashboard/simulations", label: "Simulations", icon: Dices },
 ];
 
@@ -365,7 +364,7 @@ export const LABEL_KEY: Record<string, string> = {
   "Options Analysis": "sidebar.optionsAnalysis", Goals: "sidebar.goals",
   "Rule Tracker": "sidebar.ruleTracker", Execution: "sidebar.execution",
   "Risk Analysis": "sidebar.riskAnalysis", "Prop Firm": "sidebar.propFirm",
-  "Tax Reports": "sidebar.taxReports", Simulations: "sidebar.simulations",
+  Simulations: "sidebar.simulations",
   Feedback: "sidebar.feedback",
   "Help Center": "sidebar.helpCenter",
   "Import / Export": "sidebar.importExport",

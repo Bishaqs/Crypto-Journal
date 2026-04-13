@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Newspaper, ArrowRight, RefreshCw } from "lucide-react";
+import { Newspaper, ArrowRight, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { NewsCard } from "./news-card";
 import type { NewsArticle, AssetCategory } from "@/lib/news/types";
@@ -21,6 +21,7 @@ interface NewsWidgetProps {
 export function NewsWidget({ asset }: NewsWidgetProps) {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(true);
 
   const fetchNews = useCallback(async () => {
     try {
@@ -43,22 +44,31 @@ export function NewsWidget({ asset }: NewsWidgetProps) {
 
   return (
     <div
-      className="glass rounded-xl border border-border/50 p-4"
+      className="glass rounded-xl border border-border/50 p-4 max-w-[720px]"
       style={{ boxShadow: "var(--shadow-card)" }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <Newspaper size={14} className="text-accent" />
           <span className="text-xs font-semibold text-foreground">Latest News</span>
-        </div>
+          {articles.length > 0 && collapsed && (
+            <span className="text-[10px] text-muted">({articles.length})</span>
+          )}
+          {collapsed ? <ChevronDown size={12} className="text-muted" /> : <ChevronUp size={12} className="text-muted" />}
+        </button>
         <div className="flex items-center gap-2">
-          <button
-            onClick={fetchNews}
-            disabled={loading}
-            className="text-muted/50 hover:text-muted transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
-          </button>
+          {!collapsed && (
+            <button
+              onClick={fetchNews}
+              disabled={loading}
+              className="text-muted/50 hover:text-muted transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
+            </button>
+          )}
           <Link
             href={NEWS_LINKS[asset] || "/dashboard/news"}
             className="flex items-center gap-1 text-[10px] text-accent font-medium hover:underline"
@@ -68,29 +78,33 @@ export function NewsWidget({ asset }: NewsWidgetProps) {
         </div>
       </div>
 
-      {loading && articles.length === 0 && (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex gap-3 animate-pulse">
-              <div className="w-10 h-10 rounded bg-foreground/5 flex-shrink-0" />
-              <div className="flex-1 space-y-1.5">
-                <div className="h-3 bg-foreground/5 rounded w-3/4" />
-                <div className="h-2 bg-foreground/5 rounded w-1/2" />
-              </div>
+      {!collapsed && (
+        <div className="mt-3">
+          {loading && articles.length === 0 && (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex gap-3 animate-pulse">
+                  <div className="w-10 h-10 rounded bg-foreground/5 flex-shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 bg-foreground/5 rounded w-3/4" />
+                    <div className="h-2 bg-foreground/5 rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {!loading && articles.length === 0 && (
-        <p className="text-[10px] text-muted text-center py-4">No news available</p>
-      )}
+          {!loading && articles.length === 0 && (
+            <p className="text-[10px] text-muted text-center py-4">No news available</p>
+          )}
 
-      {articles.length > 0 && (
-        <div>
-          {articles.map((article) => (
-            <NewsCard key={article.id} article={article} compact />
-          ))}
+          {articles.length > 0 && (
+            <div>
+              {articles.slice(0, 3).map((article) => (
+                <NewsCard key={article.id} article={article} compact />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

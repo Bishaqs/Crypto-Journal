@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
-import { sendWaitlistConfirmation } from "@/lib/email";
+import { sendWaitlistVerification } from "@/lib/email";
 import { z } from "zod";
 import { TIERS, getTierForPosition, TOTAL_CAP, type WaitlistTier } from "@/lib/waitlist-tiers";
 
@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 const SignupSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   referralSource: z.string().max(200).optional(),
+  miniArchetype: z.string().max(50).optional(),
+  sessionId: z.string().max(100).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -54,18 +56,28 @@ export async function POST(req: NextRequest) {
     id?: string;
     position?: number;
     access_token?: string;
+    confirmation_token?: string;
     remaining?: number;
     total?: number;
     tier?: WaitlistTier;
     discount?: number;
+    email_confirmed?: boolean;
   };
 
   if (!result.success) {
     if (result.error === "already_exists") {
+      // If not yet confirmed, re-send verification email (rate-limited by outer RL)
+      if (!result.email_confirmed && result.confirmation_token) {
+        sendWaitlistVerification(parsed.email, result.confirmation_token)
+          .catch((err) => console.error("[waitlist/signup] resend verification failed:", err));
+      }
       return NextResponse.json({
         success: false,
-        error: "This email is already on the waitlist!",
+        error: result.email_confirmed
+          ? "This email is already on the waitlist!"
+          : "We already sent you a confirmation email. Please check your inbox (and spam folder).",
         position: result.position,
+        needsConfirmation: !result.email_confirmed,
       });
     }
     if (result.error === "waitlist_full") {
@@ -77,65 +89,64 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: result.error }, { status: 400 });
   }
 
-  // Determine tier info
+  // Determine tier info (for display only -- codes are generated on confirmation)
   const tier = result.tier ?? getTierForPosition(result.position!);
   const tierInfo = TIERS[tier];
-  const discount = result.discount ?? tierInfo.discount;
 
-  // Generate tier-appropriate discount code
-  const discountCode = `${tierInfo.codePrefix}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-  const referralCode = `REF-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  // Link archetype data if signup came from quiz
+  if (parsed.miniArchetype && result.id) {
+    admin.from("waitlist_signups").update({
+      mini_archetype: parsed.miniArchetype,
+    }).eq("id", result.id).then(({ error: updateErr }) => {
+      if (updateErr) console.error("[waitlist/signup] archetype link failed:", updateErr.message);
+    });
 
-  // Insert into discount_codes table
-  const { error: discountErr } = await admin.from("discount_codes").insert({
-    code: discountCode,
-    discount_type: "percentage",
-    discount_value: discount,
-    applicable_tiers: ["pro", "max"],
-    applicable_billing: ["monthly", "yearly"],
-    description: `${tierInfo.name} waitlist #${result.position} - ${discount}% forever`,
-    max_uses: 1,
-    is_active: true,
-  });
-
-  if (discountErr) {
-    console.error("[waitlist/signup] discount code insert failed:", discountErr.message);
+    // Link mini quiz result if session exists
+    if (parsed.sessionId) {
+      admin.from("mini_quiz_results").update({
+        waitlist_signup_id: result.id,
+      }).eq("session_id", parsed.sessionId).is("waitlist_signup_id", null).then(({ error: linkErr }) => {
+        if (linkErr) console.error("[waitlist/signup] quiz result link failed:", linkErr.message);
+      });
+    }
   }
 
-  // Update waitlist row with discount + referral codes
-  await admin
-    .from("waitlist_signups")
-    .update({ discount_code: discountCode, referral_code: referralCode })
-    .eq("id", result.id);
+  // Send verification email (non-blocking) -- codes come after confirmation
+  sendWaitlistVerification(parsed.email, result.confirmation_token!)
+    .catch((err) => console.error("[waitlist/signup] verification email failed:", err));
 
-  // Schedule quiz invitation email for Day 1
-  const quizInviteDate = new Date();
-  quizInviteDate.setDate(quizInviteDate.getDate() + 1);
-  quizInviteDate.setHours(10, 0, 0, 0);
-  await admin.from("email_sequences").insert({
-    email: parsed.email.toLowerCase().trim(),
-    waitlist_signup_id: result.id,
-    sequence_name: "waitlist_nurture",
-    day_index: 1,
-    scheduled_for: quizInviteDate.toISOString(),
-    status: "pending",
-  });
-
-  // Send confirmation email (non-blocking)
-  sendWaitlistConfirmation(
-    parsed.email,
-    result.position!,
-    result.access_token!,
-    discountCode,
-    referralCode,
-    tierInfo.name,
-    discount
-  ).catch((err) => console.error("[waitlist/signup] email failed:", err));
+  // Schedule confirmation reminder emails (24h and 72h after signup)
+  if (result.id) {
+    const now = new Date();
+    const reminder24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const reminder72h = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+    admin.from("email_sequences").insert([
+      {
+        email: parsed.email,
+        waitlist_signup_id: result.id,
+        sequence_name: "confirmation_reminder",
+        day_index: 1,
+        scheduled_for: reminder24h.toISOString(),
+        status: "pending",
+      },
+      {
+        email: parsed.email,
+        waitlist_signup_id: result.id,
+        sequence_name: "confirmation_reminder",
+        day_index: 3,
+        scheduled_for: reminder72h.toISOString(),
+        status: "pending",
+      },
+    ]).then(({ error: seqErr }) => {
+      if (seqErr) console.error("[waitlist/signup] reminder scheduling failed:", seqErr.message);
+    });
+  }
 
   return NextResponse.json({
     success: true,
     position: result.position,
     remaining: result.remaining,
     tier: tierInfo.name,
+    needsConfirmation: true,
   });
 }

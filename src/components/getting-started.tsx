@@ -16,27 +16,27 @@ interface Step {
   action?: "logTrade" | "import" | "psychology";
 }
 
-const STEPS: Step[] = [
+const BASE_STEPS: Step[] = [
   {
     id: "first-trade",
-    title: "Log your first trade",
-    description: "Record a trade with entry/exit, size, and your emotional state.",
+    title: "Log your first trade so I can start tracking your patterns",
+    description: "Even one trade gives Nova something to work with.",
     icon: Plus,
     action: "logTrade",
   },
   {
     id: "first-journal",
-    title: "Write a journal entry",
-    description: "Reflect on your trading session. What went well? What to improve?",
+    title: "Write about today's trading session",
+    description: "A few sentences about how you felt. Nova reads these too.",
     icon: BookOpen,
     href: "/dashboard/journal",
   },
   {
     id: "try-ai",
-    title: "Talk to Nova",
-    description: "Ask the AI about your patterns. Works with demo data too.",
+    title: "Ask Nova about your psychology profile",
+    description: "She already knows your patterns from onboarding.",
     icon: Brain,
-    href: "/dashboard/ai",
+    href: "/dashboard/ai?q=Based%20on%20my%20psychology%20profile%2C%20what%20should%20I%20watch%20for%20in%20my%20next%20trading%20session%3F",
   },
   {
     id: "import-trades",
@@ -45,14 +45,22 @@ const STEPS: Step[] = [
     icon: Upload,
     action: "import",
   },
-  {
-    id: "psychology-profile",
-    title: "Complete your Psychology Profile",
-    description: "A 5-min assessment that unlocks personalized AI coaching from Nova.",
-    icon: Target,
-    action: "psychology",
-  },
 ];
+
+const PSYCHOLOGY_STEP: Step = {
+  id: "psychology-profile",
+  title: "Complete your Psychology Profile",
+  description: "A 5-min assessment that unlocks personalized AI coaching from Nova.",
+  icon: Target,
+  action: "psychology",
+};
+
+function getSteps(): Step[] {
+  if (typeof window !== "undefined" && localStorage.getItem("stargate-psychology-completed-onboarding")) {
+    return BASE_STEPS;
+  }
+  return [...BASE_STEPS, PSYCHOLOGY_STEP];
+}
 
 interface GettingStartedProps {
   onLogTrade: () => void;
@@ -61,16 +69,19 @@ interface GettingStartedProps {
 }
 
 export function GettingStartedCard({ onLogTrade, onImport, onPsychology }: GettingStartedProps) {
+  const [steps, setSteps] = useState<Step[]>(BASE_STEPS);
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
+    setSteps(getSteps());
     if (localStorage.getItem(DISMISSED_KEY)) {
       setDismissed(true);
       return;
     }
+    const currentSteps = getSteps();
     const done = new Set<string>();
-    for (const step of STEPS) {
+    for (const step of currentSteps) {
       if (localStorage.getItem(`${STORAGE_PREFIX}${step.id}`)) done.add(step.id);
     }
     setCompleted(done);
@@ -86,16 +97,16 @@ export function GettingStartedCard({ onLogTrade, onImport, onPsychology }: Getti
     setDismissed(true);
   }
 
-  if (dismissed || completed.size >= STEPS.length) return null;
+  if (dismissed || completed.size >= steps.length) return null;
 
-  const progress = Math.round((completed.size / STEPS.length) * 100);
+  const progress = Math.round((completed.size / steps.length) * 100);
 
   return (
     <div className="glass rounded-2xl border border-accent/20 p-5 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-foreground">Get Started</h3>
-          <p className="text-xs text-muted mt-0.5">{completed.size} of {STEPS.length} complete</p>
+          <p className="text-xs text-muted mt-0.5">{completed.size} of {steps.length} complete</p>
         </div>
         <button onClick={dismiss} className="p-1 rounded-lg text-muted hover:text-foreground hover:bg-surface-hover transition-all" title="Dismiss">
           <X size={16} />
@@ -109,7 +120,7 @@ export function GettingStartedCard({ onLogTrade, onImport, onPsychology }: Getti
 
       {/* Steps */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {STEPS.map((step) => {
+        {steps.map((step) => {
           const isDone = completed.has(step.id);
           const Icon = step.icon;
 

@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { WaitlistConfirmation } from "@/emails/waitlist-confirmation";
+import { WaitlistVerification } from "@/emails/waitlist-verification";
 import { WelcomeEmail } from "@/emails/welcome";
 import { PasswordReset } from "@/emails/password-reset";
 import { WeeklyDigest, type WeeklyDigestProps } from "@/emails/weekly-digest";
@@ -68,6 +69,36 @@ export async function sendBanNotification(to: string, reason?: string) {
   });
 }
 
+export async function sendWaitlistVerification(to: string, confirmationToken: string) {
+  const confirmLink = `https://traversejournal.com/api/waitlist/confirm?token=${confirmationToken}`;
+  return send({
+    to,
+    subject: "Confirm your Traverse waitlist spot",
+    react: WaitlistVerification({ confirmLink }),
+    tags: [{ name: "category", value: "waitlist_verification" }],
+  });
+}
+
+export async function sendWaitlistWelcome(
+  to: string,
+  position: number,
+  voteLink: string,
+  discountCode: string,
+  referralLink: string,
+  referralCode: string,
+  quizLink: string,
+  tierName: string = "Founding 100",
+  discount: number = 50
+) {
+  return send({
+    to,
+    subject: `You're confirmed! You're #${position} — ${tierName}.`,
+    react: WaitlistConfirmation({ position, voteLink, discountCode, referralLink, referralCode, quizLink, tierName, discount }),
+    tags: [{ name: "category", value: "waitlist_welcome" }],
+  });
+}
+
+/** @deprecated Use sendWaitlistVerification + sendWaitlistWelcome instead */
 export async function sendWaitlistConfirmation(
   to: string,
   position: number,

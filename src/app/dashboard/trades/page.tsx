@@ -27,6 +27,7 @@ import {
   type TradeTableColumn, type FilterDef, type TableConfig,
 } from "@/components/trade-table";
 import { TradeForm } from "@/components/trade-form";
+import { usePlaybookStats, getStatsForTrade } from "@/lib/use-playbook-stats";
 
 // --- Column definitions ---
 
@@ -345,6 +346,7 @@ export default function TradesPage() {
   const [editTrade, setEditTrade] = useState<Trade | null>(null);
   const [showForm, setShowForm] = useState(false);
   const supabase = createClient();
+  const { playbookStats, playbooks: pbList } = usePlaybookStats();
 
   const { state, visibleColumns, paginatedData, sortedFilteredData, totalItems, totalPages, actions } = useTableState(TABLE_CONFIG, trades);
 
@@ -623,7 +625,16 @@ export default function TradesPage() {
                                 )}
                                 <div>
                                   <span className="text-muted/60 uppercase tracking-wider text-[10px]">Setup</span>
-                                  <p className="text-foreground font-medium mt-0.5">{trade.setup_type ?? "\u2014"}</p>
+                                  <p className="text-foreground font-medium mt-0.5">
+                                    {trade.setup_type ?? "\u2014"}
+                                    {(() => {
+                                      const match = getStatsForTrade(trade, playbookStats, pbList);
+                                      if (!match) return null;
+                                      const wr = match.stats.winRate;
+                                      const color = wr >= 55 ? "text-win" : wr >= 40 ? "text-amber-400" : "text-loss";
+                                      return <span className={`ml-1.5 font-semibold ${color}`}>&middot; {wr.toFixed(0)}%</span>;
+                                    })()}
+                                  </p>
                                 </div>
                                 {trade.process_score !== null && (
                                   <div>

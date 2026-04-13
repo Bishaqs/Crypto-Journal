@@ -14,6 +14,7 @@ import {
   getResolvedCoreItems,
 } from "./sidebar-data";
 import { useTheme } from "@/lib/theme-context";
+import { useLevel } from "@/lib/xp/context";
 import { hasStockAccess, hasCommodityAccess, hasForexAccess } from "@/lib/addons";
 import type { AssetContext } from "@/lib/addons";
 import { createClient, resetClient } from "@/lib/supabase/client";
@@ -26,6 +27,7 @@ export function Sidebar() {
   const router = useRouter();
   const { t } = useI18n();
   const { viewMode, setViewModeTo } = useTheme();
+  const { level } = useLevel();
   const { isOwner: isOwnerFromContext } = useSubscriptionContext();
 
   /* ── State ─────────────────────────────────────── */
@@ -50,6 +52,18 @@ export function Sidebar() {
       }
     });
   }, [isOwnerFromContext]);
+
+  /* ── Auto-promote beginner → advanced at Level 5 ── */
+  useEffect(() => {
+    if (
+      viewMode === "beginner" &&
+      level >= 5 &&
+      typeof window !== "undefined" &&
+      !localStorage.getItem("stargate-level-bypass")
+    ) {
+      setViewModeTo("advanced");
+    }
+  }, [viewMode, level, setViewModeTo]);
 
   /* ── Tour integration ──────────────────────────── */
   const tourSavedCategory = useRef<string | null>(null);

@@ -112,15 +112,18 @@ export async function POST(req: NextRequest) {
   try {
     const { data: emotionLogs } = await supabase
       .from("trade_emotion_logs")
-      .select("emotion, phase, note, price_at_log, created_at")
+      .select("emotion, phase, note, price_at_log, started_at, ended_at, created_at")
       .eq("trade_id", trade.id)
       .order("created_at", { ascending: true });
     if (emotionLogs && emotionLogs.length > 0) {
       emotionLogLines = emotionLogs.map((l) => {
-        const ts = l.created_at?.split("T").join(" ").slice(0, 19) ?? "";
+        const start = (l.started_at ?? l.created_at)?.split("T").join(" ").slice(0, 19) ?? "";
+        const duration = l.ended_at
+          ? ` to ${l.ended_at.split("T").join(" ").slice(0, 19)}`
+          : "";
         const price = l.price_at_log ? ` @ $${l.price_at_log}` : "";
         const note = l.note ? ` — "${l.note}"` : "";
-        return `${ts}: ${l.emotion}${price}${note}`;
+        return `${start}${duration}: ${l.emotion} (${l.phase})${price}${note}`;
       }).join("\n  ");
     }
   } catch {

@@ -21,7 +21,7 @@ export default function PricingPage() {
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-5">
         <Link href="/" className="flex items-center gap-2.5">
           <TraverseLogo size={28} />
-          <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-accent via-[#48CAE4] to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
+          <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-accent via-accent-hover to-accent bg-[length:200%_auto] animate-[shimmer_3s_ease-in-out_infinite] bg-clip-text text-transparent">
             Traverse
           </span>
         </Link>

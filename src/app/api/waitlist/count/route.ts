@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const admin = createAdminClient();
+    // Count ALL signups (confirmed + unconfirmed) so counter moves immediately on signup
     const { count, error } = await admin
       .from("waitlist_signups")
       .select("*", { count: "exact", head: true });

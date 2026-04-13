@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Trade, JournalNote } from "@/lib/types";
+import { Trade, JournalNote, TradeEmotionLog } from "@/lib/types";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { createClient } from "@/lib/supabase/client";
 import { unlinkNoteFromTrade } from "@/lib/journal-links";
@@ -12,27 +12,18 @@ import { EMOTION_CONFIG } from "@/components/psychology-inputs";
 // Types
 // ---------------------------------------------------------------------------
 
-type EmotionLog = {
-  id: string;
-  emotion: string;
-  phase: string | null;
-  note: string | null;
-  price_at_log: number | null;
-  created_at: string;
-};
-
 type TimelineEvent = {
   type: "trade-open" | "note" | "trade-close" | "emotion";
   timestamp: string;
   trade?: Trade;
   note?: JournalNote;
-  emotionLog?: EmotionLog;
+  emotionLog?: TradeEmotionLog;
 };
 
 type TradeTimelineProps = {
   trade: Trade;
   notes: JournalNote[];
-  emotionLogs?: EmotionLog[];
+  emotionLogs?: TradeEmotionLog[];
   onCreateNote: () => void;
   onLinkExisting: () => void;
   onRefresh: () => void;
@@ -43,7 +34,7 @@ type TradeTimelineProps = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function buildTimeline(trade: Trade, notes: JournalNote[], emotionLogs: EmotionLog[] = []): TimelineEvent[] {
+function buildTimeline(trade: Trade, notes: JournalNote[], emotionLogs: TradeEmotionLog[] = []): TimelineEvent[] {
   const events: TimelineEvent[] = [];
 
   events.push({ type: "trade-open", timestamp: trade.open_timestamp, trade });
@@ -53,7 +44,7 @@ function buildTimeline(trade: Trade, notes: JournalNote[], emotionLogs: EmotionL
   }
 
   for (const log of emotionLogs) {
-    events.push({ type: "emotion", timestamp: log.created_at, emotionLog: log });
+    events.push({ type: "emotion", timestamp: log.started_at ?? log.created_at, emotionLog: log });
   }
 
   if (trade.close_timestamp) {
@@ -205,7 +196,7 @@ function NoteItem({
   );
 }
 
-function EmotionItem({ log }: { log: EmotionLog }) {
+function EmotionItem({ log }: { log: TradeEmotionLog }) {
   const config = EMOTION_CONFIG[log.emotion];
   const phaseLabel = log.phase === "post" ? "Post-Trade" : "Check-In";
 
@@ -213,7 +204,15 @@ function EmotionItem({ log }: { log: EmotionLog }) {
     <div className="pb-1">
       <div className="flex items-center gap-2">
         <span className="text-[10px] uppercase tracking-wider text-muted font-semibold">{phaseLabel}</span>
-        <span className="text-[10px] text-muted/50">{formatTs(log.created_at)}</span>
+        <span className="text-[10px] text-muted/50">
+          {formatTs(log.started_at ?? log.created_at)}
+          {log.ended_at && (
+            <>
+              {" \u2192 "}
+              {formatTs(log.ended_at)}
+            </>
+          )}
+        </span>
       </div>
       <div className="flex items-center gap-1.5 mt-0.5">
         <span className="text-sm">{config?.emoji ?? ""}</span>

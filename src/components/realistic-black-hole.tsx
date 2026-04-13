@@ -98,6 +98,9 @@ export function RealisticBlackHole({
         ));
       });
 
+      // Signal that GSAP is active — disables CSS fallback animations
+      container.current?.setAttribute("data-gsap", "");
+
       tweensRef.current = tweens;
     },
     { scope: container, dependencies: [reducedMotion] },

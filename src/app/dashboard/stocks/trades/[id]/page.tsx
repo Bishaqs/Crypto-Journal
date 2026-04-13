@@ -160,7 +160,7 @@ export default function StockTradeDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.push("/dashboard/stocks/trades")} className="p-2 rounded-xl hover:bg-surface-hover transition-colors">
+          <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-surface-hover transition-colors">
             <ArrowLeft size={20} className="text-muted" />
           </button>
           <div>

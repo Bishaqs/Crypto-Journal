@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText, ShieldBan, Tag, Headphones, HelpCircle, Activity, BarChart3, Zap, Mail, UserCheck } from "lucide-react";
+import { Shield, Users, CreditCard, Ticket, TrendingUp, AlertTriangle, MessageSquareText, ShieldBan, Tag, Headphones, HelpCircle, Activity, BarChart3, Zap, Mail, UserCheck, Brain, Target } from "lucide-react";
 import { AdminInviteManager } from "@/components/admin/invite-codes-manager";
 import { EnhancedUsersTable, type EnrichedUser } from "@/components/admin/enhanced-users-table";
 import { AdminFeedbackManager, type FeedbackItem } from "@/components/admin/feedback-manager";
@@ -72,6 +72,9 @@ export default async function AdminPage() {
     waitlistResult,
     earlyAccessResult,
     accessRequestsResult,
+    miniQuizResult,
+    deepQuizResult,
+    funnelEventsResult,
   ] = await Promise.all([
     // Existing: subscriptions (now including last_seen)
     admin
@@ -154,6 +157,19 @@ export default async function AdminPage() {
       .from("access_requests")
       .select("id, user_id, email, status, deny_reason, reviewed_at, created_at")
       .order("created_at", { ascending: false }),
+
+    // Quiz funnel analytics
+    admin
+      .from("mini_quiz_results")
+      .select("id, archetype, created_at"),
+
+    admin
+      .from("deep_quiz_results")
+      .select("id, mini_archetype, created_at"),
+
+    admin
+      .from("funnel_events")
+      .select("id, event_type, archetype, created_at"),
   ]);
 
   // Handle errors
@@ -289,6 +305,26 @@ export default async function AdminPage() {
   const pendingQuestions = submittedQuestions.filter((q) => q.status === "pending").length;
   const pendingAccessRequests = accessRequests.filter((r) => r.status === "pending").length;
 
+  // Quiz funnel stats
+  const miniQuizzes = miniQuizResult.data ?? [];
+  const deepQuizzes = deepQuizResult.data ?? [];
+  const funnelEvents = funnelEventsResult.data ?? [];
+
+  const totalMiniQuizzes = miniQuizzes.length;
+  const totalDeepQuizzes = deepQuizzes.length;
+  const quizToSignup = funnelEvents.filter((e) => e.event_type === "waitlist_signup_from_quiz").length;
+  const miniQuizConversion = totalMiniQuizzes > 0 ? Math.round((quizToSignup / totalMiniQuizzes) * 100) : 0;
+  const signupToDeep = totalDeepQuizzes > 0 && quizToSignup > 0 ? Math.round((totalDeepQuizzes / quizToSignup) * 100) : 0;
+
+  // Archetype distribution from mini quiz
+  const archetypeCounts: Record<string, number> = {};
+  for (const q of miniQuizzes) {
+    archetypeCounts[q.archetype] = (archetypeCounts[q.archetype] ?? 0) + 1;
+  }
+  const archetypeDistribution = Object.entries(archetypeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count, pct: totalMiniQuizzes > 0 ? Math.round((count / totalMiniQuizzes) * 100) : 0 }));
+
   // Banned users list
   const bannedUsers = allUsers
     .filter((u) => u.sub?.is_banned)
@@ -362,6 +398,65 @@ export default async function AdminPage() {
         <StatCard icon={HelpCircle} label="Pending Questions" value={pendingQuestions} />
         <StatCard icon={UserCheck} label="Access Requests" value={pendingAccessRequests} />
       </div>
+
+      {/* Quiz Funnel Analytics */}
+      <section className="bg-surface rounded-2xl border border-border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex items-center gap-2 mb-4">
+          <Brain size={18} className="text-accent" />
+          <h2 className="text-lg font-semibold text-foreground">Quiz Funnel</h2>
+        </div>
+
+        {/* Funnel stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <div className="bg-background rounded-xl border border-border p-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted font-medium">Mini Quizzes</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">{totalMiniQuizzes}</p>
+          </div>
+          <div className="bg-background rounded-xl border border-border p-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted font-medium">Quiz → Signup</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">{quizToSignup}</p>
+            <p className="text-[10px] text-muted">{miniQuizConversion}% conversion</p>
+          </div>
+          <div className="bg-background rounded-xl border border-border p-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted font-medium">Deep Quizzes</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">{totalDeepQuizzes}</p>
+            {signupToDeep > 0 && <p className="text-[10px] text-muted">{signupToDeep}% of signups</p>}
+          </div>
+          <div className="bg-background rounded-xl border border-border p-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted font-medium">Shares</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">
+              {funnelEvents.filter((e) => e.event_type === "archetype_share").length}
+            </p>
+          </div>
+          <div className="bg-background rounded-xl border border-border p-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted font-medium">Result Views</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">
+              {funnelEvents.filter((e) => e.event_type === "archetype_reveal_view").length}
+            </p>
+          </div>
+        </div>
+
+        {/* Archetype distribution */}
+        {archetypeDistribution.length > 0 && (
+          <div>
+            <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">Archetype Distribution</h3>
+            <div className="space-y-2">
+              {archetypeDistribution.map((a) => (
+                <div key={a.name} className="flex items-center gap-3">
+                  <span className="text-xs text-muted w-24 capitalize">{a.name.replace("_", " ")}</span>
+                  <div className="flex-1 h-2 bg-background rounded-full overflow-hidden border border-border">
+                    <div
+                      className="h-full bg-accent rounded-full transition-all"
+                      style={{ width: `${a.pct}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted tabular-nums w-16 text-right">{a.count} ({a.pct}%)</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* Analytics Overview — charts */}
       <AnalyticsOverview />

@@ -141,6 +141,34 @@ export async function syncBitget(
     const closedIds = new Set(posResult.closedTrades.map((t) => t.broker_order_id));
     const dedupedOpen = openTrades.filter((t) => !closedIds.has(t.broker_order_id));
     allTrades = [...posResult.closedTrades, ...dedupedOpen, ...supplementaryTrades];
+
+    // Dedup open trades by symbol:position — supplementary fills + open positions
+    // can return the same open position with different broker_order_ids
+    const openByKey = new Map<string, number>();
+    const openDupIndices = new Set<number>();
+    for (let i = 0; i < allTrades.length; i++) {
+      const t = allTrades[i];
+      if (t.exit_price !== null) continue;
+      const key = `${t.symbol}:${t.position}`;
+      const prev = openByKey.get(key);
+      if (prev !== undefined) {
+        const prevIsLive = allTrades[prev].tags.includes("from-open-position");
+        const currIsLive = t.tags.includes("from-open-position");
+        if (currIsLive && !prevIsLive) {
+          openDupIndices.add(prev);
+          openByKey.set(key, i);
+        } else {
+          openDupIndices.add(i);
+        }
+      } else {
+        openByKey.set(key, i);
+      }
+    }
+    if (openDupIndices.size > 0) {
+      console.log(`[sync:bitget] Deduped ${openDupIndices.size} duplicate open trades by symbol:position`);
+      allTrades = allTrades.filter((_, i) => !openDupIndices.has(i));
+    }
+
     closedTradesForUpdate = [
       ...posResult.closedTrades,
       ...supplementaryTrades.filter((t) => t.exit_price !== null),
@@ -222,14 +250,12 @@ export async function syncBitget(
     // Paginate in chunks of 500 to handle large candidate sets
     for (let i = 0; i < candidateIds.length; i += 500) {
       const batch = candidateIds.slice(i, i + 500);
-      let query = supabase
+      const query = supabase
         .from("trades")
         .select("broker_order_id, exit_price")
         .eq("user_id", userId)
         .eq("broker_name", "Bitget")
-        .contains("tags", ["bitget-api-sync"])
         .in("broker_order_id", batch);
-      if (connectionId) query = query.or(`connection_id.eq.${connectionId},connection_id.is.null`);
       const { data } = await query;
 
       if (data) {
@@ -243,10 +269,36 @@ export async function syncBitget(
         }
       }
     }
+
+    // Also exclude dismissed (user-deleted) broker_order_ids
+    for (let i = 0; i < candidateIds.length; i += 500) {
+      const batch = candidateIds.slice(i, i + 500);
+      const { data: dismissed } = await supabase
+        .from("sync_dismissed_ids")
+        .select("broker_order_id")
+        .eq("user_id", userId)
+        .eq("broker_name", "Bitget")
+        .in("broker_order_id", batch);
+      if (dismissed) {
+        for (const d of dismissed) existingIds.add(d.broker_order_id);
+      }
+    }
   }
 
   diag.dedup_existing_ids = existingIds.size;
   let newTrades = allTrades.filter((t) => !existingIds.has(t.broker_order_id));
+
+  // In-batch dedup: if multiple sources (positions + fills) yielded the same broker_order_id,
+  // keep only the first occurrence
+  {
+    const seenBrokerIds = new Set<string>();
+    newTrades = newTrades.filter((t) => {
+      if (!t.broker_order_id || seenBrokerIds.has(t.broker_order_id)) return false;
+      seenBrokerIds.add(t.broker_order_id);
+      return true;
+    });
+  }
+
   const skipped = allTrades.length - newTrades.length;
   diag.dedup_new_trades = newTrades.length;
   diag.dedup_skipped = skipped;

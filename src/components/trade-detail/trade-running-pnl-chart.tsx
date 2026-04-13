@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Trade } from "@/lib/types";
+import { Trade, TradeEmotionLog } from "@/lib/types";
 import { calculateTradeMFE, calculateTradeMAE } from "@/lib/calculations";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
@@ -18,16 +18,7 @@ type DataPoint = {
   emotionNote?: string;
 };
 
-type EmotionLog = {
-  id: string;
-  emotion: string;
-  phase: string | null;
-  note: string | null;
-  price_at_log: number | null;
-  created_at: string;
-};
-
-export function TradeRunningPnlChart({ trade, emotionLogs = [] }: { trade: Trade; emotionLogs?: EmotionLog[] }) {
+export function TradeRunningPnlChart({ trade, emotionLogs = [] }: { trade: Trade; emotionLogs?: TradeEmotionLog[] }) {
   const data = useMemo(() => {
     const points: DataPoint[] = [];
     const openTime = new Date(trade.open_timestamp).getTime();
@@ -74,34 +65,42 @@ export function TradeRunningPnlChart({ trade, emotionLogs = [] }: { trade: Trade
 
     // Add emotion log points
     for (const log of emotionLogs) {
-      const logTime = new Date(log.created_at).getTime();
-      let pnl = 0;
-      if (log.price_at_log !== null) {
-        // Calculate exact PnL at this price
-        pnl = trade.position === "long"
-          ? (log.price_at_log - trade.entry_price) * trade.quantity
-          : (trade.entry_price - log.price_at_log) * trade.quantity;
-      } else {
-        // Interpolate between nearest known points
-        const sorted = [...points].sort((a, b) => a.time - b.time);
-        const before = sorted.filter((p) => p.time <= logTime).pop();
-        const after = sorted.find((p) => p.time >= logTime);
-        if (before && after && before.time !== after.time) {
-          const ratio = (logTime - before.time) / (after.time - before.time);
-          pnl = before.pnl + ratio * (after.pnl - before.pnl);
-        } else if (before) {
-          pnl = before.pnl;
-        } else if (after) {
-          pnl = after.pnl;
+      const logTime = new Date(log.started_at ?? log.created_at).getTime();
+      const emoji = EMOTION_CONFIG[log.emotion]?.emoji ?? "";
+
+      function pnlAtPrice(price: number | null, time: number): number {
+        if (price !== null) {
+          return trade.position === "long"
+            ? (price - trade.entry_price) * trade.quantity
+            : (trade.entry_price - price) * trade.quantity;
         }
+        const sorted = [...points].sort((a, b) => a.time - b.time);
+        const before = sorted.filter((p) => p.time <= time).pop();
+        const after = sorted.find((p) => p.time >= time);
+        if (before && after && before.time !== after.time) {
+          const ratio = (time - before.time) / (after.time - before.time);
+          return before.pnl + ratio * (after.pnl - before.pnl);
+        }
+        return before?.pnl ?? after?.pnl ?? 0;
       }
+
       points.push({
         time: logTime,
-        pnl,
-        label: `${EMOTION_CONFIG[log.emotion]?.emoji ?? ""} ${log.emotion}`,
+        pnl: pnlAtPrice(log.price_at_log, logTime),
+        label: `${emoji} ${log.emotion}${log.ended_at ? " start" : ""}`,
         emotion: log.emotion,
         emotionNote: log.note ?? undefined,
       });
+
+      if (log.ended_at) {
+        const endTime = new Date(log.ended_at).getTime();
+        points.push({
+          time: endTime,
+          pnl: pnlAtPrice(log.price_at_end, endTime),
+          label: `${emoji} ${log.emotion} end`,
+          emotion: log.emotion,
+        });
+      }
     }
 
     // Sort by time

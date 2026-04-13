@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Trade } from "@/lib/types";
+import { Trade, TradeEmotionLog } from "@/lib/types";
 import { fetchKlines } from "@/lib/simulator/binance-klines";
 import type { BinanceKline, SimInterval } from "@/lib/simulator/types";
 import { EMOTION_CONFIG } from "@/components/psychology-inputs";
@@ -14,18 +14,9 @@ type MarkersApi = any;
 type VolumeSeriesApi = any;
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-type EmotionLog = {
-  id: string;
-  emotion: string;
-  phase: string | null;
-  note: string | null;
-  price_at_log: number | null;
-  created_at: string;
-};
-
 interface EmotionPriceChartProps {
   trade: Trade;
-  emotionLogs: EmotionLog[];
+  emotionLogs: TradeEmotionLog[];
 }
 
 /** Pick candle interval based on trade duration */
@@ -238,14 +229,35 @@ export function EmotionPriceChart({ trade, emotionLogs }: EmotionPriceChartProps
     for (const log of emotionLogs) {
       if (!log.price_at_log) continue; // Need price for chart placement
       const config = EMOTION_CONFIG[log.emotion];
-      const time = Math.floor(new Date(log.created_at).getTime() / 1000);
-      allMarkers.push({
-        time,
-        position: "aboveBar",
-        color: "#eab308", // Yellow for emotions
-        shape: "circle",
-        text: `${config?.emoji ?? ""} ${log.emotion}`,
-      });
+      const startTime = Math.floor(new Date(log.started_at ?? log.created_at).getTime() / 1000);
+
+      if (log.ended_at && log.price_at_end) {
+        // Duration: paired start/end markers
+        const endTime = Math.floor(new Date(log.ended_at).getTime() / 1000);
+        allMarkers.push({
+          time: startTime,
+          position: "aboveBar",
+          color: "#eab308",
+          shape: "circle",
+          text: `${config?.emoji ?? ""} ${log.emotion} start`,
+        });
+        allMarkers.push({
+          time: endTime,
+          position: "aboveBar",
+          color: "#eab308",
+          shape: "circle",
+          text: `${config?.emoji ?? ""} ${log.emotion} end`,
+        });
+      } else {
+        // Point-in-time: single marker
+        allMarkers.push({
+          time: startTime,
+          position: "aboveBar",
+          color: "#eab308",
+          shape: "circle",
+          text: `${config?.emoji ?? ""} ${log.emotion}`,
+        });
+      }
     }
 
     // Sort by time (required by lightweight-charts)

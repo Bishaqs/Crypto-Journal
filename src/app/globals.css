@@ -736,6 +736,63 @@ body {
   animation: accretion-glow 5s ease-in-out infinite;
 }
 
+/* ===== Black Hole CSS Fallbacks (when GSAP unavailable) ===== */
+@keyframes bh-disk-rotate { to { transform: rotate(-360deg); } }
+@keyframes bh-disk-rotate-reverse { to { transform: rotate(360deg); } }
+@keyframes bh-ring-rotate { to { transform: rotate(-360deg); } }
+@keyframes bh-breathe {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0) scale(var(--bh-scale, 1)); }
+  50% { transform: translate(-50%, -50%) translateY(-15px) scale(var(--bh-scale, 1)); }
+}
+@keyframes bh-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.03); opacity: 0.85; }
+}
+@keyframes bh-gravity-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .accretion-group { animation: bh-disk-rotate 25s linear infinite; }
+  .accretion-group-reverse { animation: bh-disk-rotate-reverse 35s linear infinite; }
+  .einstein-ring { animation: bh-ring-rotate 40s linear infinite; }
+  .photon-ring { animation: bh-pulse 3s ease-in-out infinite; }
+  .gravity-ambient { animation: bh-gravity-pulse 6s ease-in-out infinite; }
+}
+
+/* When GSAP takes over, disable CSS animations to prevent conflicts */
+[data-gsap] .accretion-group,
+[data-gsap] .accretion-group-reverse,
+[data-gsap] .einstein-ring,
+[data-gsap] .photon-ring,
+[data-gsap] .gravity-ambient { animation: none; }
+
+/* Hero text CSS fallback (visible even without GSAP) */
+@keyframes hero-fade-in {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-text-line {
+    animation: hero-fade-in 1s ease-out both;
+  }
+  .hero-text-line:nth-child(1) { animation-delay: 0.2s; }
+  .hero-text-line:nth-child(2) { animation-delay: 0.35s; }
+  .hero-text-line:nth-child(3) { animation-delay: 0.5s; }
+  .hero-text-line:nth-child(4) { animation-delay: 0.65s; }
+  .hero-text-line:nth-child(5) { animation-delay: 0.8s; }
+
+  .hero-cta {
+    animation: hero-fade-in 1s ease-out 0.6s both;
+  }
+}
+
+/* GSAP overrides CSS when active */
+[data-gsap-hero] .hero-text-line,
+[data-gsap-hero] .hero-cta { animation: none; }
+
 /* ===== Candlestick Background — Left-to-right chart flow ===== */
 @keyframes candle-open-line {
   0% {
