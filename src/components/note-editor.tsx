@@ -13,6 +13,7 @@ import { TemplateSelector } from "@/components/note-editor/template-selector";
 import { TradeLinker } from "@/components/note-editor/trade-linker";
 import { VoiceInput, type VoiceResult } from "@/components/note-editor/voice-input";
 import { getCustomTagPresets, isUserTag } from "@/lib/tag-manager";
+import { TagInput } from "@/components/tag-input";
 import { isStructuredTemplate, StructuredTemplateForm, serializeToHtml, serializePsychToHtml } from "@/components/note-editor/structured-templates";
 import { usePsychologyTier } from "@/lib/psychology-tier-context";
 import { EmotionPicker, ConfidenceSlider, ProcessScoreInput } from "@/components/psychology-inputs";
@@ -130,7 +131,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
   const [linkedTradeIds, setLinkedTradeIds] = useState<string[]>(editNote?.trade_id ? [editNote.trade_id] : []);
   const [autoLinkOnImport, setAutoLinkOnImport] = useState(editNote?.auto_link_on_import ?? false);
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [selectedTag, setSelectedTag] = useState<string | null>(editNote?.tags?.[0] ?? null);
+  const [selectedTags, setSelectedTags] = useState<string[]>(editNote?.tags ?? []);
   const [allExistingTags, setAllExistingTags] = useState<string[]>([]);
   const [title, setTitle] = useState(editNote?.title ?? "");
   const [appliedTemplate, setAppliedTemplate] = useState(editNote?.template_id ?? initialTemplate);
@@ -180,7 +181,8 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
             if (parsed.content && parsed.content.replace(/<[^>]*>/g, "").trim().length > 0) {
               initial = parsed.content;
               if (parsed.title) setTitle(parsed.title);
-              if (parsed.tag) setSelectedTag(parsed.tag);
+              if (Array.isArray(parsed.tags)) setSelectedTags(parsed.tags);
+              else if (parsed.tag) setSelectedTags([parsed.tag]);
             }
           }
         } catch { /* ignore corrupt draft */ }
@@ -198,11 +200,11 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
       const content = contentRef.current?.innerHTML ?? "";
       const hasContent = content.replace(/<[^>]*>/g, "").trim().length > 0 || title.trim().length > 0;
       if (hasContent) {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ content, title, tag: selectedTag }));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ content, title, tags: selectedTags }));
       }
     }, 3000);
     return () => clearInterval(interval);
-  }, [editNote, title, selectedTag]);
+  }, [editNote, title, selectedTags]);
 
   // Clear draft on successful save
   const clearDraft = useCallback(() => {
@@ -398,7 +400,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
     }
 
     if (data.tags?.length) {
-      setSelectedTag(data.tags[0]);
+      setSelectedTags((prev) => Array.from(new Set([...prev, ...data.tags!])));
     }
 
     // Upload attached images and insert into content
@@ -472,7 +474,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
       const payload: Record<string, unknown> = {
         title: (formData.get("title") as string) || null,
         content: htmlContent,
-        tags: selectedTag ? [selectedTag] : [],
+        tags: selectedTags,
         trade_id: linkedTradeIds[0] ?? null, // keep for backward compat during transition
         auto_link_on_import: autoLinkOnImport,
         note_type: noteType,
@@ -545,7 +547,7 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
               noteId,
               content: plainText,
               title: title || undefined,
-              tags: selectedTag ? [selectedTag] : undefined,
+              tags: selectedTags.length ? selectedTags : undefined,
             }),
           }).catch(() => {}); // Non-blocking — don't fail the save
         }
@@ -585,17 +587,13 @@ export function NoteEditor({ editNote = null, initialTemplate = "free", assetTyp
                 <input name="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Note Title" className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm font-semibold focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50" />
               </div>
               <div>
-                <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Tag</label>
-                <select
-                  value={selectedTag ?? ""}
-                  onChange={(e) => setSelectedTag(e.target.value || null)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all"
-                >
-                  <option value="">No Tag</option>
-                  {tagOptions.map((tag) => (
-                    <option key={tag} value={tag}>{tag}</option>
-                  ))}
-                </select>
+                <label className="block text-[11px] uppercase tracking-wider text-muted mb-1.5 font-semibold">Note Tags</label>
+                <TagInput
+                  value={selectedTags}
+                  onChange={setSelectedTags}
+                  suggestions={tagOptions}
+                  placeholder="Add tags (Enter or comma)…"
+                />
               </div>
             </div>
           </div>
