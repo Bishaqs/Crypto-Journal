@@ -16,10 +16,15 @@ import {
   Clock,
   StickyNote,
   X,
+  Wallet,
+  Settings,
+  Layers,
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { PredictionMarketForm } from "@/components/prediction-market-form";
 import { usePredictionStats } from "@/lib/use-prediction-stats";
+import { useBettingSettings } from "@/lib/use-betting-settings";
+import { realizedUnits } from "@/lib/betting-odds";
 import type {
   PredictionMarket,
   PredictionMarketNote,
@@ -66,6 +71,18 @@ function fmtNum(n: number | null | undefined, digits = 2): string {
   });
 }
 
+function fmtMoney(n: number | null | undefined, currency: string, signed = false): string {
+  if (n == null) return "—";
+  const sign = signed && n >= 0 ? "+" : "";
+  return `${sign}${currency}${fmtNum(n)}`;
+}
+
+function fmtUnits(n: number | null | undefined, signed = false): string {
+  if (n == null) return "—";
+  const sign = signed && n >= 0 ? "+" : "";
+  return `${sign}${n.toFixed(2)}u`;
+}
+
 export default function PredictionsPage() {
   const [predictions, setPredictions] = useState<PredictionMarket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,8 +92,16 @@ export default function PredictionsPage() {
   const [resolving, setResolving] = useState<PredictionMarket | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [showBankrollSettings, setShowBankrollSettings] = useState(false);
 
-  const stats = usePredictionStats(predictions);
+  const { settings, save: saveSettings } = useBettingSettings();
+  const stats = usePredictionStats(
+    predictions,
+    settings.bankroll,
+    settings.unitPct
+  );
+  // Current value of one unit = unitPct% of the (compounded) current bankroll.
+  const unitValue = (stats.currentBankroll * settings.unitPct) / 100;
 
   const fetchPredictions = useCallback(async () => {
     try {
@@ -155,6 +180,91 @@ export default function PredictionsPage() {
           <Plus size={18} />
           New Prediction
         </button>
+      </div>
+
+      {/* Bankroll bar */}
+      <div
+        className="glass rounded-2xl border border-border/50 p-5"
+        style={{ boxShadow: "var(--shadow-card)" }}
+      >
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-6 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+                <Wallet size={16} className="text-accent" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted/60 uppercase tracking-wider">
+                  Bankroll
+                </p>
+                <p className="text-lg font-bold text-foreground tabular-nums">
+                  {fmtMoney(stats.currentBankroll, settings.currency)}
+                </p>
+              </div>
+            </div>
+            {stats.hasBettingData && (
+              <>
+                <div>
+                  <p className="text-[10px] text-muted/60 uppercase tracking-wider">
+                    P/L
+                  </p>
+                  <p
+                    className={`text-lg font-bold tabular-nums ${
+                      stats.unitsPnl >= 0 ? "text-win" : "text-loss"
+                    }`}
+                  >
+                    {fmtUnits(stats.unitsPnl, true)}{" "}
+                    <span className="text-xs font-normal text-muted">
+                      ({fmtMoney(stats.bankrollPnl, settings.currency, true)})
+                    </span>
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted/60 uppercase tracking-wider">
+                    ROI
+                  </p>
+                  <p
+                    className={`text-lg font-bold tabular-nums ${
+                      stats.roiPct >= 0 ? "text-win" : "text-loss"
+                    }`}
+                  >
+                    {stats.roiPct >= 0 ? "+" : ""}
+                    {stats.roiPct.toFixed(1)}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted/60 uppercase tracking-wider">
+                    Units staked
+                  </p>
+                  <p className="text-lg font-bold text-foreground tabular-nums">
+                    {stats.unitsStaked.toFixed(1)}u
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+          <button
+            onClick={() => setShowBankrollSettings((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted hover:text-foreground hover:border-accent/30 transition-all shrink-0"
+          >
+            <Settings size={12} />
+            {settings.currency}
+            {fmtNum(settings.bankroll)} · {settings.unitPct}%/unit
+          </button>
+        </div>
+
+        {showBankrollSettings && (
+          <BankrollSettings
+            initialBankroll={settings.bankroll}
+            initialUnitPct={settings.unitPct}
+            initialCurrency={settings.currency}
+            onSave={async (next) => {
+              await saveSettings(next);
+              setShowBankrollSettings(false);
+            }}
+            onClose={() => setShowBankrollSettings(false)}
+          />
+        )}
       </div>
 
       {/* Stats header */}
@@ -376,8 +486,22 @@ export default function PredictionsPage() {
                           {p.direction}
                         </span>
                       )}
+                      {p.bet_type === "combo" && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-accent/8 text-accent font-medium inline-flex items-center gap-1">
+                          <Layers size={10} />
+                          {p.legs?.length ?? 0}-leg combo
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted mt-1.5 flex-wrap">
+                      {p.odds != null && (
+                        <span>
+                          Odds:{" "}
+                          <span className="font-bold text-foreground tabular-nums">
+                            {p.odds}
+                          </span>
+                        </span>
+                      )}
                       <span>
                         You:{" "}
                         <span className="font-bold text-accent tabular-nums">
@@ -406,22 +530,47 @@ export default function PredictionsPage() {
                       <span>
                         Stake:{" "}
                         <span className="font-medium text-foreground tabular-nums">
-                          {fmtNum(p.stake)}
+                          {p.stake_units != null
+                            ? `${fmtUnits(p.stake_units)} (≈ ${fmtMoney(
+                                p.stake_units * unitValue,
+                                settings.currency
+                              )})`
+                            : fmtNum(p.stake)}
                         </span>
                       </span>
-                      {p.outcome !== "pending" && p.realized_result != null && (
-                        <span>
-                          Result:{" "}
-                          <span
-                            className={`font-bold tabular-nums ${
-                              p.realized_result >= 0 ? "text-win" : "text-loss"
-                            }`}
-                          >
-                            {p.realized_result >= 0 ? "+" : ""}
-                            {fmtNum(p.realized_result)}
+                      {p.outcome !== "pending" &&
+                        (p.realized_units != null ||
+                          p.realized_result != null) && (
+                          <span>
+                            Result:{" "}
+                            {p.realized_units != null ? (
+                              <span
+                                className={`font-bold tabular-nums ${
+                                  p.realized_units >= 0 ? "text-win" : "text-loss"
+                                }`}
+                              >
+                                {fmtUnits(p.realized_units, true)} (≈{" "}
+                                {fmtMoney(
+                                  p.realized_units * unitValue,
+                                  settings.currency,
+                                  true
+                                )}
+                                )
+                              </span>
+                            ) : (
+                              <span
+                                className={`font-bold tabular-nums ${
+                                  (p.realized_result ?? 0) >= 0
+                                    ? "text-win"
+                                    : "text-loss"
+                                }`}
+                              >
+                                {(p.realized_result ?? 0) >= 0 ? "+" : ""}
+                                {fmtNum(p.realized_result)}
+                              </span>
+                            )}
                           </span>
-                        </span>
-                      )}
+                        )}
                     </div>
                     <div className="flex items-center gap-4 text-[11px] text-muted/60 mt-1.5">
                       <span>Entry: {fmtDate(p.entry_date)}</span>
@@ -481,6 +630,34 @@ export default function PredictionsPage() {
                     </button>
                   </div>
 
+                  {/* Combo legs */}
+                  {p.bet_type === "combo" && p.legs?.length > 0 && (
+                    <div className="bg-background rounded-xl p-4">
+                      <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <Layers size={14} className="text-accent" />
+                        Legs ({p.legs.length})
+                      </h4>
+                      <div className="space-y-1.5">
+                        {p.legs.map((leg, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between gap-3 text-sm border-b border-border/30 last:border-0 pb-1.5 last:pb-0"
+                          >
+                            <span className="text-foreground truncate">
+                              {leg.selection || `Leg ${i + 1}`}
+                            </span>
+                            <span className="text-muted tabular-nums shrink-0">
+                              {leg.odds != null ? `@ ${leg.odds}` : "—"}
+                              {leg.market_prob != null
+                                ? ` · ${leg.market_prob}%`
+                                : ""}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Notes panel — scoped to this prediction only */}
                   <NotesPanel predictionId={p.id} />
                 </div>
@@ -494,6 +671,8 @@ export default function PredictionsPage() {
       {showForm && (
         <PredictionMarketForm
           editPrediction={editing}
+          unitValue={unitValue}
+          currency={settings.currency}
           onClose={() => {
             setShowForm(false);
             setEditing(null);
@@ -506,6 +685,8 @@ export default function PredictionsPage() {
       {resolving && (
         <ResolveModal
           prediction={resolving}
+          unitValue={unitValue}
+          currency={settings.currency}
           onClose={() => setResolving(null)}
           onResolved={() => {
             setResolving(null);
@@ -523,16 +704,33 @@ export default function PredictionsPage() {
 
 function ResolveModal({
   prediction,
+  unitValue,
+  currency,
   onClose,
   onResolved,
 }: {
   prediction: PredictionMarket;
+  unitValue: number;
+  currency: string;
   onClose: () => void;
   onResolved: () => void;
 }) {
-  const [outcome, setOutcome] = useState<Outcome>(
-    prediction.outcome === "pending" ? "won" : prediction.outcome
-  );
+  const isUnitMode = prediction.stake_units != null;
+
+  function autoUnitsFor(o: Outcome): number | null {
+    return realizedUnits(o, prediction.stake_units, prediction.odds);
+  }
+
+  const initialOutcome: Outcome =
+    prediction.outcome === "pending" ? "won" : prediction.outcome;
+
+  const [outcome, setOutcome] = useState<Outcome>(initialOutcome);
+  const [unitsInput, setUnitsInput] = useState<string>(() => {
+    if (!isUnitMode) return "";
+    if (prediction.realized_units != null) return String(prediction.realized_units);
+    const a = realizedUnits(initialOutcome, prediction.stake_units, prediction.odds);
+    return a != null ? String(a) : "";
+  });
   const [realizedResult, setRealizedResult] = useState<string>(
     prediction.realized_result != null
       ? String(prediction.realized_result)
@@ -547,28 +745,63 @@ function ResolveModal({
     { value: "void", label: "Void" },
   ];
 
+  function pickOutcome(o: Outcome) {
+    setOutcome(o);
+    if (isUnitMode) {
+      const a = autoUnitsFor(o);
+      setUnitsInput(a != null ? String(a) : "");
+    }
+  }
+
+  const previewUnits = unitsInput.trim() !== "" ? Number(unitsInput) : null;
+
   async function handleSave() {
     setError(null);
     setSaving(true);
     try {
-      const trimmed = realizedResult.trim();
-      let realizedValue: number | null = null;
-      if (trimmed !== "") {
-        const parsed = Number(trimmed);
-        if (Number.isNaN(parsed)) {
-          setError("Result must be a number");
-          return;
+      let body: Record<string, unknown>;
+
+      if (isUnitMode) {
+        let unitsValue: number | null = null;
+        if (outcome === "void") {
+          unitsValue = 0;
+        } else if (unitsInput.trim() !== "") {
+          const parsed = Number(unitsInput);
+          if (!Number.isFinite(parsed)) {
+            setError("Units result must be a number");
+            return;
+          }
+          unitsValue = parsed;
+        } else {
+          unitsValue = autoUnitsFor(outcome);
+          if (unitsValue == null) {
+            setError("Enter the units result (no odds on this bet to auto-calc).");
+            return;
+          }
         }
-        realizedValue = parsed;
+        body = {
+          outcome,
+          realized_units: unitsValue,
+          realized_result: unitsValue != null ? unitsValue * unitValue : null,
+        };
+      } else {
+        const trimmed = realizedResult.trim();
+        let realizedValue: number | null = null;
+        if (trimmed !== "") {
+          const parsed = Number(trimmed);
+          if (Number.isNaN(parsed)) {
+            setError("Result must be a number");
+            return;
+          }
+          realizedValue = parsed;
+        }
+        body = { outcome, realized_result: realizedValue };
       }
 
       const res = await fetch(`/api/prediction-markets/${prediction.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          outcome,
-          realized_result: realizedValue,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -588,9 +821,7 @@ function ResolveModal({
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-surface border border-border rounded-2xl w-full max-w-md my-8">
         <div className="flex items-center justify-between p-5 border-b border-border">
-          <h3 className="text-lg font-bold text-foreground">
-            Resolve Prediction
-          </h3>
+          <h3 className="text-lg font-bold text-foreground">Resolve Bet</h3>
           <button
             onClick={onClose}
             className="p-1 rounded-lg hover:bg-surface-hover transition-colors"
@@ -615,7 +846,7 @@ function ResolveModal({
                 <button
                   key={o.value}
                   type="button"
-                  onClick={() => setOutcome(o.value)}
+                  onClick={() => pickOutcome(o.value)}
                   className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium border transition-all duration-200 ${
                     outcome === o.value
                       ? "bg-accent/10 border-accent/30 text-accent shadow-sm"
@@ -628,22 +859,57 @@ function ResolveModal({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs text-muted mb-1.5">
-              Realized Result (signed P/L)
-            </label>
-            <input
-              type="number"
-              step="any"
-              value={realizedResult}
-              onChange={(e) => setRealizedResult(e.target.value)}
-              placeholder="e.g. 120 or -50"
-              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 tabular-nums"
-            />
-            <p className="text-[10px] text-muted/60 mt-1.5">
-              Void bets are excluded from calibration scoring.
-            </p>
-          </div>
+          {isUnitMode ? (
+            <div>
+              <label className="block text-xs text-muted mb-1.5">
+                Result (units)
+              </label>
+              <input
+                type="number"
+                step="any"
+                value={outcome === "void" ? "0" : unitsInput}
+                disabled={outcome === "void"}
+                onChange={(e) => setUnitsInput(e.target.value)}
+                placeholder="auto from odds"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 tabular-nums disabled:opacity-50"
+              />
+              <p className="text-[10px] text-muted/60 mt-1.5">
+                Auto-calculated from your odds (
+                {prediction.odds != null ? `@ ${prediction.odds}` : "no odds set"})
+                and stake ({fmtUnits(prediction.stake_units)}). Editable.
+                {outcome !== "void" && previewUnits != null && (
+                  <>
+                    {" "}
+                    ≈{" "}
+                    <span
+                      className={
+                        previewUnits >= 0 ? "text-win" : "text-loss"
+                      }
+                    >
+                      {fmtMoney(previewUnits * unitValue, currency, true)}
+                    </span>
+                  </>
+                )}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs text-muted mb-1.5">
+                Realized Result (signed P/L)
+              </label>
+              <input
+                type="number"
+                step="any"
+                value={realizedResult}
+                onChange={(e) => setRealizedResult(e.target.value)}
+                placeholder="e.g. 120 or -50"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 tabular-nums"
+              />
+              <p className="text-[10px] text-muted/60 mt-1.5">
+                Void bets are excluded from calibration scoring.
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
             <button
@@ -815,6 +1081,118 @@ function NotesPanel({ predictionId }: { predictionId: string }) {
             </div>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Bankroll settings — inline editor for starting bankroll / unit % / currency
+// ---------------------------------------------------------------------------
+
+function BankrollSettings({
+  initialBankroll,
+  initialUnitPct,
+  initialCurrency,
+  onSave,
+  onClose,
+}: {
+  initialBankroll: number;
+  initialUnitPct: number;
+  initialCurrency: string;
+  onSave: (next: {
+    bankroll: number;
+    unitPct: number;
+    currency: string;
+  }) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [bankroll, setBankroll] = useState(String(initialBankroll));
+  const [unitPct, setUnitPct] = useState(String(initialUnitPct));
+  const [currency, setCurrency] = useState(initialCurrency);
+  const [saving, setSaving] = useState(false);
+
+  const bk = Number(bankroll);
+  const up = Number(unitPct);
+  const unitVal =
+    Number.isFinite(bk) && Number.isFinite(up) ? (bk * up) / 100 : null;
+
+  async function save() {
+    setSaving(true);
+    try {
+      await onSave({
+        bankroll: Number.isFinite(bk) && bk > 0 ? bk : initialBankroll,
+        unitPct: Number.isFinite(up) && up > 0 ? up : initialUnitPct,
+        currency: currency.trim() || initialCurrency,
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+      <div>
+        <label className="block text-[10px] text-muted/60 uppercase tracking-wider mb-1">
+          Starting bankroll
+        </label>
+        <input
+          type="number"
+          step="any"
+          min={0}
+          value={bankroll}
+          onChange={(e) => setBankroll(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 tabular-nums"
+        />
+      </div>
+      <div>
+        <label className="block text-[10px] text-muted/60 uppercase tracking-wider mb-1">
+          Unit (% of bankroll)
+        </label>
+        <input
+          type="number"
+          step="any"
+          min={0}
+          value={unitPct}
+          onChange={(e) => setUnitPct(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 tabular-nums"
+        />
+      </div>
+      <div>
+        <label className="block text-[10px] text-muted/60 uppercase tracking-wider mb-1">
+          Currency
+        </label>
+        <input
+          type="text"
+          maxLength={4}
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="flex-1 px-4 py-2 rounded-lg bg-accent text-background font-semibold text-xs hover:bg-accent-hover transition-all disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-3 py-2 rounded-lg text-xs text-muted hover:text-foreground transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+      {unitVal != null && (
+        <p className="sm:col-span-4 text-[11px] text-muted/70">
+          1 unit = {currency}
+          {unitVal.toLocaleString(undefined, { maximumFractionDigits: 2 })} at the
+          starting bankroll.
+        </p>
       )}
     </div>
   );

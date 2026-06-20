@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { PredictionMarket } from "@/lib/schemas/prediction-market";
+import { realizedUnits } from "@/lib/betting-odds";
 
 export type CalibrationBucket = {
   /** Human label for the decile, e.g. "0-10%" or "90-100%" */
@@ -38,6 +39,21 @@ export type PredictionStats = {
   bestBet: PredictionBetRef | null;
   /** Resolved bet with the lowest realized_result, or null */
   worstBet: PredictionBetRef | null;
+  // ── Betting (units / bankroll) ──
+  /** True when at least one resolved bet was staked in units */
+  hasBettingData: boolean;
+  /** Total units staked across resolved bets */
+  unitsStaked: number;
+  /** Net P/L in units (flat, bankroll-independent) */
+  unitsPnl: number;
+  /** unitsPnl / unitsStaked * 100 */
+  roiPct: number;
+  /** Starting bankroll (from settings), in currency */
+  startBankroll: number;
+  /** Bankroll after compounding resolved bets at unitPct of running balance */
+  currentBankroll: number;
+  /** currentBankroll - startBankroll */
+  bankrollPnl: number;
 };
 
 const DECILE_COUNT = 10;
@@ -60,7 +76,9 @@ function decileLabel(idx: number): string {
  * Pure — no side effects, derived entirely from the passed predictions array.
  */
 export function usePredictionStats(
-  predictions: PredictionMarket[]
+  predictions: PredictionMarket[],
+  bankroll = 1000,
+  unitPct = 1
 ): PredictionStats {
   return useMemo(() => {
     const resolved = predictions.filter(
@@ -119,6 +137,46 @@ export function usePredictionStats(
       }
     }
 
+    // ── Betting (units / bankroll) ──
+    // Flat units P/L (bankroll-independent): prefer stored realized_units,
+    // fall back to a value computed from outcome + stake_units + odds.
+    const unitBets = resolved.filter(
+      (p) => p.stake_units != null && p.stake_units > 0
+    );
+    const hasBettingData = unitBets.length > 0;
+
+    let unitsStaked = 0;
+    let unitsPnl = 0;
+    for (const p of unitBets) {
+      unitsStaked += p.stake_units ?? 0;
+      const ru =
+        p.realized_units != null
+          ? p.realized_units
+          : realizedUnits(p.outcome, p.stake_units, p.odds) ?? 0;
+      unitsPnl += ru;
+    }
+    const roiPct = unitsStaked > 0 ? (unitsPnl / unitsStaked) * 100 : 0;
+
+    // Compounded bankroll: walk resolved unit-bets chronologically, sizing each
+    // stake as unitPct of the running bankroll (1 unit = unitPct% of bankroll).
+    const chrono = [...unitBets].sort((a, b) => {
+      const ka = a.resolve_date ?? a.entry_date ?? a.created_at;
+      const kb = b.resolve_date ?? b.entry_date ?? b.created_at;
+      return ka < kb ? -1 : ka > kb ? 1 : 0;
+    });
+    let running = bankroll;
+    for (const p of chrono) {
+      const unitValue = (running * unitPct) / 100;
+      const stakeMoney = (p.stake_units ?? 0) * unitValue;
+      if (p.outcome === "won" && p.odds != null && p.odds > 0) {
+        running += stakeMoney * (p.odds - 1);
+      } else if (p.outcome === "lost") {
+        running -= stakeMoney;
+      }
+    }
+    const currentBankroll = running;
+    const bankrollPnl = currentBankroll - bankroll;
+
     return {
       resolvedCount,
       openCount,
@@ -129,6 +187,13 @@ export function usePredictionStats(
       realizedPnl,
       bestBet,
       worstBet,
+      hasBettingData,
+      unitsStaked,
+      unitsPnl,
+      roiPct,
+      startBankroll: bankroll,
+      currentBankroll,
+      bankrollPnl,
     };
-  }, [predictions]);
+  }, [predictions, bankroll, unitPct]);
 }

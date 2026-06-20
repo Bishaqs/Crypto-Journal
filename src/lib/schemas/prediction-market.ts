@@ -6,6 +6,12 @@ const dateString = z
   .string()
   .regex(ISO_DATE, "Date must be in YYYY-MM-DD format");
 
+export const PredictionMarketLegSchema = z.object({
+  selection: z.string().max(200).default(""),
+  odds: z.number().positive("Odds must be > 0").nullable().optional(),
+  market_prob: z.number().min(0).max(100).nullable().optional(),
+});
+
 export const PredictionMarketCreateSchema = z.object({
   title: z.string().min(1, "Title is required").max(300),
   platform: z.string().max(100).nullable().optional(),
@@ -29,6 +35,12 @@ export const PredictionMarketCreateSchema = z.object({
     .enum(["pending", "won", "lost", "void"])
     .default("pending"),
   realized_result: z.number().nullable().optional(),
+  // Sports-betting fields
+  bet_type: z.enum(["single", "combo"]).default("single"),
+  legs: z.array(PredictionMarketLegSchema).default([]),
+  odds: z.number().positive("Odds must be > 0").nullable().optional(),
+  stake_units: z.number().positive("Stake (units) must be > 0").nullable().optional(),
+  realized_units: z.number().nullable().optional(),
 });
 
 export const PredictionMarketUpdateSchema = PredictionMarketCreateSchema.partial();
@@ -41,6 +53,12 @@ export const PredictionMarketNoteCreateSchema = z.object({
 
 export const PredictionMarketNoteUpdateSchema =
   PredictionMarketNoteCreateSchema.partial();
+
+export type PredictionMarketLeg = {
+  selection: string;
+  odds: number | null;
+  market_prob: number | null;
+};
 
 export type PredictionMarket = {
   id: string;
@@ -55,6 +73,12 @@ export type PredictionMarket = {
   resolve_date: string | null;
   outcome: "pending" | "won" | "lost" | "void";
   realized_result: number | null;
+  // Sports-betting fields
+  bet_type: "single" | "combo";
+  legs: PredictionMarketLeg[];
+  odds: number | null;
+  stake_units: number | null;
+  realized_units: number | null;
   created_at: string;
   updated_at: string;
 };
