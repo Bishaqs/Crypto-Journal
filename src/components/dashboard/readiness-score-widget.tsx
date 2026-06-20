@@ -82,7 +82,7 @@ export function ReadinessScoreWidget({
 }) {
   const [checkin, setCheckin] = useState<DailyCheckin | null>(null);
   const [checkinLoaded, setCheckinLoaded] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
 
   // Inline mini check-in state
   const [inlineMood, setInlineMood] = useState<number | null>(null);
@@ -124,6 +124,24 @@ export function ReadinessScoreWidget({
   useEffect(() => {
     fetchCheckin();
   }, [fetchCheckin]);
+
+  // Persisted collapse state — default slim/collapsed to keep the dashboard uncluttered
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem("stargate-readiness-open") === "1") setOpen(true);
+  }, []);
+
+  const toggleOpen = useCallback(() => {
+    setOpen((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("stargate-readiness-open", next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   // Compute readiness
   const result: ReadinessResult = useMemo(() => {
@@ -213,19 +231,30 @@ export function ReadinessScoreWidget({
           </p>
         </div>
 
-        {/* Expand/collapse for details */}
-        {result.components.length > 0 && (
+        {/* Pending check-in hint while collapsed */}
+        {!open && showInlineCheckin && (
           <button
-            onClick={() => setExpanded(!expanded)}
+            onClick={toggleOpen}
+            className="hidden sm:flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-all shrink-0"
+          >
+            Check in
+          </button>
+        )}
+
+        {/* Expand/collapse */}
+        {(showInlineCheckin || result.components.length > 0) && (
+          <button
+            onClick={toggleOpen}
+            aria-label={open ? "Collapse readiness" : "Expand readiness"}
             className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface-hover transition-all shrink-0"
           >
-            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
         )}
       </div>
 
-      {/* Inline mini check-in (if no check-in today) */}
-      {showInlineCheckin && (
+      {/* Inline mini check-in (revealed when expanded, if no check-in today) */}
+      {open && showInlineCheckin && (
         <div className="border-t border-border/30 px-4 py-3">
           <p className="text-[11px] text-muted mb-2.5 font-medium">
             Quick check-in to refine your score:
@@ -298,7 +327,7 @@ export function ReadinessScoreWidget({
       )}
 
       {/* Expanded details — show top 3, collapse rest */}
-      {expanded && result.components.length > 0 && (
+      {open && result.components.length > 0 && (
         <div className="border-t border-border/30 px-4 py-3 space-y-1.5">
           <p className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-2">
             Score Breakdown

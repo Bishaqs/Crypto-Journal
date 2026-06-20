@@ -84,6 +84,14 @@ export const TradeSummarySchema = z.object({
   apiKey: z.string().max(256).optional(),
 });
 
+// Analyze a single journal note against the trader's note history
+export const AnalyzeNoteSchema = z.object({
+  noteId: z.string().uuid(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
+  apiKey: z.string().max(256).optional(),
+});
+
 // Conversation management schemas
 export const ConversationCreateSchema = z.object({
   title: z.string().max(100).optional(),

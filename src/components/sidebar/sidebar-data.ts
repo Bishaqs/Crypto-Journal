@@ -300,22 +300,30 @@ export const RAIL_CATEGORIES: RailCategory[] = [
     requiredLevel: 5,
   },
   {
-    key: "leaderboard",
-    label: "Leaderboard",
-    icon: Users,
-    directNav: true,
-    items: [{ href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users }],
+    key: "compete",
+    label: "Compete",
+    icon: Trophy,
+    items: [coreItems[7], coreItems[8], { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users }],
     showInBeginner: true,
     showInAdvanced: true,
   },
   {
-    key: "compete",
-    label: "Compete",
-    icon: Trophy,
-    items: [coreItems[7], coreItems[8]],
-    showInBeginner: false,
+    key: "predictions",
+    label: "Predictions",
+    icon: Dices,
+    directNav: true,
+    items: [{ href: "/dashboard/predictions", label: "Prediction Markets", icon: Dices }],
+    showInBeginner: true,
     showInAdvanced: true,
-    requiredLevel: 15,
+  },
+  {
+    key: "meme-coins",
+    label: "Meme Coins",
+    icon: Flame,
+    directNav: true,
+    items: [{ href: "/dashboard/meme-coins", label: "Meme Coins", icon: Flame }],
+    showInBeginner: true,
+    showInAdvanced: true,
   },
   {
     key: "learn",
@@ -513,12 +521,15 @@ export function getCategoryForPath(pathname: string): string | null {
   const marketPrefixes = ["/dashboard/market", "/dashboard/news", "/dashboard/stocks/news", "/dashboard/commodities/news", "/dashboard/forex/news", "/dashboard/economic-calendar", "/dashboard/stocks/market", "/dashboard/commodities/market", "/dashboard/forex/market", "/dashboard/heatmaps", "/dashboard/funding-rates", "/dashboard/risk-analysis", "/dashboard/risk", "/dashboard/playbook", "/dashboard/stocks/options-analysis", "/dashboard/rules", "/dashboard/execution", "/dashboard/goals", "/dashboard/prop-firm", "/dashboard/taxes", "/dashboard/simulations"];
   if (marketPrefixes.some(p => pathname.startsWith(p))) return "market";
 
-  // Leaderboard (own category now)
-  if (pathname.startsWith("/dashboard/leaderboard")) return "leaderboard";
-
-  // Compete
-  const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements"];
+  // Compete (now includes Leaderboard)
+  const competePrefixes = ["/dashboard/challenges", "/dashboard/achievements", "/dashboard/leaderboard"];
   if (competePrefixes.some(p => pathname.startsWith(p))) return "compete";
+
+  // Predictions
+  if (pathname.startsWith("/dashboard/predictions")) return "predictions";
+
+  // Meme Coins
+  if (pathname.startsWith("/dashboard/meme-coins")) return "meme-coins";
 
   // Learn
   if (pathname.startsWith("/dashboard/learn")) return "learn";

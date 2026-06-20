@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { JournalNote, AssetType } from "@/lib/types";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { NoteEditor, TEMPLATES } from "@/components/note-editor";
+import { NoteAnalyzeModal } from "@/components/note-analyze-modal";
 import {
   Plus,
   Search,
@@ -30,6 +31,7 @@ import {
   DollarSign,
   Layers,
   AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import { TagManager } from "@/components/tag-manager";
 import { Trade } from "@/lib/types";
@@ -143,6 +145,7 @@ export default function JournalPage() {
   const [noteTypeFilter, setNoteTypeFilter] = useState<NoteTypeFilter>("all");
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [editNote, setEditNote] = useState<JournalNote | null>(null);
+  const [analyzeNote, setAnalyzeNote] = useState<JournalNote | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("free");
   const [showTagManager, setShowTagManager] = useState(false);
   const [allTrades, setAllTrades] = useState<(Trade & { _assetType?: AssetType })[]>([]);
@@ -607,6 +610,13 @@ export default function JournalPage() {
                           </span>
                         )}
                         <button
+                          onClick={() => setAnalyzeNote(note)}
+                          className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
+                          title="AI Analyze"
+                        >
+                          <Sparkles size={14} />
+                        </button>
+                        <button
                           onClick={() => { setEditNote(note); setShowEditor(true); }}
                           className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
                           title="Edit"
@@ -717,6 +727,13 @@ export default function JournalPage() {
                         </span>
                       )}
                       <button
+                        onClick={(e) => { e.stopPropagation(); setAnalyzeNote(note); }}
+                        className="p-1.5 rounded-lg text-muted/40 hover:text-accent hover:bg-accent/10 transition-all"
+                        title="AI Analyze"
+                      >
+                        <Sparkles size={13} />
+                      </button>
+                      <button
                         onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }}
                         className="p-1.5 rounded-lg text-muted/40 hover:text-loss hover:bg-loss/10 transition-all"
                         title="Delete"
@@ -818,6 +835,13 @@ export default function JournalPage() {
                                 </button>
                               )}
                               <button
+                                onClick={(e) => { e.stopPropagation(); setAnalyzeNote(note); }}
+                                className="p-1 rounded text-muted/30 hover:text-accent opacity-0 group-hover:opacity-100 transition-all"
+                                title="AI Analyze"
+                              >
+                                <Sparkles size={12} />
+                              </button>
+                              <button
                                 onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }}
                                 className="p-1 rounded text-muted/30 hover:text-loss opacity-0 group-hover:opacity-100 transition-all"
                                 title="Delete"
@@ -847,6 +871,10 @@ export default function JournalPage() {
             onSaved={fetchNotes}
           />
         </div>
+      )}
+
+      {analyzeNote && (
+        <NoteAnalyzeModal note={analyzeNote} onClose={() => setAnalyzeNote(null)} />
       )}
 
       {showTagManager && (
