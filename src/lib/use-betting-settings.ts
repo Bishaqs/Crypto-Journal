@@ -4,10 +4,19 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export type BettingSettings = {
-  /** Starting bankroll, in the chosen currency. */
+  /**
+   * Reference bankroll used to size one unit. FIXED — one unit is always
+   * `unitPct%` of this number, so the euro value of a unit (and therefore
+   * every bet's euro amount) never drifts when results come in.
+   */
   bankroll: number;
-  /** One unit = this percent of the (current) bankroll. */
+  /** One unit = this percent of the reference bankroll. */
   unitPct: number;
+  /**
+   * Your real current bankroll. Fully user-controlled — the app never
+   * recomputes or overrides this. Edit it directly whenever it changes.
+   */
+  currentBankroll: number;
   /** Display currency symbol. */
   currency: string;
 };
@@ -15,6 +24,7 @@ export type BettingSettings = {
 export const DEFAULT_BETTING_SETTINGS: BettingSettings = {
   bankroll: 1000,
   unitPct: 1,
+  currentBankroll: 1000,
   currency: "€",
 };
 
@@ -22,9 +32,16 @@ function coerce(raw: unknown): BettingSettings {
   const r = (raw ?? {}) as Partial<Record<keyof BettingSettings, unknown>>;
   const bankroll = Number(r.bankroll);
   const unitPct = Number(r.unitPct);
+  const currentBankroll = Number(r.currentBankroll);
+  const safeBankroll =
+    Number.isFinite(bankroll) && bankroll > 0 ? bankroll : DEFAULT_BETTING_SETTINGS.bankroll;
   return {
-    bankroll: Number.isFinite(bankroll) && bankroll > 0 ? bankroll : DEFAULT_BETTING_SETTINGS.bankroll,
+    bankroll: safeBankroll,
     unitPct: Number.isFinite(unitPct) && unitPct > 0 ? unitPct : DEFAULT_BETTING_SETTINGS.unitPct,
+    // Default current bankroll to the reference bankroll for users saved
+    // before this field existed.
+    currentBankroll:
+      Number.isFinite(currentBankroll) && currentBankroll >= 0 ? currentBankroll : safeBankroll,
     currency: typeof r.currency === "string" && r.currency.trim() ? r.currency.trim().slice(0, 4) : DEFAULT_BETTING_SETTINGS.currency,
   };
 }

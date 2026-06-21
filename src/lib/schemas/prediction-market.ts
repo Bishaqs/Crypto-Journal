@@ -15,7 +15,9 @@ export const PredictionMarketLegSchema = z.object({
 export const PredictionMarketCreateSchema = z.object({
   title: z.string().min(1, "Title is required").max(300),
   platform: z.string().max(100).nullable().optional(),
+  event: z.string().max(120).nullable().optional(),
   direction: z.string().max(300).nullable().optional(),
+  tags: z.array(z.string().max(60)).max(20).default([]),
   your_prob: z
     .number()
     .int("Your probability must be a whole number")
@@ -65,7 +67,9 @@ export type PredictionMarket = {
   user_id: string;
   title: string;
   platform: string | null;
+  event: string | null;
   direction: string | null;
+  tags: string[];
   your_prob: number;
   market_prob: number | null;
   stake: number | null;
