@@ -748,6 +748,35 @@ export default function PredictionsPage() {
               </button>
             )}
           </div>
+          {/* All tags — browse & filter from the main view */}
+          {allTags.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 text-[10px] text-muted/50 uppercase tracking-wider">
+                <Tag size={10} />
+                Tags
+              </span>
+              {allTags.map((t) => {
+                const count = predictions.filter((p) =>
+                  (p.tags ?? []).includes(t)
+                ).length;
+                const active = activeTag === t;
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setActiveTag(active ? null : t)}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border transition-colors ${
+                      active
+                        ? "bg-accent/15 border-accent/40 text-accent"
+                        : "bg-transparent border-border/60 text-muted hover:text-foreground hover:border-accent/30"
+                    }`}
+                  >
+                    #{t}
+                    <span className="opacity-50">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
