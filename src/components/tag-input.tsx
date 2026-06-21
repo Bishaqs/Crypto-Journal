@@ -11,9 +11,11 @@ type TagInputProps = {
   onTagAdded?: (tag: string) => void;
   /** Show an explicit "+" button that commits the current input as a tag. */
   showAddButton?: boolean;
+  /** Show the existing-tags dropdown on focus, even before typing. */
+  showSuggestionsOnFocus?: boolean;
 };
 
-export function TagInput({ value, onChange, suggestions = [], placeholder = "Type and press Enter...", onTagAdded, showAddButton = false }: TagInputProps) {
+export function TagInput({ value, onChange, suggestions = [], placeholder = "Type and press Enter...", onTagAdded, showAddButton = false, showSuggestionsOnFocus = false }: TagInputProps) {
   const [input, setInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -118,10 +120,17 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Typ
         )}
       </div>
 
-      {/* Suggestions dropdown */}
-      {showSuggestions && input && filtered.length > 0 && (
-        <div className="absolute z-10 mt-1 w-full bg-surface border border-border rounded-lg shadow-lg overflow-hidden max-h-32 overflow-y-auto">
-          {filtered.slice(0, 6).map((s) => (
+      {/* Suggestions dropdown — on typing, or on focus when enabled */}
+      {showSuggestions &&
+        (input || showSuggestionsOnFocus) &&
+        filtered.length > 0 && (
+        <div className="absolute z-10 mt-1 w-full bg-surface border border-border rounded-lg shadow-lg overflow-hidden max-h-44 overflow-y-auto">
+          {!input && showSuggestionsOnFocus && (
+            <p className="px-3 pt-1.5 pb-1 text-[10px] text-muted/50 uppercase tracking-wider">
+              Vorhandene Tags
+            </p>
+          )}
+          {filtered.slice(0, 12).map((s) => (
             <button
               key={s}
               type="button"
