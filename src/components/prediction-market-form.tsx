@@ -438,10 +438,32 @@ export function PredictionMarketForm({
               placeholder="Type a bet type, then Enter or +"
               showAddButton
             />
+            {/* Pick from existing tags without retyping */}
+            {tagSuggestions.filter((t) => !tags.includes(t)).length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                <span className="text-[10px] text-muted/50 uppercase tracking-wider">
+                  Vorhandene:
+                </span>
+                {tagSuggestions
+                  .filter((t) => !tags.includes(t))
+                  .map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTags([...tags, t])}
+                      className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-muted/10 text-muted border border-border/50 hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-colors"
+                    >
+                      <Plus size={10} />
+                      {t}
+                    </button>
+                  ))}
+              </div>
+            )}
             <p className="text-[10px] text-muted/60 mt-1.5">
               Add as many as you like — for a parlay, tag each leg type (e.g.
-              &quot;over 2.5&quot; + &quot;handicap 1:0&quot;). Press Enter or the +
-              button per tag. Win rate per tag shows in Tag Stats.
+              &quot;over 2.5&quot; + &quot;handicap 1:0&quot;). Type new ones (Enter
+              or +) or click an existing tag above. Win rate per tag shows in Tag
+              Stats.
             </p>
           </div>
 
