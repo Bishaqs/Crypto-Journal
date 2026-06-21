@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 
 type TagInputProps = {
   value: string[];
@@ -9,9 +9,11 @@ type TagInputProps = {
   suggestions?: string[];
   placeholder?: string;
   onTagAdded?: (tag: string) => void;
+  /** Show an explicit "+" button that commits the current input as a tag. */
+  showAddButton?: boolean;
 };
 
-export function TagInput({ value, onChange, suggestions = [], placeholder = "Type and press Enter...", onTagAdded }: TagInputProps) {
+export function TagInput({ value, onChange, suggestions = [], placeholder = "Type and press Enter...", onTagAdded, showAddButton = false }: TagInputProps) {
   const [input, setInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -89,6 +91,20 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Typ
           placeholder={value.length === 0 ? placeholder : ""}
           className="flex-1 min-w-[80px] bg-transparent text-sm text-foreground placeholder:text-muted/40 focus:outline-none"
         />
+        {showAddButton && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (input.trim()) addTag(input);
+            }}
+            disabled={!input.trim()}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent/10 text-accent text-xs font-semibold border border-accent/20 hover:bg-accent/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+          >
+            <Plus size={12} />
+            Add
+          </button>
+        )}
       </div>
 
       {/* Suggestions dropdown */}
