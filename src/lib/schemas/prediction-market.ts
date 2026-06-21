@@ -45,7 +45,15 @@ export const PredictionMarketCreateSchema = z.object({
   realized_units: z.number().nullable().optional(),
 });
 
-export const PredictionMarketUpdateSchema = PredictionMarketCreateSchema.partial();
+// Update schema: every field optional AND defaults stripped, so a partial
+// update never writes a default. (Otherwise editing a resolved bet without
+// sending `outcome` would reset it to the "pending" default.)
+export const PredictionMarketUpdateSchema = PredictionMarketCreateSchema.partial().extend({
+  outcome: z.enum(["pending", "won", "lost", "void"]).optional(),
+  bet_type: z.enum(["single", "combo"]).optional(),
+  legs: z.array(PredictionMarketLegSchema).optional(),
+  tags: z.array(z.string().max(60)).max(20).optional(),
+});
 
 export const PredictionMarketNoteCreateSchema = z.object({
   prediction_id: z.string().uuid("Invalid prediction id"),
