@@ -34,10 +34,21 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Typ
   }, []);
 
   function addTag(tag: string) {
-    const trimmed = tag.trim().toLowerCase();
-    if (trimmed && !value.includes(trimmed)) {
-      onChange([...value, trimmed]);
-      onTagAdded?.(trimmed);
+    // Split on commas so several tags can be added from one entry
+    // (e.g. "germany win, win" → two tags). Each part may be multi-word.
+    const parts = tag
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    if (parts.length > 0) {
+      const next = [...value];
+      for (const t of parts) {
+        if (!next.includes(t)) {
+          next.push(t);
+          onTagAdded?.(t);
+        }
+      }
+      onChange(next);
     }
     setInput("");
     setShowSuggestions(false);
