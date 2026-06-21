@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
+import { TagInput } from "@/components/tag-input";
 import type {
   PredictionMarket,
   PredictionMarketLeg,
@@ -43,6 +44,10 @@ type PredictionMarketFormProps = {
   /** Current value of one unit, in the chosen currency (bankroll * unitPct / 100). */
   unitValue: number;
   currency: string;
+  /** Existing event labels, offered as autocomplete suggestions. */
+  events?: string[];
+  /** Existing tags across all predictions, offered as autocomplete suggestions. */
+  tagSuggestions?: string[];
   onClose: () => void;
   onSaved: () => void;
 };
@@ -51,6 +56,8 @@ export function PredictionMarketForm({
   editPrediction,
   unitValue,
   currency,
+  events = [],
+  tagSuggestions = [],
   onClose,
   onSaved,
 }: PredictionMarketFormProps) {
@@ -60,10 +67,18 @@ export function PredictionMarketForm({
     editPrediction?.bet_type ?? "single"
   );
   const [title, setTitle] = useState(editPrediction?.title ?? "");
+  const [event, setEvent] = useState(editPrediction?.event ?? "");
   const [platform, setPlatform] = useState<string>(
     editPrediction?.platform ?? "Sports"
   );
-  const [direction, setDirection] = useState(editPrediction?.direction ?? "");
+  const [tags, setTags] = useState<string[]>(() => {
+    if (editPrediction?.tags && editPrediction.tags.length > 0) {
+      return editPrediction.tags;
+    }
+    // Seed from a legacy single direction value for older bets.
+    const dir = editPrediction?.direction?.trim();
+    return dir ? [dir.toLowerCase()] : [];
+  });
 
   // Single-bet odds ↔ market% (linked)
   const [oddsInput, setOddsInput] = useState<string>(
@@ -262,7 +277,9 @@ export function PredictionMarketForm({
       const payload = {
         title: title.trim(),
         platform: platform || null,
-        direction: direction.trim() || null,
+        event: event.trim() || null,
+        direction: null,
+        tags,
         your_prob: clampProb(yourProb),
         market_prob: marketProbValue,
         stake: stakeMoneyValue,
@@ -362,6 +379,29 @@ export function PredictionMarketForm({
             />
           </div>
 
+          {/* Event / group */}
+          <div>
+            <label className="block text-xs text-muted mb-1.5">
+              Event / Group{" "}
+              <span className="text-muted/50">(for tabs — e.g. &quot;WM 2026&quot;)</span>
+            </label>
+            <input
+              type="text"
+              list="prediction-events"
+              value={event}
+              onChange={(e) => setEvent(e.target.value)}
+              placeholder="e.g. WM 2026, Bundesliga, Crypto"
+              className={inputClass.replace(" tabular-nums", "")}
+            />
+            {events.length > 0 && (
+              <datalist id="prediction-events">
+                {events.map((ev) => (
+                  <option key={ev} value={ev} />
+                ))}
+              </datalist>
+            )}
+          </div>
+
           {/* Platform */}
           <div>
             <label className="block text-xs text-muted mb-2">Platform / Book</label>
@@ -383,19 +423,28 @@ export function PredictionMarketForm({
             </div>
           </div>
 
+          {/* Tags — bet-type labels for grouping & per-tag stats */}
+          <div>
+            <label className="block text-xs text-muted mb-1.5">
+              Tags{" "}
+              <span className="text-muted/50">
+                (e.g. &quot;handicap 1:0&quot;, &quot;over 2.5&quot;, &quot;home win&quot;)
+              </span>
+            </label>
+            <TagInput
+              value={tags}
+              onChange={setTags}
+              suggestions={tagSuggestions}
+              placeholder="Type a bet type and press Enter..."
+            />
+            <p className="text-[10px] text-muted/60 mt-1.5">
+              Tags let you see your win rate per bet type in Tag Stats.
+            </p>
+          </div>
+
           {/* Single: linked odds / market% */}
           {betType === "single" && (
             <>
-              <div>
-                <label className="block text-xs text-muted mb-1.5">Direction</label>
-                <input
-                  type="text"
-                  value={direction}
-                  onChange={(e) => setDirection(e.target.value)}
-                  placeholder='e.g. "Home win", "Over 2.5", "Yes"'
-                  className={inputClass.replace(" tabular-nums", "")}
-                />
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-muted mb-1.5">

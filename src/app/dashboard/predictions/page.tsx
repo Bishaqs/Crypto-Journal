@@ -19,6 +19,7 @@ import {
   Wallet,
   Settings,
   Layers,
+  Tag,
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { PredictionMarketForm } from "@/components/prediction-market-form";
@@ -83,6 +84,66 @@ function fmtUnits(n: number | null | undefined, signed = false): string {
   return `${sign}${n.toFixed(2)}u`;
 }
 
+type TagStat = {
+  tag: string;
+  /** Resolved (won/lost) bets carrying this tag */
+  resolved: number;
+  wins: number;
+  winRate: number;
+  unitsStaked: number;
+  unitsPnl: number;
+  roiPct: number;
+  euroPnl: number;
+};
+
+/**
+ * Per-tag performance over RESOLVED bets. A bet contributes to every tag it
+ * carries, so "handicap 1:0" and "over 2.5" each get their own win rate / ROI.
+ */
+function computeTagStats(
+  predictions: PredictionMarket[],
+  unitValue: number
+): TagStat[] {
+  const map = new Map<
+    string,
+    { resolved: number; wins: number; unitsStaked: number; unitsPnl: number }
+  >();
+  for (const p of predictions) {
+    if (p.outcome !== "won" && p.outcome !== "lost") continue;
+    for (const t of p.tags ?? []) {
+      if (!t) continue;
+      const e =
+        map.get(t) ?? { resolved: 0, wins: 0, unitsStaked: 0, unitsPnl: 0 };
+      e.resolved += 1;
+      if (p.outcome === "won") e.wins += 1;
+      if (p.stake_units != null && p.stake_units > 0) {
+        e.unitsStaked += p.stake_units;
+        const ru =
+          p.realized_units != null
+            ? p.realized_units
+            : realizedUnits(p.outcome, p.stake_units, p.odds) ?? 0;
+        e.unitsPnl += ru;
+      }
+      map.set(t, e);
+    }
+  }
+  const out: TagStat[] = [];
+  for (const [tag, e] of map) {
+    out.push({
+      tag,
+      resolved: e.resolved,
+      wins: e.wins,
+      winRate: e.resolved > 0 ? (e.wins / e.resolved) * 100 : 0,
+      unitsStaked: e.unitsStaked,
+      unitsPnl: e.unitsPnl,
+      roiPct: e.unitsStaked > 0 ? (e.unitsPnl / e.unitsStaked) * 100 : 0,
+      euroPnl: e.unitsPnl * unitValue,
+    });
+  }
+  out.sort((a, b) => b.resolved - a.resolved || b.winRate - a.winRate);
+  return out;
+}
+
 export default function PredictionsPage() {
   const [predictions, setPredictions] = useState<PredictionMarket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,6 +154,12 @@ export default function PredictionsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [showBankrollSettings, setShowBankrollSettings] = useState(false);
+  const [editingBankroll, setEditingBankroll] = useState(false);
+  const [bankrollDraft, setBankrollDraft] = useState("");
+  const [activeEvent, setActiveEvent] = useState<string>("all");
+  const [activeStatus, setActiveStatus] = useState<"all" | Outcome>("all");
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [showTagStats, setShowTagStats] = useState(false);
 
   const { settings, save: saveSettings } = useBettingSettings();
   const stats = usePredictionStats(
@@ -100,8 +167,9 @@ export default function PredictionsPage() {
     settings.bankroll,
     settings.unitPct
   );
-  // Current value of one unit = unitPct% of the (compounded) current bankroll.
-  const unitValue = (stats.currentBankroll * settings.unitPct) / 100;
+  // Fixed value of one unit = unitPct% of the reference bankroll. Constant by
+  // design so euro amounts never drift as results come in.
+  const unitValue = stats.unitValue;
 
   const fetchPredictions = useCallback(async () => {
     try {
@@ -150,6 +218,53 @@ export default function PredictionsPage() {
 
   const hasPredictions = predictions.length > 0;
 
+  // Distinct event labels (in first-seen order) for the tab bar.
+  const events: string[] = [];
+  for (const p of predictions) {
+    const ev = p.event?.trim();
+    if (ev && !events.includes(ev)) events.push(ev);
+  }
+  const hasUngrouped = predictions.some((p) => !p.event?.trim());
+
+  // Distinct tags across all predictions (for autocomplete + tag stats).
+  const allTags: string[] = [];
+  for (const p of predictions) {
+    for (const t of p.tags ?? []) {
+      if (t && !allTags.includes(t)) allTags.push(t);
+    }
+  }
+  allTags.sort();
+
+  // Per-tag performance over resolved bets — win rate, units staked, ROI.
+  const tagStats = computeTagStats(predictions, unitValue);
+
+  // Apply event tab + status filter + tag filter.
+  const visiblePredictions = predictions.filter((p) => {
+    const ev = p.event?.trim() || "";
+    const eventMatch =
+      activeEvent === "all" ||
+      (activeEvent === "__none__" ? ev === "" : ev === activeEvent);
+    const statusMatch = activeStatus === "all" || p.outcome === activeStatus;
+    const tagMatch = activeTag === null || (p.tags ?? []).includes(activeTag);
+    return eventMatch && statusMatch && tagMatch;
+  });
+
+  const STATUS_TABS: { value: "all" | Outcome; label: string }[] = [
+    { value: "all", label: "Alle" },
+    { value: "pending", label: "Offen" },
+    { value: "won", label: "Gewonnen" },
+    { value: "lost", label: "Verloren" },
+    { value: "void", label: "Void" },
+  ];
+
+  async function saveBankroll() {
+    const parsed = Number(bankrollDraft);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      await saveSettings({ currentBankroll: parsed });
+    }
+    setEditingBankroll(false);
+  }
+
   return (
     <div className="space-y-6 mx-auto max-w-[1600px]">
       <Header />
@@ -197,9 +312,53 @@ export default function PredictionsPage() {
                 <p className="text-[10px] text-muted/60 uppercase tracking-wider">
                   Bankroll
                 </p>
-                <p className="text-lg font-bold text-foreground tabular-nums">
-                  {fmtMoney(stats.currentBankroll, settings.currency)}
-                </p>
+                {editingBankroll ? (
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-sm text-muted">{settings.currency}</span>
+                    <input
+                      type="number"
+                      step="any"
+                      min={0}
+                      autoFocus
+                      value={bankrollDraft}
+                      onChange={(e) => setBankrollDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveBankroll();
+                        if (e.key === "Escape") setEditingBankroll(false);
+                      }}
+                      className="w-24 px-2 py-1 rounded-lg bg-background border border-accent/40 text-foreground text-base font-bold focus:outline-none tabular-nums"
+                    />
+                    <button
+                      onClick={saveBankroll}
+                      className="p-1 rounded-md hover:bg-accent/10 text-accent transition-colors"
+                      aria-label="Save bankroll"
+                    >
+                      <CheckCircle2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => setEditingBankroll(false)}
+                      className="p-1 rounded-md hover:bg-surface-hover text-muted transition-colors"
+                      aria-label="Cancel"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setBankrollDraft(String(settings.currentBankroll));
+                      setEditingBankroll(true);
+                    }}
+                    className="group flex items-center gap-1.5 text-lg font-bold text-foreground tabular-nums hover:text-accent transition-colors"
+                    title="Bankroll bearbeiten"
+                  >
+                    {fmtMoney(settings.currentBankroll, settings.currency)}
+                    <Pencil
+                      size={12}
+                      className="text-muted/40 group-hover:text-accent transition-colors"
+                    />
+                  </button>
+                )}
               </div>
             </div>
             {stats.hasBettingData && (
@@ -257,6 +416,7 @@ export default function PredictionsPage() {
           <BankrollSettings
             initialBankroll={settings.bankroll}
             initialUnitPct={settings.unitPct}
+            initialCurrentBankroll={settings.currentBankroll}
             initialCurrency={settings.currency}
             onSave={async (next) => {
               await saveSettings(next);
@@ -447,9 +607,94 @@ export default function PredictionsPage() {
         </div>
       )}
 
+      {/* Tabs: event groups + status filter */}
+      {hasPredictions && (events.length > 0 || hasUngrouped) && (
+        <div className="space-y-3">
+          {/* Event tabs */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <TabPill
+              active={activeEvent === "all"}
+              onClick={() => setActiveEvent("all")}
+            >
+              Alle
+              <span className="ml-1.5 text-[10px] opacity-60">
+                {predictions.length}
+              </span>
+            </TabPill>
+            {events.map((ev) => {
+              const count = predictions.filter(
+                (p) => p.event?.trim() === ev
+              ).length;
+              return (
+                <TabPill
+                  key={ev}
+                  active={activeEvent === ev}
+                  onClick={() => setActiveEvent(ev)}
+                >
+                  {ev}
+                  <span className="ml-1.5 text-[10px] opacity-60">{count}</span>
+                </TabPill>
+              );
+            })}
+            {hasUngrouped && (
+              <TabPill
+                active={activeEvent === "__none__"}
+                onClick={() => setActiveEvent("__none__")}
+              >
+                Ohne Gruppe
+                <span className="ml-1.5 text-[10px] opacity-60">
+                  {predictions.filter((p) => !p.event?.trim()).length}
+                </span>
+              </TabPill>
+            )}
+          </div>
+          {/* Status filter + tag controls */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {STATUS_TABS.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => setActiveStatus(s.value)}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-all ${
+                  activeStatus === s.value
+                    ? "bg-accent/10 border-accent/30 text-accent"
+                    : "bg-transparent border-border text-muted hover:text-foreground hover:border-accent/30"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+            <div className="w-px h-4 bg-border mx-1" />
+            {activeTag !== null && (
+              <button
+                onClick={() => setActiveTag(null)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-accent/10 border border-accent/30 text-accent"
+                title="Tag-Filter entfernen"
+              >
+                #{activeTag}
+                <X size={11} />
+              </button>
+            )}
+            {tagStats.length > 0 && (
+              <button
+                onClick={() => setShowTagStats(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium border border-border text-muted hover:text-foreground hover:border-accent/30 transition-all"
+              >
+                <Tag size={11} />
+                Tag-Statistik
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Prediction cards */}
-      <div className="space-y-4">
-        {predictions.map((p) => {
+      <div className="space-y-2.5">
+        {hasPredictions && visiblePredictions.length === 0 && (
+          <p className="text-sm text-muted/70 py-6 text-center">
+            Keine Predictions in dieser Ansicht.
+          </p>
+        )}
+        {visiblePredictions.map((p) => {
           const isExpanded = expandedId === p.id;
           const badge = OUTCOME_BADGE[p.outcome];
           const edge =
@@ -457,17 +702,17 @@ export default function PredictionsPage() {
           return (
             <div
               key={p.id}
-              className="glass rounded-2xl border border-border/50 overflow-hidden"
+              className="glass rounded-xl border border-border/50 overflow-hidden"
               style={{ boxShadow: "var(--shadow-card)" }}
             >
               <div
-                className="p-5 cursor-pointer hover:bg-surface-hover/50 transition-all"
+                className="px-4 py-3 cursor-pointer hover:bg-surface-hover/50 transition-all"
                 onClick={() => setExpandedId(isExpanded ? null : p.id)}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="text-base font-bold text-foreground truncate">
+                      <h3 className="text-sm font-bold text-foreground truncate">
                         {p.title}
                       </h3>
                       <span
@@ -476,16 +721,33 @@ export default function PredictionsPage() {
                         <badge.Icon size={11} />
                         {badge.label}
                       </span>
+                      {p.event?.trim() && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-accent/12 text-accent font-semibold">
+                          {p.event}
+                        </span>
+                      )}
                       {p.platform && (
                         <span className="text-[10px] px-2 py-0.5 rounded-md bg-accent/8 text-accent font-medium">
                           {p.platform}
                         </span>
                       )}
-                      {p.direction && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted/10 text-muted font-medium">
-                          {p.direction}
-                        </span>
-                      )}
+                      {(p.tags ?? []).map((t) => (
+                        <button
+                          key={t}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTag(t);
+                          }}
+                          className={`text-[10px] px-2 py-0.5 rounded-md font-medium transition-colors ${
+                            activeTag === t
+                              ? "bg-accent/20 text-accent"
+                              : "bg-muted/10 text-muted hover:bg-accent/10 hover:text-accent"
+                          }`}
+                          title={`Nach #${t} filtern`}
+                        >
+                          #{t}
+                        </button>
+                      ))}
                       {p.bet_type === "combo" && (
                         <span className="text-[10px] px-2 py-0.5 rounded-md bg-accent/8 text-accent font-medium inline-flex items-center gap-1">
                           <Layers size={10} />
@@ -673,6 +935,8 @@ export default function PredictionsPage() {
           editPrediction={editing}
           unitValue={unitValue}
           currency={settings.currency}
+          events={events}
+          tagSuggestions={allTags}
           onClose={() => {
             setShowForm(false);
             setEditing(null);
@@ -694,7 +958,166 @@ export default function PredictionsPage() {
           }}
         />
       )}
+
+      {/* Tag stats modal */}
+      {showTagStats && (
+        <TagStatsModal
+          tagStats={tagStats}
+          currency={settings.currency}
+          activeTag={activeTag}
+          onPick={(tag) => {
+            setActiveTag(tag);
+            setShowTagStats(false);
+          }}
+          onClose={() => setShowTagStats(false)}
+        />
+      )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tag stats modal — per-tag win rate / ROI ("how good am I on handicap 1:0?")
+// ---------------------------------------------------------------------------
+
+function TagStatsModal({
+  tagStats,
+  currency,
+  activeTag,
+  onPick,
+  onClose,
+}: {
+  tagStats: TagStat[];
+  currency: string;
+  activeTag: string | null;
+  onPick: (tag: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-2xl my-8">
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <div>
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <Tag size={18} className="text-accent" />
+              Tag-Statistik
+            </h3>
+            <p className="text-xs text-muted mt-0.5">
+              Deine Trefferquote &amp; ROI pro Wett-Typ (nur aufgelöste Wetten).
+              Klick einen Tag, um die Liste zu filtern.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <X size={18} className="text-muted" />
+          </button>
+        </div>
+
+        <div className="p-5">
+          {tagStats.length === 0 ? (
+            <p className="text-sm text-muted/70 py-6 text-center">
+              Noch keine aufgelösten Wetten mit Tags.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-muted/60 text-left text-xs">
+                    <th className="font-medium pb-2 pr-4">Tag</th>
+                    <th className="font-medium pb-2 pr-4 text-right">Bets</th>
+                    <th className="font-medium pb-2 pr-4 text-right">Win&nbsp;%</th>
+                    <th className="font-medium pb-2 pr-4 text-right">P/L (u)</th>
+                    <th className="font-medium pb-2 pr-4 text-right">P/L ({currency})</th>
+                    <th className="font-medium pb-2 text-right">ROI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tagStats.map((s) => (
+                    <tr
+                      key={s.tag}
+                      onClick={() => onPick(s.tag)}
+                      className={`border-t border-border/30 cursor-pointer transition-colors ${
+                        activeTag === s.tag
+                          ? "bg-accent/10"
+                          : "hover:bg-surface-hover/50"
+                      }`}
+                    >
+                      <td className="py-2 pr-4 font-medium text-foreground">
+                        #{s.tag}
+                      </td>
+                      <td className="py-2 pr-4 text-right tabular-nums text-muted">
+                        {s.wins}/{s.resolved}
+                      </td>
+                      <td
+                        className={`py-2 pr-4 text-right tabular-nums font-semibold ${
+                          s.winRate >= 50 ? "text-win" : "text-loss"
+                        }`}
+                      >
+                        {s.winRate.toFixed(0)}%
+                      </td>
+                      <td
+                        className={`py-2 pr-4 text-right tabular-nums ${
+                          s.unitsPnl >= 0 ? "text-win" : "text-loss"
+                        }`}
+                      >
+                        {s.unitsStaked > 0 ? fmtUnits(s.unitsPnl, true) : "—"}
+                      </td>
+                      <td
+                        className={`py-2 pr-4 text-right tabular-nums ${
+                          s.euroPnl >= 0 ? "text-win" : "text-loss"
+                        }`}
+                      >
+                        {s.unitsStaked > 0
+                          ? fmtMoney(s.euroPnl, currency, true)
+                          : "—"}
+                      </td>
+                      <td
+                        className={`py-2 text-right tabular-nums font-semibold ${
+                          s.roiPct >= 0 ? "text-win" : "text-loss"
+                        }`}
+                      >
+                        {s.unitsStaked > 0
+                          ? `${s.roiPct >= 0 ? "+" : ""}${s.roiPct.toFixed(0)}%`
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tab pill — event-group selector button
+// ---------------------------------------------------------------------------
+
+function TabPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200 ${
+        active
+          ? "bg-accent/10 border-accent/40 text-accent shadow-sm"
+          : "bg-transparent border-border text-muted hover:text-foreground hover:border-accent/30"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -1093,27 +1516,34 @@ function NotesPanel({ predictionId }: { predictionId: string }) {
 function BankrollSettings({
   initialBankroll,
   initialUnitPct,
+  initialCurrentBankroll,
   initialCurrency,
   onSave,
   onClose,
 }: {
   initialBankroll: number;
   initialUnitPct: number;
+  initialCurrentBankroll: number;
   initialCurrency: string;
   onSave: (next: {
     bankroll: number;
     unitPct: number;
+    currentBankroll: number;
     currency: string;
   }) => Promise<void>;
   onClose: () => void;
 }) {
   const [bankroll, setBankroll] = useState(String(initialBankroll));
   const [unitPct, setUnitPct] = useState(String(initialUnitPct));
+  const [currentBankroll, setCurrentBankroll] = useState(
+    String(initialCurrentBankroll)
+  );
   const [currency, setCurrency] = useState(initialCurrency);
   const [saving, setSaving] = useState(false);
 
   const bk = Number(bankroll);
   const up = Number(unitPct);
+  const cur = Number(currentBankroll);
   const unitVal =
     Number.isFinite(bk) && Number.isFinite(up) ? (bk * up) / 100 : null;
 
@@ -1123,6 +1553,8 @@ function BankrollSettings({
       await onSave({
         bankroll: Number.isFinite(bk) && bk > 0 ? bk : initialBankroll,
         unitPct: Number.isFinite(up) && up > 0 ? up : initialUnitPct,
+        currentBankroll:
+          Number.isFinite(cur) && cur >= 0 ? cur : initialCurrentBankroll,
         currency: currency.trim() || initialCurrency,
       });
     } finally {
@@ -1131,10 +1563,23 @@ function BankrollSettings({
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+    <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
       <div>
         <label className="block text-[10px] text-muted/60 uppercase tracking-wider mb-1">
-          Starting bankroll
+          Current bankroll
+        </label>
+        <input
+          type="number"
+          step="any"
+          min={0}
+          value={currentBankroll}
+          onChange={(e) => setCurrentBankroll(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 tabular-nums"
+        />
+      </div>
+      <div>
+        <label className="block text-[10px] text-muted/60 uppercase tracking-wider mb-1">
+          Unit-base bankroll
         </label>
         <input
           type="number"
@@ -1188,10 +1633,12 @@ function BankrollSettings({
         </button>
       </div>
       {unitVal != null && (
-        <p className="sm:col-span-4 text-[11px] text-muted/70">
+        <p className="sm:col-span-5 text-[11px] text-muted/70">
           1 unit = {currency}
-          {unitVal.toLocaleString(undefined, { maximumFractionDigits: 2 })} at the
-          starting bankroll.
+          {unitVal.toLocaleString(undefined, { maximumFractionDigits: 2 })} (fixed
+          — {unitPct}% of the unit-base bankroll). Euro amounts stay constant; only
+          the unit count changes if you edit this. &quot;Current bankroll&quot; is
+          yours to set and is never auto-changed.
         </p>
       )}
     </div>

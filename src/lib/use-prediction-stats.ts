@@ -48,11 +48,11 @@ export type PredictionStats = {
   unitsPnl: number;
   /** unitsPnl / unitsStaked * 100 */
   roiPct: number;
-  /** Starting bankroll (from settings), in currency */
+  /** Fixed euro value of one unit = bankroll * unitPct / 100 */
+  unitValue: number;
+  /** Reference bankroll (from settings), in currency */
   startBankroll: number;
-  /** Bankroll after compounding resolved bets at unitPct of running balance */
-  currentBankroll: number;
-  /** currentBankroll - startBankroll */
+  /** Net P/L in currency = unitsPnl * fixed unitValue (no compounding) */
   bankrollPnl: number;
 };
 
@@ -122,12 +122,28 @@ export function usePredictionStats(
       }))
       .filter((b) => b.n > 0);
 
-    // Realized P/L + best/worst over resolved bets.
+    // Fixed euro value of one unit — constant by design (see below).
+    const unitValue = (bankroll * unitPct) / 100;
+
+    // Realized P/L + best/worst over resolved bets, all in currency.
+    // For unit-staked bets we derive euros from the FIXED unit value so the
+    // figure never drifts; euro-only legacy bets fall back to stored euros.
+    function realizedEuro(p: PredictionMarket): number {
+      if (p.stake_units != null) {
+        const ru =
+          p.realized_units != null
+            ? p.realized_units
+            : realizedUnits(p.outcome, p.stake_units, p.odds) ?? 0;
+        return ru * unitValue;
+      }
+      return p.realized_result ?? 0;
+    }
+
     let realizedPnl = 0;
     let bestBet: PredictionBetRef | null = null;
     let worstBet: PredictionBetRef | null = null;
     for (const p of resolved) {
-      const r = p.realized_result ?? 0;
+      const r = realizedEuro(p);
       realizedPnl += r;
       if (bestBet === null || r > bestBet.realizedResult) {
         bestBet = { title: p.title, realizedResult: r };
@@ -157,25 +173,11 @@ export function usePredictionStats(
     }
     const roiPct = unitsStaked > 0 ? (unitsPnl / unitsStaked) * 100 : 0;
 
-    // Compounded bankroll: walk resolved unit-bets chronologically, sizing each
-    // stake as unitPct of the running bankroll (1 unit = unitPct% of bankroll).
-    const chrono = [...unitBets].sort((a, b) => {
-      const ka = a.resolve_date ?? a.entry_date ?? a.created_at;
-      const kb = b.resolve_date ?? b.entry_date ?? b.created_at;
-      return ka < kb ? -1 : ka > kb ? 1 : 0;
-    });
-    let running = bankroll;
-    for (const p of chrono) {
-      const unitValue = (running * unitPct) / 100;
-      const stakeMoney = (p.stake_units ?? 0) * unitValue;
-      if (p.outcome === "won" && p.odds != null && p.odds > 0) {
-        running += stakeMoney * (p.odds - 1);
-      } else if (p.outcome === "lost") {
-        running -= stakeMoney;
-      }
-    }
-    const currentBankroll = running;
-    const bankrollPnl = currentBankroll - bankroll;
+    // One unit is always unitPct% of the reference bankroll (unitValue above) —
+    // constant by design, so a unit's euro worth, and therefore every bet's euro
+    // amount, never drifts as results come in. The euros are the ground truth;
+    // only the unit count can change (if you change settings).
+    const bankrollPnl = unitsPnl * unitValue;
 
     return {
       resolvedCount,
@@ -191,8 +193,8 @@ export function usePredictionStats(
       unitsStaked,
       unitsPnl,
       roiPct,
+      unitValue,
       startBankroll: bankroll,
-      currentBankroll,
       bankrollPnl,
     };
   }, [predictions, bankroll, unitPct]);
