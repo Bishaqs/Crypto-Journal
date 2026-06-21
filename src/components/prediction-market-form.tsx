@@ -68,9 +68,16 @@ export function PredictionMarketForm({
   );
   const [title, setTitle] = useState(editPrediction?.title ?? "");
   const [event, setEvent] = useState(editPrediction?.event ?? "");
-  const [platform, setPlatform] = useState<string>(
-    editPrediction?.platform ?? "Sports"
-  );
+  const [platform, setPlatform] = useState<string>(() => {
+    const p = editPrediction?.platform;
+    if (!p) return "Sports";
+    return (PLATFORMS as readonly string[]).includes(p) ? p : "Other";
+  });
+  // Custom platform name, used when "Other" is selected.
+  const [customPlatform, setCustomPlatform] = useState<string>(() => {
+    const p = editPrediction?.platform;
+    return p && !(PLATFORMS as readonly string[]).includes(p) ? p : "";
+  });
   const [tags, setTags] = useState<string[]>(() => {
     if (editPrediction?.tags && editPrediction.tags.length > 0) {
       return editPrediction.tags;
@@ -274,9 +281,12 @@ export function PredictionMarketForm({
       const stakeMoneyValue =
         stakeUnitsValue != null ? stakeUnitsValue * unitValue : null;
 
+      const platformValue =
+        platform === "Other" ? customPlatform.trim() || null : platform || null;
+
       const payload = {
         title: title.trim(),
-        platform: platform || null,
+        platform: platformValue,
         event: event.trim() || null,
         direction: null,
         tags,
@@ -421,6 +431,16 @@ export function PredictionMarketForm({
                 </button>
               ))}
             </div>
+            {platform === "Other" && (
+              <input
+                type="text"
+                value={customPlatform}
+                onChange={(e) => setCustomPlatform(e.target.value)}
+                placeholder="Which book? e.g. Tipico, Bet365, DraftKings"
+                className={`mt-2 ${inputClass.replace(" tabular-nums", "")}`}
+                autoFocus
+              />
+            )}
           </div>
 
           {/* Tags — bet-type labels for grouping & per-tag stats */}
@@ -437,6 +457,7 @@ export function PredictionMarketForm({
               suggestions={tagSuggestions}
               placeholder='e.g. "germany win, win" — comma adds two at once'
               showAddButton
+              showSuggestionsOnFocus
             />
             {/* Pick from existing tags without retyping */}
             {tagSuggestions.filter((t) => !tags.includes(t)).length > 0 && (
