@@ -428,14 +428,14 @@ export function PredictionMarketForm({
             <label className="block text-xs text-muted mb-1.5">
               Tags{" "}
               <span className="text-muted/50">
-                (e.g. &quot;handicap 1:0&quot;, &quot;over 2.5&quot;, &quot;home win&quot;)
+                (e.g. &quot;win&quot;, &quot;handicap 0-3&quot;, &quot;over 2.5&quot;)
               </span>
             </label>
             <TagInput
               value={tags}
               onChange={setTags}
               suggestions={tagSuggestions}
-              placeholder="Type a bet type, then Enter or +"
+              placeholder='e.g. "germany win, win" — comma adds two at once'
               showAddButton
             />
             {/* Pick from existing tags without retyping */}
@@ -460,10 +460,12 @@ export function PredictionMarketForm({
               </div>
             )}
             <p className="text-[10px] text-muted/60 mt-1.5">
-              Add as many as you like — for a parlay, tag each leg type (e.g.
-              &quot;over 2.5&quot; + &quot;handicap 1:0&quot;). Type new ones (Enter
-              or +) or click an existing tag above. Win rate per tag shows in Tag
-              Stats.
+              Keep tags generic so Tag Stats can aggregate — tag the bet
+              <span className="text-muted"> type</span> (&quot;win&quot;), not the
+              team. Want both views? Add the type AND the combo, e.g.
+              &quot;win, germany win&quot; (comma = two tags) → you then see
+              #win across all games <em>and</em> #germany&nbsp;win on its own. For
+              a parlay, tag each leg type. Reuse existing tags via the chips above.
             </p>
           </div>
 
