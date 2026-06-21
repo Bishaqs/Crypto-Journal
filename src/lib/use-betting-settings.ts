@@ -24,6 +24,14 @@ export type BettingSettings = {
    * result entered in the other currency ($ vs €) into the base currency.
    */
   fxRate: number;
+  /**
+   * When true, the displayed bankroll grows with bet results resolved on/after
+   * `autoGrowSince`. When false, the bankroll stays fixed at currentBankroll
+   * (ideal while back-filling historical bets).
+   */
+  autoGrow: boolean;
+  /** ISO date (YYYY-MM-DD) from which auto-grow counts results. */
+  autoGrowSince: string | null;
 };
 
 export const DEFAULT_BETTING_SETTINGS: BettingSettings = {
@@ -32,6 +40,8 @@ export const DEFAULT_BETTING_SETTINGS: BettingSettings = {
   currentBankroll: 1000,
   currency: "€",
   fxRate: 1.08,
+  autoGrow: false,
+  autoGrowSince: null,
 };
 
 function coerce(raw: unknown): BettingSettings {
@@ -51,6 +61,11 @@ function coerce(raw: unknown): BettingSettings {
       Number.isFinite(currentBankroll) && currentBankroll >= 0 ? currentBankroll : safeBankroll,
     currency: typeof r.currency === "string" && r.currency.trim() ? r.currency.trim().slice(0, 4) : DEFAULT_BETTING_SETTINGS.currency,
     fxRate: Number.isFinite(fxRate) && fxRate > 0 ? fxRate : DEFAULT_BETTING_SETTINGS.fxRate,
+    autoGrow: r.autoGrow === true,
+    autoGrowSince:
+      typeof r.autoGrowSince === "string" && r.autoGrowSince.trim()
+        ? r.autoGrowSince.trim().slice(0, 10)
+        : null,
   };
 }
 
