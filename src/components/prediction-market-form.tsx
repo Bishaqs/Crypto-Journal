@@ -11,7 +11,6 @@ import {
   impliedProbFromOdds,
   oddsFromImpliedProb,
   combinedOdds,
-  combinedImpliedProb,
   roundOdds,
 } from "@/lib/betting-odds";
 
@@ -111,6 +110,14 @@ export function PredictionMarketForm({
     ];
   });
 
+  // Combined-odds override for combos. Empty = use the auto product of the
+  // legs; a value here overrides it (parlay boosts can beat the pure product).
+  const [comboOddsInput, setComboOddsInput] = useState<string>(
+    editPrediction?.bet_type === "combo" && editPrediction?.odds != null
+      ? String(editPrediction.odds)
+      : ""
+  );
+
   const [yourProb, setYourProb] = useState<number>(
     editPrediction?.your_prob ?? 50
   );
@@ -187,8 +194,13 @@ export function PredictionMarketForm({
 
   // ── Derived combined values (combo) ──
   const parsedLegs = legs.map((l) => ({ odds: l.odds.trim() ? Number(l.odds) : null }));
-  const comboOdds = combinedOdds(parsedLegs);
-  const comboImplied = combinedImpliedProb(parsedLegs);
+  const autoComboOdds = combinedOdds(parsedLegs);
+  // Effective combined odds: manual override if set, else the auto product.
+  const comboOdds =
+    comboOddsInput.trim() && Number.isFinite(Number(comboOddsInput))
+      ? Number(comboOddsInput)
+      : autoComboOdds;
+  const comboImplied = impliedProbFromOdds(comboOdds);
 
   // Effective odds / implied market % for the whole bet
   const effectiveOdds =
@@ -246,8 +258,17 @@ export function PredictionMarketForm({
             market_prob: mp != null && Number.isFinite(mp) ? mp : null,
           };
         });
-        oddsValue = combinedOdds(legsPayload);
-        const ci = combinedImpliedProb(legsPayload);
+        const autoOdds = combinedOdds(legsPayload);
+        const override =
+          comboOddsInput.trim() && Number.isFinite(Number(comboOddsInput))
+            ? Number(comboOddsInput)
+            : null;
+        if (override != null && override <= 1) {
+          setError("Combined odds must be greater than 1.");
+          return;
+        }
+        oddsValue = override != null ? roundOdds(override) : autoOdds;
+        const ci = impliedProbFromOdds(oddsValue);
         marketProbValue = ci != null ? Math.round(ci) : null;
       } else {
         if (oddsInput.trim()) {
@@ -584,24 +605,52 @@ export function PredictionMarketForm({
                 <Plus size={12} />
                 Add leg
               </button>
-              {comboOdds != null && (
-                <div className="flex items-center gap-4 px-3 py-2 rounded-lg bg-accent/5 border border-accent/15 text-xs">
-                  <span className="text-muted">
-                    Combined odds:{" "}
-                    <span className="font-bold text-accent tabular-nums">
-                      {roundOdds(comboOdds)}
-                    </span>
-                  </span>
-                  {comboImplied != null && (
-                    <span className="text-muted">
-                      Implied:{" "}
-                      <span className="font-bold text-foreground tabular-nums">
-                        {comboImplied.toFixed(1)}%
-                      </span>
-                    </span>
+              <div className="px-3 py-2.5 rounded-lg bg-accent/5 border border-accent/15 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-xs text-muted">
+                    Combined odds{" "}
+                    <span className="text-muted/50">(editable — parlay boost)</span>
+                  </label>
+                  {autoComboOdds != null && (
+                    <button
+                      type="button"
+                      onClick={() => setComboOddsInput("")}
+                      className="text-[10px] px-2 py-0.5 rounded-md border border-border text-muted hover:text-accent hover:border-accent/30 transition-all"
+                    >
+                      = auto ({roundOdds(autoComboOdds)})
+                    </button>
                   )}
                 </div>
-              )}
+                <input
+                  type="number"
+                  step="any"
+                  min={1}
+                  value={
+                    comboOddsInput.trim()
+                      ? comboOddsInput
+                      : autoComboOdds != null
+                      ? String(roundOdds(autoComboOdds))
+                      : ""
+                  }
+                  onChange={(e) => setComboOddsInput(e.target.value)}
+                  placeholder="auto from legs — edit to override"
+                  className={inputClass}
+                />
+                {comboImplied != null && (
+                  <p className="text-[10px] text-muted/70">
+                    Implied:{" "}
+                    <span className="font-bold text-foreground tabular-nums">
+                      {comboImplied.toFixed(1)}%
+                    </span>
+                    {comboOddsInput.trim() && autoComboOdds != null && (
+                      <span className="text-muted/50">
+                        {" "}
+                        · pure product: {roundOdds(autoComboOdds)}
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
