@@ -100,6 +100,19 @@ function convertMoney(
   return amount;
 }
 
+/** Realized euro result of one bet: stored actual money, else derived from units. */
+function betEuro(p: PredictionMarket, unitValue: number): number {
+  if (p.realized_result != null) return p.realized_result;
+  if (p.stake_units != null) {
+    const ru =
+      p.realized_units != null
+        ? p.realized_units
+        : realizedUnits(p.outcome, p.stake_units, p.odds) ?? 0;
+    return ru * unitValue;
+  }
+  return 0;
+}
+
 type TagStat = {
   tag: string;
   /** Resolved (won/lost) bets carrying this tag */
@@ -196,6 +209,20 @@ export default function PredictionsPage() {
   // Fixed value of one unit = unitPct% of the reference bankroll. Constant by
   // design so euro amounts never drift as results come in.
   const unitValue = stats.unitValue;
+
+  // Auto-grow: when enabled, the live bankroll = your set bankroll + the euro
+  // P/L of bets resolved on/after autoGrowSince. Back-filled history (resolved
+  // before that date) leaves the bankroll untouched. When disabled, the
+  // bankroll stays exactly at your manually set value.
+  const sinceDate = settings.autoGrowSince;
+  const autoGrowPnl =
+    settings.autoGrow && sinceDate
+      ? predictions
+          .filter((p) => p.outcome === "won" || p.outcome === "lost")
+          .filter((p) => (p.resolve_date ?? p.entry_date) >= sinceDate)
+          .reduce((sum, p) => sum + betEuro(p, unitValue), 0)
+      : 0;
+  const liveBankroll = settings.currentBankroll + autoGrowPnl;
 
   const fetchPredictions = useCallback(async () => {
     try {
@@ -378,12 +405,20 @@ export default function PredictionsPage() {
                     className="group flex items-center gap-1.5 text-lg font-bold text-foreground tabular-nums hover:text-accent transition-colors"
                     title="Bankroll bearbeiten"
                   >
-                    {fmtMoney(settings.currentBankroll, settings.currency)}
+                    {fmtMoney(liveBankroll, settings.currency)}
                     <Pencil
                       size={12}
                       className="text-muted/40 group-hover:text-accent transition-colors"
                     />
                   </button>
+                )}
+                {!editingBankroll && settings.autoGrow && sinceDate && (
+                  <p className="text-[10px] text-muted/50 mt-0.5 tabular-nums">
+                    {fmtMoney(settings.currentBankroll, settings.currency)}{" "}
+                    {autoGrowPnl >= 0 ? "+" : "−"}{" "}
+                    {fmtMoney(Math.abs(autoGrowPnl), settings.currency)} seit{" "}
+                    {sinceDate}
+                  </p>
                 )}
               </div>
             </div>
@@ -445,6 +480,8 @@ export default function PredictionsPage() {
             initialCurrentBankroll={settings.currentBankroll}
             initialCurrency={settings.currency}
             initialFxRate={settings.fxRate}
+            initialAutoGrow={settings.autoGrow}
+            initialAutoGrowSince={settings.autoGrowSince}
             onSave={async (next) => {
               await saveSettings(next);
               setShowBankrollSettings(false);
@@ -1660,6 +1697,8 @@ function BankrollSettings({
   initialCurrentBankroll,
   initialCurrency,
   initialFxRate,
+  initialAutoGrow,
+  initialAutoGrowSince,
   onSave,
   onClose,
 }: {
@@ -1668,12 +1707,16 @@ function BankrollSettings({
   initialCurrentBankroll: number;
   initialCurrency: string;
   initialFxRate: number;
+  initialAutoGrow: boolean;
+  initialAutoGrowSince: string | null;
   onSave: (next: {
     bankroll: number;
     unitPct: number;
     currentBankroll: number;
     currency: string;
     fxRate: number;
+    autoGrow: boolean;
+    autoGrowSince: string | null;
   }) => Promise<void>;
   onClose: () => void;
 }) {
@@ -1684,6 +1727,10 @@ function BankrollSettings({
   );
   const [currency, setCurrency] = useState(initialCurrency);
   const [fxRate, setFxRate] = useState(String(initialFxRate));
+  const [autoGrow, setAutoGrow] = useState(initialAutoGrow);
+  const [autoGrowSince, setAutoGrowSince] = useState<string | null>(
+    initialAutoGrowSince
+  );
   const [saving, setSaving] = useState(false);
 
   const bk = Number(bankroll);
@@ -1692,6 +1739,17 @@ function BankrollSettings({
   const fx = Number(fxRate);
   const unitVal =
     Number.isFinite(bk) && Number.isFinite(up) ? (bk * up) / 100 : null;
+
+  function toggleAutoGrow() {
+    setAutoGrow((on: boolean) => {
+      const next = !on;
+      // Turning on starts the growth clock today (unless one is already set).
+      if (next && !autoGrowSince) {
+        setAutoGrowSince(new Date().toISOString().slice(0, 10));
+      }
+      return next;
+    });
+  }
 
   async function save() {
     setSaving(true);
@@ -1703,6 +1761,10 @@ function BankrollSettings({
           Number.isFinite(cur) && cur >= 0 ? cur : initialCurrentBankroll,
         currency: currency.trim() || initialCurrency,
         fxRate: Number.isFinite(fx) && fx > 0 ? fx : initialFxRate,
+        autoGrow,
+        autoGrowSince: autoGrow
+          ? autoGrowSince ?? new Date().toISOString().slice(0, 10)
+          : autoGrowSince,
       });
     } finally {
       setSaving(false);
@@ -1792,6 +1854,51 @@ function BankrollSettings({
           Cancel
         </button>
       </div>
+
+      {/* Auto-grow toggle (full width) */}
+      <div className="sm:col-span-6 flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-background border border-border/60">
+        <div>
+          <p className="text-xs font-medium text-foreground">
+            Auto-grow bankroll
+          </p>
+          <p className="text-[10px] text-muted/60 mt-0.5">
+            {autoGrow
+              ? `Bankroll grows with results resolved on/after ${
+                  autoGrowSince ?? "today"
+                }. Back-filled history before that stays out.`
+              : "Off — bankroll stays fixed at your set value (ideal while back-filling old bets)."}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={autoGrow}
+          onClick={toggleAutoGrow}
+          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+            autoGrow ? "bg-accent" : "bg-border"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-background transition-transform ${
+              autoGrow ? "translate-x-5" : ""
+            }`}
+          />
+        </button>
+      </div>
+      {autoGrow && (
+        <div className="sm:col-span-6 flex items-center gap-2">
+          <label className="text-[10px] text-muted/60 uppercase tracking-wider">
+            Grow since
+          </label>
+          <input
+            type="date"
+            value={autoGrowSince ?? ""}
+            onChange={(e) => setAutoGrowSince(e.target.value || null)}
+            className="px-3 py-1.5 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50"
+          />
+        </div>
+      )}
+
       {unitVal != null && (
         <p className="sm:col-span-6 text-[11px] text-muted/70">
           1 unit = {currency}
