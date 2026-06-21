@@ -84,6 +84,22 @@ function fmtUnits(n: number | null | undefined, signed = false): string {
   return `${sign}${n.toFixed(2)}u`;
 }
 
+/**
+ * Convert a money amount between € and $ using usdPerEur (US$ per 1 €).
+ * Same-currency or any non €/$ symbol passes through unchanged.
+ */
+function convertMoney(
+  amount: number,
+  from: string,
+  to: string,
+  usdPerEur: number
+): number {
+  if (from === to || !(usdPerEur > 0)) return amount;
+  if (from === "€" && to === "$") return amount * usdPerEur;
+  if (from === "$" && to === "€") return amount / usdPerEur;
+  return amount;
+}
+
 type TagStat = {
   tag: string;
   /** Resolved (won/lost) bets carrying this tag */
@@ -428,6 +444,7 @@ export default function PredictionsPage() {
             initialUnitPct={settings.unitPct}
             initialCurrentBankroll={settings.currentBankroll}
             initialCurrency={settings.currency}
+            initialFxRate={settings.fxRate}
             onSave={async (next) => {
               await saveSettings(next);
               setShowBankrollSettings(false);
@@ -964,6 +981,7 @@ export default function PredictionsPage() {
           prediction={resolving}
           unitValue={unitValue}
           currency={settings.currency}
+          fxRate={settings.fxRate}
           onClose={() => setResolving(null)}
           onResolved={() => {
             setResolving(null);
@@ -1140,16 +1158,20 @@ function ResolveModal({
   prediction,
   unitValue,
   currency,
+  fxRate,
   onClose,
   onResolved,
 }: {
   prediction: PredictionMarket;
   unitValue: number;
   currency: string;
+  fxRate: number;
   onClose: () => void;
   onResolved: () => void;
 }) {
   const isUnitMode = prediction.stake_units != null;
+  // Currencies offered for entering the result. Base currency first.
+  const CURRENCY_OPTIONS = currency === "$" ? ["$", "€"] : ["€", "$"];
 
   function autoUnitsFor(o: Outcome): number | null {
     return realizedUnits(o, prediction.stake_units, prediction.odds);
@@ -1167,10 +1189,13 @@ function ResolveModal({
     const a = realizedUnits(initialOutcome, prediction.stake_units, prediction.odds);
     return a != null ? String(a) : "";
   });
-  // Euro result, linked to units. This is the ACTUAL money result and is what
-  // gets stored — so what you lost/won in € is exact, not just unit math.
-  const [euroInput, setEuroInput] = useState<string>(() => {
+  // Currency the money result is entered in (defaults to the base currency).
+  const [resultCurrency, setResultCurrency] = useState<string>(currency);
+  // Money result, linked to units. The ACTUAL money you won/lost. Stored in the
+  // BASE currency (converted from resultCurrency via fxRate when they differ).
+  const [moneyInput, setMoneyInput] = useState<string>(() => {
     if (!isUnitMode) return "";
+    // realized_result is stored in base currency; resultCurrency starts as base.
     if (prediction.realized_result != null)
       return String(prediction.realized_result);
     const u =
@@ -1193,23 +1218,35 @@ function ResolveModal({
     { value: "void", label: "Void" },
   ];
 
-  // Linked editing: type units → euro follows, type euro → units follows.
+  // Linked editing across units ↔ money. Money is shown in resultCurrency; the
+  // units relationship always runs through the base currency (unitValue is base).
   function onUnitsChange(v: string) {
     setUnitsInput(v);
     const n = Number(v);
     if (v.trim() !== "" && Number.isFinite(n) && unitValue > 0) {
-      setEuroInput(String(round2(n * unitValue)));
+      const money = convertMoney(n * unitValue, currency, resultCurrency, fxRate);
+      setMoneyInput(String(round2(money)));
     } else if (v.trim() === "") {
-      setEuroInput("");
+      setMoneyInput("");
     }
   }
-  function onEuroChange(v: string) {
-    setEuroInput(v);
+  function onMoneyChange(v: string) {
+    setMoneyInput(v);
     const n = Number(v);
     if (v.trim() !== "" && Number.isFinite(n) && unitValue > 0) {
-      setUnitsInput(String(round2(n / unitValue)));
+      const base = convertMoney(n, resultCurrency, currency, fxRate);
+      setUnitsInput(String(round2(base / unitValue)));
     } else if (v.trim() === "") {
       setUnitsInput("");
+    }
+  }
+  function onCurrencyChange(cur: string) {
+    setResultCurrency(cur);
+    // Keep units fixed; re-express the money amount in the new currency.
+    const n = Number(unitsInput);
+    if (unitsInput.trim() !== "" && Number.isFinite(n) && unitValue > 0) {
+      const money = convertMoney(n * unitValue, currency, cur, fxRate);
+      setMoneyInput(String(round2(money)));
     }
   }
 
@@ -1218,12 +1255,16 @@ function ResolveModal({
     if (!isUnitMode) return;
     if (o === "void") {
       setUnitsInput("0");
-      setEuroInput("0");
+      setMoneyInput("0");
       return;
     }
     const a = autoUnitsFor(o);
     setUnitsInput(a != null ? String(a) : "");
-    setEuroInput(a != null && unitValue > 0 ? String(round2(a * unitValue)) : "");
+    setMoneyInput(
+      a != null && unitValue > 0
+        ? String(round2(convertMoney(a * unitValue, currency, resultCurrency, fxRate)))
+        : ""
+    );
   }
 
   async function handleSave() {
@@ -1251,23 +1292,23 @@ function ResolveModal({
           } else {
             unitsValue = autoUnitsFor(outcome);
           }
-          // Euro (explicit truth, else derived from units).
-          if (euroInput.trim() !== "") {
-            const pe = Number(euroInput);
-            if (!Number.isFinite(pe)) {
-              setError("Euro result must be a number");
+          // Money (explicit truth, converted to base currency), else from units.
+          if (moneyInput.trim() !== "") {
+            const pm = Number(moneyInput);
+            if (!Number.isFinite(pm)) {
+              setError("Money result must be a number");
               return;
             }
-            euroValue = pe;
+            euroValue = round2(convertMoney(pm, resultCurrency, currency, fxRate));
           } else if (unitsValue != null && unitValue > 0) {
             euroValue = round2(unitsValue * unitValue);
           }
-          // If only euro was given, derive units from it.
+          // If only money was given, derive units from the base value.
           if (unitsValue == null && euroValue != null && unitValue > 0) {
             unitsValue = round2(euroValue / unitValue);
           }
           if (unitsValue == null && euroValue == null) {
-            setError("Enter the result in units or euro.");
+            setError("Enter the result in units or money.");
             return;
           }
         }
@@ -1369,15 +1410,31 @@ function ResolveModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-muted mb-1.5">
-                    Result ({currency})
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs text-muted">Result (money)</label>
+                    <div className="flex gap-0.5">
+                      {CURRENCY_OPTIONS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => onCurrencyChange(c)}
+                          className={`px-1.5 py-0.5 rounded text-[11px] font-bold transition-colors ${
+                            resultCurrency === c
+                              ? "bg-accent/15 text-accent"
+                              : "text-muted/50 hover:text-foreground"
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <input
                     type="number"
                     step="any"
-                    value={outcome === "void" ? "0" : euroInput}
+                    value={outcome === "void" ? "0" : moneyInput}
                     disabled={outcome === "void"}
-                    onChange={(e) => onEuroChange(e.target.value)}
+                    onChange={(e) => onMoneyChange(e.target.value)}
                     placeholder="actual money"
                     className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 tabular-nums disabled:opacity-50"
                   />
@@ -1387,7 +1444,16 @@ function ResolveModal({
                 Auto-calculated from your odds (
                 {prediction.odds != null ? `@ ${prediction.odds}` : "no odds set"})
                 and stake ({fmtUnits(prediction.stake_units)}). Edit either — the
-                other updates. The € value is stored as your actual money result.
+                other updates.{" "}
+                {resultCurrency !== currency
+                  ? `Entered in ${resultCurrency}, stored as ${fmtMoney(
+                      moneyInput.trim() !== ""
+                        ? convertMoney(Number(moneyInput), resultCurrency, currency, fxRate)
+                        : 0,
+                      currency,
+                      true
+                    )} (rate 1€=${fxRate}$).`
+                  : `Stored as your actual money result in ${currency}.`}
               </p>
             </div>
           ) : (
@@ -1593,6 +1659,7 @@ function BankrollSettings({
   initialUnitPct,
   initialCurrentBankroll,
   initialCurrency,
+  initialFxRate,
   onSave,
   onClose,
 }: {
@@ -1600,11 +1667,13 @@ function BankrollSettings({
   initialUnitPct: number;
   initialCurrentBankroll: number;
   initialCurrency: string;
+  initialFxRate: number;
   onSave: (next: {
     bankroll: number;
     unitPct: number;
     currentBankroll: number;
     currency: string;
+    fxRate: number;
   }) => Promise<void>;
   onClose: () => void;
 }) {
@@ -1614,11 +1683,13 @@ function BankrollSettings({
     String(initialCurrentBankroll)
   );
   const [currency, setCurrency] = useState(initialCurrency);
+  const [fxRate, setFxRate] = useState(String(initialFxRate));
   const [saving, setSaving] = useState(false);
 
   const bk = Number(bankroll);
   const up = Number(unitPct);
   const cur = Number(currentBankroll);
+  const fx = Number(fxRate);
   const unitVal =
     Number.isFinite(bk) && Number.isFinite(up) ? (bk * up) / 100 : null;
 
@@ -1631,6 +1702,7 @@ function BankrollSettings({
         currentBankroll:
           Number.isFinite(cur) && cur >= 0 ? cur : initialCurrentBankroll,
         currency: currency.trim() || initialCurrency,
+        fxRate: Number.isFinite(fx) && fx > 0 ? fx : initialFxRate,
       });
     } finally {
       setSaving(false);
@@ -1638,7 +1710,7 @@ function BankrollSettings({
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
+    <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-1 sm:grid-cols-6 gap-3 items-end">
       <div>
         <label className="block text-[10px] text-muted/60 uppercase tracking-wider mb-1">
           Current bankroll
@@ -1690,6 +1762,19 @@ function BankrollSettings({
           className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50"
         />
       </div>
+      <div>
+        <label className="block text-[10px] text-muted/60 uppercase tracking-wider mb-1">
+          FX rate (1€ = X$)
+        </label>
+        <input
+          type="number"
+          step="any"
+          min={0}
+          value={fxRate}
+          onChange={(e) => setFxRate(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 tabular-nums"
+        />
+      </div>
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -1708,7 +1793,7 @@ function BankrollSettings({
         </button>
       </div>
       {unitVal != null && (
-        <p className="sm:col-span-5 text-[11px] text-muted/70">
+        <p className="sm:col-span-6 text-[11px] text-muted/70">
           1 unit = {currency}
           {unitVal.toLocaleString(undefined, { maximumFractionDigits: 2 })} (fixed
           — {unitPct}% of the unit-base bankroll). Euro amounts stay constant; only

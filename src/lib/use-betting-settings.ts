@@ -17,8 +17,13 @@ export type BettingSettings = {
    * recomputes or overrides this. Edit it directly whenever it changes.
    */
   currentBankroll: number;
-  /** Display currency symbol. */
+  /** Display / base currency symbol. */
   currency: string;
+  /**
+   * Exchange rate as US dollars per 1 euro (e.g. 1.08). Used to convert a bet
+   * result entered in the other currency ($ vs €) into the base currency.
+   */
+  fxRate: number;
 };
 
 export const DEFAULT_BETTING_SETTINGS: BettingSettings = {
@@ -26,6 +31,7 @@ export const DEFAULT_BETTING_SETTINGS: BettingSettings = {
   unitPct: 1,
   currentBankroll: 1000,
   currency: "€",
+  fxRate: 1.08,
 };
 
 function coerce(raw: unknown): BettingSettings {
@@ -33,6 +39,7 @@ function coerce(raw: unknown): BettingSettings {
   const bankroll = Number(r.bankroll);
   const unitPct = Number(r.unitPct);
   const currentBankroll = Number(r.currentBankroll);
+  const fxRate = Number(r.fxRate);
   const safeBankroll =
     Number.isFinite(bankroll) && bankroll > 0 ? bankroll : DEFAULT_BETTING_SETTINGS.bankroll;
   return {
@@ -43,6 +50,7 @@ function coerce(raw: unknown): BettingSettings {
     currentBankroll:
       Number.isFinite(currentBankroll) && currentBankroll >= 0 ? currentBankroll : safeBankroll,
     currency: typeof r.currency === "string" && r.currency.trim() ? r.currency.trim().slice(0, 4) : DEFAULT_BETTING_SETTINGS.currency,
+    fxRate: Number.isFinite(fxRate) && fxRate > 0 ? fxRate : DEFAULT_BETTING_SETTINGS.fxRate,
   };
 }
 

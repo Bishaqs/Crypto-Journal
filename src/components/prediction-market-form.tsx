@@ -435,10 +435,13 @@ export function PredictionMarketForm({
               value={tags}
               onChange={setTags}
               suggestions={tagSuggestions}
-              placeholder="Type a bet type and press Enter..."
+              placeholder="Type a bet type, then Enter or +"
+              showAddButton
             />
             <p className="text-[10px] text-muted/60 mt-1.5">
-              Tags let you see your win rate per bet type in Tag Stats.
+              Add as many as you like — for a parlay, tag each leg type (e.g.
+              &quot;over 2.5&quot; + &quot;handicap 1:0&quot;). Press Enter or the +
+              button per tag. Win rate per tag shows in Tag Stats.
             </p>
           </div>
 
