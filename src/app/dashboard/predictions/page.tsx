@@ -106,24 +106,34 @@ function computeTagStats(
 ): TagStat[] {
   const map = new Map<
     string,
-    { resolved: number; wins: number; unitsStaked: number; unitsPnl: number }
+    {
+      resolved: number;
+      wins: number;
+      unitsStaked: number;
+      unitsPnl: number;
+      euroPnl: number;
+    }
   >();
   for (const p of predictions) {
     if (p.outcome !== "won" && p.outcome !== "lost") continue;
     for (const t of p.tags ?? []) {
       if (!t) continue;
       const e =
-        map.get(t) ?? { resolved: 0, wins: 0, unitsStaked: 0, unitsPnl: 0 };
+        map.get(t) ??
+        { resolved: 0, wins: 0, unitsStaked: 0, unitsPnl: 0, euroPnl: 0 };
       e.resolved += 1;
       if (p.outcome === "won") e.wins += 1;
+      const ru =
+        p.realized_units != null
+          ? p.realized_units
+          : realizedUnits(p.outcome, p.stake_units, p.odds) ?? 0;
       if (p.stake_units != null && p.stake_units > 0) {
         e.unitsStaked += p.stake_units;
-        const ru =
-          p.realized_units != null
-            ? p.realized_units
-            : realizedUnits(p.outcome, p.stake_units, p.odds) ?? 0;
         e.unitsPnl += ru;
       }
+      // Actual euro result is the source of truth; fall back to derived.
+      e.euroPnl +=
+        p.realized_result != null ? p.realized_result : ru * unitValue;
       map.set(t, e);
     }
   }
@@ -137,7 +147,7 @@ function computeTagStats(
       unitsStaked: e.unitsStaked,
       unitsPnl: e.unitsPnl,
       roiPct: e.unitsStaked > 0 ? (e.unitsPnl / e.unitsStaked) * 100 : 0,
-      euroPnl: e.unitsPnl * unitValue,
+      euroPnl: e.euroPnl,
     });
   }
   out.sort((a, b) => b.resolved - a.resolved || b.winRate - a.winRate);
@@ -811,9 +821,12 @@ export default function PredictionsPage() {
                                   p.realized_units >= 0 ? "text-win" : "text-loss"
                                 }`}
                               >
-                                {fmtUnits(p.realized_units, true)} (≈{" "}
+                                {fmtUnits(p.realized_units, true)} (
+                                {p.realized_result != null ? "" : "≈ "}
                                 {fmtMoney(
-                                  p.realized_units * unitValue,
+                                  p.realized_result != null
+                                    ? p.realized_result
+                                    : p.realized_units * unitValue,
                                   settings.currency,
                                   true
                                 )}
@@ -1069,9 +1082,7 @@ function TagStatsModal({
                           s.euroPnl >= 0 ? "text-win" : "text-loss"
                         }`}
                       >
-                        {s.unitsStaked > 0
-                          ? fmtMoney(s.euroPnl, currency, true)
-                          : "—"}
+                        {fmtMoney(s.euroPnl, currency, true)}
                       </td>
                       <td
                         className={`py-2 text-right tabular-nums font-semibold ${
@@ -1147,12 +1158,26 @@ function ResolveModal({
   const initialOutcome: Outcome =
     prediction.outcome === "pending" ? "won" : prediction.outcome;
 
+  const round2 = (x: number) => Math.round(x * 100) / 100;
+
   const [outcome, setOutcome] = useState<Outcome>(initialOutcome);
   const [unitsInput, setUnitsInput] = useState<string>(() => {
     if (!isUnitMode) return "";
     if (prediction.realized_units != null) return String(prediction.realized_units);
     const a = realizedUnits(initialOutcome, prediction.stake_units, prediction.odds);
     return a != null ? String(a) : "";
+  });
+  // Euro result, linked to units. This is the ACTUAL money result and is what
+  // gets stored — so what you lost/won in € is exact, not just unit math.
+  const [euroInput, setEuroInput] = useState<string>(() => {
+    if (!isUnitMode) return "";
+    if (prediction.realized_result != null)
+      return String(prediction.realized_result);
+    const u =
+      prediction.realized_units != null
+        ? prediction.realized_units
+        : realizedUnits(initialOutcome, prediction.stake_units, prediction.odds);
+    return u != null && unitValue > 0 ? String(round2(u * unitValue)) : "";
   });
   const [realizedResult, setRealizedResult] = useState<string>(
     prediction.realized_result != null
@@ -1168,15 +1193,38 @@ function ResolveModal({
     { value: "void", label: "Void" },
   ];
 
-  function pickOutcome(o: Outcome) {
-    setOutcome(o);
-    if (isUnitMode) {
-      const a = autoUnitsFor(o);
-      setUnitsInput(a != null ? String(a) : "");
+  // Linked editing: type units → euro follows, type euro → units follows.
+  function onUnitsChange(v: string) {
+    setUnitsInput(v);
+    const n = Number(v);
+    if (v.trim() !== "" && Number.isFinite(n) && unitValue > 0) {
+      setEuroInput(String(round2(n * unitValue)));
+    } else if (v.trim() === "") {
+      setEuroInput("");
+    }
+  }
+  function onEuroChange(v: string) {
+    setEuroInput(v);
+    const n = Number(v);
+    if (v.trim() !== "" && Number.isFinite(n) && unitValue > 0) {
+      setUnitsInput(String(round2(n / unitValue)));
+    } else if (v.trim() === "") {
+      setUnitsInput("");
     }
   }
 
-  const previewUnits = unitsInput.trim() !== "" ? Number(unitsInput) : null;
+  function pickOutcome(o: Outcome) {
+    setOutcome(o);
+    if (!isUnitMode) return;
+    if (o === "void") {
+      setUnitsInput("0");
+      setEuroInput("0");
+      return;
+    }
+    const a = autoUnitsFor(o);
+    setUnitsInput(a != null ? String(a) : "");
+    setEuroInput(a != null && unitValue > 0 ? String(round2(a * unitValue)) : "");
+  }
 
   async function handleSave() {
     setError(null);
@@ -1186,26 +1234,47 @@ function ResolveModal({
 
       if (isUnitMode) {
         let unitsValue: number | null = null;
+        let euroValue: number | null = null;
+
         if (outcome === "void") {
           unitsValue = 0;
-        } else if (unitsInput.trim() !== "") {
-          const parsed = Number(unitsInput);
-          if (!Number.isFinite(parsed)) {
-            setError("Units result must be a number");
-            return;
-          }
-          unitsValue = parsed;
+          euroValue = 0;
         } else {
-          unitsValue = autoUnitsFor(outcome);
-          if (unitsValue == null) {
-            setError("Enter the units result (no odds on this bet to auto-calc).");
+          // Units (explicit, else auto from odds).
+          if (unitsInput.trim() !== "") {
+            const pu = Number(unitsInput);
+            if (!Number.isFinite(pu)) {
+              setError("Units result must be a number");
+              return;
+            }
+            unitsValue = pu;
+          } else {
+            unitsValue = autoUnitsFor(outcome);
+          }
+          // Euro (explicit truth, else derived from units).
+          if (euroInput.trim() !== "") {
+            const pe = Number(euroInput);
+            if (!Number.isFinite(pe)) {
+              setError("Euro result must be a number");
+              return;
+            }
+            euroValue = pe;
+          } else if (unitsValue != null && unitValue > 0) {
+            euroValue = round2(unitsValue * unitValue);
+          }
+          // If only euro was given, derive units from it.
+          if (unitsValue == null && euroValue != null && unitValue > 0) {
+            unitsValue = round2(euroValue / unitValue);
+          }
+          if (unitsValue == null && euroValue == null) {
+            setError("Enter the result in units or euro.");
             return;
           }
         }
         body = {
           outcome,
           realized_units: unitsValue,
-          realized_result: unitsValue != null ? unitsValue * unitValue : null,
+          realized_result: euroValue,
         };
       } else {
         const trimmed = realizedResult.trim();
@@ -1284,35 +1353,41 @@ function ResolveModal({
 
           {isUnitMode ? (
             <div>
-              <label className="block text-xs text-muted mb-1.5">
-                Result (units)
-              </label>
-              <input
-                type="number"
-                step="any"
-                value={outcome === "void" ? "0" : unitsInput}
-                disabled={outcome === "void"}
-                onChange={(e) => setUnitsInput(e.target.value)}
-                placeholder="auto from odds"
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 tabular-nums disabled:opacity-50"
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-muted mb-1.5">
+                    Result (units)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={outcome === "void" ? "0" : unitsInput}
+                    disabled={outcome === "void"}
+                    onChange={(e) => onUnitsChange(e.target.value)}
+                    placeholder="auto from odds"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 tabular-nums disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted mb-1.5">
+                    Result ({currency})
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={outcome === "void" ? "0" : euroInput}
+                    disabled={outcome === "void"}
+                    onChange={(e) => onEuroChange(e.target.value)}
+                    placeholder="actual money"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-accent/50 transition-all placeholder-muted/50 tabular-nums disabled:opacity-50"
+                  />
+                </div>
+              </div>
               <p className="text-[10px] text-muted/60 mt-1.5">
                 Auto-calculated from your odds (
                 {prediction.odds != null ? `@ ${prediction.odds}` : "no odds set"})
-                and stake ({fmtUnits(prediction.stake_units)}). Editable.
-                {outcome !== "void" && previewUnits != null && (
-                  <>
-                    {" "}
-                    ≈{" "}
-                    <span
-                      className={
-                        previewUnits >= 0 ? "text-win" : "text-loss"
-                      }
-                    >
-                      {fmtMoney(previewUnits * unitValue, currency, true)}
-                    </span>
-                  </>
-                )}
+                and stake ({fmtUnits(prediction.stake_units)}). Edit either — the
+                other updates. The € value is stored as your actual money result.
               </p>
             </div>
           ) : (

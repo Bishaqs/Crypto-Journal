@@ -125,10 +125,11 @@ export function usePredictionStats(
     // Fixed euro value of one unit — constant by design (see below).
     const unitValue = (bankroll * unitPct) / 100;
 
-    // Realized P/L + best/worst over resolved bets, all in currency.
-    // For unit-staked bets we derive euros from the FIXED unit value so the
-    // figure never drifts; euro-only legacy bets fall back to stored euros.
+    // Realized euro P/L per bet. The stored realized_result is the user's ACTUAL
+    // money result (entered at resolve time) and is the source of truth. Only
+    // when it's missing do we derive euros from units × the fixed unit value.
     function realizedEuro(p: PredictionMarket): number {
+      if (p.realized_result != null) return p.realized_result;
       if (p.stake_units != null) {
         const ru =
           p.realized_units != null
@@ -136,7 +137,7 @@ export function usePredictionStats(
             : realizedUnits(p.outcome, p.stake_units, p.odds) ?? 0;
         return ru * unitValue;
       }
-      return p.realized_result ?? 0;
+      return 0;
     }
 
     let realizedPnl = 0;
@@ -173,11 +174,10 @@ export function usePredictionStats(
     }
     const roiPct = unitsStaked > 0 ? (unitsPnl / unitsStaked) * 100 : 0;
 
-    // One unit is always unitPct% of the reference bankroll (unitValue above) —
-    // constant by design, so a unit's euro worth, and therefore every bet's euro
-    // amount, never drifts as results come in. The euros are the ground truth;
-    // only the unit count can change (if you change settings).
-    const bankrollPnl = unitsPnl * unitValue;
+    // Euro P/L for the bankroll bar = the actual realized euros (same figure as
+    // Realized P/L above), so it reflects the real money won/lost, not just
+    // unit math. Units P/L (unitsPnl) is tracked separately and shown alongside.
+    const bankrollPnl = realizedPnl;
 
     return {
       resolvedCount,
